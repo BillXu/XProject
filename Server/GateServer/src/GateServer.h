@@ -13,24 +13,20 @@ public:
 	bool OnLostSever(Packet* pMsg)override;
 	bool init();
 	CServerNetwork* GetNetWorkForClients(){ return m_pNetWorkForClients ;}
-	void SendMsgToClient(const char* pData , int nLength , CONNECT_ID& nSendToOrExcpet ,bool bBroadcast = false );
+	void sendMsgToClient(const char* pData , int nLength , CONNECT_ID nSendToOrExcpet ,bool bBroadcast = false );
 	CGateClientMgr* GetClientMgr(){ return m_pGateManager ;}
 	void update(float fDeta );
-	void SendMsgToCenterServer(const char* pmsg, uint16_t nLen );
 	// network
-	bool OnMessage( Packet* pMsg );
+	bool OnMessage(Packet* pPacket)override;
+	bool onLogicMsg(stMsg* prealMsg, eMsgPort eSenderPort, uint32_t nSenderID)override;
 	uint16_t getLocalSvrMsgPortType(){ return ID_MSG_PORT_GATE ; }
-	uint32_t GenerateSessionID();
+	uint32_t generateSessionID();
 	void onExit();
-protected:
-	void OnMsgFromOtherSrvToGate(stMsg* pmsg, uint16_t eSendPort , uint32_t nSessioniD );
 protected:
 	static CGateServer* s_GateServer ;
 	CServerNetwork* m_pNetWorkForClients ;
 	CGateClientMgr* m_pGateManager ;
 
 	CSeverConfigMgr m_stSvrConfigMgr ;
-	uint16_t m_nSvrIdx ;  // value from Center svr ;
-	uint16_t m_nAllGeteCount ;   // value from Center svr ;
 	uint32_t m_nCurMaxSessionID ;
 };

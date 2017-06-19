@@ -194,8 +194,15 @@ bool  CCenterServerApp::OnMessage( Packet* pData )
 		msgBack.cSysIdentifer = pVerify->nSeverPortType;
 		msgBack.nTargetID = 0;
 		msgBack.nRet = 0;
+		msgBack.isReconnect = pVerify->isReconnect;
 		msgBack.uMaxSvrCount = m_vTargetServers[pVerify->nSeverPortType].getSvrCnt();
-		if (m_vTargetServers[pVerify->nSeverPortType].addServer(pSvr))
+		uint16_t nTargetIdx = -1;
+		if ( pVerify->isReconnect )
+		{
+			nTargetIdx = pVerify->nPreIdx;
+		}
+
+		if (m_vTargetServers[pVerify->nSeverPortType].addServer(pSvr, nTargetIdx))
 		{
 			msgBack.uIdx = pSvr->getIdx();
 		}
@@ -259,6 +266,8 @@ void  CCenterServerApp::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, Connec
 	if ( iter != m_vWaitVerifyServerInfo.end())
 	{
 		LOGFMTE("wait verify svr disconected ip = %s",iter->second->getIP() );
+		delete iter->second;
+		m_vWaitVerifyServerInfo.erase(iter);
 		return;
 	}
 
@@ -283,8 +292,6 @@ void  CCenterServerApp::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, Connec
 		LOGFMTE("terrible error : not connect but disconnect  a unknown peer disconnect ip = unknown") ;
 	}
 }
-
-
 
 const char* CCenterServerApp::getServerDescByType( uint16_t eType)
 {

@@ -23,6 +23,43 @@ struct stMsgJsonContent
 	PLACE_HOLDER(char* pJsMsgContent);
 };
 
+ //client reconnect ;
+struct stMsgReconnect
+	:public stMsg
+{
+public:
+	stMsgReconnect(){cSysIdentifer = ID_MSG_PORT_GATE ; usMsgType = MSG_RECONNECT ; }
+public:
+	unsigned int nSessionID ;
+};
+
+struct stMsgReconnectRet
+	:public stMsg
+{
+public:
+	stMsgReconnectRet(){cSysIdentifer = ID_MSG_PORT_CLIENT ; usMsgType = MSG_RECONNECT ; }
+public:
+	char nRet; // 0 : success , 1 failed ;
+};
+
+struct stMsgClientConnectStateChanged
+	:public stMsg
+{
+	stMsgClientConnectStateChanged() {
+		cSysIdentifer = ID_MSG_PORT_DATA, usMsgType = MSG_CLIENT_CONNECT_STATE_CHANGED;
+		memset(cIP,0,sizeof(cIP));
+	}
+	uint8_t nCurState; // 0 reconnected ok , 1 first offline , 2 do offline ,delete player ;
+	char cIP[20];
+};
+
+struct stMsgGateSvrFull
+	:public stMsg
+{
+	stMsgGateSvrFull() { cSysIdentifer = ID_MSG_PORT_CLIENT, usMsgType = MSG_GATE_SVR_IS_FULL; memset(cNextIp,0,sizeof(cNextIp)); }
+	char cNextIp[20];
+};
+
 //struct stMsgTransferData
 //:public stMsg
 //{
@@ -39,24 +76,7 @@ struct stMsgJsonContent
 //    char pData[0] ;
 //};
 
-// client reconnect ;
-//struct stMsgReconnect
-//	:public stMsg
-//{
-//public:
-//	stMsgReconnect(){cSysIdentifer = ID_MSG_PORT_GATE ; usMsgType = MSG_RECONNECT ; }
-//public:
-//	unsigned int nSessionID ;
-//};
-//
-//struct stMsgReconnectRet
-//	:public stMsg
-//{
-//public:
-//	stMsgReconnectRet(){cSysIdentifer = ID_MSG_PORT_CLIENT ; usMsgType = MSG_RECONNECT ; }
-//public:
-//	char nRet; // 0 : success , 1 failed ;
-//};
+
 //
 //struct stMsgServerDisconnect
 //	:public stMsg

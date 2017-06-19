@@ -13,15 +13,18 @@
 struct stMsgVerifyServer
 	: public stMsg
 {
-	stMsgVerifyServer() { cSysIdentifer = ID_MSG_PORT_CENTER; usMsgType = MSG_VERIFY_SERVER; }
+	stMsgVerifyServer() { cSysIdentifer = ID_MSG_PORT_CENTER; usMsgType = MSG_VERIFY_SERVER; isReconnect = false; nPreIdx = -1; }
 	uint8_t nSeverPortType;
+	bool isReconnect; 
+	uint16_t nPreIdx;
 };
 
 struct stMsgVerifyServerRet
 	:public stMsg
 {
-	stMsgVerifyServerRet() { cSysIdentifer = ID_MSG_PORT_GATE; usMsgType = MSG_VERIFY_SERVER;  uMaxSvrCount = 0; }
+	stMsgVerifyServerRet() { cSysIdentifer = ID_MSG_PORT_GATE; usMsgType = MSG_VERIFY_SERVER;  uMaxSvrCount = 0; isReconnect = false; }
 	uint8_t nRet; // 0 is ok , 1 svr is full, can not set up .  if svr is full can not set up , center svr say , can not set up more svr server , if want add more pls modify restart center svr and all svr ;
+	bool isReconnect;
 	uint16_t  uIdx ;
 	uint16_t  uMaxSvrCount ;
 };
@@ -37,7 +40,7 @@ struct stMsgTransferData
 		nSessionID = 0;
 	}
 	uint16_t nSenderPort; // who send this msg ;  eMsgPort
-	uint32_t nSessionID;
+	uint32_t nSessionID;  // may not sessionid , may be uid or roomid  depended on msg type , it means , senderID
 	char pData[0];
 };
 
@@ -45,7 +48,7 @@ struct stMsgClientDisconnect  // gate send to all data svr , data svr check if h
 	:public stMsg
 {
 public:
-	stMsgClientDisconnect() { cSysIdentifer = ID_MSG_PORT_DATA;  usMsgType = MSG_CLIENT_DISCONNECT; nTargetID = -1; }
+	stMsgClientDisconnect() { cSysIdentifer = ID_MSG_PORT_DATA;  usMsgType = MSG_CLIENT_CONNECT_STATE_CHANGED; nTargetID = -1; }
 	uint32_t nSeesionID;
 	uint8_t nState; // 0 wait for reconnect , 1 do disconnect , clear data 
 };

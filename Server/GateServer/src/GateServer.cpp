@@ -4,7 +4,6 @@
 #include "log4z.h"
 #include "GateClient.h"
 #include <assert.h>
-#define MAX_INCOME_PLAYER 5000
 CGateServer* CGateServer::s_GateServer = NULL ;
 CGateServer* CGateServer::SharedGateServer()
 {
@@ -15,7 +14,6 @@ CGateServer::CGateServer()
 {
 	m_pNetWorkForClients = NULL ;
 	m_pGateManager = NULL ;
-	m_nSvrIdx = m_nAllGeteCount = 0 ;
 	m_nCurMaxSessionID = 0 ;
 	if ( s_GateServer )
 	{
@@ -72,11 +70,6 @@ void CGateServer::update(float fDeta )
 	{
 		m_pNetWorkForClients->RecieveMsg() ;
 	}
-
-	if ( m_pGateManager )
-	{
-		m_pGateManager->UpdateReconectClientLife();
-	}
 }
 
 void CGateServer::onExit()
@@ -85,7 +78,7 @@ void CGateServer::onExit()
 	m_pGateManager->closeAllClient();
 }
 
-void CGateServer::SendMsgToClient(const char* pData , int nLength , CONNECT_ID& nSendToOrExcpet ,bool bBroadcast )
+void CGateServer::sendMsgToClient(const char* pData , int nLength , CONNECT_ID nSendToOrExcpet ,bool bBroadcast )
 {
 	if ( m_pNetWorkForClients )
 	{
@@ -93,131 +86,57 @@ void CGateServer::SendMsgToClient(const char* pData , int nLength , CONNECT_ID& 
 	}
 }
 
-void CGateServer::SendMsgToCenterServer( const char* pmsg, uint16_t nLen )
-{
-	sendMsg(pmsg,nLen);
-}
-
 bool CGateServer::OnMessage( Packet* pPacket )
 {
-	//if ( IServerApp::OnMessage(pPacket) )
-	//{
-	//	return true ;
-	//}
-
 	stMsg* pMsg = (stMsg*)pPacket->_orgdata ;
 	if ( MSG_TRANSER_DATA == pMsg->usMsgType )
 	{
 		stMsgTransferData* pData = (stMsgTransferData*)pMsg;
-		stMsg* pReal = (stMsg*)(pPacket->_orgdata + sizeof(stMsgTransferData));
-		if ( pReal->cSysIdentifer == ID_MSG_PORT_CLIENT )
+		stMsg* prealMsg = (stMsg*)(pPacket->_orgdata + sizeof(stMsgTransferData));
+		if ( ID_MSG_PORT_CLIENT == prealMsg->cSysIdentifer )
 		{
-			m_pGateManager->OnServerMsg((char*)pReal,pPacket->_len - sizeof(stMsgTransferData),pData->nSessionID ) ;
-		}
-		else if ( ID_MSG_PORT_GATE == pReal->cSysIdentifer )
-		{
-			OnMsgFromOtherSrvToGate(pReal,pData->nSenderPort,pData->nSessionID);
-		}
-		else
-		{
-			LOGFMTE("wrong msg send to gate, target port = %d, msgType = %d",pReal->cSysIdentifer, pReal->usMsgType ) ;
-		}
-	}
-	else if ( MSG_GATESERVER_INFO == pMsg->usMsgType )
-	{
-		stMsgGateServerInfo* pInfo = (stMsgGateServerInfo*)pMsg ;
-		if ( pInfo->bIsGateFull )
-		{
-			LOGFMTE("gate is full , can not setup more gate, plase colse this exe");
-			m_pNetWorkForClients = NULL ;
-			return true ;
-		}
-		m_nSvrIdx = pInfo->uIdx;
-		m_nAllGeteCount = pInfo->uMaxGateSvrCount ;
-		m_nCurMaxSessionID = m_nSvrIdx ;
-		// start gate svr for client to connected 
-		stServerConfig* pGateConfig = m_stSvrConfigMgr.GetGateServerConfig(m_nSvrIdx) ;
-		if ( nullptr == m_pNetWorkForClients )
-		{
-			m_pNetWorkForClients = new CServerNetwork ;
-			m_pNetWorkForClients->StartupNetwork(pGateConfig->nPort,MAX_INCOME_PLAYER,pGateConfig->strPassword);
-			m_pNetWorkForClients->AddDelegate(m_pGateManager) ;
-		}
+			auto pGate = m_pGateManager->getGateClientBySessionID(prealMsg->nTargetID);
+			if (pGate == nullptr)
+			{
+				LOGFMTE("why send msg to nullptr gate msg = %u, target = %u, senderID = %u", prealMsg->usMsgType, prealMsg->nTargetID, pData->nSessionID );
+				return true;
+			}
 
-		LOGFMTI("setup network for clients to client ok " );
-		LOGFMTI("Gate Server Start ok idx = %d port = %u!",m_nSvrIdx,pGateConfig->nPort ) ;
+			if (pGate->isWaitingReconnect())
+			{
+				LOGFMTE("gate is waiting reconnect , should not send msg to it , msg = %u, sender port = %u , nSendID = %u, targetID = %u", prealMsg->usMsgType, pData->nSenderPort, pData->nSessionID, prealMsg->nTargetID );
+				return true;
+			}
+			sendMsgToClient((const char*)prealMsg, pPacket->_len - sizeof(stMsgTransferData) , pGate->getNetworkID());
+			return true;
+		}
 	}
-	else
-	{
-		LOGFMTE("unknown msg = %d , from = %d",pMsg->usMsgType, pMsg->cSysIdentifer ) ;
-	}
-
-	return true ;
+	return IServerApp::OnMessage(pPacket);
 }
 
-void CGateServer::OnMsgFromOtherSrvToGate( stMsg* pmsg , uint16_t eSendPort , uint32_t uTargetSessionID )
+bool CGateServer::onLogicMsg(stMsg* prealMsg, eMsgPort eSenderPort, uint32_t nSenderID)
 {
-	if ( pmsg->usMsgType == MSG_LOGIN_INFORM_GATE_SAVE_LOG )
+	if ( IServerApp::onLogicMsg( prealMsg, eSenderPort, nSenderID ) )
 	{
-		stGateClient* pClient = m_pGateManager->GetGateClientBySessionID(uTargetSessionID) ;
-		stMsgLoginSvrInformGateSaveLog* preal = (stMsgLoginSvrInformGateSaveLog*)pmsg ;
-		if ( NULL == pClient )
-		{
-			LOGFMTE("big error !!!! can not send msg to session id = %d , client is null , msg = %d",uTargetSessionID,preal->usMsgType  ) ;
-			return  ;
-		}
-
-		stMsgSaveLog msg ;
-		memset(msg.vArg,0,sizeof(msg.vArg));
-		msg.nLogType = preal->nlogType ;
-		msg.nTargetID = preal->nUserUID ;
-		msg.nJsonExtnerLen = strlen(pClient->strIPAddress.c_str());
-
-		uint16_t nLen = sizeof(stMsgSaveLog) + msg.nJsonExtnerLen ;
-		char* pBuffer = new char[nLen];
-		memset(pBuffer,0,nLen);
-		memcpy(pBuffer,&msg,sizeof(msg));
-		memcpy(pBuffer + sizeof(msg),pClient->strIPAddress.c_str(),msg.nJsonExtnerLen);
-		sendMsg(pClient->nSessionId,pBuffer,nLen);
-		delete[] pBuffer ;
+		return true;
 	}
-
-	if ( MSG_REQUEST_CLIENT_IP == pmsg->usMsgType )
+  
+	if (ID_MSG_PORT_GATE != prealMsg->cSysIdentifer)
 	{
-		stGateClient* pClient = m_pGateManager->GetGateClientBySessionID(uTargetSessionID) ;
-		stMsgRequestClientIpRet msgRet ;
-		msgRet.nRet = 0 ;
-		memset(msgRet.vIP,0,sizeof(msgRet.vIP)) ;
-		if ( pClient == nullptr || pClient->tTimeForRemove  )
-		{
-			msgRet.nRet = 1 ;	
-		}
-		else
-		{
-			sprintf_s(msgRet.vIP,sizeof(msgRet.vIP),"%s",pClient->strIPAddress.c_str()) ;
-		}
-
-		// transer dat to center svr  ;
-		LOGFMTD("tell data svr disconnected event ") ;
-		Packet tPacket ;
-		tPacket._brocast = false ;
-		if ( pClient )
-		{
-			tPacket._connectID = pClient->nNetWorkID ;
-		}
-		else
-		{
-			return ;
-		}
-		tPacket._len = sizeof(msgRet);
-		memcpy(tPacket._orgdata,(char*)&msgRet,sizeof(msgRet)) ;
-		m_pGateManager->OnMessage(&tPacket) ;
-		return ;
+		return false;
 	}
+	
+	return false;
 }
 
-uint32_t CGateServer::GenerateSessionID()
+
+uint32_t CGateServer::generateSessionID()
 {
-	return (m_nCurMaxSessionID += m_nAllGeteCount);
+	if ( 0 == m_nCurMaxSessionID)
+	{
+		m_nCurMaxSessionID = getCurSvrIdx() + getCurSvrMaxCnt();
+		return m_nCurMaxSessionID;
+	}
+	return (m_nCurMaxSessionID += getCurSvrMaxCnt());
 }
 

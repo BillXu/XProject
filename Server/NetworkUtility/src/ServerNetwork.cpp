@@ -80,7 +80,7 @@ void CServerNetwork::SendMsg(const char* pData , int nLength , CONNECT_ID& nSend
 	m_pNetPeer->sendMsg(nSendToOrExcpet, pData,nLength);
 }
 
-void CServerNetwork::ClosePeerConnection(CONNECT_ID& nPeerToClose)
+void CServerNetwork::ClosePeerConnection(CONNECT_ID nPeerToClose)
 {
 	if ( !m_pNetPeer )
 		return ;

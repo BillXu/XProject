@@ -29,12 +29,11 @@ public:
 	virtual bool OnConnectStateChanged( eConnectState eSate, Packet* pMsg);
 	bool run();
 	void shutDown();
-	bool sendMsg( const char* pBuffer , int nLen );
-	bool sendMsg( uint32_t nSessionID , const char* pBuffer , uint16_t nLen, bool bBroadcast = false );
-	bool sendMsg( uint32_t nSessionID , Json::Value& recvValue, uint16_t nMsgID = 0 ,uint8_t nTargetPort = ID_MSG_PORT_CLIENT,bool bBroadcast = false );
+	bool sendMsg( stMsg* pBuffer , uint16_t nLen, uint32_t nSenderUID );
+	bool sendMsg( Json::Value& recvValue, uint16_t nMsgID, uint32_t nSenderUID, uint32_t nTargetID = 0 ,uint8_t nTargetPort = ID_MSG_PORT_CLIENT );
 	void stop();
-	virtual bool onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
-	virtual bool onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSessionID );
+	virtual bool onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID );
+	virtual bool onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSenderID, uint32_t nTargetID );
 	virtual bool onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult );
 	virtual void update(float fDeta );
 	virtual uint16_t getLocalSvrMsgPortType() = 0 ; // et : ID_MSG_PORT_DATA , ID_MSG_PORT_TAXAS
@@ -43,7 +42,7 @@ public:
 	bool isConnected();
 	CTimerManager* getTimerMgr(){ return m_pTimerMgr ; }
 	virtual void onExit();
-	virtual void onConnectedToSvr();
+	virtual void onConnectedToSvr( bool isReconnectMode );
 	IGlobalModule* getModuleByType( uint16_t nType );
 	CAsyncRequestQuene* getAsynReqQueue();
 protected:
@@ -53,7 +52,10 @@ protected:
 	void doConnectToTargetSvr();
 	CNetWorkMgr* getNetwork(){ return m_pNetWork ;}
 	void startHeatBeat();
+	uint16_t getCurSvrIdx() { return m_nCurSvrIdx; }
+	uint16_t getCurSvrMaxCnt() { return m_nCurSvrPortMaxCnt; }
 private:
+	bool sendMsg(const char* pBuffer, int nLen);
 	bool registerModule(IGlobalModule* pModule, uint16_t eModuleType );
 private:
 	bool m_bRunning;

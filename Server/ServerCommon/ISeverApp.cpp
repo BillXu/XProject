@@ -9,7 +9,7 @@
 #include "IGlobalModule.h"
 #include "AutoBuffer.h"
 #include "AsyncRequestQuene.h"
-#define TIME_WAIT_FOR_RECONNECT 5
+#define TIME_WAIT_FOR_RECONNECT 6
 bool IServerApp::init()
 {
 	m_bRunning = true;
@@ -91,6 +91,7 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		}
 		m_nCurSvrIdx = pRet->uIdx;
 		m_nCurSvrPortMaxCnt = pRet->uMaxSvrCount;
+		onConnectedToSvr(pRet->isReconnect);
 		LOGFMTD("log verify result idx = %u, max Cnt = %u",m_nCurSvrIdx,m_nCurSvrPortMaxCnt );
 		return true;
 	}
@@ -135,10 +136,11 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		stMsgAsyncRequestRet msgBack ;
 		msgBack.cSysIdentifer = (eMsgPort)pData->nSenderPort ;
 		msgBack.nReqSerailID = pRet->nReqSerailID ;
+		msgBack.nTargetID = pRet->nTargetID;
 		msgBack.nResultContentLen = 0 ;
 		if ( jsResult.isNull() == true )
 		{
-			sendMsg(pData->nSessionID,(char*)&msgBack,sizeof(msgBack)) ;
+			sendMsg(&msgBack,sizeof(msgBack),pData->nSessionID) ;
 		}
 		else
 		{
@@ -148,7 +150,7 @@ bool IServerApp::OnMessage( Packet* pMsg )
 			CAutoBuffer auBuffer(sizeof(msgBack) + msgBack.nResultContentLen );
 			auBuffer.addContent(&msgBack,sizeof(msgBack));
 			auBuffer.addContent(strResult.c_str(),msgBack.nResultContentLen) ;
-			sendMsg(pData->nSessionID,auBuffer.getBufferPtr(),auBuffer.getContentSize()) ;
+			sendMsg(&msgBack, sizeof(msgBack), pData->nSessionID);
 		}
 		return true ;
 	}
@@ -187,7 +189,7 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		}
 
 		uint16_t nMsgType = rootValue[JS_KEY_MSG_TYPE].asUInt() ;
-		if ( onLogicMsg(rootValue,nMsgType,(eMsgPort)pData->nSenderPort,pData->nSessionID) )
+		if ( onLogicMsg(rootValue,nMsgType,(eMsgPort)pData->nSenderPort,pData->nSessionID,preal->nTargetID) )
 		{
 			return true ;
 		}
@@ -216,10 +218,12 @@ bool IServerApp::OnLostSever(Packet* pMsg)
 	LOGFMTE("Target server disconnected !") ;
 	m_eConnectState = CNetWorkMgr::eConnectType_Disconnectd ;
 
-	m_fReconnectTick = TIME_WAIT_FOR_RECONNECT ;// right now start reconnect ;
+	m_fReconnectTick = 0 ;
 
 	m_tCheckHeatBeat.canncel();
 	m_tSendHeatBeat.canncel();
+
+	onOtherSvrShutDown( ID_MSG_PORT_CENTER, 0, 1);
 	return false ;
 }
 
@@ -233,10 +237,13 @@ bool IServerApp::OnConnectStateChanged( eConnectState eSate, Packet* pMsg)
 		stMsgVerifyServer msgVerify;
 		msgVerify.nSeverPortType = getTargetSvrPortType();
 		msgVerify.nTargetID = 0;
+		msgVerify.isReconnect = getCurSvrMaxCnt() > 0;
+		if (msgVerify.isReconnect)
+		{
+			msgVerify.nPreIdx = getCurSvrIdx();
+		}
 		m_pNetWork->SendMsg((char*)&msgVerify,sizeof(stMsgVerifyServer),pMsg->_connectID) ;
 		LOGFMTI("Connected to Target Svr") ;
-		onConnectedToSvr();
-
 		startHeatBeat();
 		return false ;
 	}
@@ -294,31 +301,37 @@ bool IServerApp::sendMsg( const char* pBuffer , int nLen )
 	return isConnected() ;
 }
 
-bool IServerApp::sendMsg(  uint32_t nSessionID , const char* pBuffer , uint16_t nLen, bool bBroadcast )
+bool IServerApp::sendMsg( stMsg* pBuffer , uint16_t nLen, uint32_t nSenderID )
 {
 	if ( isConnected() == false )
 	{
 		LOGFMTE("target svr is not connect , send msg failed") ;
 		return false ;
 	}
+
+	if (pBuffer->nTargetID == 0)
+	{
+		LOGFMTE("msg = %u target = 0 attention",pBuffer->usMsgType );
+		pBuffer->nTargetID = nSenderID;
+	}
 	stMsgTransferData msgTransData ;
 	msgTransData.nSenderPort = getLocalSvrMsgPortType() ;
-	msgTransData.nSessionID = nSessionID ;
+	msgTransData.nSessionID = nSenderID;
 	int nLne = sizeof(msgTransData) ;
 	if ( nLne + nLen >= MAX_MSG_BUFFER_LEN )
 	{
 		stMsg* pmsg = (stMsg*)pBuffer ;
-		LOGFMTE("msg send to session id = %d , is too big , cannot send , msg id = %d ",nSessionID,pmsg->usMsgType) ;
+		LOGFMTE("msg send to session id = %d , is too big , cannot send , msg id = %d ", nSenderID ,pmsg->usMsgType) ;
 		return false;
 	}
 	memcpy_s(m_pSendBuffer ,sizeof(m_pSendBuffer),&msgTransData,nLne);
-	memcpy_s(m_pSendBuffer + nLne ,sizeof(m_pSendBuffer) - nLne, pBuffer,nLen );
+	memcpy_s(m_pSendBuffer + nLne ,sizeof(m_pSendBuffer) - nLne, (char*)pBuffer,nLen );
 	nLne += nLen ;
 	sendMsg(m_pSendBuffer,nLne);
 	return true ;
 }
 
-bool IServerApp::sendMsg( uint32_t nSessionID , Json::Value& recvValue, uint16_t nMsgID,uint8_t nTargetPort, bool bBroadcast )
+bool IServerApp::sendMsg( Json::Value& recvValue, uint16_t nMsgID, uint32_t nSenderID, uint32_t nTargetID,uint8_t nTargetPort )
 {
 	if ( nMsgID )
 	{
@@ -339,11 +352,17 @@ bool IServerApp::sendMsg( uint32_t nSessionID , Json::Value& recvValue, uint16_t
 	stMsgJsonContent msg ;
 	msg.cSysIdentifer = nTargetPort ;
 	msg.nJsLen = strContent.size() ;
+	msg.nTargetID = nTargetID;
+	if ( nTargetID == 0 )
+	{
+		LOGFMTE("json msg = %u target = 0 attention", nMsgID );
+		msg.nTargetID = nSenderID;
+	}
 	CAutoBuffer bufferTemp(sizeof(msg) + msg.nJsLen);
 	bufferTemp.addContent(&msg,sizeof(msg)) ;
 	bufferTemp.addContent(strContent.c_str(),msg.nJsLen) ;
 	//LOGFMTD("session id = %u , target port = %u, len = %u send : %s",nSessionID,nTargetPort,bufferTemp.getContentSize(),strContent.c_str());
-	return sendMsg(nSessionID,bufferTemp.getBufferPtr(),bufferTemp.getContentSize(),bBroadcast) ; 
+	return sendMsg((stMsg*)bufferTemp.getBufferPtr(),bufferTemp.getContentSize(), nSenderID) ;
 }
 
 void IServerApp::stop()
@@ -351,11 +370,11 @@ void IServerApp::stop()
 	m_bRunning = false ;
 }
 
-bool IServerApp::onLogicMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID)
+bool IServerApp::onLogicMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID )
 {
 	for ( auto pp : m_vAllModule )
 	{
-		if ( pp.second->onMsg(prealMsg,eSenderPort,nSessionID) )
+		if ( pp.second->onMsg(prealMsg,eSenderPort, nSenderID) )
 		{
 			return true ;
 		}
@@ -363,11 +382,11 @@ bool IServerApp::onLogicMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nS
 	return false ;
 }
 
-bool IServerApp::onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSessionID )
+bool IServerApp::onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSenderID, uint32_t nTargetID )
 {
 	for ( auto pp : m_vAllModule )
 	{
-		if ( pp.second->onMsg(recvValue,nmsgType,eSenderPort,nSessionID) )
+		if ( pp.second->onMsg(recvValue,nmsgType,eSenderPort, nSenderID) )
 		{
 			return true ;
 		}
@@ -476,7 +495,7 @@ void IServerApp::onExit()
 	getNetwork()->RemoveAllDelegate();
 }
 
-void IServerApp::onConnectedToSvr()
+void IServerApp::onConnectedToSvr( bool isReconnectMode )
 {
 	for ( auto pp : m_vAllModule )
 	{
@@ -582,6 +601,8 @@ void IServerApp::startHeatBeat()
 		if (m_pNetWork)
 		{
 			m_pNetWork->DisconnectServer();
+			m_tSendHeatBeat.canncel();
+			m_tCheckHeatBeat.canncel();
 		}
 	}
 	);

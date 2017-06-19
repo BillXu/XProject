@@ -26,7 +26,7 @@ public:
 	void ShutDown();
 	void RecieveMsg();
 	void SendMsg(const char* pData , int nLength , CONNECT_ID& nSendToOrExcpet ,bool bBroadcast = false );
-	void ClosePeerConnection(CONNECT_ID& nPeerToClose);
+	void ClosePeerConnection(CONNECT_ID nPeerToClose);
 	void AddDelegate(CServerNetworkDelegate* pDelegate , unsigned int nPriority = 0 );
 	void RemoveDelegate(CServerNetworkDelegate* pDelegate );
 protected:

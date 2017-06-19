@@ -8,17 +8,12 @@
 #include "ServerMessageDefine.h"
 #include "ServerNetwork.h"
 #include <time.h>
-#define TIME_WAIT_FOR_RECONNECTE 20*60
-#ifdef _DEBUG
-#define TIME_WAIT_FOR_RECONNECTE 50
-#endif
+#define MAX_INCOME_PLAYER 2000
 CGateClientMgr::CGateClientMgr()
 {
 	m_vNetWorkIDGateClientIdx.clear();
 	m_vSessionGateClient.clear() ;
-	m_vWaitToReconnect.clear();
 	m_vGateClientReserver.clear();
-	memset(m_pMsgBuffer,0,MAX_MSG_BUFFER_LEN) ;
 }
 
 CGateClientMgr::~CGateClientMgr()
@@ -33,14 +28,12 @@ CGateClientMgr::~CGateClientMgr()
 	// just clear ; object deleted in session Gate ;
 	m_vNetWorkIDGateClientIdx.clear() ;
 
-	LIST_GATE_CLIENT::iterator iter = m_vGateClientReserver.begin() ;
+	SET_GATE_CLIENT::iterator iter = m_vGateClientReserver.begin() ;
 	for ( ; iter != m_vGateClientReserver.end(); ++iter )
 	{
 		delete *iter ;
 	}
 	m_vGateClientReserver.clear() ;
-
-	m_vWaitToReconnect.clear();
 }
 
 bool CGateClientMgr::OnMessage( Packet* pData )
@@ -50,69 +43,65 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 	CHECK_MSG_SIZE(stMsg,pData->_len);
 	if ( MSG_VERIFY_CLIENT == pMsg->usMsgType )
 	{
-		std::string pIPInfo = "ip"; //CGateServer::SharedGateServer()->GetNetWorkForClients()->GetIPInfoByConnectID(pData->_connectID);
-		stGateClient* pGateClient = GetReserverGateClient();
-		if ( !pGateClient )
+		auto pGate = GetGateClientByNetWorkID(pData->_connectID);
+		if (pGate == nullptr)
 		{
-			pGateClient = new stGateClient ;
+			LOGFMTE("you do not connect how to send verify msg");
+			return true;
 		}
-
-		pGateClient->Reset(CGateServer::SharedGateServer()->GenerateSessionID(),pData->_connectID,pIPInfo.c_str()) ;
-		AddClientGate(pGateClient);
-		LOGFMTI("a Client connected ip = %s Session id = %d",pGateClient->strIPAddress.c_str(),pGateClient->nSessionId ) ;
-		LOGFMTI("current online cnt = %d", m_vSessionGateClient.size() - m_vWaitToReconnect.size() ) ;
-
-		stMsgControlFlag msgFlag ;
-		msgFlag.nFlag = 0 ;
-		msgFlag.nVerfion = 5 ;
-		CGateServer::SharedGateServer()->SendMsgToClient((char*)&msgFlag,sizeof(msgFlag),pData->_connectID,false) ;
+		pGate->doVerifyed();
 		return true;
 	}
 
+	if (MSG_HEAT_BEAT == pMsg->usMsgType)
+	{
+		stGateClient* pCurGate = GetGateClientByNetWorkID(pData->_connectID);
+		if (pCurGate == nullptr)
+		{
+			LOGFMTE("received heat beat , but gate is nullptr");
+			return true;
+		}
+		pCurGate->doRecivedHeatBet();
+		return true;
+	}
 	// client reconnect ;
 	if ( MSG_RECONNECT == pMsg->usMsgType )
 	{
 		stMsgReconnect* pRet = (stMsgReconnect*)pMsg ;
 		CHECK_MSG_SIZE(stMsgReconnect,pData->_len);
-		MAP_SESSIONID_GATE_CLIENT::iterator iter = m_vWaitToReconnect.find(pRet->nSessionID);
-		bool bReconnectOk = iter != m_vWaitToReconnect.end() && iter->second != NULL ;
-		stGateClient* pNew = nullptr ;
+		auto pBeConnectGate = getGateClientBySessionID(pRet->nSessionID);
+		bool bReconnectOk = pBeConnectGate != NULL && pBeConnectGate->getBindUID() > 0 ;
+		stGateClient* pCurGate = GetGateClientByNetWorkID(pData->_connectID);
+		if (pCurGate == nullptr)
+		{
+			LOGFMTE("do reconnect why cur player is nullptr ?");
+			bReconnectOk = false;
+		}
+
 		if ( bReconnectOk )
 		{
 			// remove origin 
-			RemoveClientGate(iter->second);
+			removeActiveClientGate(pCurGate);
+			removeActiveClientGate(pBeConnectGate);
+			pCurGate->onReconnected(pBeConnectGate);
+			addClientGate(pCurGate);
 
-			// bind current Client to origin sesssion id ;
-			pNew = GetGateClientByNetWorkID(pData->_connectID);
-			if ( pNew )
-			{
-				 MAP_SESSIONID_GATE_CLIENT::iterator iterS = m_vSessionGateClient.find(pNew->nSessionId);
-				 if ( iterS == m_vSessionGateClient.end() )
-				 {
-					 LOGFMTE("why my session id = %d targe is null",pNew->nSessionId );
-				 }
-				 else
-				 {
-					 m_vSessionGateClient.erase(iterS);
-				 }
-				 pNew->nSessionId = pRet->nSessionID;
-				 m_vSessionGateClient[pNew->nSessionId] = pNew ;
-			}
-		}
+			pBeConnectGate->reset();
+			addToResever(pBeConnectGate );
 
-		stMsgReconnectRet msgback ;
-		msgback.nRet = (bReconnectOk ? 0 : 1 ) ;
-		// send msg to client ;
-		CGateServer::SharedGateServer()->SendMsgToClient((char*)&msgback,sizeof(msgback),pData->_connectID,false) ;
-		if ( bReconnectOk )
-		{
-			LOGFMTI("MSG¡¡reconnected ! session id = %d",pRet->nSessionID );
-
-			stMsgSyncClientNetState msgRet ;
-			msgRet.nState = 1 ;
-			CGateServer::SharedGateServer()->sendMsg(pRet->nSessionID,(char*)&msgRet,sizeof(msgRet)) ;
+			LOGFMTI("MSG¡¡reconnected ! session id = %d", pRet->nSessionID);
+			stMsgClientConnectStateChanged msgRet;
+			msgRet.nCurState = 0;
+			msgRet.nTargetID = pCurGate->getBindUID();
+			sprintf_s(msgRet.cIP, sizeof(msgRet.cIP), "%s", pCurGate->getIP());
+			CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pCurGate->getSessionID() );
 			LOGFMTD("tell data svr reconnected ok");
 		}
+
+		// send msg to client ;
+		stMsgReconnectRet msgback ;
+		msgback.nRet = (bReconnectOk ? 0 : 1 ) ;
+		CGateServer::SharedGateServer()->sendMsgToClient( (char*)&msgback,sizeof(msgback),pData->_connectID ) ;
 		return true ;
 	}
 
@@ -125,27 +114,12 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 		return true ;
 	}
 
-	if ( CheckServerStateOk(pDstClient) == false )
+	if ( pMsg->nTargetID == 0 )
 	{
-		LOGFMTE("center server is disconnected so can not send msg to it ");
-		return true ;
+		LOGFMTE("client send msg = %u , port = %d targetid  is null, uid = %u",pMsg->usMsgType,pMsg->cSysIdentifer,pDstClient->getBindUID());
 	}
 
-	stMsgTransferData msgTransData ;
-	msgTransData.nSenderPort = ID_MSG_PORT_CLIENT ;
-	msgTransData.bBroadCast = false ;
-	msgTransData.nSessionID = pDstClient->nSessionId ;
-	int nLne = sizeof(msgTransData) ;
-	if ( nLne + pData->_len >= MAX_MSG_BUFFER_LEN )
-	{
-		stMsg* pmsg = (stMsg*)pData->_orgdata ;
-		LOGFMTE("msg from session id = %d , is too big , cannot send , msg id = %d ",pDstClient->nSessionId,pmsg->usMsgType) ;
-		return true ;
-	}
-	memcpy(m_pMsgBuffer,&msgTransData,nLne);
-	memcpy(m_pMsgBuffer + nLne , pData->_orgdata,pData->_len );
-	nLne += pData->_len ;
-	CGateServer::SharedGateServer()->SendMsgToCenterServer(m_pMsgBuffer,nLne);
+	CGateServer::SharedGateServer()->sendMsg( pMsg,pData->_len ,pDstClient->getSessionID() );
 	return true ;
 }
 
@@ -157,39 +131,42 @@ void CGateClientMgr::closeAllClient()
 	for ( ; iter != m_vSessionGateClient.end() ;  )
 	{
 		// tell other server the peer disconnect
+		if (iter->second != nullptr && iter->second->getBindUID() )
 		{
-			stMsgClientDisconnect msgdis ;
-			msgdis.nSeesionID = iter->second->nSessionId ;
-			CGateServer::SharedGateServer()->SendMsgToCenterServer((char*)&msgdis,sizeof(msgdis));
+			stMsgClientConnectStateChanged msgRet;
+			msgRet.nCurState = 2;
+			msgRet.nTargetID = iter->second->getBindUID();
+			CGateServer::SharedGateServer()->sendMsg( &msgRet, sizeof(msgRet), iter->second->getSessionID() );
+			auto nConnectID = iter->second->getNetworkID();
+			CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(nConnectID);
 		}
+		
+		removeActiveClientGate(iter->second) ;
+		addToResever(iter->second);
 
-		CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(iter->second->nNetWorkID) ;
-		RemoveClientGate(iter->second) ;
 		iter = m_vSessionGateClient.begin() ;
 	}
 }
 
-void CGateClientMgr::OnServerMsg( const char* pRealMsgData, uint16_t nDataLen,uint32_t uTargetSessionID )
+void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWaitReconnect )
 {
-	stGateClient* pClient = GetGateClientBySessionID(uTargetSessionID) ;
-	stMsg* pReal = (stMsg*)pRealMsgData ;
-	if ( NULL == pClient )
+	if ( isWaitReconnect )
 	{
-		LOGFMTE("big error !!!! can not send msg to session id = %d , client is null , msg = %d",uTargetSessionID,pReal->usMsgType  ) ;
-		return  ;
+		if ( pGateClient->getBindUID() > 0 )
+		{
+			LOGFMTD("uid = %u start to wait reconnected",pGateClient->getBindUID() );
+			pGateClient->startWaitReconnect();
+			return;
+		}
 	}
-
-	if ( pClient->tTimeForRemove )
-	{
-		//LOGFMTD("client is waiting for reconnected session id = %d, msg = %d",uTargetSessionID,pReal->usMsgType) ;
-		return ;
-	}
-
-	CGateServer::SharedGateServer()->SendMsgToClient(pRealMsgData,nDataLen,pClient->nNetWorkID ) ;
+	CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(pGateClient->getNetworkID());
+	removeActiveClientGate(pGateClient);
+	addToResever(pGateClient);
 }
 
 void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo)
 {
+	std::string strIP = "ip null";
 	if ( IpInfo )
 	{
 		LOGFMTD("a peer connected ip = %s ,port = %d",IpInfo->strAddress,IpInfo->nPort ) ;
@@ -199,66 +176,62 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 		LOGFMTD("a peer connected ip = NULL" ) ;
 	}
 	
-	//stMsg msg ;
-	//msg.cSysIdentifer = ID_MSG_VERIFY ;
-	//msg.usMsgType = MSG_VERIFY_GATE ;
-	//// send msg to peer ;
-	//CGateServer::SharedGateServer()->GetNetWork()->SendMsg((char*)&msg,sizeof(msg),pData->guid,false) ;
+	auto pGate = getReserverGateClient();
+	if (pGate == nullptr)
+	{
+		pGate = new stGateClient();
+	}
+
+	pGate->init(CGateServer::SharedGateServer()->generateSessionID(), nNewPeer,strIP.c_str());
+	pGate->setCloseCallBack(std::bind(&onGateCloseCallBack,this,std::placeholders::_1,std::placeholders::_2));
+	addClientGate(pGate);
+	
+	// check pai dui 
+	if ( m_vSessionGateClient.size() > MAX_INCOME_PLAYER )
+	{
+		pGate->delayClose();
+		// send msg to tell client svr is full ;
+		stMsgGateSvrFull stFull;
+		sendMsgToClient(&stFull,sizeof(stFull),pGate->getNetworkID());
+		LOGFMTE("gate is full , please try other gate , cnt = %u",m_vSessionGateClient.size());
+	}
 }
 
-void CGateClientMgr::OnPeerDisconnected(CONNECT_ID nPeerDisconnected, ConnectInfo* IpInfo  )
+void CGateClientMgr::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectInfo* IpInfo  )
 {
 	// client disconnected ;
 	stGateClient* pDstClient = GetGateClientByNetWorkID(nPeerDisconnected) ;
-	if ( pDstClient )
+	if ( pDstClient == nullptr || pDstClient->isWaitingReconnect() )
 	{
-		if ( pDstClient->tTimeForRemove )
-		{
-			LOGFMTE("already wait to reconnected");
-			return ;
-		}
-
-		pDstClient->tTimeForRemove = time(NULL) + TIME_WAIT_FOR_RECONNECTE ;
-		m_vWaitToReconnect[pDstClient->nSessionId] = pDstClient;
-
-		stMsgSyncClientNetState msgRet ;
-		msgRet.nState = 0 ;
-		CGateServer::SharedGateServer()->sendMsg(pDstClient->nSessionId,(char*)&msgRet,sizeof(msgRet)) ;
-
-		if ( IpInfo )
-		{
-			LOGFMTI("client disconnected ip = %s, port = %d, wait for reconnect",IpInfo->strAddress,IpInfo->nPort ) ;
-		}
-		return ;
+		LOGFMTE("gate peer is nullptr , why you get disconnect again ? ");
+		return;
 	}
 
-	if ( IpInfo )
-	{
-		LOGFMTE("not verify peer disconnected ip = %s, port = %d",IpInfo->strAddress,IpInfo->nPort ) ;
-	}
+	LOGFMTD("one gate peer disconnected");
+	onGateCloseCallBack(pDstClient,pDstClient->getBindUID() > 0 );
 }
 
-void CGateClientMgr::AddClientGate(stGateClient* pGateClient )
+void CGateClientMgr::addClientGate(stGateClient* pGateClient )
 {
-	auto iter = m_vNetWorkIDGateClientIdx.find(pGateClient->nNetWorkID) ;
+	auto iter = m_vNetWorkIDGateClientIdx.find(pGateClient->getNetworkID() ) ;
 	if ( iter != m_vNetWorkIDGateClientIdx.end() )
 	{
 		LOGFMTE("why this pos already have data client") ;
-		RemoveClientGate(iter->second);
+		removeActiveClientGate(iter->second);
 	}
 
-	auto iterS = m_vSessionGateClient.find(pGateClient->nSessionId) ;
+	auto iterS = m_vSessionGateClient.find(pGateClient->getSessionID) ;
 	if ( iterS != m_vSessionGateClient.end() )
 	{
-		LOGFMTE("why this pos session id = %d had client data",pGateClient->nSessionId) ;
-		RemoveClientGate(iterS->second);
+		LOGFMTE("why this pos session id = %d had client data",pGateClient->getSessionID()) ;
+		removeActiveClientGate(iter->second);
 	}
 
-	m_vNetWorkIDGateClientIdx[pGateClient->nNetWorkID] = pGateClient ;
-	m_vSessionGateClient[pGateClient->nSessionId] = pGateClient ;
+	m_vNetWorkIDGateClientIdx[pGateClient->getNetworkID()] = pGateClient ;
+	m_vSessionGateClient[pGateClient->getSessionID()] = pGateClient ;
 }
 
-void CGateClientMgr::RemoveClientGate(stGateClient* pGateClient )
+void CGateClientMgr::removeActiveClientGate(stGateClient* pGateClient )
 {
 	if ( pGateClient == NULL )
 	{
@@ -266,109 +239,45 @@ void CGateClientMgr::RemoveClientGate(stGateClient* pGateClient )
 		return ;
 	}
 
-	MAP_NETWORKID_GATE_CLIENT::iterator iterN = m_vNetWorkIDGateClientIdx.find(pGateClient->nNetWorkID) ;
+	MAP_NETWORKID_GATE_CLIENT::iterator iterN = m_vNetWorkIDGateClientIdx.find(pGateClient->getNetworkID()) ;
 	if ( iterN != m_vNetWorkIDGateClientIdx.end() )
 	{
 		m_vNetWorkIDGateClientIdx.erase(iterN) ;
 	}
 	else
 	{
-		LOGFMTE("can not find net work id = %d to remove",pGateClient->nNetWorkID ) ;
+		LOGFMTE("can not find net work id = %d to remove ip = %s",pGateClient->getNetworkID(),pGateClient->getIP() ) ;
 	}
 	
-	MAP_SESSIONID_GATE_CLIENT::iterator iterS = m_vSessionGateClient.find(pGateClient->nSessionId );
+	MAP_SESSIONID_GATE_CLIENT::iterator iterS = m_vSessionGateClient.find( pGateClient->getSessionID() );
 	if ( iterS != m_vSessionGateClient.end() )
 	{
 		m_vSessionGateClient.erase(iterS) ;
 	}
 	else
 	{
-		LOGFMTD("can not find session id = %d to remove",pGateClient->nSessionId ) ;
+		LOGFMTD("can not find session id = %d to remove ip = %s",pGateClient->getSessionID(),pGateClient->getIP() ) ;
 	}
-
-	iterS = m_vWaitToReconnect.find(pGateClient->nSessionId) ;
-	if ( iterS != m_vWaitToReconnect.end() )
-	{
-		m_vWaitToReconnect.erase(iterS) ;
-	}
-	else
-	{
-		LOGFMTE("why can not find session id = %d to remove from vWaiReconecte",pGateClient->nSessionId) ;
-	}
-	
-	pGateClient->Reset(0,INVALID_CONNECT_ID,NULL) ;
-	m_vGateClientReserver.push_back(pGateClient) ;
 }
 
-stGateClient* CGateClientMgr::GetReserverGateClient()
+stGateClient* CGateClientMgr::getReserverGateClient()
 {
 	stGateClient* pGateClient = NULL ;
 	if ( m_vGateClientReserver.empty() == false )
 	{
-		pGateClient = m_vGateClientReserver.front() ;
-		m_vGateClientReserver.erase(m_vGateClientReserver.begin()) ;
+		auto iter = m_vGateClientReserver.begin();
+		pGateClient =  *iter;
+		m_vGateClientReserver.erase(iter) ;
 	}
 	return pGateClient ;
 }
 
-stGateClient* CGateClientMgr::GetGateClientBySessionID(unsigned int nSessionID)
+stGateClient* CGateClientMgr::getGateClientBySessionID( uint32_t nSessionID)
 {
 	MAP_SESSIONID_GATE_CLIENT::iterator iter = m_vSessionGateClient.find(nSessionID) ;
 	if ( iter == m_vSessionGateClient.end() )
 		return NULL ;
 	return iter->second ;
-}
-
-void CGateClientMgr::UpdateReconectClientLife()
-{
-	if ( m_vWaitToReconnect.empty() )
-	{
-		return ;
-	}
-
-	time_t tNow = time(NULL) ;
-	LIST_GATE_CLIENT vWillRemove ;
-	MAP_SESSIONID_GATE_CLIENT::iterator iter = m_vWaitToReconnect.begin();
-	for ( ; iter != m_vWaitToReconnect.end(); ++iter )
-	{
-		if ( iter->second == NULL )
-		{
-			LOGFMTE("why this null client wait reconnect");
-			continue;
-		}
-
-		if ( iter->second->tTimeForRemove == 0 )
-		{
-			LOGFMTE("big error , timeForRemove can not be 0 ") ;
-		}
-
-		if ( iter->second->tTimeForRemove <= tNow )
-		{
-			vWillRemove.push_back(iter->second) ;
-		}
-	}
-
-	// do remove 
-	LIST_GATE_CLIENT::iterator iterRemove = vWillRemove.begin() ;
-	for ( ; iterRemove != vWillRemove.end(); ++iterRemove )
-	{
-		stGateClient* p = *iterRemove ;
-		if ( p == NULL )
-		{
-			continue;
-		}
-		// tell other server the peer disconnect
-		{
-			stMsgClientDisconnect msgdis ;
-			msgdis.nSeesionID = p->nSessionId ;
-			CGateServer::SharedGateServer()->SendMsgToCenterServer((char*)&msgdis,sizeof(msgdis));
-		}
-
-		// do remove 
-		LOGFMTI("session id = %d , ip = %s , wait reconnect time out ,do exit game",p->nSessionId,p->strIPAddress.c_str()) ;
-		RemoveClientGate(p);
-	}
-	vWillRemove.clear();
 }
 
 stGateClient* CGateClientMgr::GetGateClientByNetWorkID(CONNECT_ID& nNetWorkID )
@@ -379,15 +288,25 @@ stGateClient* CGateClientMgr::GetGateClientByNetWorkID(CONNECT_ID& nNetWorkID )
 	return NULL ;
 }
 
-bool CGateClientMgr::CheckServerStateOk( stGateClient* pClient)
+void CGateClientMgr::addToResever( stGateClient* pClient )
 {
-	bool b = CGateServer::SharedGateServer()->isConnected() ;
-	if ( b )
+	if (pClient == nullptr)
 	{
-		return true ;
+		LOGFMTE("why add a null gate client to reserver");
+		return;
 	}
-	stMsgServerDisconnect msg ;
-	msg.nServerType = eSvrType_Center ;
-	CGateServer::SharedGateServer()->SendMsgToClient((char*)&msg,sizeof(msg),pClient->nNetWorkID ) ;
-	return false ;
+	pClient->reset();
+	m_vGateClientReserver.insert(m_vGateClientReserver.end(),pClient);
+	if (m_vGateClientReserver.size() > 600)
+	{
+		auto iter = m_vGateClientReserver.begin();
+		delete *iter;
+		m_vGateClientReserver.erase(iter);
+		LOGFMTE("reserve more than 600 , must delte one ");
+	}
+}
+
+void CGateClientMgr::sendMsgToClient( stMsg* pmsg, uint16_t nLen, CONNECT_ID nNetWorkID )
+{
+	CGateServer::SharedGateServer()->sendMsgToClient((char*)pmsg, nLen, nNetWorkID);
 }

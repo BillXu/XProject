@@ -85,8 +85,27 @@ uint16_t ServerGroup::getSvrCnt()
 	return m_vSvrs.size();
 }
 
-bool ServerGroup::addServer(SeverInfo* pSvr)
+bool ServerGroup::addServer(SeverInfo* pSvr, uint16_t nTargetIdx )
 {
+	if ((uint16_t)-1 != nTargetIdx)
+	{
+		if ( m_vSvrs.size() <= nTargetIdx )
+		{
+			LOGFMTE("reconnect svr idx = %u , is overflow , port = %s ip = %s",nTargetIdx,getPortDesc(),pSvr->getIP() );
+			return false;
+		}
+
+		if ( m_vSvrs[nTargetIdx] != nullptr )
+		{
+			LOGFMTE("reconnect svr idx = %u , already have obj ip = %s , port = %s ip = %s", nTargetIdx, m_vSvrs[nTargetIdx]->getIP(), getPortDesc(), pSvr->getIP());
+			return false;
+		}
+		pSvr->setInfo(nTargetIdx, pSvr->getNetworkID());
+		m_vSvrs[nTargetIdx] = pSvr;
+		LOGFMTI("svr reconnected port = %s, ip = %s idx = %u", getPortDesc(), pSvr->getIP(),nTargetIdx );
+		return true;
+	}
+
 	for (uint8_t nIdx = 0; nIdx < m_vSvrs.size(); ++nIdx)
 	{
 		if (m_vSvrs[nIdx] == nullptr)

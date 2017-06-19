@@ -32,15 +32,16 @@ enum eMsgType
 	//--new define begin---
 	// the msg title used between servers 
 	MSG_SERVERS_USE,
-	MSG_VERIFY_SERVER,
+	MSG_VERIFY_SERVER,   // used between svr , not by transfer data ;
 	MSG_TRANSER_DATA, // tranfer data between servers ;
-	MSG_CLIENT_DISCONNECT,  // client disconnected ;
-	MSG_SERVER_DISCONNECT, // some svr disconnected ;
-	MSG_TELL_CLIENT_SVR_DISCONNECT, // tell client svr
-	MSG_HEAT_BEAT, // heat beat msg  ;
+	MSG_SERVER_DISCONNECT, // some svr disconnected ;  // svr recived , send by center svr , not by transfer data ;
+	MSG_HEAT_BEAT, // heat beat msg  ;   not by transfer data ;
 	MSG_ASYNC_REQUEST, // asyn request 
 	MSG_JSON_CONTENT,
-
+	MSG_RECONNECT,   // client with gate 
+	MSG_TELL_CLIENT_SVR_DISCONNECT, // tell client svr
+	MSG_CLIENT_CONNECT_STATE_CHANGED,  // client connect state changed ;  // send by gate 
+	MSG_GATE_SVR_IS_FULL, // gate connect is full , let client change other gate ;
 
 
 
@@ -77,7 +78,7 @@ enum eMsgType
 	MSG_SAVE_LOG,
 	MSG_LOGIN_INFORM_GATE_SAVE_LOG,
 	// msg title used between server and client ;
-	MSG_RECONNECT,   // client with gate 
+	
 	MSG_SAVE_PLAYER_MONEY, // send to DB ;
 	MSG_SAVE_COMMON_LOGIC_DATA,
 	MSG_SAVE_DB_LOG, // save log inter log db ;

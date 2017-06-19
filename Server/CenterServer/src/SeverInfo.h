@@ -36,7 +36,7 @@ public:
 	~ServerGroup();
 	void init( eMsgPort nPortType, uint16_t nMaxSvrCnt );
 	uint16_t getSvrCnt();
-	bool addServer(SeverInfo* pSvr);
+	bool addServer(SeverInfo* pSvr, uint16_t nTargetIdx = -1 );
 	bool removeServer( CONNECT_ID nSvrConnect );
 	CONNECT_ID getNetworkIDByTargetID( uint32_t nMsgTargetID );
 	SeverInfo* getServerByConnectID( CONNECT_ID nSvrConnect );

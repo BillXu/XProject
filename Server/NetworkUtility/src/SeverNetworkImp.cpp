@@ -89,7 +89,7 @@ void CServerNetworkImp::doCloseSession( uint32_t nConnectID , bool bServerClose 
 
 	//if ( bServerClose == false ) //  always post this disconnect notice 
 	{
-		Packet* pack = new Packet;
+		Packet* pack = new Packet();
 		pack->_brocast = false;
 		pack->_packetType = _PACKET_TYPE_DISCONNECT;
 		pack->_connectID = nConnectID;
@@ -148,7 +148,9 @@ bool CServerNetworkImp::getFirstPacket(Packet** ppPacket ) // must delete out si
 void CServerNetworkImp::closePeerConnection( uint32_t nConnectID )
 {
 	LOGFMTD("post close id = %u", nConnectID );
-	m_ioService.post(std::bind(&CServerNetworkImp::doCloseSession, this, nConnectID, true) );
+	auto p = std::bind(&CServerNetworkImp::doCloseSession, this, nConnectID, true);
+	//	m_ptrStrand->wrap([this, ptrSession](const asio::error_code& error) { handleAccept(error, ptrSession); })
+	m_ioService.post(m_ptrStrand->wrap(p));
 }
 
 void CServerNetworkImp::addPacket(Packet* pPacket )
