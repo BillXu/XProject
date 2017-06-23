@@ -84,9 +84,9 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		stMsgVerifyServerRet* pRet = (stMsgVerifyServerRet*)pmsg;
 		if (pRet->nRet)
 		{
-			LOGFMTE("cur svr type is full , can not connect more stop the svr");
+			LOGFMTE("cur svr type is full , can not connect more stop the svr, cur svr will exit");
+			m_isSvrFull = true;
 			stop();
-			Sleep(3000);
 			return true;
 		}
 		m_nCurSvrIdx = pRet->uIdx;
@@ -136,7 +136,7 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		stMsgAsyncRequestRet msgBack ;
 		msgBack.cSysIdentifer = (eMsgPort)pData->nSenderPort ;
 		msgBack.nReqSerailID = pRet->nReqSerailID ;
-		msgBack.nTargetID = pRet->nTargetID;
+		msgBack.nTargetID = pData->nSessionID;
 		msgBack.nResultContentLen = 0 ;
 		if ( jsResult.isNull() == true )
 		{
@@ -275,6 +275,8 @@ bool IServerApp::run()
 	LOGFMTI("sleep 4k mili seconds");
 	Sleep(4000);
 	shutDown();
+	LOGFMTI("sleep other 4k mili seconds");
+	Sleep(4000);
 	return true ;
 }
 
@@ -386,7 +388,7 @@ bool IServerApp::onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPor
 {
 	for ( auto pp : m_vAllModule )
 	{
-		if ( pp.second->onMsg(recvValue,nmsgType,eSenderPort, nSenderID) )
+		if ( pp.second->onMsg(recvValue,nmsgType,eSenderPort, nSenderID,nTargetID) )
 		{
 			return true ;
 		}
@@ -408,7 +410,7 @@ bool IServerApp::onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReq
 
 void IServerApp::update(float fDeta )
 {
-	if ( m_eConnectState == CNetWorkMgr::eConnectType_Disconnectd )
+	if ( m_eConnectState == CNetWorkMgr::eConnectType_Disconnectd && false == m_isSvrFull )
 	{
 		m_fReconnectTick += fDeta ;
 		if ( m_fReconnectTick >= TIME_WAIT_FOR_RECONNECT )
@@ -499,7 +501,7 @@ void IServerApp::onConnectedToSvr( bool isReconnectMode )
 {
 	for ( auto pp : m_vAllModule )
 	{
-		pp.second->onConnectedSvr();
+		pp.second->onConnectedSvr(isReconnectMode);
 	}
 }
 

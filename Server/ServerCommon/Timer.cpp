@@ -31,7 +31,7 @@ void CTimer::canncel()
 		CTimerManager::getInstance()->canncelTimer(this) ;
 		return ;
 	}
-	LOGFMTE("timer is not running how to canncel !") ;
+	//LOGFMTE("timer is not running how to canncel !") ;
 }
 
 void CTimer::setIsAutoRepeat( bool isRepeat )

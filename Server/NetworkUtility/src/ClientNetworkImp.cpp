@@ -24,17 +24,23 @@ bool CClientNetworkImp::init()
 
 void CClientNetworkImp::shutdown()
 {
-	if ( m_nState == eState_Connecting)
+	if ( m_nState == eState_Connecting )
 	{
-		m_ptrSession->closeSession();
 		m_ptrIoWork.reset();
 		m_ioservice.stop();
 		m_nState = eState_None;
 		printf("shutdow when connecting\n");
 		return;
 	}
-	m_ioservice.post([this]() { m_ptrSession->closeSession(); m_nState = eState_None; }); 
+
+	if (eState_Connected == m_nState)
+	{
+		m_ioservice.post([this]() { m_ptrSession->closeSession(); m_nState = eState_None; });
+	}
+	
 	m_ptrIoWork.reset();
+	m_ioservice.stop();
+	printf("shutdow network\n");
 }
 
 bool CClientNetworkImp::connectToServer(const char* pIP, unsigned short nPort )
@@ -61,7 +67,7 @@ bool CClientNetworkImp::connectToServer(const char* pIP, unsigned short nPort )
 				printf("not connected , how to disconnectd \n");
 				return;
 			}
-
+			m_nState = eState_None;
 			m_ptrSession->closeSession();
 
 			Packet* pack = new Packet;

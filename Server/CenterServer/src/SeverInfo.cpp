@@ -82,10 +82,10 @@ ServerGroup::~ServerGroup()
 
 uint16_t ServerGroup::getSvrCnt()
 {
-	return m_vSvrs.size();
+	return (uint16_t)m_vSvrs.size();
 }
 
-bool ServerGroup::addServer(SeverInfo* pSvr, uint16_t nTargetIdx )
+bool ServerGroup::addServer( SeverInfo* pSvr, uint16_t nTargetIdx )
 {
 	if ((uint16_t)-1 != nTargetIdx)
 	{

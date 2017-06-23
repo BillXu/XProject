@@ -183,7 +183,7 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 	}
 
 	pGate->init(CGateServer::SharedGateServer()->generateSessionID(), nNewPeer,strIP.c_str());
-	pGate->setCloseCallBack(std::bind(&onGateCloseCallBack,this,std::placeholders::_1,std::placeholders::_2));
+	pGate->setCloseCallBack(std::bind(&CGateClientMgr::onGateCloseCallBack,this,std::placeholders::_1,std::placeholders::_2));
 	addClientGate(pGate);
 	
 	// check pai dui 
@@ -220,7 +220,7 @@ void CGateClientMgr::addClientGate(stGateClient* pGateClient )
 		removeActiveClientGate(iter->second);
 	}
 
-	auto iterS = m_vSessionGateClient.find(pGateClient->getSessionID) ;
+	auto iterS = m_vSessionGateClient.find(pGateClient->getSessionID()) ;
 	if ( iterS != m_vSessionGateClient.end() )
 	{
 		LOGFMTE("why this pos session id = %d had client data",pGateClient->getSessionID()) ;

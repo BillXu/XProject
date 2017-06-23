@@ -278,9 +278,9 @@ void  CCenterServerApp::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, Connec
 		if (pSvr)
 		{
 			onSvrPortDisconnect(ref.getPortType(),pSvr->getIdx(),ref.getPortType() );
+			ref.removeServer(nPeerDisconnected);
+			return;
 		}
-		ref.removeServer(nPeerDisconnected);
-		return;
 	}
 
 	if ( IpInfo )

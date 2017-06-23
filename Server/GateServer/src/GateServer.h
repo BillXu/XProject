@@ -10,7 +10,6 @@ public:
 	static CGateServer* SharedGateServer();
 	CGateServer();
 	~CGateServer();
-	bool OnLostSever(Packet* pMsg)override;
 	bool init();
 	CServerNetwork* GetNetWorkForClients(){ return m_pNetWorkForClients ;}
 	void sendMsgToClient(const char* pData , int nLength , CONNECT_ID nSendToOrExcpet ,bool bBroadcast = false );
@@ -22,6 +21,7 @@ public:
 	uint16_t getLocalSvrMsgPortType(){ return ID_MSG_PORT_GATE ; }
 	uint32_t generateSessionID();
 	void onExit();
+	void onConnectedToSvr(bool isReconnectMode)override;
 protected:
 	static CGateServer* s_GateServer ;
 	CServerNetwork* m_pNetWorkForClients ;

@@ -54,7 +54,9 @@ void CApplication::startApp()
 
 	// run loop ;
 	uint32_t nRunloop = 0 ;
-	while ( m_pApp && isRunning() )
+#ifndef _DEBUG
+	while (m_pApp && isRunning())
+#endif // !1
 	{
 		++nRunloop ;
 		runAppLoop();
@@ -66,6 +68,11 @@ void CApplication::startApp()
 
 void CApplication::runAppLoop()
 {
+#ifdef  _DEBUG
+	m_pApp->run();
+	return;
+#endif //  _DEBUG
+
 	__try
 	{
 		m_pApp->run() ;

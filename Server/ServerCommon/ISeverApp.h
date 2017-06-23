@@ -66,6 +66,7 @@ private:
 
 	stServerConfig m_stConnectConfig ;
 	float m_fReconnectTick ;
+	bool m_isSvrFull = false;
 
 	char m_pSendBuffer[MAX_MSG_BUFFER_LEN] ;
 

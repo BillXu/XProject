@@ -17,12 +17,16 @@ public:
 		uint32_t nReqSerialNum ;
 		uint8_t nTargetPortID ;
 		uint16_t nReqType ;
+		uint32_t nSenderID;
+		uint32_t nTargetID;
 		Json::Value jsReqContent ;
 		async_req_call_back_func lpCallBack ;
 		Json::Value jsUserData ;
 
 		time_t tLastSend ;
 		uint16_t nSendTimes ;
+
+		uint32_t nRequestUID; 
 	};
 
 	typedef std::map<uint32_t,stAsyncRequest*> MAP_SERIAL_NUM_REQ ;
@@ -31,13 +35,14 @@ public:
 	void init( IServerApp* svrApp )override ;
 	bool onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID)override;
 	~CAsyncRequestQuene();
-	uint32_t pushAsyncRequest(uint8_t nTargetPortID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack,Json::Value& jsUserData );
-	uint32_t pushAsyncRequest(uint8_t nTargetPortID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack);
-	uint32_t pushAsyncRequest(uint8_t nTargetPortID, uint16_t nReqType,Json::Value& reqContent );
+	uint32_t pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID , uint32_t nSenderID,uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack,Json::Value& jsUserData , uint32_t nRequestUID = 0 );
+	uint32_t pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack, uint32_t nRequestUID = 0 );
+	uint32_t pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, uint32_t nRequestUID = 0 );
 	bool canncelAsyncRequest( uint32_t nReqSerialNum );
 	void timerCheckReqState(CTimer* pTimer, float fTick );
+	stAsyncRequest* getAsynRequestByRequestUID( uint32_t nRequestUID );
 protected:
-	void sendAsyncRequest(stAsyncRequest* pReq);
+	void sendAsyncRequest( stAsyncRequest* pReq );
 	stAsyncRequest* getReuseAsyncReqObject();
 protected:
 	MAP_SERIAL_NUM_REQ m_mapRunningRequest ;

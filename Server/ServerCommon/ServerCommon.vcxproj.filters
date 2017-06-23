@@ -57,6 +57,9 @@
     <ClCompile Include="jsoncpp.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="IGlobalModule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">

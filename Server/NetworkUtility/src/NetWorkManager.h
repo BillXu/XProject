@@ -66,6 +66,7 @@ public:
     bool ConnectToServer( const char* pSeverIP, unsigned short nPort , const char* pPassword = NULL );
     void ReciveMessage();
 	void ReciveOneMessage();
+	void update( float fDelta );
     bool SendMsg( const char* pbuffer , int iSize );
 	bool SendMsg( const char* pbuffer , int iSize,CONNECT_ID& nServerNetUID );
     

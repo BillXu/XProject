@@ -102,8 +102,18 @@ CAsyncRequestQuene::~CAsyncRequestQuene()
 	m_mapRunningRequest.clear() ;
 }
 
-uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack,Json::Value& jsUserData )
+uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack,Json::Value& jsUserData, uint32_t nRequestUID )
 {
+	if (nRequestUID > 0)
+	{
+		auto pReq = getAsynRequestByRequestUID(nRequestUID);
+		if ( pReq )
+		{
+			LOGFMTW("already sended this rquest type = %u, port = %u target id = %u",nReqType,nTargetPortID,nTargetID);
+			return pReq->nReqSerialNum;
+		}
+	}
+
 	auto pReq = getReuseAsyncReqObject() ;
 	pReq->jsReqContent = reqContent ;
 	pReq->jsUserData = jsUserData ;
@@ -113,20 +123,23 @@ uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint16_t nR
 	pReq->nSendTimes = 0 ;
 	pReq->nTargetPortID = nTargetPortID ;
 	pReq->tLastSend = 0 ;
+	pReq->nRequestUID = nRequestUID;
+	pReq->nTargetID = nTargetID;
+	pReq->nSenderID = nSenderID;
 	m_mapRunningRequest[pReq->nReqSerialNum] = pReq ;
 	sendAsyncRequest(pReq) ;
 	return pReq->nReqSerialNum ;
 }
 
-uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack)
+uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack, uint32_t nRequestUID)
 {
 	Json::Value jsValue ;
-	return pushAsyncRequest(nTargetPortID,nReqType,reqContent,lpCallBack,jsValue);
+	return pushAsyncRequest(nTargetPortID, nTargetID, nSenderID,nReqType,reqContent,lpCallBack,jsValue,nRequestUID);
 }
 
-uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint16_t nReqType,Json::Value& reqContent )
+uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, uint32_t nRequestUID)
 {
-	return pushAsyncRequest(nTargetPortID,nReqType,reqContent,nullptr);
+	return pushAsyncRequest(nTargetPortID, nTargetID, nSenderID, nReqType,reqContent,nullptr, nRequestUID);
 }
 
 bool CAsyncRequestQuene::canncelAsyncRequest( uint32_t nReqSerialNum )
@@ -142,25 +155,36 @@ bool CAsyncRequestQuene::canncelAsyncRequest( uint32_t nReqSerialNum )
 	return false ;
 }
 
-void CAsyncRequestQuene::sendAsyncRequest(stAsyncRequest* pReq)
+void CAsyncRequestQuene::sendAsyncRequest(stAsyncRequest* pReq )
 {
 	++pReq->nSendTimes ;
 	pReq->tLastSend = time(nullptr) ;
 	stMsgAsyncRequest msgReq ;
+	msgReq.nTargetID = pReq->nTargetID;
 	msgReq.cSysIdentifer = pReq->nTargetPortID ;
 	msgReq.nReqSerailID = pReq->nReqSerialNum ;
 	msgReq.nReqType = pReq->nReqType ;
 	
-	
-
 	Json::StyledWriter jsWriter ;
 	auto str = jsWriter.write(pReq->jsReqContent) ;
-	msgReq.nReqContentLen = str.size() ;
+	msgReq.nReqContentLen = (uint16_t)str.size() ;
 	
 	CAutoBuffer auBuffer(sizeof(msgReq) + msgReq.nReqType);
 	auBuffer.addContent(&msgReq,sizeof(msgReq)) ;
 	auBuffer.addContent(str.c_str(),msgReq.nReqContentLen) ;
-	getSvrApp()->sendMsg(0,auBuffer.getBufferPtr(),auBuffer.getContentSize()) ;
+	getSvrApp()->sendMsg((stMsg*)auBuffer.getBufferPtr(), auBuffer.getContentSize(), pReq->nSenderID);
+}
+
+CAsyncRequestQuene::stAsyncRequest* CAsyncRequestQuene::getAsynRequestByRequestUID(uint32_t nRequestUID)
+{
+	for (auto& refPair : m_mapRunningRequest)
+	{
+		if (refPair.second->nRequestUID && refPair.second->nRequestUID == nRequestUID)
+		{
+			return refPair.second;
+		}
+	}
+	return nullptr;
 }
 
 CAsyncRequestQuene::stAsyncRequest* CAsyncRequestQuene::getReuseAsyncReqObject()
@@ -190,7 +214,7 @@ void CAsyncRequestQuene::timerCheckReqState(CTimer* pTimer, float fTick )
 	for ( auto pairReq : m_mapRunningRequest )
 	{
 		auto pReq = pairReq.second ;
-		if (pReq->nSendTimes > 40 )
+		if (pReq->nSendTimes > 20 )
 		{
 			vCanncelReq.push_back(pReq->nReqSerialNum);
 			continue;

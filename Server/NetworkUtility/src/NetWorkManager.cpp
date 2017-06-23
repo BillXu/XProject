@@ -184,6 +184,11 @@ void CNetWorkMgr::ReciveOneMessage()
 	delete packet;
 }
 
+void CNetWorkMgr::update(float fDelta)
+{
+
+}
+
 bool CNetWorkMgr::SendMsg(const char *pbuffer, int iSize)
 {
     if ( m_pNetPeer == NULL )

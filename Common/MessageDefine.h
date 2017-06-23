@@ -47,17 +47,16 @@ struct stMsgClientConnectStateChanged
 {
 	stMsgClientConnectStateChanged() {
 		cSysIdentifer = ID_MSG_PORT_DATA, usMsgType = MSG_CLIENT_CONNECT_STATE_CHANGED;
-		memset(cIP,0,sizeof(cIP));
 	}
 	uint8_t nCurState; // 0 reconnected ok , 1 first offline , 2 do offline ,delete player ;
-	char cIP[20];
+	char cIP[20] = {0};
 };
 
 struct stMsgGateSvrFull
 	:public stMsg
 {
-	stMsgGateSvrFull() { cSysIdentifer = ID_MSG_PORT_CLIENT, usMsgType = MSG_GATE_SVR_IS_FULL; memset(cNextIp,0,sizeof(cNextIp)); }
-	char cNextIp[20];
+	stMsgGateSvrFull() { cSysIdentifer = ID_MSG_PORT_CLIENT, usMsgType = MSG_GATE_SVR_IS_FULL; }
+	char cNextIp[20] = { 0 };
 };
 
 //struct stMsgTransferData

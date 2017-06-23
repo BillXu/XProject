@@ -88,6 +88,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AsyncRequestQuene.cpp" />
     <ClCompile Include="catch_dump_file.cpp" />
+    <ClCompile Include="IGlobalModule.cpp" />
     <ClCompile Include="ISeverApp.cpp" />
     <ClCompile Include="jsoncpp.cpp" />
     <ClCompile Include="log4z.cpp" />

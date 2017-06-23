@@ -32,15 +32,6 @@ CGateServer::~CGateServer()
 	s_GateServer = NULL ;
 }
 
-bool CGateServer::OnLostSever(Packet* pMsg)
-{
-	IServerApp::OnLostSever(pMsg);
-
-	m_pGateManager->closeAllClient() ;
-
-	return false ;
-}
-
 bool CGateServer::init()
 {
 	IServerApp::init();
@@ -74,8 +65,26 @@ void CGateServer::update(float fDeta )
 
 void CGateServer::onExit()
 {
-	m_pNetWorkForClients->ShutDown() ;
 	m_pGateManager->closeAllClient();
+	if (m_pNetWorkForClients)
+	{
+		m_pNetWorkForClients->ShutDown();
+	}
+}
+
+void CGateServer::onConnectedToSvr( bool isReconnectMode )
+{
+	// start gate svr for client to connected 
+	stServerConfig* pGateConfig = m_stSvrConfigMgr.GetGateServerConfig(getCurSvrIdx());
+	if (nullptr == m_pNetWorkForClients)
+	{
+		m_pNetWorkForClients = new CServerNetwork;
+		m_pNetWorkForClients->StartupNetwork(pGateConfig->nPort, 5000, pGateConfig->strPassword);
+		m_pNetWorkForClients->AddDelegate(m_pGateManager);
+	}
+
+	LOGFMTI("setup network for clients to client ok ");
+	LOGFMTI("Gate Server Start ok idx = %d ", getCurSvrIdx());
 }
 
 void CGateServer::sendMsgToClient(const char* pData , int nLength , CONNECT_ID nSendToOrExcpet ,bool bBroadcast )
