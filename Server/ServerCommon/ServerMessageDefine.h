@@ -82,6 +82,16 @@ struct stMsgAsyncRequestRet
 	//PLACE_HOLDER(char* jsResultContentLen);
 };
 
+struct stMsgClientConnectStateChanged
+	:public stMsg
+{
+	stMsgClientConnectStateChanged() {
+		cSysIdentifer = ID_MSG_PORT_DATA, usMsgType = MSG_CLIENT_CONNECT_STATE_CHANGED;
+	}
+	uint8_t nCurState; // 0 reconnected ok , 1 first offline , 2 do offline ,delete player ;
+	char cIP[20] = { 0 };
+};
+
 
 
 

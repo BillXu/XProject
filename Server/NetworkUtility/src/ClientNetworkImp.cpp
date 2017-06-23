@@ -43,6 +43,15 @@ void CClientNetworkImp::shutdown()
 	printf("shutdow network\n");
 }
 
+void CClientNetworkImp::closeSession()
+{
+	if ( eState_Connected == m_nState )
+	{
+		m_ioservice.post([this]() { m_ptrSession->closeSession(); m_nState = eState_None; });
+		printf( "zhu dong  close session \n" );
+	}
+}
+
 bool CClientNetworkImp::connectToServer(const char* pIP, unsigned short nPort )
 {
 	if ( m_nState == eState_Connecting || m_nState == eState_Connected )

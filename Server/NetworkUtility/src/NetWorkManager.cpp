@@ -28,7 +28,11 @@ CNetWorkMgr::CNetWorkMgr()
     m_pNetPeer = NULL ;
 	m_nMaxConnectTo = 0;
 	m_nConnectedTo = 0 ;
-
+	m_fHeatBeatElaps = 5;
+	m_nCurrentServer = INVALID_CONNECT_ID;
+	m_fSendHeatBetTicket = 0;
+	m_fCheckHeatBetTicket = 0;
+	m_fHeatBeatTimeOut = ( m_fHeatBeatElaps * 2 );
 	//zsummer::log4z::ILog4zManager::GetInstance()->Config("client.cfg");
 	//zsummer::log4z::ILog4zManager::GetInstance()->Start();
 }
@@ -58,7 +62,7 @@ void CNetWorkMgr::ShutDown()
 //    return &s_gNetWork ;
 //}
 
-void CNetWorkMgr::SetupNetwork( int nIntendServerCount )
+void CNetWorkMgr::SetupNetwork( int nIntendServerCount, float fHeatBeatElapsBySec )
 {
 	if ( !m_pNetPeer )
 	{
@@ -66,6 +70,9 @@ void CNetWorkMgr::SetupNetwork( int nIntendServerCount )
 		m_pNetPeer =  new CClientNetworkImp() ;
 		m_pNetPeer->init();
 	}
+
+	m_fHeatBeatElaps = fHeatBeatElapsBySec;
+	m_fHeatBeatTimeOut = max( 6, (uint32_t)(m_fHeatBeatElaps * 2));
 }
 
 bool CNetWorkMgr::ConnectToServer(const char *pSeverIP, unsigned short nPort , const char* pPassword)
@@ -186,7 +193,8 @@ void CNetWorkMgr::ReciveOneMessage()
 
 void CNetWorkMgr::update(float fDelta)
 {
-
+	ReciveMessage();
+	updateHeatBeatTimer(fDelta);
 }
 
 bool CNetWorkMgr::SendMsg(const char *pbuffer, int iSize)
@@ -239,7 +247,19 @@ bool CNetWorkMgr::OnLostServer( CNetMessageDelegate* pDeleate,void* pData )
 
 bool CNetWorkMgr::OnReciveLogicMessage( CNetMessageDelegate* pDeleate,void* pData )
 {
-    return pDeleate->OnMessage((Packet*)pData);
+	auto pPacket = (Packet*)pData;
+	unsigned char cSys = *((unsigned char*)pPacket->_orgdata);
+	if ((unsigned char)-1 != cSys ) // normal logic msg // heat beat flag ;
+	{
+		return pDeleate->OnMessage(pPacket);
+	}
+
+	// recived heat beat ;
+	m_fCheckHeatBetTicket = 0;  // reset check heat bet ;
+	unsigned char* p = (unsigned char*)pPacket->_orgdata;
+	++p;
+	uint32_t nHeatBetNum = *((uint32_t*)p);
+	return pDeleate->onHeatBeat(nHeatBetNum);
 }
 
 void CNetWorkMgr::EnumDeleagte( CNetWorkMgr* pTarget, lpfunc pFunc, void* pData )
@@ -252,21 +272,25 @@ void CNetWorkMgr::EnumDeleagte( CNetWorkMgr* pTarget, lpfunc pFunc, void* pData 
     }
 }
 
-void CNetWorkMgr::DisconnectServer( CONNECT_ID& nServerNetUID )
+void CNetWorkMgr::doSendHeatBeat()
 {
-	if ( nServerNetUID == INVALID_CONNECT_ID )
+	if (m_nCurrentServer == INVALID_CONNECT_ID)
 	{
-		return ;
+		return;
 	}
-    //if ( IsConnected() )
-    {
-        m_pNetPeer->shutdown();
-    }
+
+	unsigned char p[sizeof(unsigned char) + sizeof(uint32_t)] = {0};
+	(*p) = -1;  // heat beat flag ;
+	*((uint32_t*)(p + 1 )) = (uint32_t)time(nullptr);
+	SendMsg((char*)p, sizeof(p));
 }
 
 void CNetWorkMgr::DisconnectServer()
 {
-	m_pNetPeer->shutdown();
+	if (m_pNetPeer)
+	{
+		m_pNetPeer->closeSession();
+	}
 }
 
 bool CNetWorkMgr::OnConnectSateChanged( CNetMessageDelegate* pDeleate,void* pData )
@@ -377,4 +401,36 @@ bool CNetWorkMgr::IsAlreadyAdded(CNetMessageDelegate*pDeleate)
 	}
 	return false ;
 }
+
+void CNetWorkMgr::updateHeatBeatTimer(float fDeta)
+{
+	if ( INVALID_CONNECT_ID == m_nCurrentServer)
+	{
+		return;
+	}
+
+	m_fCheckHeatBetTicket += fDeta;
+	m_fSendHeatBetTicket += fDeta;
+
+	if ( m_fCheckHeatBetTicket > m_fHeatBeatTimeOut )  // check is wait too long not recived svr heat bet ;
+	{
+		printf("heat beat time out svr disconnect\n");
+		m_nCurrentServer = INVALID_CONNECT_ID;
+		m_fCheckHeatBetTicket = 0;
+		m_fSendHeatBetTicket = 0;
+		EnumDeleagte(this, (lpfunc)(&CNetWorkMgr::OnLostServer), nullptr );
+		if ( m_pNetPeer )
+		{
+			m_pNetPeer->closeSession();
+		}
+		return;
+	}
+
+	if ( m_fSendHeatBetTicket >= m_fHeatBeatElaps )
+	{
+		doSendHeatBeat();
+		m_fSendHeatBetTicket -= m_fHeatBeatElaps;
+	}
+}
+
 

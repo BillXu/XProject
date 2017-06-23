@@ -18,6 +18,7 @@ public:
 	virtual void OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectInfo* IpInfo );
 	void closeConnection( CONNECT_ID nNetID );
 	void sendMsg( const char* pmsg , uint16_t nLen , CONNECT_ID nTargetID );
+	bool OnHeatBeat(CONNECT_ID nNewPeer)override;
 public:
 	static const char* getServerDescByType( uint16_t eType );
 	void onSvrPortDisconnect(eMsgPort nSvrPort, uint16_t nIdx , uint16_t nMaxSvrCnt );

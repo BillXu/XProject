@@ -4,7 +4,6 @@
 #include "ServerMessageDefine.h"
 SeverInfo::~SeverInfo()
 {
-	m_tSendHeatBeat.canncel();
 	m_tCheckWaitVerify.canncel();
 	m_tCheckHeatBeat.canncel();
 }
@@ -17,19 +16,6 @@ void SeverInfo::startWait()
 	m_tCheckWaitVerify.setCallBack([this](CTimer* p, float f) { LOGFMTE("this port not verify wait timer out : %s",getIP() ); CCenterServerApp::SharedCenterServer()->closeConnection(getNetworkID()); });
 	m_tCheckWaitVerify.start();
 
-	// start heat beat ;
-	m_tSendHeatBeat.setInterval(TIME_HEAT_BEAT);
-	m_tSendHeatBeat.setIsAutoRepeat(true);
-	m_tSendHeatBeat.setCallBack([this](CTimer* p, float f)
-	{ 
-		stMsg msg;
-		msg.usMsgType = MSG_HEAT_BEAT;
-		msg.nTargetID = rand() % 100000;
-		CCenterServerApp::SharedCenterServer()->sendMsg((const char*)&msg,sizeof(msg),getNetworkID());
-		LOGFMTD("net id = %s send heat beat", getIP());
-	});
-	m_tSendHeatBeat.start();
-	
 	// start check heat beat 
 	m_tCheckHeatBeat.setInterval(TIME_HEAT_BEAT*2);
 	m_tCheckHeatBeat.setIsAutoRepeat(true);

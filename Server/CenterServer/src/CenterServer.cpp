@@ -156,19 +156,6 @@ bool  CCenterServerApp::OnMessage( Packet* pData )
 		}
 	}
 	break;
-	case MSG_HEAT_BEAT:
-	{
-		for (auto& ref : m_vTargetServers )
-		{
-			auto pSvr = ref.getServerByConnectID(pData->_connectID);
-			if (pSvr)
-			{
-				pSvr->onReciveHeatBeat();
-				return true;
-			}
-		}
-	}
-	break;
 	case MSG_VERIFY_SERVER:
 	{
 		auto iter = m_vWaitVerifyServerInfo.find(pData->_connectID);
@@ -356,6 +343,20 @@ void CCenterServerApp::onSvrPortDisconnect( eMsgPort nSvrPort, uint16_t nIdx, ui
 void CCenterServerApp::closeConnection(CONNECT_ID nNetID)
 {
 	m_pNetwork->ClosePeerConnection(nNetID);
+}
+
+bool CCenterServerApp::OnHeatBeat( CONNECT_ID nNewPeer )
+{
+	for (auto& ref : m_vTargetServers)
+	{
+		auto pSvr = ref.getServerByConnectID(nNewPeer);
+		if (pSvr)
+		{
+			pSvr->onReciveHeatBeat();
+			return true;
+		}
+	}
+	return false;
 }
 
 void CCenterServerApp::sendMsg(const char* pmsg, uint16_t nLen, CONNECT_ID nTargetID)

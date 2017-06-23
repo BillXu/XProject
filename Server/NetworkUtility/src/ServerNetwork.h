@@ -9,6 +9,7 @@ public:
 	virtual ~CServerNetworkDelegate(){}
 	virtual bool OnMessage( Packet* pData ) = 0;
 	virtual void OnNewPeerConnected( CONNECT_ID nNewPeer, ConnectInfo* IpInfo ){}
+	virtual bool OnHeatBeat(CONNECT_ID nNewPeer) { return false; }
 	virtual void OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectInfo* IpInfo ){}
 protected:
 	unsigned int m_nPriority ;

@@ -4,11 +4,11 @@
 // define message struct , used between Server and Client ;
 #include "MessageIdentifer.h"
 #include "CommonData.h"
-#define PLACE_HOLDER(X) 
+#define PLACE_HOLDER(X)  
 // WARNNING:±‰≥§◊÷∑˚¥Æ£¨Œ“√«≤ª∞¸¿®÷’Ω·∑˚ \0 ;           
 struct stMsg
 {
-	unsigned char cSysIdentifer;  // msg target eServerType
+	unsigned char cSysIdentifer;  // msg target eServerType, -1 means  heat bet msg ;
 	unsigned int nTargetID;  // -1 means sent to all svr in one group ;
 	unsigned short usMsgType ;
 public:
@@ -40,16 +40,6 @@ public:
 	stMsgReconnectRet(){cSysIdentifer = ID_MSG_PORT_CLIENT ; usMsgType = MSG_RECONNECT ; }
 public:
 	char nRet; // 0 : success , 1 failed ;
-};
-
-struct stMsgClientConnectStateChanged
-	:public stMsg
-{
-	stMsgClientConnectStateChanged() {
-		cSysIdentifer = ID_MSG_PORT_DATA, usMsgType = MSG_CLIENT_CONNECT_STATE_CHANGED;
-	}
-	uint8_t nCurState; // 0 reconnected ok , 1 first offline , 2 do offline ,delete player ;
-	char cIP[20] = {0};
 };
 
 struct stMsgGateSvrFull

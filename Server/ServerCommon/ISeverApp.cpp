@@ -27,7 +27,6 @@ bool IServerApp::init()
 	m_fFrameTicket = 0;
 	m_fOutputfpsTickt = 0;
 
-	m_isRecievedHeatBeat = false;
 	m_nCurSvrIdx = 0;
 	m_nCurSvrPortMaxCnt = 0;
 
@@ -64,21 +63,12 @@ IServerApp::~IServerApp()
 		m_pNetWork = nullptr ;
 	}
 
-	m_tSendHeatBeat.canncel();
-	m_tCheckHeatBeat.canncel();
 }
 
 bool IServerApp::OnMessage( Packet* pMsg )
 {
 	CHECK_MSG_SIZE(stMsg,pMsg->_len) ;
 	stMsg* pmsg = (stMsg*)pMsg->_orgdata ;
- 
-	if ( MSG_HEAT_BEAT == pmsg->usMsgType )
-	{
-		m_isRecievedHeatBeat = true;
-		return true;
-	}
-
 	if ( MSG_VERIFY_SERVER == pmsg->usMsgType )
 	{
 		stMsgVerifyServerRet* pRet = (stMsgVerifyServerRet*)pmsg;
@@ -220,9 +210,6 @@ bool IServerApp::OnLostSever(Packet* pMsg)
 
 	m_fReconnectTick = 0 ;
 
-	m_tCheckHeatBeat.canncel();
-	m_tSendHeatBeat.canncel();
-
 	onOtherSvrShutDown( ID_MSG_PORT_CENTER, 0, 1);
 	return false ;
 }
@@ -244,7 +231,6 @@ bool IServerApp::OnConnectStateChanged( eConnectState eSate, Packet* pMsg)
 		}
 		m_pNetWork->SendMsg((char*)&msgVerify,sizeof(stMsgVerifyServer),pMsg->_connectID) ;
 		LOGFMTI("Connected to Target Svr") ;
-		startHeatBeat();
 		return false ;
 	}
 
@@ -258,16 +244,15 @@ bool IServerApp::run()
 	clock_t t = clock();
 	while ( m_bRunning )
 	{
-		if ( m_pNetWork )
-		{
-			m_pNetWork->ReciveMessage();
-		}
-
 		clock_t tNow = clock();
 		float fDelta = float(tNow - t ) / CLOCKS_PER_SEC ;
 		t = tNow ;
 		m_pTimerMgr->Update(fDelta);
 		update(fDelta*m_pTimerMgr->GetTimeScale());
+		if (m_pNetWork)
+		{
+			m_pNetWork->update(fDelta*m_pTimerMgr->GetTimeScale());
+		}
 		Sleep(10);
 	}
 
@@ -568,45 +553,4 @@ IGlobalModule* IServerApp::createModule( uint16_t eModuleType )
 CAsyncRequestQuene* IServerApp::getAsynReqQueue()
 {
 	return (CAsyncRequestQuene*)getModuleByType(eDefMod_AsyncRequestQueu);
-}
-
-void IServerApp::startHeatBeat()
-{
-	LOGFMTI("start heat beat");
-	// heat beat 
-	m_tSendHeatBeat.canncel();
-	m_tCheckHeatBeat.canncel();
-	// start heat beat ;
-	m_tSendHeatBeat.setInterval(TIME_HEAT_BEAT);
-	m_tSendHeatBeat.setIsAutoRepeat(true);
-	m_tSendHeatBeat.setCallBack([this](CTimer* p, float f)
-	{
-		stMsg msg;
-		msg.usMsgType = MSG_HEAT_BEAT;
-		msg.nTargetID = rand() % 100000;
-		sendMsg((const char*)&msg, sizeof(msg));
-
-	});
-	m_tSendHeatBeat.start();
-
-	// start check heat beat 
-	m_tCheckHeatBeat.setInterval(TIME_HEAT_BEAT * 2);
-	m_tCheckHeatBeat.setIsAutoRepeat(true);
-	m_tCheckHeatBeat.setCallBack([this](CTimer* p, float f)
-	{
-		if (m_isRecievedHeatBeat)
-		{
-			m_isRecievedHeatBeat = false;
-			return;
-		}
-		LOGFMTE("heat beat time out");
-		if (m_pNetWork)
-		{
-			m_pNetWork->DisconnectServer();
-			m_tSendHeatBeat.canncel();
-			m_tCheckHeatBeat.canncel();
-		}
-	}
-	);
-	m_tCheckHeatBeat.start();
 }

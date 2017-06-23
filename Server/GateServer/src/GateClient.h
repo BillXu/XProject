@@ -36,7 +36,6 @@ protected:
 	bool m_isRecievedHeatBet;
 	CTimer m_tCheckVerify;
 	CTimer m_tCheckHeatBet;
-	CTimer m_tSendHeatBet;
 	CTimer m_tWaitReconnect;
 	CTimer m_tDelayClose;
 	bool m_isWaitingReconnect;

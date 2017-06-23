@@ -36,6 +36,7 @@ public:
 	virtual bool OnMessage( stMsg* pMsg ){ return false ; }   // client please use this function ;
 	virtual bool OnLostSever(){ return  false; };
 	virtual bool OnConnectStateChanged( eConnectState eSate){ return false ;}
+	virtual bool onHeatBeat( uint32_t nHeatBeatNum ) { return false; }
 	void SetPriority( unsigned int nPriority  );
 	unsigned GetPriority(){ return m_nPriority ;}
 	void SetNetWorkMgr(CNetWorkMgr* pNetWork ) { m_pNetWorkMgr = pNetWork ;}
@@ -62,31 +63,31 @@ public:
     CNetWorkMgr();
     ~CNetWorkMgr();
    // static CNetWorkMgr* SharedNetWorkMgr();
-    void SetupNetwork( int nIntendServerCount = 1 );
+    void SetupNetwork( int nIntendServerCount = 1, float fHeatBeatElapsBySec = 2 );   // heat bet jian ke 
     bool ConnectToServer( const char* pSeverIP, unsigned short nPort , const char* pPassword = NULL );
-    void ReciveMessage();
-	void ReciveOneMessage();
 	void update( float fDelta );
     bool SendMsg( const char* pbuffer , int iSize );
 	bool SendMsg( const char* pbuffer , int iSize,CONNECT_ID& nServerNetUID );
-    
 	void AddMessageDelegate(CNetMessageDelegate * pDelegate, unsigned short nPrio );
 	void AddMessageDelegate(CNetMessageDelegate *pDelegate) ;
 	void RemoveMessageDelegate(CNetMessageDelegate* pDelegate);
 	void RemoveAllDelegate();
 	void EnumDeleagte( CNetWorkMgr* pTarget, lpfunc pFunc, void* pData );
-	void DisconnectServer( CONNECT_ID& nServerNetUID );
 	void DisconnectServer();
     void ShutDown();
 	CClientNetworkImp* getNetworkImp(){ return m_pNetPeer ; }
 public:
     static int s_nCurrentDataSize ;
 protected:
+	void ReciveMessage();
+	void ReciveOneMessage();
 	bool OnLostServer( CNetMessageDelegate* pDeleate,void* pData );
 	bool OnReciveLogicMessage( CNetMessageDelegate* pDeleate,void* pData );
 	bool OnConnectSateChanged( CNetMessageDelegate* pDeleate,void* pData );
     void ProcessDelegateAddRemove();
 	bool IsAlreadyAdded(CNetMessageDelegate*pDeleate);
+	void doSendHeatBeat();
+	void updateHeatBeatTimer(float fDeta );
 protected:
     LIST_DELEGATE m_vAllDelegate;
     LIST_DELEGATE m_vWillAddDelegate;
@@ -95,6 +96,11 @@ protected:
     CONNECT_ID m_nCurrentServer ;  // the newest accepted Server ; 
 	short m_nConnectedTo ;
 	short m_nMaxConnectTo ;
+
+	float m_fHeatBeatElaps; // by second ;
+	float m_fSendHeatBetTicket;
+	float m_fCheckHeatBetTicket;
+	float m_fHeatBeatTimeOut ;
 };
 
 #endif

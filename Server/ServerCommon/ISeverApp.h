@@ -51,7 +51,6 @@ protected:
 	void setConnectServerConfig(stServerConfig* pConfig );
 	void doConnectToTargetSvr();
 	CNetWorkMgr* getNetwork(){ return m_pNetWork ;}
-	void startHeatBeat();
 	uint16_t getCurSvrIdx() { return m_nCurSvrIdx; }
 	uint16_t getCurSvrMaxCnt() { return m_nCurSvrPortMaxCnt; }
 private:
@@ -75,11 +74,6 @@ private:
 	uint32_t m_nFrameCnt;
 	float m_fFrameTicket;
 	float m_fOutputfpsTickt;
-
-	// heat beat 
-	CTimer m_tSendHeatBeat;
-	CTimer m_tCheckHeatBeat;
-	bool m_isRecievedHeatBeat;
 
 	uint16_t m_nCurSvrIdx;
 	uint16_t m_nCurSvrPortMaxCnt;

@@ -35,13 +35,28 @@ enum eMsgType
 	MSG_VERIFY_SERVER,   // used between svr , not by transfer data ;
 	MSG_TRANSER_DATA, // tranfer data between servers ;
 	MSG_SERVER_DISCONNECT, // some svr disconnected ;  // svr recived , send by center svr , not by transfer data ;
-	MSG_HEAT_BEAT, // heat beat msg  ;   not by transfer data ;
 	MSG_ASYNC_REQUEST, // asyn request 
 	MSG_JSON_CONTENT,
 	MSG_RECONNECT,   // client with gate 
 	MSG_TELL_CLIENT_SVR_DISCONNECT, // tell client svr
 	MSG_CLIENT_CONNECT_STATE_CHANGED,  // client connect state changed ;  // send by gate 
 	MSG_GATE_SVR_IS_FULL, // gate connect is full , let client change other gate ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

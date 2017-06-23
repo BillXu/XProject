@@ -32,6 +32,7 @@ public:
 	bool getFirstPacket(Packet** ppPacket ); // must delete out side ;
 	void addPacket(Packet* pPacket ) ;
 	bool sendMsg(const char* pData , size_t nLen ) ;
+	void closeSession();
 private:  
 	void onReivedData(uint32_t nConnectID, const char* pBuffer, size_t nLen);
 private:  

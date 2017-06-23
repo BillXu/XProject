@@ -21,7 +21,6 @@ public:
 	void onReciveHeatBeat();
 protected:
 	bool m_isRecievedHeatBeat;
-	CTimer m_tSendHeatBeat;
 	CTimer m_tCheckWaitVerify;
 	CTimer m_tCheckHeatBeat;
 	std::string strIp;

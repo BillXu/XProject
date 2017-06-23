@@ -20,7 +20,6 @@ stGateClient::~stGateClient()
 {
 	m_tCheckVerify.canncel();
 	m_tCheckHeatBet.canncel();
-	m_tSendHeatBet.canncel();
 	m_tWaitReconnect.canncel();
 	m_tDelayClose.canncel();
 }
@@ -57,12 +56,6 @@ void stGateClient::init(unsigned int nSessionID, CONNECT_ID nNetWorkID, const ch
 		m_isRecievedHeatBet = false;
 	});
 	m_tCheckHeatBet.start();
-
-	// send heat beat 
-	m_tSendHeatBet.setIsAutoRepeat(true);
-	m_tSendHeatBet.setInterval(TIME_HEAT_BEAT);
-	m_tSendHeatBet.setCallBack([this](CTimer* p, float f) { if (m_lpfSendHeatBeatCallBack) { m_lpfSendHeatBeatCallBack(this,true); } });
-	m_tSendHeatBet.start();
 }
 
 void stGateClient::onReconnected( stGateClient* pBeReconnected )
@@ -128,7 +121,6 @@ void stGateClient::startWaitReconnect()
 	}
 
 	m_tCheckHeatBet.canncel();
-	m_tSendHeatBet.canncel();
 
 	if ( getBindUID() == 0 )
 	{
@@ -170,7 +162,6 @@ void stGateClient::reset()
 	m_isRecievedHeatBet = false ;
 	m_tCheckVerify.canncel() ;
 	m_tCheckHeatBet.canncel();
-	m_tSendHeatBet.canncel();
 	m_tWaitReconnect.canncel();
 	m_tDelayClose.canncel();
 	m_isWaitingReconnect = false;

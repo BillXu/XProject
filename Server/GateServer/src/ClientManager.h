@@ -15,9 +15,10 @@ public:
 public:
 	CGateClientMgr();
 	~CGateClientMgr();
-	virtual bool OnMessage( Packet* pData ) ;
-	virtual void OnNewPeerConnected( CONNECT_ID nNewPeer, ConnectInfo* IpInfo);
-	virtual void OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectInfo* IpInfo );
+	bool OnMessage( Packet* pData )override;
+	void OnNewPeerConnected( CONNECT_ID nNewPeer, ConnectInfo* IpInfo)override;
+	void OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectInfo* IpInfo )override;
+	bool OnHeatBeat(CONNECT_ID nNewPeer)override;
 	stGateClient* getGateClientBySessionID(uint32_t nSessionID);
 	void closeAllClient();
 	void onGateCloseCallBack(stGateClient* pGateClient , bool isWaitReconnect );

@@ -53,17 +53,6 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 		return true;
 	}
 
-	if (MSG_HEAT_BEAT == pMsg->usMsgType)
-	{
-		stGateClient* pCurGate = GetGateClientByNetWorkID(pData->_connectID);
-		if (pCurGate == nullptr)
-		{
-			LOGFMTE("received heat beat , but gate is nullptr");
-			return true;
-		}
-		pCurGate->doRecivedHeatBet();
-		return true;
-	}
 	// client reconnect ;
 	if ( MSG_RECONNECT == pMsg->usMsgType )
 	{
@@ -121,6 +110,18 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 
 	CGateServer::SharedGateServer()->sendMsg( pMsg,pData->_len ,pDstClient->getSessionID() );
 	return true ;
+}
+
+bool CGateClientMgr::OnHeatBeat( CONNECT_ID nNewPeer )
+{
+	stGateClient* pCurGate = GetGateClientByNetWorkID(nNewPeer);
+	if (pCurGate == nullptr)
+	{
+		LOGFMTE("received heat beat , but gate is nullptr");
+		return true;
+	}
+	pCurGate->doRecivedHeatBet();
+	return true;
 }
 
 void CGateClientMgr::closeAllClient()

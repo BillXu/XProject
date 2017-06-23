@@ -123,9 +123,22 @@ bool CServerNetwork::OnPeerDisconnected(CServerNetworkDelegate* pDelegate, Packe
 	return true ;
 }
 
-bool CServerNetwork::OnLogicMessage(CServerNetworkDelegate* pDelegate, Packet* pData)
+bool CServerNetwork::OnLogicMessage(CServerNetworkDelegate* pDeleate, Packet* pPacket)
 {
-	return pDelegate->OnMessage(pData);
+	unsigned char cSys = *((unsigned char*)pPacket->_orgdata);
+	if ((unsigned char)-1 != cSys) // normal logic msg // heat beat flag ;
+	{
+		return pDeleate->OnMessage(pPacket);
+	}
+
+	// recived heat beat ;
+	if ( pDeleate->OnHeatBeat(pPacket->_connectID) )
+	{
+		printf("recieved heat beat , send back heat beat \n");
+		SendMsg(pPacket->_orgdata, pPacket->_len, pPacket->_connectID);
+		return true;
+	}
+	return false;
 }
 
 void CServerNetwork::EnumDelegate( lpFunc pFunc, Packet* pData )
