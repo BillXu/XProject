@@ -120,6 +120,7 @@ void CSession::closeSession()
 	asio::error_code ec;
 	m_socket.shutdown(tcp::socket::shutdown_send,ec);
 	m_socket.close(ec);
+	m_vWillSendBuffers.clear();
 }
 
 

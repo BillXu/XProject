@@ -99,7 +99,7 @@ bool CClientNetworkImp::connectToServer(const char* pIP, unsigned short nPort )
 		Packet* pack = new Packet;
 		pack->_brocast = false;
 		pack->_packetType = bSucce ? _PACKET_TYPE_CONNECTED : _PACKET_TYPE_CONNECT_FAILED;
-		pack->_connectID = 0;
+		pack->_connectID = m_ptrSession->getConnectID();
 		if (bSucce)
 		{
 			m_ptrSession->start();
