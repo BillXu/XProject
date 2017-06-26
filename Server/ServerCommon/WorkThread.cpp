@@ -18,7 +18,11 @@ void CWorkThread::assignTask(ITask::ITaskPrt pTask )
 	m_pTask = pTask ;
 	if ( m_pTask )
 	{
-		m_sem.Post() ;
+		{
+			std::unique_lock<std::mutex> tLock(m_tMutex);
+			m_isHaveNewTask = true;
+		}
+		m_tCondition.notify_all();
 	}
 }
 
@@ -31,7 +35,8 @@ void CWorkThread::__run()
 {
 	while ( true )
 	{
-		m_sem.Wait();
+		std::unique_lock<std::mutex> tLock(m_tMutex);
+		m_tCondition.wait(tLock, [this]() { return m_isHaveNewTask; });
 		if ( m_isClose )
 		{
 			printf("do close thread \n") ;
@@ -59,6 +64,11 @@ void CWorkThread::__run()
 void CWorkThread::close()
 {
 	printf("send close cmd \n") ;
-	m_isClose = true ;
-	m_sem.Post() ;
+	{
+		std::unique_lock<std::mutex> tLock(m_tMutex);
+		m_isClose = true;
+		m_isHaveNewTask = true;
+	}
+
+	m_tCondition.notify_all();
 }

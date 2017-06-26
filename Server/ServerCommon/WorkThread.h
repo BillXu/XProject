@@ -1,7 +1,8 @@
 #pragma once
 #include "ThreadMod.h"
 #include "ITask.h"
-#include "Sem.h"
+#include <mutex>
+#include <condition_variable>
 class CTaskPool ;
 class CWorkThread
 	:public CThreadT
@@ -14,7 +15,11 @@ public:
 	void close();
 protected:
 	ITask::ITaskPrt m_pTask ;
-	CSemaphore m_sem ;
+
+	std::mutex m_tMutex;
+	std::condition_variable m_tCondition;
+	bool m_isHaveNewTask = false;
+
 	bool m_isClose; 
 	CTaskPool* m_pPool ;
 	uint8_t m_nIdx ;

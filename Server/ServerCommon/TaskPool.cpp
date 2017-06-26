@@ -1,5 +1,6 @@
 #include "TaskPool.h"
 #include "WorkThread.h"
+#include <assert.h>
 CTaskPool::CTaskPool()
 {
 	m_pTaskFactor = nullptr ;
@@ -33,34 +34,34 @@ void CTaskPool::postTask(ITask::ITaskPrt pTask )
 		return ;
 	}
 
-	m_tThread.Lock() ;
+	m_tThread.lock() ;
 	if ( ! m_vIdleThread.empty() )
 	{
 		auto ptr = m_vIdleThread.top() ;
 		m_vIdleThread.pop();
 
 		m_vBusyThread.push_back(ptr);
-		m_tThread.Unlock();
+		m_tThread.unlock();
 
 		ptr->assignTask(pTask);
 		return ;
 	}
-	m_tThread.Unlock();
+	m_tThread.unlock();
 
-	m_tWaitingTask.Lock() ;
+	m_tWaitingTask.lock() ;
 	m_vWaitingTask.push(pTask) ;
-	m_tWaitingTask.Unlock() ;
+	m_tWaitingTask.unlock() ;
 }
 
 void CTaskPool::update()
 {
 	LIST_TASK vTask ;
-	m_tFinishTask.Lock() ;
+	m_tFinishTask.lock() ;
 	if ( m_vFinishTask.empty() == false )
 	{
 		vTask.swap(m_vFinishTask);
 	}
-	m_tFinishTask.Unlock() ;
+	m_tFinishTask.unlock() ;
 
 	for ( auto& ref : vTask )
 	{
@@ -94,25 +95,25 @@ ITask::ITaskPrt CTaskPool::getReuseTaskObjByID( uint32_t nID )
 
 void CTaskPool::onThreadFinishTask( CWorkThread* pThread )
 {
-	m_tFinishTask.Lock() ;
+	m_tFinishTask.lock() ;
 	m_vFinishTask.push_back(pThread->getTask());
-	m_tFinishTask.Unlock() ;
+	m_tFinishTask.unlock() ;
 
 	pThread->assignTask(nullptr);
 
-	m_tWaitingTask.Lock() ;
+	m_tWaitingTask.lock() ;
 	if ( m_vWaitingTask.empty() == false )
 	{
 		auto pTask = m_vWaitingTask.front();
 		m_vWaitingTask.pop();
-		m_tWaitingTask.Unlock() ;
+		m_tWaitingTask.unlock() ;
 		pThread->assignTask(pTask);
 		return ;
 	}
-	m_tWaitingTask.Unlock() ;
+	m_tWaitingTask.unlock() ;
 
 	std::shared_ptr<CWorkThread> shardPtr = nullptr ;
-	m_tThread.Lock();
+	m_tThread.lock();
 	auto iter = std::find_if(m_vBusyThread.begin(),m_vBusyThread.end(),[pThread](std::shared_ptr<CWorkThread>& ref ) { return ref.get() == pThread ; } ) ;
 	if ( iter == m_vBusyThread.end() )
 	{
@@ -127,18 +128,18 @@ void CTaskPool::onThreadFinishTask( CWorkThread* pThread )
 	if ( shardPtr == nullptr )
 	{
 		printf("big error \n") ;
-		m_tThread.Unlock();
+		m_tThread.unlock();
 		return ;
 	}
 
 	m_vIdleThread.push(shardPtr) ;
-	m_tThread.Unlock();
+	m_tThread.unlock();
 }
 
 void CTaskPool::closeAll()
 {
 	m_isClosed = true ;
-	m_tThread.Lock() ;
+	m_tThread.lock() ;
 	LIST_WORK_THREAD vThread ;
 	while ( m_vIdleThread.empty() == false )
 	{
@@ -157,5 +158,5 @@ void CTaskPool::closeAll()
 	{
 		ref->close();
 	}
-	m_tThread.Unlock();
+	m_tThread.unlock();
 }

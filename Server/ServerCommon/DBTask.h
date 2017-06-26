@@ -1,7 +1,7 @@
 #pragma once
 #include "ITask.h"
-#include "my_global.h"
-#include "mysql.h"
+#include "../Server/DBServer/src/include/my_global.h"
+#include "../Server/DBServer/src/include/mysql.h"
 struct stDBResult ;
 struct stDBRequest ;
 class CDBTask
@@ -11,7 +11,7 @@ public:
 	typedef std::shared_ptr<stDBResult> DBResult_ptr ;
 	typedef std::shared_ptr<stDBRequest> DBRequest_ptr ;
 public:
-	CDBTask( uint32_t nTaskID,const char* pIP,unsigned pPort , const char* pUserName,const char* pPassword, const char* pDBName ) ;
+	CDBTask( uint32_t nTaskID,const char* pIP, uint16_t pPort , const char* pUserName,const char* pPassword, const char* pDBName ) ;
 	~CDBTask();
 	uint8_t performTask()override ;
 	void setDBRequest( DBRequest_ptr ptr );

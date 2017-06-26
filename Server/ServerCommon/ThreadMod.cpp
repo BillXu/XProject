@@ -1,6 +1,5 @@
 #include "ThreadMod.h"
-
-
+#include <thread>
 CThreadT::CThreadT()
 {
 }
@@ -13,7 +12,9 @@ CThreadT::~CThreadT()
 
 bool CThreadT::Start()
 {
-	return pthread_create(&m_threadId, NULL, __threadfunc, (void *)this) == 0;
+	std::thread tT(&CThreadT::__threadfunc,this);
+	tT.detach();
+	return true;
 }
 
 void CThreadT::Stop()

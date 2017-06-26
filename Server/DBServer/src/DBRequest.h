@@ -5,7 +5,7 @@
 #include "MySqlData.h"
 #include <vector>
 #include <list>
-#include "mutex.h"
+#include <memory>
 enum eDBRequestType
 {
 	eRequestType_Add,
@@ -26,6 +26,8 @@ enum eRequestOrder
 
 struct stDBRequest
 {
+	typedef std::shared_ptr<stDBRequest> s_ptr;
+public:
 	eDBRequestType eType ;
 	unsigned int nRequestUID ;  // maybe msg id  ;
 	char cOrder ;              // big order processed first ;  then first come , first out ;
@@ -40,6 +42,8 @@ public:
 
 struct stDBResult
 {
+public:
+	typedef std::shared_ptr<stDBRequest> s_ptr;
 public:
 	typedef std::vector<CMysqlRow*> VEC_MYSQLROW ;
 	~stDBResult();
@@ -66,8 +70,8 @@ public:
 class CDBRequestQueue
 {
 public:
-	typedef std::list<stDBRequest*> VEC_DBREQUEST ;
-	typedef std::list<stDBResult*> VEC_DBRESULT ;
+	typedef std::list<stDBRequest::s_ptr> VEC_DBREQUEST ;
+	typedef std::list<stDBResult::s_ptr> VEC_DBRESULT ;
 public:
 	static CDBRequestQueue* SharedDBRequestQueue();
 	CDBRequestQueue();

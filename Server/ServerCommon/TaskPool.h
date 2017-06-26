@@ -5,7 +5,7 @@
 #include <stack>
 #include <queue>
 #include <list>
-#include "mutex.h"
+#include <mutex>
 class CWorkThread ;
 class CTaskPool
 {
@@ -31,13 +31,13 @@ protected:
 	ITaskFactory* m_pTaskFactor ;
 	MAP_CATEGORY_TASK m_vResultObjs ;
 
-	Mutex m_tFinishTask ;
+	std::mutex m_tFinishTask ;
 	LIST_TASK m_vFinishTask ;
 
-	Mutex m_tWaitingTask ;
+	std::mutex m_tWaitingTask ;
 	TASK_QUEUE m_vWaitingTask ;
 
-	Mutex m_tThread ;
+	std::mutex m_tThread ;
 	STACK_WORK_THREAD m_vIdleThread ;
 	LIST_WORK_THREAD m_vBusyThread ;
 };

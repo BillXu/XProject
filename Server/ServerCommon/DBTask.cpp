@@ -2,14 +2,15 @@
 #include "DBRequest.h"
 #include "log4z.h"
 #define  MYSQL_PING_TIME (3600*8 + 30)
-CDBTask::CDBTask( uint32_t nTaskID,const char* pIP,unsigned pPort , const char* pUserName,const char* pPassword, const char* pDBName ) 
-	:ITask(nTaskID),m_pRequest( new stDBRequest() ),m_pResult(new stDBResult() ),m_pMySql(nullptr),m_tNextMysqlPingTime(0)
+CDBTask::CDBTask( uint32_t nTaskID,const char* pIP,uint16 pPort , const char* pUserName,const char* pPassword, const char* pDBName ) 
+	:ITask(nTaskID),m_pResult(new stDBResult() ),m_pMySql(nullptr),m_tNextMysqlPingTime(0)
 {
 	m_strIP = pIP ;
 	m_nPort = pPort ;
 	m_strUserName = pUserName ;
 	m_strPassword = pPassword ;
 	m_strDBName = pDBName ;
+	m_pRequest = nullptr;
 }
 
 CDBTask::~CDBTask()
@@ -71,7 +72,7 @@ uint8_t CDBTask::performTask()
 		auto ret = setupMysqlConnection();
 		if ( ret == false )
 		{
-			printf("connect data base failed") ;
+			LOGFMTE("connect data base failed , can not do more task" );
 			getDBResult()->reset();
 			return 1 ;
 		}
