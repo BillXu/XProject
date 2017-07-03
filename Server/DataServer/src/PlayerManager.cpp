@@ -223,30 +223,30 @@ bool CSelectPlayerDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDet
 	return true ;
 }
 
+// player manager
 CPlayerManager::CPlayerManager()
 {
-	m_vOfflinePlayers.clear() ;
 	m_vAllActivePlayers.clear();
 }
 
 CPlayerManager::~CPlayerManager()
 {
-	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.begin();
+	auto iter = m_vAllActivePlayers.begin();
 	for ( ; iter != m_vAllActivePlayers.end() ; ++iter )
 	{
-		iter->second->OnPlayerDisconnect();
+		iter->second->onPlayerDisconnect();
 		delete iter->second ;
-		iter->second = NULL ;
+		iter->second = nullptr ;
 	}
 	m_vAllActivePlayers.clear() ;
 
-	MAP_UID_PLAYERS::iterator iter_R = m_vOfflinePlayers.begin() ;
-	for ( ; iter_R != m_vOfflinePlayers.end(); ++iter_R )
+	auto iter_R = m_vReserverPlayerObj.begin() ;
+	for ( ; iter_R != m_vReserverPlayerObj.end(); ++iter_R )
 	{
-		delete iter_R->second ;
-		iter_R->second = NULL ;
+		delete *iter_R;
+		*iter_R = nullptr ;
 	}
-	m_vOfflinePlayers.clear() ;
+	m_vReserverPlayerObj.clear();
 }
 
 void CPlayerManager::onExit()
@@ -254,202 +254,69 @@ void CPlayerManager::onExit()
 	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.begin();
 	for ( ; iter != m_vAllActivePlayers.end() ; ++iter )
 	{
-		iter->second->OnPlayerDisconnect();
+		iter->second->onPlayerDisconnect();
 	}
 
 	MAP_UID_PLAYERS::iterator iter_R = m_vOfflinePlayers.begin() ;
 	for ( ; iter_R != m_vOfflinePlayers.end(); ++iter_R )
 	{
-		iter_R->second->OnPlayerDisconnect();
+		iter_R->second->onPlayerDisconnect();
 	}
 
 	IGlobalModule::onExit();
 }
 
-bool CPlayerManager::onMsg( stMsg* pMessage , eMsgPort eSenderPort , uint32_t nSessionID )
+bool CPlayerManager::onMsg( stMsg* pMessage , eMsgPort eSenderPort , uint32_t nSenderUID )
 {
-	if ( ProcessPublicMessage(pMessage,eSenderPort,nSessionID) )
+	if ( onPublicMsg(pMessage,eSenderPort, nSenderUID) )
 	{
 		return true ;
 	}
 
-	CPlayer* pTargetPlayer = GetPlayerBySessionID(nSessionID,true );
-	if ( pTargetPlayer && pTargetPlayer->OnMessage(pMessage,eSenderPort ) )
+	auto pTargetPlayer = getPlayerByUserUID(pMessage->nTargetID);
+	if ( pTargetPlayer && pTargetPlayer->onMsg(pMessage,eSenderPort,nSenderUID ) )
 	{
-		if (pTargetPlayer->IsState(CPlayer::ePlayerState_Offline) )
-		{
-			pTargetPlayer->OnTimerSave(0,0);
-		}
 		return true  ;
 	}
 	else
 	{
 		if (pTargetPlayer == NULL )
 		{
-			LOGFMTE("can not find session id = %d to process msg id = %d ,from = %d",nSessionID,pMessage->usMsgType,eSenderPort) ;
+			LOGFMTE("can not find session id = %d to process msg id = %d ,from = %d", nSenderUID,pMessage->usMsgType,eSenderPort) ;
 		}
 		else
 		{
-			LOGFMTE( "unprocess msg for player uid = %d , msg = %d ,from %d ",pTargetPlayer->GetUserUID(),pMessage->usMsgType,eSenderPort ) ;
+			LOGFMTE( "unprocess msg for player uid = %d , msg = %d ,from %d ",pTargetPlayer->getUserUID(),pMessage->usMsgType,eSenderPort ) ;
 		}
 	}
 	return false ;
 }
 
-bool CPlayerManager::onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSessionID  )
+bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID)
 {
-	if ( MSG_REQUEST_PLAYER_IP == nmsgType)
+	auto pTargetPlayer = getPlayerByUserUID(nTargetID);
+	if (pTargetPlayer && pTargetPlayer->onMsg(prealMsg, nMsgType, eSenderPort, nSenderID) )
 	{
-		std::string strIp = "0.0.0.0";
-		if (recvValue["reqUID"].isNull() == false && recvValue["reqUID"].isUInt() )
-		{
-			uint32_t nReqSeq = 0;
-			nReqSeq = recvValue["reqUID"].asUInt();
-			auto pPlayer = GetPlayerByUserUID(nReqSeq);
-			if (pPlayer)
-			{
-				strIp = pPlayer->GetBaseData()->getIp();
-			}
-		}
-		recvValue["ip"] = strIp;
-		getSvrApp()->sendMsg(nSessionID, recvValue, MSG_REQUEST_PLAYER_IP);
 		return true;
 	}
-
-	CPlayer* pTargetPlayer = nullptr;
-	if (MSG_CONSUM_VIP_ROOM_CARDS == nmsgType)
-	{
-		pTargetPlayer = GetPlayerByUserUID(recvValue["uid"].asUInt());
-	}
 	else
 	{
-		pTargetPlayer = GetPlayerBySessionID(nSessionID, true);
-	}
-
-	if ( pTargetPlayer && pTargetPlayer->OnMessage(recvValue,nmsgType,eSenderPort ) )
-	{
-		if (pTargetPlayer->IsState(CPlayer::ePlayerState_Offline) )
+		if (pTargetPlayer == NULL)
 		{
-			pTargetPlayer->OnTimerSave(0,0);
-		}
-		return true  ;
-	}
-	else
-	{
-		if (pTargetPlayer == NULL )
-		{
-			LOGFMTE("can not find session id = %d to process msg id = %d ,from = %d",nSessionID,nmsgType,eSenderPort) ;
+			LOGFMTE("can not find session id = %d to process msg id = %d ,from = %d", nSenderID, nMsgType, eSenderPort);
 		}
 		else
 		{
-			LOGFMTE( "unprocess msg for player uid = %d , msg = %d ,from %d ",pTargetPlayer->GetUserUID(),nmsgType,eSenderPort ) ;
+			LOGFMTE("unprocess msg for player uid = %d , msg = %d ,from %d ", pTargetPlayer->getUserUID(), nMsgType, eSenderPort);
 		}
 	}
 	return false ;
 }
 
-bool CPlayerManager::ProcessPublicMessage( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID  )
+bool CPlayerManager::onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderUID )
 {
 	switch ( prealMsg->usMsgType )
 	{
-	case MSG_CROSS_SERVER_REQUEST:
-		{
-			stMsgCrossServerRequest* pRet = (stMsgCrossServerRequest*)prealMsg ;
-
-			Json::Value* pJsValue = nullptr ;
-			Json::Value rootValue ;
-			if ( pRet->nJsonsLen )
-			{
-				Json::Reader reader;
-				char* pstr = ((char*)&pRet->nJsonsLen) + sizeof(pRet->nJsonsLen) ;
-				reader.parse(pstr,pstr + pRet->nJsonsLen,rootValue,false);
-				pJsValue = &rootValue ;
-			}
-
-			if ( onCrossServerRequest(pRet,eSenderPort,pJsValue) == false )
-			{
-				CPlayer* pPlayer = GetPlayerByUserUID(pRet->nTargetID);
-				assert(pPlayer&&"this request no one to process or target id error");
-				if ( pPlayer && pPlayer->onCrossServerRequest(pRet,eSenderPort,pJsValue) )
-				{
-					return true ;
-				}
-				LOGFMTE("cross request type = %d , subType = %d ,unprocessed",pRet->nRequestType,pRet->nRequestSubType);
-				return false;
-			}
-
-			return true ;
-		}
-		break;
-	case MSG_CROSS_SERVER_REQUEST_RET:
-		{
-			stMsgCrossServerRequestRet* pRet = (stMsgCrossServerRequestRet*)prealMsg ;
-			Json::Value* pJsValue = nullptr ;
-			Json::Value rootValue ;
-			if ( pRet->nJsonsLen )
-			{
-				Json::Reader reader;
-				char* pstr = ((char*)&pRet->nJsonsLen) + sizeof(pRet->nJsonsLen) ;
-				reader.parse(pstr,pstr + pRet->nJsonsLen,rootValue,false);
-				pJsValue = &rootValue ;
-			}
-
-			if ( onCrossServerRequestRet(pRet,pJsValue) == false )
-			{
-				CPlayer* pPlayer = GetPlayerByUserUID(pRet->nTargetID);
-				assert(pPlayer&&"this request no one to process or target id error");
-				if ( pPlayer && pPlayer->onCrossServerRequestRet(pRet,pJsValue) )
-				{
-					return true ;
-				}
-				LOGFMTE("cross request result type = %d , subType = %d ,unprocessed",pRet->nRequestType,pRet->nRequestSubType);
-				return false;
-			}
-			return true ;
-		}
-		break;
-	case MSG_SVR_DO_LEAVE_ROOM:
-		{
-			stMsgSvrDoLeaveRoom* pRet = (stMsgSvrDoLeaveRoom*)prealMsg ;
-			CPlayer* pp = GetPlayerByUserUID(pRet->nUserUID) ;
-			if (!pp)
-			{
-				LOGFMTE("uid = %d not find , so can not process do leave room",pRet->nUserUID);
-			}
-			else
-			{
-				LOGFMTD("uid = %d do leave room ",pRet->nUserUID) ;
-				pp->OnMessage(prealMsg,eSenderPort);
-			}
-		}
-		break;
-	case MSG_SYNC_PRIVATE_ROOM_RESULT:
-		{
-			stMsgSyncPrivateRoomResult* pRet = (stMsgSyncPrivateRoomResult*)prealMsg ;
-			CPlayer* pp = GetPlayerByUserUID(pRet->nTargetPlayerUID) ;
-			if (!pp || pp->IsState(CPlayer::ePlayerState_Online) == false )
-			{
-				LOGFMTE("uid = %d not find , so can not process MSG_SYNC_PRIVATE_ROOM_RESULT, seiral = %u ",pRet->nTargetPlayerUID,pRet->nSiealNum );
-				Json::Value jsArg ;
-				jsArg["createUID"] = pRet->nCreatorUID ;
-				jsArg["duiringTime"] = pRet->nDuringTimeSeconds ;
-				jsArg["finalCoin"] = pRet->nFinalCoin ;
-				jsArg["offset"] = pRet->nOffset ;
-				jsArg["roomID"] = pRet->nRoomID ;
-				jsArg["finishTime"] = (uint32_t)time(nullptr);
-				jsArg["buyIn"] = pRet->nBuyIn ;
-				jsArg["baseBet"] = pRet->nBaseBet ;
-				jsArg["roomName"] = pRet->cRoomName ;
-				jsArg["clubID"] = pRet->nClubID ;
-				jsArg["serialNum"] = pRet->nSiealNum;
-				CPlayerMailComponent::PostOfflineEvent(CPlayerMailComponent::Event_SyncGameResult,jsArg,pRet->nTargetPlayerUID);
-			}
-			else
-			{
-				pp->OnMessage(prealMsg,eSenderPort);
-			}
-		}
-		break ;
 	case MSG_REQUEST_PLAYER_DATA:
 		{
 			stMsgRequestPlayerData* pRet = (stMsgRequestPlayerData*)prealMsg ;
@@ -501,149 +368,32 @@ bool CPlayerManager::ProcessPublicMessage( stMsg* prealMsg , eMsgPort eSenderPor
 			m_tPlayerDataCaher.sendPlayerDataProfile(pRet->nPlayerUID,pRet->isDetail,nSessionID);
 		}
 		break;
-	case MSG_SELECT_DB_PLAYER_DATA:
-		{
-			stMsgSelectPlayerDataRet* pRet = (stMsgSelectPlayerDataRet*)prealMsg ;
-			m_tPlayerDataCaher.cachePlayerData(pRet);
-		}
-		break;
-	case MSG_PLAYER_LOGIN:
-		{
-			stMsgOnPlayerLogin* pmsgenter = (stMsgOnPlayerLogin*)prealMsg ;
-			CPlayer* pPlayer = GetPlayerBySessionID(nSessionID) ;
-			if ( pPlayer != NULL && pPlayer->GetUserUID() == pmsgenter->nUserUID )
-			{
-				LOGFMTE("double nSession, this nSessionID already have player, already login , do not login again  id = %d? ",nSessionID) ;
-				return true ;
-			}
-
-			if ( pPlayer != NULL && pPlayer->GetUserUID() != pmsgenter->nUserUID ) // switch account in main scene 
-			{
-				// disconnect pre player 
-				OnPlayerOffline(pPlayer);
-			}
-
-			if ( ProcessIsAlreadyLogin(pmsgenter->nUserUID,nSessionID) )
-			{
-				return true ;
-			}
-
-			// is offline peer 
-			MAP_UID_PLAYERS::iterator iterOfflien = m_vOfflinePlayers.begin();
-			for ( ; iterOfflien != m_vOfflinePlayers.end(); ++iterOfflien )
-			{
-				if ( iterOfflien->second && iterOfflien->first == pmsgenter->nUserUID )
-				{
-					iterOfflien->second->OnReactive(nSessionID) ;
-					AddPlayer(iterOfflien->second) ;
-					m_vOfflinePlayers.erase(iterOfflien) ;
-					return true ;
-				}
-			}
-
-			CPlayer* pNew = new CPlayer ;
-			pNew->Init(pmsgenter->nUserUID,nSessionID ) ;
-			AddPlayer(pNew) ;
-		}
-		break;
-	case MSG_DISCONNECT_CLIENT:
-	case MSG_PLAYER_LOGOUT:
-		{
-			CPlayer* pPlayer = GetPlayerBySessionID(nSessionID) ;
-			if ( pPlayer )
-			{
-				// post online event ;
-				LOGFMTD("player disconnect session id = %d",nSessionID);
-				OnPlayerOffline(pPlayer) ;
-			}
-			else
-			{
-				LOGFMTE("client disconnect ! client is NULL session id = %d",nSessionID) ;
-			}
-			//#ifdef _DEBUG
-			LogState();
-			//#endif
-		}
-		break;
-	//case MSG_TP_ORDER_LEAVE:
-	//	{
-	//		stMsgOrderTaxasPlayerLeaveRet* pRet = (stMsgOrderTaxasPlayerLeaveRet*)prealMsg ;
-	//		CPlayer* pp = GetPlayerByUserUID(pRet->nUserUID) ;
-	//		if (!pp)
-	//		{
-	//			LOGFMTE("uid = %d not find , so can not inform leave",pRet->nUserUID);
-	//		}
-	//		else
-	//		{
-	//			pp->OnMessage(prealMsg,eSenderPort);
-	//		}
-	//	}
-	//	break;
-	//case MSG_TP_INFORM_LEAVE:
-	//	{
-	//		stMsgInformTaxasPlayerLeave* pRet = (stMsgInformTaxasPlayerLeave*)prealMsg ;
-	//		CPlayer* pp = GetPlayerByUserUID(pRet->nUserUID) ;
-	//		if (!pp)
-	//		{
-	//			LOGFMTE("uid = %d not find , so can not inform leave",pRet->nUserUID);
-	//		}
-	//		else
-	//		{
-	//			pp->OnMessage(prealMsg,eSenderPort);
-	//		}
-	//	}
-	//	break;
-	case MSG_TP_SYNC_PLAYER_DATA:
-		{
-			stMsgSyncTaxasPlayerData* pRet = (stMsgSyncTaxasPlayerData*)prealMsg ;
-			CPlayer* pp = GetPlayerByUserUID(pRet->nUserUID) ;
-			if (!pp)
-			{
-				LOGFMTE("uid = %d not find , so can not sys data",pRet->nUserUID);
-			}
-			else
-			{
-				pp->OnMessage(prealMsg,eSenderPort);
-			}
-		}
-		break;
-	case MSG_SVR_DELAYED_LEAVE_ROOM:
-		{
-			stMsgSvrDelayedLeaveRoom* pRet = (stMsgSvrDelayedLeaveRoom*)prealMsg ;
-			CPlayer* pp = GetPlayerByUserUID(pRet->nUserUID) ;
-			if (!pp)
-			{
-				LOGFMTE("uid = %d not find , so can not delay leave room",pRet->nUserUID);
-			}
-			else
-			{
-				pp->OnMessage(prealMsg,eSenderPort);
-			}
-		}
-		break;
-	case MSG_VERIFY_TANSACTION:
-	{
-		stMsgFromVerifyServer* pRet = (stMsgFromVerifyServer*)prealMsg;
-		CPlayer* pp = GetPlayerByUserUID(pRet->nBuyerPlayerUserUID);
-		if (!pp)
-		{
-			LOGFMTE("uid = %d not find ,can not give shopItemID = %u", pRet->nBuyerPlayerUserUID, pRet->nShopItemID);
-		}
-		else
-		{
-			return pp->OnMessage(prealMsg, eSenderPort);
-		}
-		break;
-	}
-	default:
 		return false;
 	}
 
 	return true ;
 }
 
-bool CPlayerManager::onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )
+bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )
 {
+	if ( jsReqContent["playerUID"].isNull() == false)
+	{
+		auto nPlayerUID = jsReqContent["playerUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nPlayerUID);
+		if ( pPlayer == nullptr )
+		{
+			jsResult["ret"] = 1; // can not find target player ;
+			return false;
+		}
+		else
+		{
+			return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
+		}
+	}
+
+	// common requst ;
+
+
 	switch (nRequestType)
 	{
 	case eAsync_ComsumDiamond:

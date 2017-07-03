@@ -91,16 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\DBServer\src\DataBaseThread.cpp" />
-    <ClCompile Include="..\DBServer\src\DBRequest.cpp" />
-    <ClCompile Include="..\DBServer\src\MySqlData.cpp" />
-    <ClCompile Include="..\ServerCommon\DBTask.cpp" />
     <ClCompile Include="..\ServerCommon\httpRequest.cpp" />
-    <ClCompile Include="..\ServerCommon\mutex.cpp" />
-    <ClCompile Include="..\ServerCommon\Sem.cpp" />
-    <ClCompile Include="..\ServerCommon\TaskPool.cpp" />
-    <ClCompile Include="..\ServerCommon\ThreadMod.cpp" />
-    <ClCompile Include="..\ServerCommon\WorkThread.cpp" />
     <ClCompile Include="src\AnyLoginTask.cpp" />
     <ClCompile Include="src\ApnsTask.cpp" />
     <ClCompile Include="src\AppleVerifyTask.cpp" />
@@ -129,18 +120,7 @@
     <ClCompile Include="src\WeChatVerifyTask.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\DBServer\src\DataBaseThread.h" />
-    <ClInclude Include="..\DBServer\src\DBRequest.h" />
-    <ClInclude Include="..\DBServer\src\DBRequestFlags.h" />
-    <ClInclude Include="..\DBServer\src\MySqlData.h" />
-    <ClInclude Include="..\ServerCommon\DBTask.h" />
     <ClInclude Include="..\ServerCommon\httpRequest.h" />
-    <ClInclude Include="..\ServerCommon\ITask.h" />
-    <ClInclude Include="..\ServerCommon\mutex.h" />
-    <ClInclude Include="..\ServerCommon\Sem.h" />
-    <ClInclude Include="..\ServerCommon\TaskPool.h" />
-    <ClInclude Include="..\ServerCommon\ThreadMod.h" />
-    <ClInclude Include="..\ServerCommon\WorkThread.h" />
     <ClInclude Include="src\AnyLoginTask.h" />
     <ClInclude Include="src\ApnsTask.h" />
     <ClInclude Include="src\AppleVerifyTask.h" />

@@ -1,25 +1,19 @@
 #pragma once
 #include "ISeverApp.h"
 #include "ServerConfig.h"
-class CDBManager ;
-class CDataBaseThread ;
+#include "DBRWModule.h"
 class CDBServerApp
 	:public IServerApp
 {
 public:
-	CDBServerApp();
-	~CDBServerApp();
-	bool init();
+	bool init()override;
 	uint16_t getLocalSvrMsgPortType(){ return ID_MSG_PORT_DB ;}
-	bool onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
-	void update(float fdeta );
-	bool OnMessage( Packet* pMsg )override ;
-	void onExit();
-	CDataBaseThread* GetDBThread(){ return m_pDBWorkThread ; }
+	void update(float fdeta )override;
+	void onExit()override;
+	DBRWModule* getDBModule(){ return &m_tDBRW; }
+	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)override;
 protected:
-	CDBManager* m_pDBManager ;
-	CDataBaseThread* m_pDBWorkThread ;
-
+	DBRWModule m_tDBRW;
 	// server config 
 	CSeverConfigMgr m_stSvrConfigMgr ;
 };

@@ -117,31 +117,54 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		}
 
 		Json::Value jsResult ;
-		if ( !onAsyncRequest(pRet->nReqType,jsReqContent,jsResult) )
+		if ( onAsyncRequest(pRet->nReqType,jsReqContent,jsResult) )
 		{
-			LOGFMTE("async request type = %u , not process from port = %u",pRet->nReqType,pData->nSenderPort) ;
-			assert(0 && "must process the req" );
+			stMsgAsyncRequestRet msgBack;
+			msgBack.cSysIdentifer = (eMsgPort)pData->nSenderPort;
+			msgBack.nReqSerailID = pRet->nReqSerailID;
+			msgBack.nTargetID = pData->nSessionID;
+			msgBack.nResultContentLen = 0;
+			msgBack.nRet = 0;
+			if (jsResult.isNull() == true)
+			{
+				sendMsg(&msgBack, sizeof(msgBack), pData->nSessionID);
+			}
+			else
+			{
+				Json::StyledWriter jsWrite;
+				auto strResult = jsWrite.write(jsResult);
+				msgBack.nResultContentLen = strResult.size();
+				CAutoBuffer auBuffer(sizeof(msgBack) + msgBack.nResultContentLen);
+				auBuffer.addContent(&msgBack, sizeof(msgBack));
+				auBuffer.addContent(strResult.c_str(), msgBack.nResultContentLen);
+				sendMsg(&msgBack, sizeof(msgBack), pData->nSessionID);
+			}
+			return true;
 		}
-		
-		stMsgAsyncRequestRet msgBack ;
-		msgBack.cSysIdentifer = (eMsgPort)pData->nSenderPort ;
-		msgBack.nReqSerailID = pRet->nReqSerailID ;
-		msgBack.nTargetID = pData->nSessionID;
-		msgBack.nResultContentLen = 0 ;
-		if ( jsResult.isNull() == true )
+
+		if ( onAsyncRequestDelayResp(pRet->nReqType,pRet->nReqSerailID,jsReqContent,pData->nSenderPort,pData->nSessionID,pRet->nTargetID) )
 		{
-			sendMsg(&msgBack,sizeof(msgBack),pData->nSessionID) ;
-		}
-		else
-		{
-			Json::StyledWriter jsWrite ;
-			auto strResult = jsWrite.write(jsResult);
-			msgBack.nResultContentLen = strResult.size() ;
-			CAutoBuffer auBuffer(sizeof(msgBack) + msgBack.nResultContentLen );
-			auBuffer.addContent(&msgBack,sizeof(msgBack));
-			auBuffer.addContent(strResult.c_str(),msgBack.nResultContentLen) ;
+			LOGFMTD( "req delay respone async rqust type = %u, from port = %u",pRet->nReqType,pData->nSenderPort );
+			stMsgAsyncRequestRet msgBack;
+			msgBack.cSysIdentifer = (eMsgPort)pData->nSenderPort;
+			msgBack.nReqSerailID = pRet->nReqSerailID;
+			msgBack.nTargetID = pData->nSessionID;
+			msgBack.nResultContentLen = 0;
+			msgBack.nRet = 1;
 			sendMsg(&msgBack, sizeof(msgBack), pData->nSessionID);
+			return true;
 		}
+
+		LOGFMTE("async request type = %u , not process from port = %u", pRet->nReqType, pData->nSenderPort);
+		assert(0 && "must process the req");
+		
+		stMsgAsyncRequestRet msgBack;
+		msgBack.cSysIdentifer = (eMsgPort)pData->nSenderPort;
+		msgBack.nReqSerailID = pRet->nReqSerailID;
+		msgBack.nTargetID = pData->nSessionID;
+		msgBack.nResultContentLen = 0;
+		msgBack.nRet = 2;
+		sendMsg(&msgBack, sizeof(msgBack), pData->nSessionID);
 		return true ;
 	}
 
@@ -200,6 +223,14 @@ bool IServerApp::OnMessage( Packet* pMsg )
 void IServerApp::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)
 {
 	LOGFMTD("svr port = %u disconnect, idx = %u, max cnt = %u", nSvrPort, nSvrIdx, nSvrMaxCnt);
+	for (auto pp : m_vAllModule)
+	{
+		if (pp.second->onOtherSvrShutDown(nSvrPort, nSvrIdx, nSvrMaxCnt))
+		{
+			return ;
+		}
+	}
+	return;
 }
 
 bool IServerApp::OnLostSever(Packet* pMsg)
@@ -224,6 +255,7 @@ bool IServerApp::OnConnectStateChanged( eConnectState eSate, Packet* pMsg)
 		stMsgVerifyServer msgVerify;
 		msgVerify.nSeverPortType = getTargetSvrPortType();
 		msgVerify.nTargetID = 0;
+		msgVerify.nSeverPortType = getLocalSvrMsgPortType();
 		msgVerify.isReconnect = getCurSvrMaxCnt() > 0;
 		if (msgVerify.isReconnect)
 		{
@@ -391,6 +423,18 @@ bool IServerApp::onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReq
 		}
 	}
 	return false ;
+}
+
+bool IServerApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)
+{
+	for (auto pp : m_vAllModule)
+	{
+		if (pp.second->onAsyncRequestDelayResp(nRequestType, nReqSerial, jsReqContent, nSenderPort,nSenderID,nTargetID) )
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void IServerApp::update(float fDeta )

@@ -56,6 +56,13 @@ bool CAsyncRequestQuene::onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t
 	if ( pReqIter != m_mapRunningRequest.end() )
 	{
 		auto pReq = pReqIter->second ;
+		if (pRet->nRet == 1) // delay respone 
+		{
+			pReq->tLastSend -= ( TIME_CHECK_REQ_STATE * 3 );
+			LOGFMTD("this request deay respone do not try again during some seconds");
+			return true;
+		}
+
 		if ( pReq->lpCallBack )
 		{
 			//pReq->lpCallBack(pReq->nReqType, jsResultContent, pReq->jsUserData);

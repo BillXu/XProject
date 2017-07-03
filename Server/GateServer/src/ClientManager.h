@@ -26,9 +26,11 @@ protected:
 	void addClientGate(stGateClient* pGateClient );
 	void removeActiveClientGate(stGateClient* pGateClient );
 	stGateClient* getReserverGateClient();
-	stGateClient* GetGateClientByNetWorkID(CONNECT_ID& nNetWorkID );
+	stGateClient* getGateClientByNetWorkID(CONNECT_ID nNetWorkID );
 	void addToResever( stGateClient* pClient );
 	void sendMsgToClient( stMsg* pmsg , uint16_t nLen ,CONNECT_ID nNetWorkID);
+	void onRegister(stMsg* pmsg, stGateClient* pClient );
+	void onLogin(stMsg* pmsg, stGateClient* pClient );
 protected:
 	friend struct stGateClient ;
 protected:

@@ -45,7 +45,7 @@ bool CGateServer::init()
 	
 	m_stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
 
-	stServerConfig* pSvrConfig = m_stSvrConfigMgr.GetServerConfig(eSvrType_Center) ;
+	stServerConfig* pSvrConfig = m_stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_CENTER) ;
 	if ( !pSvrConfig )
 	{
 		return false ;

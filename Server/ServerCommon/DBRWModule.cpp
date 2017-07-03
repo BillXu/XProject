@@ -1,7 +1,7 @@
 #include "DBRWModule.h"
 #include "DBTask.h"
 #include "log4z.h"
-bool DBRWModule::init(uint32_t nTaskID, const char* pIP, const char* pAccount, const char* pPassword, const char* pDBName, uint8_t nWorkThreadCnt, uint16_t nPort )
+bool DBRWModule::init( const char* pIP, const char* pAccount, const char* pPassword, const char* pDBName, uint8_t nWorkThreadCnt, uint16_t nPort )
 {
 	m_tTaskPool.init(this, nWorkThreadCnt);
 	m_strDBIp = pIP;
@@ -96,4 +96,9 @@ void DBRWModule::onTaskFinish( ITask::ITaskPrt pTask )
 	// request obj push to reserver for resue 
 	pReq->reset();
 	m_vReseverDBRequest.push_back(pReq);
+}
+
+void DBRWModule::closeAll()
+{
+	m_tTaskPool.closeAll();
 }

@@ -99,7 +99,10 @@
     <ClCompile Include="ServerConfig.cpp" />
     <ClCompile Include="ServerStringTable.cpp" />
     <ClCompile Include="SeverUtility.cpp" />
+    <ClCompile Include="TaskPool.cpp" />
+    <ClCompile Include="ThreadMod.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="WorkThread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\CommonData.h" />
@@ -121,6 +124,7 @@
     <ClInclude Include="DBTask.h" />
     <ClInclude Include="IGlobalModule.h" />
     <ClInclude Include="ISeverApp.h" />
+    <ClInclude Include="ITask.h" />
     <ClInclude Include="log4z.h" />
     <ClInclude Include="MySqlData.h" />
     <ClInclude Include="ServerCommon.h" />
@@ -130,7 +134,10 @@
     <ClInclude Include="ServerStringTable.h" />
     <ClInclude Include="SeverUtility.h" />
     <ClInclude Include="Singleton.h" />
+    <ClInclude Include="TaskPool.h" />
+    <ClInclude Include="ThreadMod.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="WorkThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

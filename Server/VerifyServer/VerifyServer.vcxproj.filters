@@ -43,15 +43,6 @@
     <ClCompile Include="src\VerifyApp.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="..\ServerCommon\mutex.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\Sem.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\ThreadMod.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
     <ClCompile Include="src\MiVerifyManager.cpp">
       <Filter>Verify</Filter>
     </ClCompile>
@@ -88,15 +79,6 @@
     <ClCompile Include="src\DBVerifyTask.cpp">
       <Filter>Verify\Task</Filter>
     </ClCompile>
-    <ClCompile Include="..\ServerCommon\DBTask.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\TaskPool.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\WorkThread.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
     <ClCompile Include="src\AppleVerifyTask.cpp">
       <Filter>Verify\Task</Filter>
     </ClCompile>
@@ -105,15 +87,6 @@
     </ClCompile>
     <ClCompile Include="src\VerifyRequest.cpp">
       <Filter>Verify</Filter>
-    </ClCompile>
-    <ClCompile Include="..\DBServer\src\DataBaseThread.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\DBServer\src\DBRequest.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\DBServer\src\MySqlData.cpp">
-      <Filter>SvrCommon</Filter>
     </ClCompile>
     <ClCompile Include="src\ApnsTask.cpp">
       <Filter>Apns</Filter>
@@ -150,15 +123,6 @@
     <ClInclude Include="src\VerifyApp.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\mutex.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ServerCommon\Sem.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ServerCommon\ThreadMod.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
     <ClInclude Include="src\MiVerifyManager.h">
       <Filter>Verify</Filter>
     </ClInclude>
@@ -192,18 +156,6 @@
     <ClInclude Include="src\DBVerifyTask.h">
       <Filter>Verify\Task</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\DBTask.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ServerCommon\ITask.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ServerCommon\TaskPool.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ServerCommon\WorkThread.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
     <ClInclude Include="src\AppleVerifyTask.h">
       <Filter>Verify\Task</Filter>
     </ClInclude>
@@ -215,18 +167,6 @@
     </ClInclude>
     <ClInclude Include="src\VerifyRequest.h">
       <Filter>Verify</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DBServer\src\DataBaseThread.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DBServer\src\DBRequest.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DBServer\src\DBRequestFlags.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DBServer\src\MySqlData.h">
-      <Filter>SvrCommon</Filter>
     </ClInclude>
     <ClInclude Include="src\ApnsTask.h">
       <Filter>Apns</Filter>

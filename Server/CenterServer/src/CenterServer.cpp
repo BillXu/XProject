@@ -284,22 +284,21 @@ const char* CCenterServerApp::getServerDescByType( uint16_t eType)
 {
 	static const char* vSvrString[] =
 	{
-		"ID_MSG_PORT_NONE" , // client to game server 
-		"ID_MSG_PORT_CLIENT",
-		"ID_MSG_PORT_GATE",
-		"ID_MSG_PORT_CENTER",
-		"ID_MSG_PORT_LOGIN",
-		"ID_MSG_PORT_VERIFY",
-		"ID_MSG_PORT_APNS",
-		"ID_MSG_PORT_LOG",
-		"ID_MSG_PORT_DATA",
-		"ID_MSG_PORT_TAXAS",
-		"ID_MSG_PORT_DB",
-		"ID_MSG_PORT_ALL_SERVER",
-		"ID_MSG_PORT_NIU_NIU",
-		"ID_MSG_PORT_GOLDEN",
-		"ID_MSG_PORT_MJ",
-		"ID_MSG_PORT_MAX",
+		"PORT_CLIENT",
+		"PORT_GATE",
+		"PORT_CENTER",
+		"PORT_LOGIN",
+		"PORT_VERIFY",
+		"PORT_APNS",
+		"PORT_LOG",
+		"PORT_DATA",
+		"PORT_TAXAS",
+		"PORT_DB",
+		"PORT_ALL_SERVER",
+		"PORT_NIU_NIU",
+		"PORT_GOLDEN",
+		"PORT_MJ",
+		"PORT_MAX",
 	};
 
 	if ( eType >= ID_MSG_PORT_MAX)

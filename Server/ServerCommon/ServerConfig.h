@@ -1,6 +1,7 @@
 #pragma once
 #include "IConfigFile.h"
 #include "ServerCommon.h"
+#include "MessageIdentifer.h"
 #include <vector>
 struct stServerConfig
 {
@@ -20,9 +21,9 @@ public:
 	CSeverConfigMgr();
 	~CSeverConfigMgr();
 	virtual bool OnPaser(CReaderRow& refReaderRow ) ;
-	stServerConfig* GetServerConfig(eServerType cSvrType, uint16_t nIdx = 0 ) ;
-	stServerConfig* GetGateServerConfig(uint16_t nIdx ){ return GetServerConfig(eSvrType_Gate,nIdx) ;}
-	uint16_t GetServerConfigCnt( eServerType cSvrType ){ if (cSvrType >= eSvrType_Max ) return NULL ; return m_vAllSvrConfig[cSvrType].size();}
+	stServerConfig* GetServerConfig(eMsgPort cSvrType, uint16_t nIdx = 0 ) ;
+	stServerConfig* GetGateServerConfig(uint16_t nIdx ){ return GetServerConfig(ID_MSG_PORT_GATE,nIdx) ;}
+	uint16_t GetServerConfigCnt(eMsgPort cSvrType ){ if (cSvrType >= ID_MSG_PORT_MAX) return NULL ; return m_vAllSvrConfig[cSvrType].size();}
 protected:
-	VEC_SERVER_CONFIG m_vAllSvrConfig[eSvrType_Max] ;
+	VEC_SERVER_CONFIG m_vAllSvrConfig[ID_MSG_PORT_MAX] ;
 };

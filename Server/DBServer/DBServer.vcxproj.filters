@@ -10,25 +10,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\DataBaseThread.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\DBApp.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\DBManager.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DBRequest.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DBRequestFlags.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\main.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MySqlData.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\ServerCommon\mutex.h">
@@ -43,18 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DataBaseThread.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DBRequest.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MySqlData.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DBManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\DBApp.cpp">

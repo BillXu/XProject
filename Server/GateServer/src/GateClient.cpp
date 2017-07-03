@@ -66,6 +66,11 @@ void stGateClient::onReconnected( stGateClient* pBeReconnected )
 	pBeReconnected->beReconnected();
 }
 
+void stGateClient::bindUID(uint32_t nUID)
+{
+	m_nUserUID = nUID;
+}
+
 uint32_t stGateClient::getBindUID()
 {
 	return m_nUserUID;

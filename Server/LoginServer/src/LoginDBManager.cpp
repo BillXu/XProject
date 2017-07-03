@@ -575,21 +575,5 @@ std::string CDBManager::checkString(const char* pstr)
 	}
 
 	return strout;
-
-	//uint16_t nLen = strlen(pstr)*2 ;
-	//char* pBuffer = new char[nLen] ;
-	//memset(pBuffer,0,nLen);
-	//uint16_t nWriteIdx = 0 ;
-	//while (*pstr)
-	//{
-	//	pBuffer[nWriteIdx++] = *pstr;
-	//	if ( *pstr == '\'' )
-	//	{
-	//		pBuffer[nWriteIdx++] = '\'';
-	//	}
-	//	++pstr ;
-	//}
-	//std::string str = pBuffer ;
-	//return str ;
 }
 

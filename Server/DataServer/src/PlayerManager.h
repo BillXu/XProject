@@ -5,6 +5,7 @@
 #include <map>
 #include <list>
 #include "IGlobalModule.h"
+#include "MessageIdentifer.h"
 class CPlayer ;
 struct stMsg ;
 class CSelectPlayerDataCacher
@@ -41,40 +42,35 @@ public:
 protected:
 	MAP_ID_DATA m_vDetailData ;
 };
+
 class CPlayerManager
 	:public IGlobalModule
 {
 public:
-	typedef std::map<uint32_t, CPlayer*> MAP_SESSIONID_PLAYERS ; 
 	typedef std::map<uint32_t, CPlayer*> MAP_UID_PLAYERS ;
 	typedef std::list<CPlayer*> LIST_PLAYERS ;
 public:
 	CPlayerManager();
 	~CPlayerManager();
-
-	bool onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID)override ;
-	bool onMsg(Json::Value& prealMsg ,uint16_t nMsgType, eMsgPort eSenderPort , uint32_t nSessionID)override;
-
-	CPlayer* GetPlayerByUserUID( uint32_t nUserUID, bool bInclueOffline = true );
-	CPlayer* GetPlayerBySessionID(uint32_t nSessionID , bool bInclueOffline = false );
+	bool onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID )override ;
+	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID)override;
+	CPlayer* getPlayerByUserUID( uint32_t nUserUID );
 	void update(float fDeta )override ;
-	CPlayer* GetFirstActivePlayer();
 	void onExit()override ;
-	bool onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )override ;
+	bool onAsyncRequest( uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )override ;
 protected:
-	void OnPlayerOffline(CPlayer* pOfflinePlayer);
-	bool ProcessPublicMessage( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
-	bool onCrossServerRequest(stMsgCrossServerRequest* pRequest , eMsgPort eSenderPort,Json::Value* vJsValue = nullptr);
-	bool onCrossServerRequestRet(stMsgCrossServerRequestRet* pResult,Json::Value* vJsValue = nullptr );
-	void AddPlayer(CPlayer*);
-	void LogState();
-	bool ProcessIsAlreadyLogin(unsigned int nUserID ,unsigned nSessionID ) ;
+	void onPlayerOffline(CPlayer* pOfflinePlayer);
+	bool onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
+	void addPlayer( CPlayer* pNewPlayer );
+	void logState();
+	CPlayer* getReserverPlayerObj();
+	void addToReserverPlayerObj( CPlayer* pPlayer );
 public:
 	CSelectPlayerDataCacher& getPlayerDataCaher(){ return m_tPlayerDataCaher ;}
 protected:
 	// logic data ;
-	MAP_SESSIONID_PLAYERS m_vAllActivePlayers ;
-	MAP_UID_PLAYERS m_vOfflinePlayers ;
+	MAP_UID_PLAYERS m_vAllActivePlayers ;
+	LIST_PLAYERS m_vReserverPlayerObj ;
 
 	CSelectPlayerDataCacher m_tPlayerDataCaher ;
 };

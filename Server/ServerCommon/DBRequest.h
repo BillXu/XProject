@@ -30,7 +30,7 @@ struct stDBRequest
 {
 public:
 	typedef std::shared_ptr<stDBRequest> s_ptr;
-	typedef std::function<void(stDBRequest::s_ptr pReq, std::shared_ptr<stDBResult> pRet)> lpDBResultCallBack;
+	typedef std::function<void (stDBRequest::s_ptr pReq, std::shared_ptr<stDBResult> pRet)> lpDBResultCallBack;
 public:
 	eDBRequestType eType ;
 	unsigned int nRequestUID ;  // maybe msg id  ;

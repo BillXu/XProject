@@ -41,8 +41,8 @@ enum eMsgType
 	MSG_TELL_CLIENT_SVR_DISCONNECT, // tell client svr
 	MSG_CLIENT_CONNECT_STATE_CHANGED,  // client connect state changed ;  // send by gate 
 	MSG_GATE_SVR_IS_FULL, // gate connect is full , let client change other gate ;
-
-
+	MSG_PLAYER_REGISTER,     // register an account ;
+	MSG_PLAYER_LOGIN,  // check an account is valid ;
 
 
 
@@ -100,9 +100,9 @@ enum eMsgType
 	
 	MSG_GATESERVER_INFO,
 	// login 
-	MSG_PLAYER_REGISTER,     // register an account ;
+	
 	MSG_REQUEST_CREATE_PLAYER_DATA,  // INFORM DB prepare data for player
-	MSG_PLAYER_LOGIN,  // check an account is valid ;
+	
 	MSG_PLAYER_BIND_ACCOUNT, //  a quick enter player need to bind a real account and password ;
 	MSG_MODIFY_PASSWORD,
 	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server

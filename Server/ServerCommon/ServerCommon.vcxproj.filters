@@ -16,6 +16,9 @@
     <Filter Include="src\dbmodule">
       <UniqueIdentifier>{fb2e0249-c268-4985-ab8d-23a7b4c5e1cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\taskPool">
+      <UniqueIdentifier>{64ea35d6-0606-4d3a-8c7f-a58cfd826918}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -74,6 +77,15 @@
     </ClCompile>
     <ClCompile Include="MySqlData.cpp">
       <Filter>src\dbmodule</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskPool.cpp">
+      <Filter>src\taskPool</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadMod.cpp">
+      <Filter>src\taskPool</Filter>
+    </ClCompile>
+    <ClCompile Include="WorkThread.cpp">
+      <Filter>src\taskPool</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +175,18 @@
     </ClInclude>
     <ClInclude Include="MySqlData.h">
       <Filter>src\dbmodule</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskPool.h">
+      <Filter>src\taskPool</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadMod.h">
+      <Filter>src\taskPool</Filter>
+    </ClInclude>
+    <ClInclude Include="WorkThread.h">
+      <Filter>src\taskPool</Filter>
+    </ClInclude>
+    <ClInclude Include="ITask.h">
+      <Filter>src\taskPool</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

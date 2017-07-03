@@ -44,15 +44,6 @@ struct stMsgTransferData
 	char pData[0];
 };
 
-struct stMsgClientDisconnect  // gate send to all data svr , data svr check if have contain player ;
-	:public stMsg
-{
-public:
-	stMsgClientDisconnect() { cSysIdentifer = ID_MSG_PORT_DATA;  usMsgType = MSG_CLIENT_CONNECT_STATE_CHANGED; nTargetID = -1; }
-	uint32_t nSeesionID;
-	uint8_t nState; // 0 wait for reconnect , 1 do disconnect , clear data 
-};
-
 struct stMsgServerDisconnect
 	:public stMsg
 {
@@ -76,7 +67,8 @@ struct stMsgAsyncRequest
 struct stMsgAsyncRequestRet
 	:public stMsg
 {
-	stMsgAsyncRequestRet(){ cSysIdentifer = ID_MSG_PORT_NONE ; usMsgType = MSG_ASYNC_REQUEST_RESULT ;}
+	stMsgAsyncRequestRet() { cSysIdentifer = ID_MSG_PORT_NONE; usMsgType = MSG_ASYNC_REQUEST_RESULT; nRet = 0 ; }
+	uint8_t nRet;  // 0 processed , 1 delay respone , 2 not processed ;
 	uint32_t nReqSerailID ;
 	uint16_t nResultContentLen ;
 	//PLACE_HOLDER(char* jsResultContentLen);
@@ -91,6 +83,10 @@ struct stMsgClientConnectStateChanged
 	uint8_t nCurState; // 0 reconnected ok , 1 first offline , 2 do offline ,delete player ;
 	char cIP[20] = { 0 };
 };
+
+
+
+
 
 
 

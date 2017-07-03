@@ -10,6 +10,7 @@ public:
 	~stGateClient();
 	void init( unsigned int nSessionID , CONNECT_ID nNetWorkID,const char* IpInfo );
 	void onReconnected( stGateClient* pBeReconnected );
+	void bindUID( uint32_t nUID );
 	uint32_t getBindUID();
 	uint32_t getSessionID();
 	bool isVerifyed();

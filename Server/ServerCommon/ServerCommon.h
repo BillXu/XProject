@@ -30,81 +30,84 @@ enum  eLogType
 	eLog_Max,
 };
 
-enum eOperateStage
-{
-	eOperate_NotDo,
-	eOperate_Doing,
-	eOperate_Done,
-	eOperate_Max,
-};
+//enum eOperateStage
+//{
+//	eOperate_NotDo,
+//	eOperate_Doing,
+//	eOperate_Done,
+//	eOperate_Max,
+//};
 
-enum eDBAct
-{
-	eDBAct_Add,
-	eDBAct_Delete,
-	eDBAct_Update,
-	eDBAct_Select,
-	eDBAct_Max,
-};
+//enum eDBAct
+//{
+//	eDBAct_Add,
+//	eDBAct_Delete,
+//	eDBAct_Update,
+//	eDBAct_Select,
+//	eDBAct_Max,
+//};
 
-enum eServerType
-{
-	eSvrType_Gate,
-	eSvrType_Login,
-	eSvrType_DB,
-	eSvrType_Game,
-	eSvrType_Verify,
-	eSvrType_DataBase,
-	eSvrType_APNS,
-	eSvrType_MJ = eSvrType_APNS,
-	eSvrType_Log,
-	eSvrType_LogDataBase,
-	eSvrType_Center,
-	eSvrType_Data,
-	eSvrType_Taxas,
-	eSvrType_NiuNiu,
-	eSvrType_Golden,
-	eSvrType_Max,
-};
+//enum eServerType
+//{
+//	eSvrType_Gate,
+//	eSvrType_Login,
+//	eSvrType_DB,
+//	eSvrType_Game,
+//	eSvrType_Verify,
+//	eSvrType_DataBase,
+//	eSvrType_APNS,
+//	eSvrType_MJ = eSvrType_APNS,
+//	eSvrType_Log,
+//	eSvrType_LogDataBase,
+//	eSvrType_Center,
+//	eSvrType_Data,
+//	eSvrType_Taxas,
+//	eSvrType_NiuNiu,
+//	eSvrType_Golden,
+//	eSvrType_Max,
+//};
 
-enum  eReqMoneyType
-{
-	eReqMoney_TaxasTakeIn,// backArg[0] = roomID , backArg[1] = seatIdx ;
-	eReqMoney_CreateRoom,  // backArg[0] = sessionID backArg[1] = ConfigID;
-	eReqMoney_Max,
-	eReqMoneyArgCnt = 3 ,
-};
+//enum  eReqMoneyType
+//{
+//	eReqMoney_TaxasTakeIn,// backArg[0] = roomID , backArg[1] = seatIdx ;
+//	eReqMoney_CreateRoom,  // backArg[0] = sessionID backArg[1] = ConfigID;
+//	eReqMoney_Max,
+//	eReqMoneyArgCnt = 3 ,
+//};
 
-enum  eCrossSvrReqType
-{
-	eCrossSvrReq_DeductionMoney, //  var[0] isCoin ,var[1] needMoney, var[2] at least money,; result:  var[0] isCoin ,var[1] final deductionMoney 
-	eCrossSvrReq_AddMoney, //  var[0] isCoin ,var[1] addCoin
-	eCrossSvrReq_CreateTaxasRoom, // var[0] room config id, var[1] rent days; json arg:"roonName", result: var[0] room config id, var[1] newCreateRoomID, var[2] rent days ;
-	eCrossSvrReq_CreateRoom, // var[0] room config id, var[1] rent minites; var[2] roomType{eRoomType}json arg:"roonName", result: var[0] room config id, var[1] newCreateRoomID , var[2] roomType{eRoomType} var[3] rent days,
-	eCrossSvrReq_RoomProfit, // result: var[0] isCoin , var[1] RecvMoney, var[2] roomType{eRoomType};
-	eCrossSvrReq_AddRentTime, // var[0] add minites, var[1] nRoomType,var[2] comsume coin;  result var[0] add days, var[1] nRoomType,var[2] comsume coin ;
-	eCrossSvrReq_SelectTakeIn, // var[0] select player uid,  result: var[0] select player uid, var[1] isCoin, var[2] money 
-	eCrossSvrReq_Inform, // var[0] target player uid 
-	eCrossSvrReq_EnterRoom, // var[0] playerSessionID, var[1] targetID ,var[2] coin, var[3] target id type{0 room id , 1 ConfigID }, retsult: var[0] playerSessionID , var[1] roomType , var[2] roomID, ret{ 0, success , 1 can not find room };
-	eCrossSvrReq_SyncCoin, // var[0] coin var[1] room type 
-	eCrossSvrReq_ApplyLeaveRoom, // var[0] nRoomID , var[1] session id , var[2] = nGame type;
-	eCrossSvrReq_LeaveRoomRet, // var[0] roomType {eRoomType} ; var[1] nRoomID ;
-	eCrossSvrReq_DeleteRoom, // var[0] roomType {eRoomType} ; var[1] nRoomID ;
-	eCrossSvrReq_SyncNiuNiuData, // var[0] player times , var[1] win times , var[2] SingleWinMoset ;
-	eCrossSvrReq_GameOver, // var[0] roomType  json arg:roomName: "chap Match", players:{{userUID: 234,rewardID : 23 },{userUID: 234,rewardID : 23 },{userUID: 234,rewardID : 23 },{userUID: 234,rewardID : 23 }} ;
-	eCrossSvrReq_Max,
-};
+//enum  eCrossSvrReqType
+//{
+//	eCrossSvrReq_DeductionMoney, //  var[0] isCoin ,var[1] needMoney, var[2] at least money,; result:  var[0] isCoin ,var[1] final deductionMoney 
+//	eCrossSvrReq_AddMoney, //  var[0] isCoin ,var[1] addCoin
+//	eCrossSvrReq_CreateTaxasRoom, // var[0] room config id, var[1] rent days; json arg:"roonName", result: var[0] room config id, var[1] newCreateRoomID, var[2] rent days ;
+//	eCrossSvrReq_CreateRoom, // var[0] room config id, var[1] rent minites; var[2] roomType{eRoomType}json arg:"roonName", result: var[0] room config id, var[1] newCreateRoomID , var[2] roomType{eRoomType} var[3] rent days,
+//	eCrossSvrReq_RoomProfit, // result: var[0] isCoin , var[1] RecvMoney, var[2] roomType{eRoomType};
+//	eCrossSvrReq_AddRentTime, // var[0] add minites, var[1] nRoomType,var[2] comsume coin;  result var[0] add days, var[1] nRoomType,var[2] comsume coin ;
+//	eCrossSvrReq_SelectTakeIn, // var[0] select player uid,  result: var[0] select player uid, var[1] isCoin, var[2] money 
+//	eCrossSvrReq_Inform, // var[0] target player uid 
+//	eCrossSvrReq_EnterRoom, // var[0] playerSessionID, var[1] targetID ,var[2] coin, var[3] target id type{0 room id , 1 ConfigID }, retsult: var[0] playerSessionID , var[1] roomType , var[2] roomID, ret{ 0, success , 1 can not find room };
+//	eCrossSvrReq_SyncCoin, // var[0] coin var[1] room type 
+//	eCrossSvrReq_ApplyLeaveRoom, // var[0] nRoomID , var[1] session id , var[2] = nGame type;
+//	eCrossSvrReq_LeaveRoomRet, // var[0] roomType {eRoomType} ; var[1] nRoomID ;
+//	eCrossSvrReq_DeleteRoom, // var[0] roomType {eRoomType} ; var[1] nRoomID ;
+//	eCrossSvrReq_SyncNiuNiuData, // var[0] player times , var[1] win times , var[2] SingleWinMoset ;
+//	eCrossSvrReq_GameOver, // var[0] roomType  json arg:roomName: "chap Match", players:{{userUID: 234,rewardID : 23 },{userUID: 234,rewardID : 23 },{userUID: 234,rewardID : 23 },{userUID: 234,rewardID : 23 }} ;
+//	eCrossSvrReq_Max,
+//};
 
 enum eAsyncReq
 {
+	eAsync_DB_Select,   // { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
+	eAsync_DB_Update, // { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
+	eAsync_DB_Add,	// { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
+	eAsync_DB_Delete,	// { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
+	eAsync_Player_Logined, // { uid : 23 }
+
 	eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
 	eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;
 	eAsync_PostDlgNotice, // { dlgType : eNoticeType , targetUID : 2345 , arg : { ....strg } }
 	eAsync_OnRoomDeleted, // { roomID : 234 }
-	eAsync_DB_Select,   // { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
-	eAsync_DB_Update, // { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
-	eAsync_DB_Add,	// { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
-	eAsync_Db_Delete,	// { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
+
 	eAsync_ReqRoomSerials, // {roomType : 2 }  // result :  { ret : 0 , serials : [{ serial : 0 , chatRoomID : 2345} , { serial : 0 , chatRoomID : 2345} ,{ serial : 0 , chatRoomID : 2345} ] }  // ret : 0 success , 1 svr is reading from db wait a moment ; 
 	eAsync_Apns, // { apnsType : 0 , targets : [234,2345,23,4] , content : "hello this is" ,msgID : "fs" ,msgdesc : "shfsg" }  apnsType : 0 , group type . 1 , target persions ;
 	eAsync_ComsumDiamond, // { targetUID : 2345 , diamond : 23 } // ret : { ret : 0 , diamond : 23 } // ret : 0 success , 1 not enough diamond ;
@@ -115,33 +118,33 @@ enum eAsyncReq
 	eAsync_Max,
 };
 
-enum eCrossSvrReqSubType
-{
-	eCrossSvrReqSub_Default,
-	eCrossSvrReqSub_TaxasSitDown, // ps: json arg: seatIdx , result: json arg just back 
-	eCrossSvrReqSub_TaxasSitDownFailed,
-	eCrossSvrReqSub_TaxasStandUp,
-	eCrossSvrReqSub_SelectPlayerData,  // ps: orgid = sessionid , not uid this situation; var[1] isDeail, result: var[3] isDetail  , json: playTimes,winTimes,singleMost;
-	eCrossSvrReqSub_Max,
-};
-
-#define FILL_CROSSE_REQUEST_BACK(resultBack,pRequest,eSenderPort)  \
-	resultBack.cSysIdentifer = eSenderPort ; \
-	resultBack.nJsonsLen = 0 ; \
-	resultBack.nReqOrigID = pRequest->nTargetID ; \
-	resultBack.nRequestSubType = pRequest->nRequestSubType ; \
-	resultBack.nRequestType = pRequest->nRequestType ; \
-	resultBack.nRet = 0 ; \
-	resultBack.nTargetID = pRequest->nReqOrigID ; \
-	memcpy_s(resultBack.vArg,sizeof(resultBack.vArg),pRequest->vArg,sizeof(resultBack.vArg)) ;
-
-
-#define CON_REQ_MSG_JSON(msgCrossReq,jsonArg,autoBuf)  Json::StyledWriter jsWrite ;\
-	std::string str = jsWrite.write(jsonArg) ; \
-	msgCrossReq.nJsonsLen = strlen(str.c_str()); \
-	CAutoBuffer autoBuf(sizeof(msgCrossReq) + msgCrossReq.nJsonsLen ); \
-	autoBuf.addContent((char*)&msgCrossReq,sizeof(msgCrossReq)); \
-	autoBuf.addContent(str.c_str(),msgCrossReq.nJsonsLen ) ;
+//enum eCrossSvrReqSubType
+//{
+//	eCrossSvrReqSub_Default,
+//	eCrossSvrReqSub_TaxasSitDown, // ps: json arg: seatIdx , result: json arg just back 
+//	eCrossSvrReqSub_TaxasSitDownFailed,
+//	eCrossSvrReqSub_TaxasStandUp,
+//	eCrossSvrReqSub_SelectPlayerData,  // ps: orgid = sessionid , not uid this situation; var[1] isDeail, result: var[3] isDetail  , json: playTimes,winTimes,singleMost;
+//	eCrossSvrReqSub_Max,
+//};
+//
+//#define FILL_CROSSE_REQUEST_BACK(resultBack,pRequest,eSenderPort)  \
+//	resultBack.cSysIdentifer = eSenderPort ; \
+//	resultBack.nJsonsLen = 0 ; \
+//	resultBack.nReqOrigID = pRequest->nTargetID ; \
+//	resultBack.nRequestSubType = pRequest->nRequestSubType ; \
+//	resultBack.nRequestType = pRequest->nRequestType ; \
+//	resultBack.nRet = 0 ; \
+//	resultBack.nTargetID = pRequest->nReqOrigID ; \
+//	memcpy_s(resultBack.vArg,sizeof(resultBack.vArg),pRequest->vArg,sizeof(resultBack.vArg)) ;
+//
+//
+//#define CON_REQ_MSG_JSON(msgCrossReq,jsonArg,autoBuf)  Json::StyledWriter jsWrite ;\
+//	std::string str = jsWrite.write(jsonArg) ; \
+//	msgCrossReq.nJsonsLen = strlen(str.c_str()); \
+//	CAutoBuffer autoBuf(sizeof(msgCrossReq) + msgCrossReq.nJsonsLen ); \
+//	autoBuf.addContent((char*)&msgCrossReq,sizeof(msgCrossReq)); \
+//	autoBuf.addContent(str.c_str(),msgCrossReq.nJsonsLen ) ;
 
 #define CHECK_MSG_SIZE(CHECK_MSG,nLen) \
 {\

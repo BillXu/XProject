@@ -13,7 +13,7 @@ CSeverConfigMgr::~CSeverConfigMgr()
 bool CSeverConfigMgr::OnPaser(CReaderRow& refReaderRow )
 {
 	unsigned char cSvrType = refReaderRow["svrType"]->IntValue();
-	if ( cSvrType >= eSvrType_Max )
+	if ( cSvrType >= ID_MSG_PORT_MAX)
 	{
 		LOGFMTE("server config error , type error , type = %d",cSvrType) ;
 		return false;
@@ -35,9 +35,9 @@ bool CSeverConfigMgr::OnPaser(CReaderRow& refReaderRow )
 	return true ;
 }
 
-stServerConfig* CSeverConfigMgr::GetServerConfig(eServerType cSvrType, uint16_t nIdx )
+stServerConfig* CSeverConfigMgr::GetServerConfig(eMsgPort cSvrType, uint16_t nIdx )
 {
-	if ( cSvrType >= eSvrType_Max )
+	if ( cSvrType >= ID_MSG_PORT_MAX)
 		return NULL ;
 	VEC_SERVER_CONFIG& v = m_vAllSvrConfig[cSvrType];
 	if ( nIdx < v.size() )

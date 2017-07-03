@@ -11,27 +11,18 @@ IPlayerComponent::~IPlayerComponent()
 
 }
 
-bool IPlayerComponent::OnMessage( stMsg* pMessage , eMsgPort eSenderPort)
+bool IPlayerComponent::onMsg( stMsg* pMessage , eMsgPort eSenderPort)
 {
 	return false ;
 }
 
-bool IPlayerComponent::onCrossServerRequest(stMsgCrossServerRequest* pRequest, eMsgPort eSenderPort,Json::Value* vJsValue )
+
+void IPlayerComponent::sendMsg(stMsg* pbuffer , unsigned short nLen )
 {
-	return false ;
+	m_pPlayer->sendMsgToClient(pbuffer,nLen );
 }
 
-bool IPlayerComponent::onCrossServerRequestRet(stMsgCrossServerRequestRet* pResult,Json::Value* vJsValue )
+void IPlayerComponent::sendMsg(Json::Value& jsMsg , uint16_t nMsgType  )
 {
-	return false ;
-}
-
-void IPlayerComponent::SendMsg(stMsg* pbuffer , unsigned short nLen , bool bBrocast  )
-{
-	m_pPlayer->SendMsgToClient((char*)pbuffer,nLen,bBrocast);
-}
-
-void IPlayerComponent::SendMsg(Json::Value& jsMsg , uint16_t nMsgType , bool bBrocast )
-{
-	m_pPlayer->SendMsgToClient(jsMsg,nMsgType,bBrocast);
+	m_pPlayer->sendMsgToClient(jsMsg,nMsgType );
 }

@@ -15,4 +15,5 @@ typedef std::vector<std::string> VEC_STRING ;
 void StringSplit( const char* pString, char pSplitChar , VEC_STRING& vOutString);
 
 std::string TimeToStringFormate( unsigned int nSec );
+std::string checkStringForSql(const char* pstr);
 #endif

@@ -91,24 +91,15 @@
     <ClInclude Include="..\ServerCommon\mutex.h" />
     <ClInclude Include="..\ServerCommon\Sem.h" />
     <ClInclude Include="..\ServerCommon\ThreadMod.h" />
-    <ClInclude Include="src\DataBaseThread.h" />
     <ClInclude Include="src\DBApp.h" />
-    <ClInclude Include="src\DBManager.h" />
-    <ClInclude Include="src\DBRequest.h" />
-    <ClInclude Include="src\DBRequestFlags.h" />
     <ClInclude Include="src\main.h" />
-    <ClInclude Include="src\MySqlData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ServerCommon\mutex.cpp" />
     <ClCompile Include="..\ServerCommon\Sem.cpp" />
     <ClCompile Include="..\ServerCommon\ThreadMod.cpp" />
-    <ClCompile Include="src\DataBaseThread.cpp" />
     <ClCompile Include="src\DBApp.cpp" />
-    <ClCompile Include="src\DBManager.cpp" />
-    <ClCompile Include="src\DBRequest.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MySqlData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

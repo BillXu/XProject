@@ -49,6 +49,74 @@ struct stMsgGateSvrFull
 	char cNextIp[20] = { 0 };
 };
 
+// register an login ;
+struct stMsgRegister
+	:public stMsg
+{
+	stMsgRegister(){cSysIdentifer = ID_MSG_PORT_GATE ; usMsgType = MSG_PLAYER_REGISTER ; }
+	unsigned char cRegisterType ; // 0 ±Ì æ”ŒøÕµ«¬º£�?±Ì æ’˝≥£◊¢≤· , 2 ∞Û∂®’À∫≈ 
+	unsigned char nChannel; // «˛µ¿±Í æ£¨0. appstore  1. pp ÷˙ ÷£¨2.  91…Ãµ�?3. 360…Ãµ�?4.winphone store
+	char cAccount[MAX_LEN_ACCOUNT] ;
+	char cPassword[MAX_LEN_PASSWORD] ;
+	char cName[MAX_LEN_CHARACTER_NAME] ;
+};
+
+struct stMsgRegisterRet
+	:public stMsg
+{
+	stMsgRegisterRet()
+	{
+		cSysIdentifer = ID_MSG_PORT_CLIENT ;
+		usMsgType = MSG_PLAYER_REGISTER ;
+	}
+	char nRet ; // 0 success ;  1 . account have exsit , 2 nick name already exsit;
+	unsigned char cRegisterType ; // 0 ±Ì æ”ŒøÕµ«¬º£�?±Ì æ’˝≥£◊¢≤· , 2 ∞Û∂®’À∫≈ 
+	char cAccount[MAX_LEN_ACCOUNT] ;
+	char cPassword[MAX_LEN_PASSWORD] ;
+	unsigned int nUserID ;
+};
+
+struct stMsgLogin
+	:public stMsg 
+{
+	stMsgLogin(){ cSysIdentifer = ID_MSG_PORT_GATE; usMsgType = MSG_PLAYER_LOGIN ; }
+	char cAccount[MAX_LEN_ACCOUNT] ;
+	char cPassword[MAX_LEN_PASSWORD] ;
+};
+
+struct stMsgLoginRet
+	:public stMsg 
+{
+	stMsgLoginRet(){ cSysIdentifer = ID_MSG_PORT_CLIENT; usMsgType = MSG_PLAYER_LOGIN ; }
+	unsigned char nRet ; // 0 ; success ; 1 account error , 2 password error, 3 state error  ;
+	uint8_t nAccountType ; // 0 gueset , 1 registered ,2 rebinded  .
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //struct stMsgTransferData
 //:public stMsg
 //{
@@ -93,48 +161,7 @@ struct stMsgGateSvrFull
 //
 
 //
-//// register an login ;
-//struct stMsgRegister
-//	:public stMsg
-//{
-//	stMsgRegister(){cSysIdentifer = ID_MSG_PORT_LOGIN ; usMsgType = MSG_PLAYER_REGISTER ; }
-//	unsigned char cRegisterType ; // 0 ±Ì æ”ŒøÕµ«¬º£�?±Ì æ’˝≥£◊¢≤· , 2 ∞Û∂®’À∫≈ 
-//	char cAccount[MAX_LEN_ACCOUNT] ;
-//	char cPassword[MAX_LEN_PASSWORD] ;
-//	unsigned char nChannel; // «˛µ¿±Í æ£¨0. appstore  1. pp ÷˙ ÷£¨2.  91…Ãµ�?3. 360…Ãµ�?4.winphone store
-//	char cName[MAX_LEN_CHARACTER_NAME] ;
-//};
-//
-//struct stMsgRegisterRet
-//	:public stMsg
-//{
-//	stMsgRegisterRet()
-//	{
-//		cSysIdentifer = ID_MSG_PORT_CLIENT ;
-//		usMsgType = MSG_PLAYER_REGISTER ;
-//	}
-//	char nRet ; // 0 success ;  1 . account have exsit , 2 nick name already exsit;
-//	unsigned char cRegisterType ; // 0 ±Ì æ”ŒøÕµ«¬º£�?±Ì æ’˝≥£◊¢≤· , 2 ∞Û∂®’À∫≈ 
-//	char cAccount[MAX_LEN_ACCOUNT] ;
-//	char cPassword[MAX_LEN_PASSWORD] ;
-//	unsigned int nUserID ;
-//};
-//
-//struct stMsgLogin
-//	:public stMsg 
-//{
-//	stMsgLogin(){ cSysIdentifer = ID_MSG_PORT_LOGIN ; usMsgType = MSG_PLAYER_LOGIN ; }
-//	char cAccount[MAX_LEN_ACCOUNT] ;
-//	char cPassword[MAX_LEN_PASSWORD] ;
-//};
-//
-//struct stMsgLoginRet
-//	:public stMsg 
-//{
-//	stMsgLoginRet(){ cSysIdentifer = ID_MSG_PORT_CLIENT; usMsgType = MSG_PLAYER_LOGIN ; }
-//	unsigned char nRet ; // 0 ; success ; 1 account error , 2 password error, 3 state error  ;
-//	uint8_t nAccountType ; // 0 gueset , 1 registered ,2 rebinded  .
-//};
+
 //
 //struct stMsgRebindAccount
 //	:public stMsg
