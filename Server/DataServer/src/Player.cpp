@@ -162,7 +162,7 @@ void CPlayer::onPlayerDisconnect()
 	if ( canRemovePlayer() )
 	{
 		onTimerSave();
-		getPlyerMgr()->doRemovePlayer(this);
+		getPlayerMgr()->doRemovePlayer(this);
 	}
 	else
 	{
@@ -185,7 +185,7 @@ void CPlayer::delayRemove()
 		LOGFMTD("player = %u , do delay removed", getUserUID());
 		onTimerSave();
 		m_tTimerCheckRemovePlayer.canncel();
-		getPlyerMgr()->doRemovePlayer(this);
+		getPlayerMgr()->doRemovePlayer(this);
 	});
 	m_tTimerCheckRemovePlayer.start();
 }

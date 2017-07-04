@@ -57,7 +57,7 @@ void CPlayerBaseData::onPlayerLogined()
 	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,headIcon FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
-	auto pReqQueue = getPlayer()->getPlyerMgr()->getSvrApp()->getAsynReqQueue();
+	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), getPlayer()->getUserUID(), eAsync_DB_Select, jssql, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
 	{
 		Json::Value jsData = retContent["data"];
@@ -131,7 +131,7 @@ void CPlayerBaseData::timerSave()
 		sprintf_s(pBuffer, "update playerbasedata set nickName = '%s' ,sex = %u , headIcon = '%s' where userUID = %u ;", getPlayerName(),getSex(),getHeadIcon(), getPlayer()->getUserUID());
 		std::string str = pBuffer;
 		jssql["sql"] = pBuffer;
-		auto pReqQueue = getPlayer()->getPlyerMgr()->getSvrApp()->getAsynReqQueue();
+		auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 		pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
 	}
 }
@@ -149,7 +149,7 @@ void CPlayerBaseData::saveMoney()
 	sprintf_s(pBuffer, "update playerbasedata set coin = %u ,diamond = %u where userUID = %u ;", getCoin(),getDiamoned(), getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
-	auto pReqQueue = getPlayer()->getPlyerMgr()->getSvrApp()->getAsynReqQueue();
+	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
 	LOGFMTD( "uid = %u save money coin = %u , diamond = %u",getPlayer()->getUserUID(),getCoin(),getDiamoned() );
 }

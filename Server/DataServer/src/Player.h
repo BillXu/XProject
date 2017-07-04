@@ -41,7 +41,7 @@ public:
 	void postPlayerEvent(stPlayerEvetArg* pEventArg );
 	void onTimerSave();
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
-	CPlayerManager* getPlyerMgr() { return m_pPlayerMgr; }
+	CPlayerManager* getPlayerMgr() { return m_pPlayerMgr; }
 protected:
 	void saveLoginInfo();
 	bool canRemovePlayer();
