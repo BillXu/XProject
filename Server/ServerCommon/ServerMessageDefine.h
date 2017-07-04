@@ -84,6 +84,12 @@ struct stMsgClientConnectStateChanged
 	char cIP[20] = { 0 };
 };
 
+struct stMsgClientOtherLogin
+	:public stMsg
+{
+	stMsgClientOtherLogin() { cSysIdentifer = ID_MSG_PORT_GATE; usMsgType = MSG_TELL_GATE_PLAYER_OTHER_LOGIN; }
+};
+
 
 
 

@@ -8,76 +8,29 @@
 #include "EventCenter.h"
 #include "PlayerBaseData.h"
 #include "AutoBuffer.h"
-#include "PlayerMail.h"
-#include "PlayerGameData.h"
-#include "RewardConfig.h"
-#include "RobotCenter.h"
-
-void CSelectPlayerDataCacher::stPlayerDataPrifle::recivedData(stPlayerBrifData* pRecData)
+#include "AsyncRequestQuene.h"
+void CPlayerBrifDataCacher::stPlayerDataPrifle::recivedData(Json::Value& jsData, IServerApp* pApp )
 {
 	if ( isContentData() )
 	{
-		LOGFMTI("already have player data uid = %d , recive twice ",pData->nUserUID );
+		LOGFMTI("already have player data uid = %d , recive twice ",this->nPlayerUID );
 		return ;
 	}
-
-	if ( pRecData )
+	jsBrifData = jsData;
+	for ( auto& nSub : vBrifeSubscribers)
 	{
-		pData = new stPlayerDetailData ;
-		memcpy(pData,pRecData,sizeof(stPlayerDetailData));
+		pApp->sendMsg(jsBrifData, MSG_REQUEST_PLAYER_DATA, nPlayerUID, nSub.second.nSessionID, ID_MSG_PORT_CLIENT);
 	}
-	else
+	vBrifeSubscribers.clear();
+
+	for (auto& nSub : vDetailSubscribers)
 	{
-		pData = nullptr ;
+		pApp->sendMsg(jsBrifData, MSG_REQUEST_PLAYER_DATA, nPlayerUID, nSub.second.nSessionID, ID_MSG_PORT_CLIENT);
 	}
-
-	if ( vBrifeSubscribers.size() > 0  )
-	{
-		stMsgRequestPlayerDataRet msgBack ;
-		msgBack.nRet = isContentData() ? 0 : 1 ;
-		msgBack.isDetail = false ;
-
-		CAutoBuffer auB (sizeof(msgBack) + sizeof(stPlayerDetailDataClient));
-		auB.addContent(&msgBack,sizeof(msgBack));
-		if ( msgBack.nRet == 0 )
-		{
-			uint16_t nLen = sizeof(stPlayerBrifData) ;
-			auB.addContent((char*)pData,nLen );
-		}
-
-		for ( auto pp : vBrifeSubscribers )
-		{
-			CGameServerApp::SharedGameServerApp()->sendMsg(pp.second.nSessionID,auB.getBufferPtr(),auB.getContentSize()) ;
-			LOGFMTD("send data detail profile to subscrible = %d",pp.second.nSessionID) ;
-		}
-
-		vBrifeSubscribers.clear() ;
-	}
-
-	if ( vDetailSubscribers.size() > 0 )
-	{
-		stMsgRequestPlayerDataRet msgBack ;
-		msgBack.nRet = isContentData() ? 0 : 1 ;
-		msgBack.isDetail = true ;
-
-		CAutoBuffer auB (sizeof(msgBack) + sizeof(stPlayerDetailDataClient));
-		auB.addContent(&msgBack,sizeof(msgBack));
-		if ( msgBack.nRet == 0 )
-		{
-			uint16_t nLen = sizeof(stPlayerDetailDataClient) ;
-			auB.addContent((char*)pData,nLen );
-		}
-
-		for ( auto pp : vDetailSubscribers )
-		{
-			CGameServerApp::SharedGameServerApp()->sendMsg(pp.second.nSessionID,auB.getBufferPtr(),auB.getContentSize()) ;
-			LOGFMTD("send data profile detail to subscrible = %d",pp.second.nSessionID) ;
-		}
-	}
-
+	vDetailSubscribers.clear();
 }
 
-void CSelectPlayerDataCacher::stPlayerDataPrifle::addSubscriber( uint32_t nSessionId , bool isDetail )
+void CPlayerBrifDataCacher::stPlayerDataPrifle::addSubscriber( uint32_t nSessionId , bool isDetail )
 {
 	if ( isDetail )
 	{
@@ -104,12 +57,7 @@ void CSelectPlayerDataCacher::stPlayerDataPrifle::addSubscriber( uint32_t nSessi
 
 }
 
-CSelectPlayerDataCacher::CSelectPlayerDataCacher()
-{
-	m_vDetailData.clear();
-}
-
-CSelectPlayerDataCacher::~CSelectPlayerDataCacher()
+CPlayerBrifDataCacher::~CPlayerBrifDataCacher()
 {
 	for ( MAP_ID_DATA::value_type va : m_vDetailData )
 	{
@@ -119,7 +67,7 @@ CSelectPlayerDataCacher::~CSelectPlayerDataCacher()
 	m_vDetailData.clear() ;
 }
 
-void CSelectPlayerDataCacher::removePlayerDataCache( uint32_t nUID )
+void CPlayerBrifDataCacher::removePlayerDataCache( uint32_t nUID )
 {
 	auto iter = m_vDetailData.find(nUID) ;
 	if ( iter != m_vDetailData.end() )
@@ -130,97 +78,118 @@ void CSelectPlayerDataCacher::removePlayerDataCache( uint32_t nUID )
 	}
 }
 
-void CSelectPlayerDataCacher::cachePlayerData(stMsgSelectPlayerDataRet* pmsg )
+CPlayerBrifDataCacher::stPlayerDataPrifle* CPlayerBrifDataCacher::getBrifData(uint32_t nUID)
 {
-	if ( pmsg->nRet )
+	auto iter = m_vDetailData.find(nUID);
+	if ( iter == m_vDetailData.end())
 	{
-		LOGFMTD("cahe player data failed");
+		return nullptr;
 	}
-
-	stPlayerBrifData* pData = (stPlayerBrifData*)((char*)pmsg + sizeof(stMsgSelectPlayerDataRet));
-	if ( !pmsg->isDetail )
-	{
-		LOGFMTE("here must is detail , uid = %d",pData->nUserUID ) ;
-	}
-
-	if ( pmsg->nRet )
-	{
-		pData = nullptr ;
-	}
-
-	auto iter = m_vDetailData.find(pmsg->nDataPlayerUID) ;
-	if ( iter == m_vDetailData.end() )
-	{
-		if ( pData )
-		{
-			stPlayerDataPrifle* pDataPri = new stPlayerDataPrifle ;
-			pDataPri->nPlayerUID = pData->nUserUID ;
-			pDataPri->recivedData(pData);
-			m_vDetailData[pDataPri->nPlayerUID] = pDataPri  ;
-			LOGFMTE("why no cacher foot print uid = %d",pData->nUserUID) ;
-		}
-		else
-		{
-			LOGFMTE("what is this situation for data prifle uid = %d",pmsg->nDataPlayerUID) ;
-		}
-	}
-	else
-	{
-		LOGFMTD("recievd data prifle uid = %d",pData->nUserUID) ;
-		iter->second->recivedData(pData) ;
-	}
+	return iter->second;
 }
 
-bool CSelectPlayerDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetail , uint32_t nSubscriberSessionID )
+bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetail , uint32_t nSubscriberSessionID )
 {
-	MAP_ID_DATA::iterator iter = m_vDetailData.find(nReqUID) ;
-	if ( iter == m_vDetailData.end() )
+	auto iter = m_vDetailData.find(nReqUID) ;
+	if ( iter != m_vDetailData.end() )
 	{
-		stPlayerDataPrifle* pData = new stPlayerDataPrifle ;
-		pData->nPlayerUID = nReqUID ;
-		pData->addSubscriber(nSubscriberSessionID,isDetail) ;
-		m_vDetailData[pData->nPlayerUID] = pData  ;
-
-		stMsgSelectPlayerData msgReq ;
-		msgReq.isDetail = true ;
-		msgReq.nTargetPlayerUID = nReqUID ;
-		CGameServerApp::SharedGameServerApp()->sendMsg(nSubscriberSessionID,(char*)&msgReq,sizeof(msgReq)) ;
-		LOGFMTD("uid = %d not online req form db , add session id = %d to subscrible list" , nReqUID,nSubscriberSessionID) ;
-		pData->tRequestDataTime = time(nullptr) ;
-		return true ;
-	}
-
-	auto pData = iter->second ;
-	if ( pData->isContentData() == false )
-	{
-		pData->addSubscriber(nSubscriberSessionID,isDetail) ;
-		LOGFMTD("already req uid = %d data , just add session id  = %d to subscrible list",nReqUID,nSubscriberSessionID) ;
-
-		time_t tNow = time(nullptr) ;
-		if ( (tNow - iter->second->tRequestDataTime) > 6 )
+		auto pData = iter->second;
+		iter->second->tRequestDataTime = time(nullptr);
+		if (pData->isContentData() == false)
 		{
-			stMsgSelectPlayerData msgReq ;
-			msgReq.isDetail = true ;
-			msgReq.nTargetPlayerUID = nReqUID ;
-			CGameServerApp::SharedGameServerApp()->sendMsg(nSubscriberSessionID,(char*)&msgReq,sizeof(msgReq)) ;
-			pData->tRequestDataTime = time(nullptr) ;
-			LOGFMTD("request uid = %d data time out , request again",pData->nPlayerUID) ;
+			pData->addSubscriber(nSubscriberSessionID, isDetail);
+			LOGFMTD("already req uid = %d data , just add session id  = %d to subscrible list", nReqUID, nSubscriberSessionID);
+			return true;
 		}
+		
+		// do send the msg ;
+		m_pApp->sendMsg(pData->jsBrifData, MSG_REQUEST_PLAYER_DATA, nReqUID, nSubscriberSessionID, ID_MSG_PORT_CLIENT);
+		return true;
 	}
-	else
+
+	// add to details ;
+	auto pData = new stPlayerDataPrifle();
+	pData->nPlayerUID = nReqUID;
+	pData->tRequestDataTime = time(nullptr);
+	pData->addSubscriber(nSubscriberSessionID, isDetail);
+	m_vDetailData[nReqUID] = pData;
+	// current do not have , req from db 
+	auto pReqQueue = m_pApp->getAsynReqQueue();
+	// new 
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, "SELECT nickName,nsex,headIcon FROM playerbasedata where userUID = %u", nReqUID );
+	std::string str = pBuffer;
+	jssql["sql"] = pBuffer;
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, nReqUID, nReqUID, eAsync_DB_Select, jssql, [nReqUID,this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData) {
+		uint8_t nRow = retContent["afctRow"].asUInt();
+		Json::Value jsData = retContent["data"];
+
+		Json::Value jsBrifData;
+		if (jsData.size() == 1)
+		{
+			jsBrifData["uid"] = nReqUID;
+			jsBrifData["name"] = jsData["nickName"];
+			jsBrifData["headIcon"] = jsData["headIcon"];
+			jsBrifData["sex"] = jsData["nsex"];
+		}
+
+		auto pDataIter = m_vDetailData.find(nReqUID);
+		if ( pDataIter == m_vDetailData.end() || pDataIter->second == nullptr )
+		{
+			LOGFMTE("recieved data bu obj is null uid = %u",nReqUID);
+			return;
+		}
+		auto pD = pDataIter->second;
+		pD->recivedData(jsBrifData, m_pApp );
+	});
+
+	LOGFMTD("request player brif data uid = %u",nReqUID );
+#ifdef _DEBUG
+	if ( m_vDetailData.size() > 5 )
+#else
+	if (m_vDetailData.size() > 1000)
+#endif
 	{
-		stMsgRequestPlayerDataRet msgBack ;
-		msgBack.nRet = 0 ;
-		msgBack.isDetail = isDetail ;
-	
-		CAutoBuffer auB (sizeof(msgBack) + sizeof(stPlayerDetailDataClient));
-		auB.addContent(&msgBack,sizeof(msgBack));
-		uint16_t nLen = isDetail ? sizeof(stPlayerDetailDataClient) : sizeof(stPlayerBrifData) ;
-		auB.addContent((char*)pData->pData,nLen );
-		CGameServerApp::SharedGameServerApp()->sendMsg(nSubscriberSessionID,auB.getBufferPtr(),auB.getContentSize()) ;
-		LOGFMTD("send data profile uid = %d to subscrible = %d",nReqUID,nSubscriberSessionID) ;
+		checkState();
 	}
 	return true ;
+}
+
+void CPlayerBrifDataCacher::visitBrifData(Json::Value jsBrifData, CPlayer* pPlayer )
+{
+	jsBrifData["uid"] = pPlayer->getUserUID();
+	jsBrifData["name"] = pPlayer->getBaseData()->getPlayerName();
+	jsBrifData["headIcon"] = pPlayer->getBaseData()->getHeadIcon();
+	jsBrifData["sex"] = pPlayer->getBaseData()->getSex();
+	jsBrifData["ip"] = pPlayer->getIp();
+}
+
+void CPlayerBrifDataCacher::checkState()
+{
+	auto nNow = (uint32_t)time(nullptr);
+	std::vector<uint32_t> vWillRemove;
+	for ( auto& iter : m_vDetailData)
+	{
+#ifdef _DEBUG
+		if (nNow > ( 60 * 2 + iter.second->tRequestDataTime))
+#else
+		if (nNow > (60 * 60 * 2 + iter.second->tRequestDataTime))
+#endif
+		{
+			vWillRemove.push_back(nNow);
+		}
+	}
+
+	for (auto& ref : vWillRemove)
+	{
+		auto iter = m_vDetailData.find(ref);
+		if ( iter != m_vDetailData.end() )
+		{
+			m_vDetailData.erase(iter);
+			LOGFMTE("remove too old detail data uid = %u",ref);
+		}
+	}
 }
 
 // player manager
@@ -249,20 +218,19 @@ CPlayerManager::~CPlayerManager()
 	m_vReserverPlayerObj.clear();
 }
 
+void CPlayerManager::init(IServerApp* svrApp)
+{
+	IGlobalModule::init(svrApp);
+	m_tPlayerDataCaher.init(svrApp);
+}
+
 void CPlayerManager::onExit()
 {
-	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.begin();
+	auto iter = m_vAllActivePlayers.begin();
 	for ( ; iter != m_vAllActivePlayers.end() ; ++iter )
 	{
 		iter->second->onPlayerDisconnect();
 	}
-
-	MAP_UID_PLAYERS::iterator iter_R = m_vOfflinePlayers.begin() ;
-	for ( ; iter_R != m_vOfflinePlayers.end(); ++iter_R )
-	{
-		iter_R->second->onPlayerDisconnect();
-	}
-
 	IGlobalModule::onExit();
 }
 
@@ -310,6 +278,24 @@ bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort e
 			LOGFMTE("unprocess msg for player uid = %d , msg = %d ,from %d ", pTargetPlayer->getUserUID(), nMsgType, eSenderPort);
 		}
 	}
+
+	if ( nMsgType == MSG_REQUEST_PLAYER_DATA )
+	{
+		auto nReqUID = prealMsg["nReqID"].asUInt();
+		bool isDetail = prealMsg["isDetail"].asUInt() == 1;
+		auto pPlayer = getPlayerByUserUID( nReqUID );
+		if ( pPlayer )
+		{
+			Json::Value jsBrifData;
+			m_tPlayerDataCaher.visitBrifData(jsBrifData, pPlayer);
+			sendMsg(jsBrifData, MSG_REQUEST_PLAYER_DATA, nReqUID, nSenderID, ID_MSG_PORT_CLIENT );
+		}
+		else
+		{
+			m_tPlayerDataCaher.sendPlayerDataProfile(nReqUID, isDetail, nSenderID);
+		}
+		return true;
+	}
 	return false ;
 }
 
@@ -317,58 +303,40 @@ bool CPlayerManager::onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint3
 {
 	switch ( prealMsg->usMsgType )
 	{
-	case MSG_REQUEST_PLAYER_DATA:
+	case MSG_CLIENT_CONNECT_STATE_CHANGED:
+	{
+		auto pRet = (stMsgClientConnectStateChanged*)prealMsg;
+		auto pPlayer = getPlayerByUserUID(pRet->nTargetID);
+		if ( !pPlayer )
 		{
-			stMsgRequestPlayerData* pRet = (stMsgRequestPlayerData*)prealMsg ;
-			stMsgRequestPlayerDataRet msgBack ;
-			msgBack.nRet = 0 ;
-			msgBack.isDetail = pRet->isDetail ;
-			CPlayer* pPlayer = GetPlayerByUserUID(pRet->nPlayerUID);
-
-			stPlayerDetailDataClient stData ;
-			stData.nCurrentRoomID = 0 ;
-			CAutoBuffer auB (sizeof(msgBack) + sizeof(stPlayerDetailData));
-			if ( pPlayer )
-			{
-				//CPlayerTaxas* pTaxasData = (CPlayerTaxas*)pPlayer->GetComponent(ePlayerComponent_PlayerTaxas);
-				//stData.nCurrentRoomID = pTaxasData->getCurRoomID() ;
-
-				//if ( stData.nCurrentRoomID )  // select take in
-				//{
-				//	stMsgCrossServerRequest msgReq ;
-				//	msgReq.nJsonsLen = 0 ;
-				//	msgReq.nReqOrigID = nSessionID ;
-				//	msgReq.nRequestSubType = eCrossSvrReqSub_SelectPlayerData ;
-				//	msgReq.nRequestType = eCrossSvrReq_SelectTakeIn ;
-				//	msgReq.nTargetID = stData.nCurrentRoomID ;
-				//	msgReq.cSysIdentifer = ID_MSG_PORT_TAXAS ;
-				//	msgReq.vArg[0] = pRet->nPlayerUID;
-				//	msgReq.vArg[1] = pRet->isDetail ;
-				//	CGameServerApp::SharedGameServerApp()->sendMsg(nSessionID,(char*)&msgReq,sizeof(msgReq)) ;
-				//	LOGFMTD("select take in for player detail") ;
-				//	return true ;
-				//}
-
-				if ( pRet->isDetail )
-				{
-					pPlayer->GetBaseData()->GetPlayerDetailData(&stData);
-					//pTaxasData->getTaxasData(&stData.tTaxasData);
-				}
-				else
-				{
-					pPlayer->GetBaseData()->GetPlayerBrifData(&stData) ;
-				}
-				
-				auB.addContent(&msgBack,sizeof(msgBack));
-				auB.addContent(&stData,pRet->isDetail ? sizeof(stPlayerDetailDataClient) : sizeof(stPlayerBrifData) ) ;
-				CGameServerApp::SharedGameServerApp()->sendMsg(nSessionID,auB.getBufferPtr(),auB.getContentSize()) ;
-				return true ;
-			}
-
-			m_tPlayerDataCaher.sendPlayerDataProfile(pRet->nPlayerUID,pRet->isDetail,nSessionID);
+			LOGFMTE( "player is null uid = %u , can not update net state = %u , ip = %s",pRet->nTargetID,pRet->nCurState,pRet->cIP );
+			return true;
+		}
+		switch ( pRet->nCurState )
+		{
+		case 0 :  // do reconnected 
+		{
+			pPlayer->onPlayerReconnected(pRet->cIP);
 		}
 		break;
-		return false;
+		case 1 : // lose connected , do wait reconnect
+		{
+			pPlayer->onPlayerLoseConnect();
+		}
+		break;
+		case 2:  // do offlline wait reconnect time out 
+		{
+			pPlayer->onPlayerDisconnect();
+		}
+		break;
+		default:
+			LOGFMTE("uid = %u , recieved unknown net state = %u",pRet->nTargetID,pRet->nCurState);
+			return true;
+		}
+	}
+	break;
+	default:
+	return false;
 	}
 
 	return true ;
@@ -376,7 +344,7 @@ bool CPlayerManager::onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint3
 
 bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )
 {
-	if ( jsReqContent["playerUID"].isNull() == false)
+	if ( jsReqContent["playerUID"].isNull() == false )
 	{
 		auto nPlayerUID = jsReqContent["playerUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nPlayerUID);
@@ -392,392 +360,267 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	}
 
 	// common requst ;
-
-
 	switch (nRequestType)
 	{
-	case eAsync_ComsumDiamond:
-		{
-			uint32_t nUID = jsReqContent["targetUID"].asUInt() ;
-			uint32_t nDiamond = jsReqContent["diamond"].asUInt();
-			auto pPlayer = GetPlayerByUserUID(nUID);	
-			jsResult["diamond"] = nDiamond ;
-			if ( pPlayer == nullptr || pPlayer->GetBaseData()->GetAllDiamoned() < nDiamond )
-			{
-				jsResult["ret"] = 1 ;
-				LOGFMTW("palyer uid = %u , consum diamond error , cnt = %u",nUID,nDiamond );
-			}
-			else
-			{
-				pPlayer->GetBaseData()->decressMoney(nDiamond,true ) ;
-				jsResult["ret"] = 0 ;
-				LOGFMTD("palyer uid = %u , consum diamond success , cnt = %u",nUID,nDiamond );
-			}
-		}
-		break;
-	case eAsync_GiveBackDiamond:
-		{
-			uint32_t nUID = jsReqContent["targetUID"].asUInt() ;
-			uint32_t nDiamond = jsReqContent["diamond"].asUInt();
-			auto pPlayer = GetPlayerByUserUID(nUID);	
-			if ( pPlayer == nullptr )
-			{
-				Json::Value jsContent;
-				jsContent["targetUID"] = nUID;
-				jsContent["addCard"] = nDiamond;
-				jsContent["addCardNo"] = nUID;
-				Json::StyledWriter jsWrite;
-				auto str = jsWrite.write(jsContent);
-				CPlayerMailComponent::PostMailToPlayer(eMailType::eMail_AddRoomCard, str.c_str(), str.size(), nUID);
-				LOGFMTE("uid = %u not online can not give back diamond = %u, via agent add card mail ",nUID,nDiamond);
-			}
-			else
-			{
-				pPlayer->GetBaseData()->AddMoney(nDiamond,true);
-				LOGFMTD("give back diamond uid = %u , cnt = %u",nUID,nDiamond);
-			}
-		}
-		break ;
-	case eAsync_AgentAddRoomCard:
+	case eAsync_Player_Logined:
 	{
-		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
-		uint32_t nAddCnt = jsReqContent["addCard"].asUInt();
-		uint32_t nSeailNumber = jsReqContent["addCardNo"].asUInt();
-		auto pPlayer = GetPlayerByUserUID(nUserUID);
-		if (nullptr == pPlayer)
+		auto nUID = jsReqContent["uid"].asUInt();
+		auto pIP = jsReqContent["ip"].asCString();
+		auto nSessionID = jsReqContent["sessionID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if ( pPlayer )
 		{
-			LOGFMTI("player not online agents add card to uid = %u , cnt = %u , addCardNo = %u", nUserUID, nAddCnt, nSeailNumber);
-			Json::StyledWriter jsWrite;
-			auto str = jsWrite.write(jsReqContent);
-			CPlayerMailComponent::PostMailToPlayer(eMailType::eMail_AddRoomCard,str.c_str(),str.size(),nUserUID);
-		}
-		else
-		{
-			LOGFMTI("player agents add card to uid = %u , cnt = %u , addCardNo = %u",nUserUID,nAddCnt,nSeailNumber);
-			pPlayer->GetBaseData()->AddMoney(nAddCnt, true);
-			stMsg msgU;
-			msgU.usMsgType = MSG_PLAYER_UPDATE_MONEY;
-			pPlayer->GetBaseData()->OnMessage(&msgU, ID_MSG_PORT_CLIENT);
+			if ( nSessionID == pPlayer->getSessionID() )
+			{
+				LOGFMTE("already logined this session , do login again uid = %u",nUID );
+				break;
+			}
+			pPlayer->onPlayerOtherDeviceLogin(nSessionID, pIP );
+			break;
 		}
 
-		jsResult = jsReqContent;
+		pPlayer = getReserverPlayerObj();
+		pPlayer->onPlayerLogined(nSessionID, nUID, pIP);
+		addActivePlayer(pPlayer);
 	}
 	break;
-	case eAsync_AgentGetPlayerInfo:
-	{
-		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
-		jsResult["targetUID"] = jsReqContent["targetUID"];
-		auto pPlayer = GetPlayerByUserUID(nUserUID);
-		if (nullptr == pPlayer)
-		{
-			jsResult["isOnline"] = 0;
-		}
-		else
-		{
-			jsResult["isOnline"] = 1; 
-			jsResult["name"] = pPlayer->GetBaseData()->GetPlayerName();
-			jsResult["leftCardCnt"] = pPlayer->GetBaseData()->GetAllDiamoned();
-		}
-	}
-	break;
+	//case eAsync_ComsumDiamond:
+	//	{
+	//		uint32_t nUID = jsReqContent["targetUID"].asUInt() ;
+	//		uint32_t nDiamond = jsReqContent["diamond"].asUInt();
+	//		auto pPlayer = getPlayerByUserUID(nUID);	
+	//		jsResult["diamond"] = nDiamond ;
+	//		if ( pPlayer == nullptr || pPlayer->getBaseData()->getAllDiamoned() < nDiamond )
+	//		{
+	//			jsResult["ret"] = 1 ;
+	//			LOGFMTW("palyer uid = %u , consum diamond error , cnt = %u",nUID,nDiamond );
+	//		}
+	//		else
+	//		{
+	//			pPlayer->getBaseData()->decressMoney(nDiamond,true ) ;
+	//			jsResult["ret"] = 0 ;
+	//			LOGFMTD("palyer uid = %u , consum diamond success , cnt = %u",nUID,nDiamond );
+	//		}
+	//	}
+	//	break;
+	//case eAsync_GiveBackDiamond:
+	//	{
+	//		uint32_t nUID = jsReqContent["targetUID"].asUInt() ;
+	//		uint32_t nDiamond = jsReqContent["diamond"].asUInt();
+	//		auto pPlayer = getPlayerByUserUID(nUID);	
+	//		if ( pPlayer == nullptr )
+	//		{
+	//			Json::Value jsContent;
+	//			jsContent["targetUID"] = nUID;
+	//			jsContent["addCard"] = nDiamond;
+	//			jsContent["addCardNo"] = nUID;
+	//			Json::StyledWriter jsWrite;
+	//			auto str = jsWrite.write(jsContent);
+	//			CPlayerMailComponent::PostMailToPlayer(eMailType::eMail_AddRoomCard, str.c_str(), str.size(), nUID);
+	//			LOGFMTE("uid = %u not online can not give back diamond = %u, via agent add card mail ",nUID,nDiamond);
+	//		}
+	//		else
+	//		{
+	//			pPlayer->getBaseData()->AddMoney(nDiamond,true);
+	//			LOGFMTD("give back diamond uid = %u , cnt = %u",nUID,nDiamond);
+	//		}
+	//	}
+	//	break ;
+	//case eAsync_AgentAddRoomCard:
+	//{
+	//	uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+	//	uint32_t nAddCnt = jsReqContent["addCard"].asUInt();
+	//	uint32_t nSeailNumber = jsReqContent["addCardNo"].asUInt();
+	//	auto pPlayer = getPlayerByUserUID(nUserUID);
+	//	if (nullptr == pPlayer)
+	//	{
+	//		LOGFMTI("player not online agents add card to uid = %u , cnt = %u , addCardNo = %u", nUserUID, nAddCnt, nSeailNumber);
+	//		Json::StyledWriter jsWrite;
+	//		auto str = jsWrite.write(jsReqContent);
+	//		CPlayerMailComponent::PostMailToPlayer(eMailType::eMail_AddRoomCard,str.c_str(),str.size(),nUserUID);
+	//	}
+	//	else
+	//	{
+	//		LOGFMTI("player agents add card to uid = %u , cnt = %u , addCardNo = %u",nUserUID,nAddCnt,nSeailNumber);
+	//		pPlayer->getBaseData()->AddMoney(nAddCnt, true);
+	//		stMsg msgU;
+	//		msgU.usMsgType = MSG_PLAYER_UPDATE_MONEY;
+	//		pPlayer->getBaseData()->OnMessage(&msgU, ID_MSG_PORT_CLIENT);
+	//	}
+
+	//	jsResult = jsReqContent;
+	//}
+	//break;
+	//case eAsync_AgentGetPlayerInfo:
+	//{
+	//	uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+	//	jsResult["targetUID"] = jsReqContent["targetUID"];
+	//	auto pPlayer = getPlayerByUserUID(nUserUID);
+	//	if (nullptr == pPlayer)
+	//	{
+	//		jsResult["isOnline"] = 0;
+	//	}
+	//	else
+	//	{
+	//		jsResult["isOnline"] = 1; 
+	//		jsResult["name"] = pPlayer->getBaseData()->GetPlayerName();
+	//		jsResult["leftCardCnt"] = pPlayer->getBaseData()->GetAllDiamoned();
+	//	}
+	//}
+	//break;
 	default:
 		return false;
 	}
 	return true ;
 }
 
-CPlayer* CPlayerManager::GetPlayerBySessionID( unsigned int nSessionID , bool bInclueOffline )
-{
-	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.find(nSessionID) ;
-	if ( iter != m_vAllActivePlayers.end())
-	{
-		return iter->second ;
-	}
-
-	if ( bInclueOffline )
-	{
-		MAP_UID_PLAYERS::iterator iterOffline = m_vOfflinePlayers.begin();
-		for ( ; iterOffline != m_vOfflinePlayers.end(); ++iterOffline )
-		{
-			if ( iterOffline->second->GetSessionID() == nSessionID  )
-			{
-				return iterOffline->second ;
-			}
-		}
-	}
-	return NULL ;
-}
-
 void CPlayerManager::update(float fDeta )
 {
-	// process player delay delete
-	 LIST_PLAYERS vListWillDelete ;
-	 time_t tNow = time(nullptr);
-	 for ( auto& pair : m_vOfflinePlayers )
+	IGlobalModule::update(fDeta);
+	// process player  delete
+	 for ( auto& pp : m_vWillDeletePlayers )
 	 {
-		 if ( pair.second->getCanDelayTime() <= tNow )
+		 if ( pp == nullptr )
 		 {
-			 vListWillDelete.push_back(pair.second) ;
+			 LOGFMTE("why will delete playe is null ? ");
+			 continue;
 		 }
-	 }
 
-	 for ( auto& pp : vListWillDelete )
-	 {
-		 for ( auto& pair : m_vOfflinePlayers )
+		 auto iter = m_vAllActivePlayers.find(pp->getUserUID());
+		 if (iter != m_vAllActivePlayers.end())
 		 {
-			 if ( pair.second->GetUserUID() == pp->GetUserUID() )
+			 if (iter->second == nullptr)
 			 {
-				 pp->OnTimerSave(0,0) ;
-				 m_vOfflinePlayers.erase(m_vOfflinePlayers.find(pair.first)) ;
-				 LOGFMTD("player uid = %d do delete player object",pp->GetUserUID() ) ;
-				 delete pp ;
-				 pp = nullptr ;
-
-				 break;
+				 LOGFMTE("why active player = %u is nullptr ",pp->getUserUID() );
 			 }
+			 else
+			 {
+				 if ( m_vReserverPlayerObj.size() > 200 )
+				 {
+					 delete iter->second;
+					 iter->second = nullptr;
+				 }
+				 else
+				 {
+					 iter->second->reset();
+					 m_vReserverPlayerObj.push_back(iter->second);
+				 }
+			 }
+			 m_vAllActivePlayers.erase(iter);
 		 }
 	 }
-
-	 IGlobalModule::update(fDeta);
 }
 
-CPlayer* CPlayerManager::GetFirstActivePlayer()
+CPlayer* CPlayerManager::getPlayerByUserUID( uint32_t nUserUID )
 {
-	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.begin() ;
-	if ( iter == m_vAllActivePlayers.end() || iter->second == NULL )
-	{
-		LOGFMTE("first actvie player is NULL") ;
-		return NULL ;
-	}
-	return iter->second ;
-}
-
-CPlayer* CPlayerManager::GetPlayerByUserUID( unsigned int nUserUID, bool bInclueOffline )
-{
-	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.begin() ;
+	auto iter = m_vAllActivePlayers.begin() ;
 	for ( ; iter != m_vAllActivePlayers.end(); ++iter )
 	{
 		if ( iter->second )
 		{
-			if ( nUserUID == iter->second->GetUserUID() )
+			if ( nUserUID == iter->second->getUserUID() )
 			{
 				return iter->second ;
 			}
 		}
 	}
-
-	if ( bInclueOffline )
-	{
-		MAP_UID_PLAYERS::iterator iter_L = m_vOfflinePlayers.find(nUserUID) ;
-		if ( iter_L != m_vOfflinePlayers.end() )
-		{
-			return iter_L->second ;
-		}
-	}
-	return NULL ;
+	return nullptr ;
 }
 
-void CPlayerManager::OnPlayerOffline( CPlayer*pPlayer )
-{
-	if ( !pPlayer )
-	{
-		LOGFMTE("Can not Remove NULL player !") ;
-		return ;
-	}
-
-	if ( pPlayer->GetBaseData()->getPlayerType() == ePlayer_Robot )
-	{
-		auto robotCenter = (CRobotCenter*)CGameServerApp::SharedGameServerApp()->getModuleByType(CRobotCenter::eModule_Type);
-		robotCenter->onRobotDisconnect(pPlayer->GetUserUID()) ;
-		LOGFMTD("robot uid = %u disconnected",pPlayer->GetUserUID()) ;
-	}
-
-	CEventCenter::SharedEventCenter()->PostEvent(eEvent_PlayerOffline,pPlayer) ;
-	pPlayer->OnPlayerDisconnect() ;
-
-	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.find(pPlayer->GetSessionID() ) ;
-	if ( iter == m_vAllActivePlayers.end() )
-	{
-		LOGFMTE("why pPlayer uid = %d , not active ? shuold active " , pPlayer->GetUserUID() ) ;
-		delete pPlayer ;
-		pPlayer = NULL ;
-		return ;
-	}
-	m_vAllActivePlayers.erase(iter) ;
-	 
-	// cache to offine line 
-	MAP_UID_PLAYERS::iterator iterOffline = m_vOfflinePlayers.find(pPlayer->GetUserUID()) ;
-	if ( iterOffline != m_vOfflinePlayers.end() )
-	{
-		LOGFMTE("why player uid = %d already in offline list ? " , iterOffline->first ) ;
-		
-		delete pPlayer ;
-		pPlayer = NULL ;
-		return ;
-	}
-	m_vOfflinePlayers[pPlayer->GetUserUID()] = pPlayer ;
-}
-
-void CPlayerManager::AddPlayer(CPlayer*pPlayer)
+void CPlayerManager::addActivePlayer(CPlayer*pPlayer)
 {
 	if ( !pPlayer )
 	{
 		LOGFMTE("Can not Add NULL player !") ;
 		return ;
 	}
-	MAP_SESSIONID_PLAYERS::iterator iter = m_vAllActivePlayers.find(pPlayer->GetSessionID() ) ;
+	auto iter = m_vAllActivePlayers.find( pPlayer->getUserUID() ) ;
 	if ( iter != m_vAllActivePlayers.end() )
 	{
-		LOGFMTE("Player to add had existed in active map ! , player UID = %d",pPlayer->GetUserUID() ) ;
-		delete pPlayer ;
-		pPlayer = NULL ;
+		LOGFMTE("Player to add had existed in active map ! , player UID = %d",pPlayer->getUserUID() ) ;
+		delete iter->second;
+		iter->second = NULL ;
+		m_vAllActivePlayers.erase(iter);
+	}
+	m_vAllActivePlayers[pPlayer->getUserUID()] = pPlayer;
+
+	// process brifdata request ;
+	auto p = m_tPlayerDataCaher.getBrifData(pPlayer->getUserUID());
+	if ( p && p->isContentData() == false)
+	{
+		Json::Value jsData;
+		m_tPlayerDataCaher.visitBrifData(jsData, pPlayer);
+		p->recivedData(jsData, getSvrApp());
+	}
+	m_tPlayerDataCaher.removePlayerDataCache(pPlayer->getUserUID());
+}
+
+void CPlayerManager::logState()
+{
+	LOGFMTI( "active Player: %d" ,m_vAllActivePlayers.size() ) ;
+}
+
+CPlayer* CPlayerManager::getReserverPlayerObj()
+{
+	CPlayer* pRet = nullptr;
+	if ( m_vReserverPlayerObj.empty())
+	{
+		pRet = new CPlayer();
+		pRet->init(this);
 	}
 	else
 	{
-		m_vAllActivePlayers[pPlayer->GetSessionID()]= pPlayer ;
+		auto iter = m_vReserverPlayerObj.begin();
+		pRet = *iter;
+		m_vReserverPlayerObj.erase(iter);
+	}
+	pRet->reset();
+	return pRet;
+}
+
+void CPlayerManager::doRemovePlayer( CPlayer* pOfflinePlayer )
+{
+	m_vWillDeletePlayers.push_back(pOfflinePlayer);
+}
+
+void CPlayerManager::onTimeSave()
+{
+	for ( auto& ref : m_vAllActivePlayers )
+	{
+		if ( ref.second )
+		{
+			ref.second->onTimerSave();
+		}
 	}
 }
 
-void CPlayerManager::LogState()
+bool CPlayerManager::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)
 {
-	LOGFMTI( "Active Player: %d   Offline Player: %d " ,m_vAllActivePlayers.size(),m_vOfflinePlayers.size() ) ;
-}
-
-bool CPlayerManager::ProcessIsAlreadyLogin(unsigned int nUserID ,unsigned nSessionID )
-{
-	// is active player
-	CPlayer* pPlayer = NULL ;
-	MAP_SESSIONID_PLAYERS::iterator  iter_ma = m_vAllActivePlayers.begin() ;
-	for ( ; iter_ma != m_vAllActivePlayers.end(); ++iter_ma )
+	if ( IGlobalModule::onOtherSvrShutDown(nSvrPort, nSvrIdx, nSvrMaxCnt) )
 	{
-		pPlayer = iter_ma->second ;
-		if ( !pPlayer )
-		{
-			LOGFMTE("Why empty active player here ?") ;
-			continue; 
-		}
-
-		if ( pPlayer->GetUserUID() == nUserID )
-		{
-			pPlayer->OnAnotherClientLoginThisPeer(nSessionID) ;
-			m_vAllActivePlayers.erase(iter_ma) ;
-			AddPlayer(pPlayer) ;
-			LOGFMTD("other decivec login");
-			return true ;
-		}
+		return true;
 	}
-	return false ;
-}
 
-bool CPlayerManager::onCrossServerRequest(stMsgCrossServerRequest* pRequest , eMsgPort eSenderPort,Json::Value* vJsValue)
-{
-	if ( pRequest->nRequestType == eCrossSvrReq_Inform )
+	if ( ID_MSG_PORT_GATE == nSvrPort )
 	{
-		CPlayerMailComponent::PostMailToPlayer(eMail_PlainText,((char*)pRequest) + sizeof(stMsgCrossServerRequest),pRequest->nJsonsLen,pRequest->nTargetID) ;
-		return true ;
-	}
-	else if ( eCrossSvrReq_GameOver == pRequest->nRequestType )
-	{
-		if ( vJsValue->isNull() )
+		LOGFMTE( "gate svr idx = %u max cnt = %u crashed , check player disconnect",nSvrIdx,nSvrMaxCnt );
+		if ( 0 == nSvrMaxCnt)
 		{
-			LOGFMTE("why game over result is null room type = %d room id = %d",(uint32_t)pRequest->vArg[0],pRequest->nReqOrigID) ;
-			return true ;
+			return false;
 		}
 
-		const char* pName = "null" ;
-		if ( (*vJsValue)["roomName"].isNull() == false )
+		for (auto& ref : m_vAllActivePlayers)
 		{
-			pName = (*vJsValue)["roomName"].asCString();
-		}
-		
-		LOGFMTD("%s game over ",pName);
-		Json::Value vPlayers = (*vJsValue)["players"];
-		for ( uint8_t nIdx = 0 ; nIdx < vPlayers.size(); ++nIdx )
-		{
-			Json::Value item = vPlayers[nIdx] ;
-			uint32_t nUID = item["userUID"].asInt() ;
-			uint16_t nRewardID = item["rewardID"].asInt() ;
-			CPlayer* pp = GetPlayerByUserUID(nUID) ;
-			if ( pp && pp->IsState(CPlayer::ePlayerState_Online) )
+			if ( ref.second->getSessionID() % nSvrMaxCnt == nSvrIdx)
 			{
-				LOGFMTD("uid = %u , get reward id = %u ",nUID,nRewardID ) ;
-				pp->GetBaseData()->onGetReward(nIdx,nRewardID,(uint16_t)pRequest->vArg[0],pName) ;
+#ifdef _DEBUG
+				LOGFMTW("gate crash player uid = %u delay remove",ref.second->getUserUID());
+#endif
+				ref.second->onPlayerLoseConnect();
+				ref.second->delayRemove();  // can not direct disconnect , avoid client login from other gate ;
 			}
-			else
-			{	
-				LOGFMTD("uid = %u , not online post msg get reward id = %u ",nUID,nRewardID ) ;
-				Json::Value jEventArg ;
-				jEventArg["rewardID"] = nRewardID;
-				jEventArg["gameType"] = (uint16_t)pRequest->vArg[0];
-				jEventArg["roomName"] = pName;
-				jEventArg["rankIdx"] = nIdx ;
-				CPlayerMailComponent::PostOfflineEvent(CPlayerMailComponent::Event_Reward,jEventArg,nUID);
-			}
-
 		}
-
-		return true ;
+		return true;
 	}
-	return false ;
-}
-
-bool CPlayerManager::onCrossServerRequestRet(stMsgCrossServerRequestRet* pResult,Json::Value* vJsValue)
-{
-	if ( eCrossSvrReq_SelectTakeIn == pResult->nRequestType && eCrossSvrReqSub_SelectPlayerData == pResult->nRequestSubType )
-	{
-		//stMsgRequestPlayerDataRet msgBack ;
-		//msgBack.nRet = 0 ;
-		//msgBack.isDetail = pResult->vArg[3] ;
-		//CPlayer* pPlayer = GetPlayerByUserUID(pResult->vArg[0]);
-		//if ( pPlayer == nullptr )
-		//{
-		//	LOGFMTE("why this player is null , can not , funck!") ;
-		//	return true ;
-		//}
-
-		//stPlayerDetailDataClient stData ;
-		//stData.nCurrentRoomID = 0 ;
-		//CAutoBuffer auB (sizeof(msgBack) + sizeof(stPlayerDetailDataClient));
-		//if ( pPlayer )
-		//{
-		//	CPlayerTaxas* pTaxasData = (CPlayerTaxas*)pPlayer->GetComponent(ePlayerComponent_PlayerTaxas);
-		//	stData.nCurrentRoomID = pResult->nReqOrigID;
-		//	if ( msgBack.isDetail )
-		//	{
-		//		pPlayer->GetBaseData()->GetPlayerDetailData(&stData);
-		//		pTaxasData->getTaxasData(&stData.tTaxasData);
-		//		if ( vJsValue )
-		//		{
-		//			stData.tTaxasData.nPlayTimes += (*vJsValue)["playTimes"].asUInt();
-		//			stData.tTaxasData.nWinTimes += (*vJsValue)["winTimes"].asUInt();
-		//			stData.tTaxasData.nSingleWinMost = (*vJsValue)["singleMost"].asUInt() < stData.tTaxasData.nSingleWinMost ? stData.tTaxasData.nSingleWinMost : (*vJsValue)["singleMost"].asUInt();
-		//		}
-		//		else
-		//		{
-		//			LOGFMTD("targe player not sit down uid = %llu",pResult->vArg[0]);
-		//		}
-		//	}
-		//	else
-		//	{
-		//		pPlayer->GetBaseData()->GetPlayerBrifData(&stData) ;
-		//	}
-
-		//	if ( pResult->vArg[1] )
-		//	{
-		//		stData.nCoin += pResult->vArg[2] ;
-		//	}
-		//	else
-		//	{
-		//		stData.nDiamoned += pResult->vArg[2] ;
-		//	}
-		//	stData.nCurrentRoomID = pResult->nReqOrigID;
-		//	auB.addContent(&msgBack,sizeof(msgBack));
-		//	auB.addContent(&stData,msgBack.isDetail ? sizeof(stPlayerDetailDataClient) : sizeof(stPlayerBrifData) ) ;
-		//	CGameServerApp::SharedGameServerApp()->sendMsg(pResult->nTargetID,auB.getBufferPtr(),auB.getContentSize()) ;
-		//	LOGFMTD("select take in ret , send player data");
-		//	return true ;
-		//}
-		//return true ;
-	}
-	return false ;
+	return false;
 }

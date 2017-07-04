@@ -1,27 +1,23 @@
 #include "Player.h"
 #include "log4z.h"
 #include "PlayerManager.h"
-#include "GameServerApp.h"
 #include "PlayerBaseData.h"
 #include "PlayerMail.h"
-#include "PlayerItem.h"
-#include "PlayerMission.h"
-#include "Timer.h"
-#include "PlayerShop.h"
 #include "ServerMessageDefine.h"
-#include "RobotManager.h"
-#include "PlayerFriend.h"
 #include "ServerCommon.h"
 #include "AutoBuffer.h"
 #include "RoomConfig.h"
 #include "PlayerGameData.h"
-#define TIME_SAVE 60*10
+#include "AsyncRequestQuene.h"
+#include "ISeverApp.h"
 #define TIME_DELAY_DELETE 2*60
-CPlayer::CPlayer( )
+CPlayer::CPlayer()
 {
 	m_nUserUID = 0 ;
 	m_eSate = ePlayerState_Online ;
 	m_nSessionID = 0 ;
+	m_strCurIP = "";
+	m_pPlayerMgr = nullptr;
 	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
 	{
 		 m_vAllComponents[i] = NULL;
@@ -39,18 +35,15 @@ CPlayer::~CPlayer()
 	}
 }
 
-void CPlayer::init(unsigned int nUserUID, unsigned int nSessionID )
+void CPlayer::init( CPlayerManager* pPlayerMgr)
 {
-	m_nSessionID = nSessionID ;
-	m_nUserUID = nUserUID ;
+	m_pPlayerMgr = pPlayerMgr;
 	m_eSate = ePlayerState_Online ;
+	m_strCurIP = "";
 	/// new components ;here ;
 	m_vAllComponents[ePlayerComponent_BaseData] = new CPlayerBaseData(this) ;
 	m_vAllComponents[ePlayerComponent_Mail] = new CPlayerMailComponent(this);
 	m_vAllComponents[ePlayerComponent_PlayerGameData] = new CPlayerGameData(this);
-	//m_vAllComponents[ePlayerComponent_PlayerItemMgr] = new CPlayerItemComponent(this);
-	//m_vAllComponents[ePlayerComponent_PlayerMission] = new CPlayerMission(this);
-	//m_vAllComponents[ePlayerComponent_PlayerShop] = new CPlayerShop(this);
 	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
 	{
 		IPlayerComponent* p = m_vAllComponents[i] ;
@@ -59,18 +52,16 @@ void CPlayer::init(unsigned int nUserUID, unsigned int nSessionID )
 			p->init();
 		}
 	}
-
-	m_tTimerSave.setCallBack(timer_bind_obj_func(this,CPlayer::onTimerSave )) ;
-	m_tTimerSave.setIsAutoRepeat(true) ;
-	m_tTimerSave.setInterval(TIME_SAVE);
-	m_tTimerSave.start() ;
 }
 
-void CPlayer::reset(unsigned int nUserUID, unsigned int nSessionID )
+void CPlayer::reset()
 {
-	m_nSessionID = nSessionID ;
-	m_nUserUID = nUserUID ;
+	m_nSessionID = 0 ;
+	m_nUserUID = 0 ;
+	m_strCurIP = "";
 	m_eSate = ePlayerState_Online ;
+	m_tTimerCheckRemovePlayer.canncel();
+	m_tTimerCheckRemovePlayer.reset();
 	// inform components;
 	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
 	{
@@ -80,18 +71,127 @@ void CPlayer::reset(unsigned int nUserUID, unsigned int nSessionID )
 			p->reset();
 		}
 	}
+}
 
-	m_tTimerSave.reset();
-	m_tTimerSave.start() ;
+void CPlayer::onPlayerLogined(uint32_t nSessionID, uint32_t nUserUID, const char* pIP)
+{
+	m_nSessionID = nSessionID;
+	m_nUserUID = nUserUID;
+	m_strCurIP = pIP;
+	setState(ePlayerState_Online);
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			p->onPlayerLogined();
+		}
+	}
+	saveLoginInfo();
+}
+
+void CPlayer::onPlayerReconnected(char* pNewIP)
+{
+	m_strCurIP = pNewIP;
+	setState(ePlayerState_Online);
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			p->onPlayerReconnected();
+		}
+	}
+	saveLoginInfo();
+}
+
+void CPlayer::onPlayerLoseConnect()
+{
+	setState(ePlayerState_Offline);
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			p->onPlayerLoseConnect();
+		}
+	}
+}
+
+void CPlayer::onPlayerOtherDeviceLogin(uint32_t nNewSessionID, const char* pNewIP)
+{
+	setState(ePlayerState_Online);
+	// tell client other login
+	Json::Value jsMsg;
+	sendMsgToClient(jsMsg,MSG_PLAYER_OTHER_LOGIN );
+
+	// tell old gate other logined 
+	stMsgClientOtherLogin msg;
+	msg.nTargetID = m_nSessionID;
+	sendMsgToClient(&msg, sizeof(msg));
+
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			p->onPlayerOtherDeviceLogin(m_nSessionID,nNewSessionID);
+		}
+	}
+	// set new session id ;
+	m_nSessionID = nNewSessionID;
+	m_strCurIP = pNewIP;
+	saveLoginInfo();
+}
+
+void CPlayer::onPlayerDisconnect()
+{
+	// inform components;
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			p->onPlayerDisconnect();
+		}
+	}
+
+	setState(ePlayerState_Offline);
+	LOGFMTE("player disconnect should inform other sever");
+
+	if ( canRemovePlayer() )
+	{
+		onTimerSave();
+		getPlyerMgr()->doRemovePlayer(this);
+	}
+	else
+	{
+		delayRemove();
+	}
+}
+
+void CPlayer::delayRemove()
+{
+	LOGFMTD("player = %u , need to delay remove", getUserUID());
+	m_tTimerCheckRemovePlayer.setInterval(5 * 60);
+	m_tTimerCheckRemovePlayer.setIsAutoRepeat(true);
+	m_tTimerCheckRemovePlayer.setCallBack([this](CTimer* p, float fDelta)
+	{
+		if (false == canRemovePlayer())
+		{
+			LOGFMTD("player = %u , need to delay remove go on wait ", getUserUID());
+			return;
+		}
+		LOGFMTD("player = %u , do delay removed", getUserUID());
+		onTimerSave();
+		m_tTimerCheckRemovePlayer.canncel();
+		getPlyerMgr()->doRemovePlayer(this);
+	});
+	m_tTimerCheckRemovePlayer.start();
 }
 
 bool CPlayer::onMsg( stMsg* pMsg , eMsgPort eSenderPort, uint32_t nSenderID )
 {
-	if ( processPublicPlayerMsg(pMsg,eSenderPort) )
-	{
-		return true; 
-	}
-
 	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
 	{
 		IPlayerComponent* p = m_vAllComponents[i] ;
@@ -105,9 +205,7 @@ bool CPlayer::onMsg( stMsg* pMsg , eMsgPort eSenderPort, uint32_t nSenderID )
 	}
 
 	LOGFMTE("Unprocessed msg id = %d, from = %d  uid = %d",pMsg->usMsgType,eSenderPort,getUserUID() ) ;
-
 	return false ;
-
 }
 
 bool CPlayer::onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID )
@@ -123,40 +221,8 @@ bool CPlayer::onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSende
 			}
 		}
 	}
-
-	LOGFMTE("Unprocessed msg id = %d, from = %d  uid = %d",nmsgType,eSenderPort,getUserUID() ) ;
-
+	LOGFMTE("Unprocessed json msg id = %d, from = %d  uid = %d",nmsgType,eSenderPort,getUserUID() ) ;
 	return false ;
-}
-
-void CPlayer::onPlayerDisconnect()
-{
-	// inform components;
-	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
-	{
-		IPlayerComponent* p = m_vAllComponents[i] ;
-		if ( p )
-		{
-			p->onPlayerDisconnect();
-		}
-	}
-
-	onTimerSave(nullptr,0);
-	m_tTimerSave.canncel() ;
-
-	setState(ePlayerState_Offline) ;
-	LOGFMTE("player disconnect should inform other sever");
-
-	// save log 
-	//stMsgSaveLog msgLog ;
-	//memset(msgLog.vArg,0,sizeof(msgLog.vArg));
-	//msgLog.nJsonExtnerLen = 0 ;
-	//msgLog.nLogType = eLog_PlayerLogOut ;
-	//msgLog.nTargetID = GetUserUID() ;
-	//memset(msgLog.vArg,0,sizeof(msgLog.vArg));
-	//msgLog.vArg[0] = GetBaseData()->getCoin() ;
-	//msgLog.vArg[1] = GetBaseData()->GetAllDiamoned();
-	//SendMsgToClient((char*)&msgLog,sizeof(msgLog));
 }
 
 void CPlayer::postPlayerEvent(stPlayerEvetArg* pEventArg )
@@ -171,12 +237,15 @@ void CPlayer::postPlayerEvent(stPlayerEvetArg* pEventArg )
 	}
 }
 
-void CPlayer::sendMsgToClient(const char* pBuffer, unsigned short nLen  )
+void CPlayer::sendMsgToClient( stMsg* pBuffer, uint16_t nLen  )
 {
-	stMsg* pmsg = (stMsg*)pBuffer ;
-	if ( isState(ePlayerState_Offline) == false )
+	if ( isState(ePlayerState_Online) )
 	{
-		CGameServerApp::SharedGameServerApp()->sendMsg(getSessionID(),pBuffer,nLen ) ;
+		if (pBuffer->nTargetID != getSessionID() )
+		{
+			LOGFMTE("msg type = %u send to client but target id is not sessionid , uid = %u ",pBuffer->cSysIdentifer,getUserUID() );
+		}
+		m_pPlayerMgr->sendMsg(pBuffer, nLen, getUserUID() );
 		return ;
 	}
 	LOGFMTD("player uid = %d not online so , can not send msg" ,getUserUID() ) ;
@@ -186,10 +255,10 @@ void CPlayer::sendMsgToClient(Json::Value& jsMsg, uint16_t nMsgType  )
 {
 	if ( isState(ePlayerState_Offline) == false  )
 	{
-		CGameServerApp::SharedGameServerApp()->sendMsg(GetSessionID(),jsMsg,nMsgType,ID_MSG_PORT_CLIENT,bBrocat) ;
+		m_pPlayerMgr->sendMsg(jsMsg, nMsgType, getUserUID(), getSessionID(), ID_MSG_PORT_CLIENT);
 		return ;
 	}
-	LOGFMTD("player uid = %d not online so , can not send msg" ,GetUserUID() ) ;
+	LOGFMTD("player uid = %d not online so , can not send msg" ,getUserUID() ) ;
 }
 
 bool CPlayer::isState( ePlayerState eState )
@@ -201,231 +270,7 @@ bool CPlayer::isState( ePlayerState eState )
 	return false ;
 }
 
-void CPlayer::onAnotherClientLoginThisPeer(unsigned int nSessionID )
-{
-	// tell prelogin client to disconnect ;
-	stMsgPlayerOtherLogin msg ;
-	SendMsgToClient((char*)&msg,sizeof(msg)) ;
-
-	LOGFMTE("pls remember inform other server this envent OnAnotherClientLoginThisPeer ") ;
-
-	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
-	{
-		IPlayerComponent* p = m_vAllComponents[i] ;
-		if ( p )
-		{
-			p->onOtherWillLogined();
-		}
-	}
-	// bind new client ;
-	m_nSessionID = nSessionID ;
-	m_eSate = ePlayerState_Online;
-	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
-	{
-		IPlayerComponent* p = m_vAllComponents[i] ;
-		if ( p )
-		{
-			p->onOtherDoLogined();
-		}
-	}
-}
-
-bool CPlayer::processPublicPlayerMsg(stMsg* pMsg , eMsgPort eSenderPort)
-{
-	switch ( pMsg->usMsgType )
-	{
-	case MSG_ADD_MONEY:
-		{
-
-		}
-		break;
-// 	case MSG_REQUEST_RANK:
-// 		{
-// 			stMsgPlayerRequestRank* pMsgRet = (stMsgPlayerRequestRank*)pMsg ;
-// 			CGameServerApp::SharedGameServerApp()->GetGameRanker()->SendRankToPlayer(this,(eRankType)pMsgRet->nRankType,pMsgRet->nFromIdx,pMsgRet->nCount ) ;
-// 		}
-// 		break;
-// 	case MSG_REQUEST_RANK_PEER_DETAIL:
-// 		{
-// 			stMsgPlayerRequestRankPeerDetail* pRetMsg = (stMsgPlayerRequestRankPeerDetail*)pMsg ;
-// 			CGameServerApp::SharedGameServerApp()->GetGameRanker()->SendRankDetailToPlayer(this,pRetMsg->nRankPeerUID,(eRankType)pRetMsg->nRankType);
-// 		}
-// 		break;
-// 	case MSG_PLAYER_SAY_BROCAST:
-// 		{
-// 			stMsgPlayerSayBrocast* pMsgRet = (stMsgPlayerSayBrocast*)pMsg ;
-// 			CPlayerItemComponent* pItemMgr = (CPlayerItemComponent*)GetComponent(ePlayerComponent_PlayerItemMgr);	
-// 			stMsgPlayerSayBrocastRet msg ;
-// 			msg.nRet = 0 ;
-// 			if ( pItemMgr->OnUserItem(ITEM_ID_LA_BA) )
-// 			{
-// 				CGameServerApp::SharedGameServerApp()->GetBrocaster()->PostPlayerSayMsg(this,((char*)pMsg) + sizeof(stMsgPlayerSayBrocast),pMsgRet->nContentLen) ;
-// 			}
-// 			else
-// 			{
-// 				msg.nRet = 1 ;
-// 				LOGFMTE(" you have no la ba") ;
-// 			}
-// 			SendMsgToClient((char*)&msg,sizeof(msg)) ;
-// 		}
-// 		break;
-// 	case MSG_PLAYER_REPLAY_BE_INVITED:
-// 		{
-// 			//stMsgPlayerRecievedInviteReply toMsgInviter; // who invite me ;
-// 			stMsgPlayerReplayBeInvitedToJoinRoom* pMsgRet = (stMsgPlayerReplayBeInvitedToJoinRoom*)pMsg ;
-// 			//toMsgInviter.nRet = 0 ;
-// 			stMsgPlayerReplayBeInvitedToJoinRoomRet msgBack ;
-// 			if ( pMsgRet->nReplyResult == 1 ) // refused 
-// 			{
-// 				//toMsgInviter.nRet = 1 ;
-// 				msgBack.nRet = 0 ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				break;
-// 			}
-// 			else  // i agreed ;
-// 			{
-// 				msgBack.nRet = 0 ;
-// 				CTaxasPokerPeer* pThisPeer = (CTaxasPokerPeer*)GetComponent(ePlayerComponent_RoomPeerTaxasPoker);
-// 				CRoomTexasPoker* pRoomToEnter = (CRoomTexasPoker*)CGameServerApp::SharedGameServerApp()->GetRoomMgr()->GetRoom(pMsgRet->nRoomType,pMsgRet->nRoomLevel,pMsgRet->nRoomID) ;
-// 				if ( !pRoomToEnter || pRoomToEnter->CanPeerSitDown(pThisPeer) == false )
-// 				{
-// 					//toMsgInviter.nRet = 4 ;
-// 					msgBack.nRet = 2 ;
-// 				}
-// 				else
-// 				{
-// 					// join room ;
-// 					pThisPeer->LeaveRoom();
-// 					if ( pRoomToEnter->AddBeInvitedPlayer(this,pMsgRet->nSitIdx) == false )
-// 					{
-// 						//toMsgInviter.nRet = 3 ;
-// 						msgBack.nRet = 3 ;
-// 					}
-// 				}
-// 
-// 				if ( msgBack.nRet != 0 )  // only failed , tell client , when success , directly enter room ;
-// 				{
-// 					SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				}
-// 			}
-// 			//CPlayer* pToInvid = CGameServerApp::SharedGameServerApp()->GetPlayerMgr()->GetPlayerByUserUID(pMsgRet->nReplyToUserUID) ;
-// 			//if ( pToInvid && toMsgInviter.nRet != 0 ) // only failed situation ,tell inviter ;
-// 			//{
-// 			//	memcpy(toMsgInviter.nReplyerName,GetBaseData()->GetPlayerName(),MAX_LEN_CHARACTER_NAME);
-// 			//	pToInvid->SendMsgToClient((char*)&toMsgInviter,sizeof(toMsgInviter)) ;
-// 			//}
-// 			//else
-// 			//{
-// 			//	LOGFMTD("the one who invite me had offline , his uid = %d",pMsgRet->nReplyToUserUID) ;
-// 			//}
-// 		}
-// 		break;
-// 	case MSG_PLAYER_FOLLOW_TO_ROOM:
-// 		{
-// 			stMsgPlayerFollowToRoom* pRetMsg = (stMsgPlayerFollowToRoom*)pMsg ;
-// 			CPlayer* pTargetPlayer = CGameServerApp::SharedGameServerApp()->GetPlayerMgr()->GetPlayerByUserUID(pRetMsg->nTargetPlayerUID) ;
-// 			stMsgPlayerFollowToRoomRet msgBack ;
-// 			msgBack.nRet = 0 ;
-// 			if ( pTargetPlayer == NULL )
-// 			{
-// 				msgBack.nRet = 1 ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				break ;
-// 			}
-// 
-// 			if ( ePlayerState_Free == pTargetPlayer->GetState() )
-// 			{
-// 				msgBack.nRet = 2 ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				break ;
-// 			}
-// 
-// 			if ( ePlayerState_Free != GetState() )
-// 			{
-// 				msgBack.nRet = 4 ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				break ;
-// 			}
-// 
-// 			CRoomBaseNew* pStateRoom = pTargetPlayer->GetRoomCurStateIn() ;
-// 			if ( !pStateRoom )
-// 			{
-// 				LOGFMTE("follow to a null room , but target player is not free , how , why ?") ;
-// 				msgBack.nRet = 2 ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				break;
-// 			}
-// 
-// 
-// 			if ( pStateRoom->CheckCanJoinThisRoom(pTargetPlayer) != 0)
-// 			{
-// 				msgBack.nRet = 3 ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				break;
-// 			}
-// 
-// 			// add to room 
-// 			stMsgRoomEnter msgToEnterRoom ;
-// 			msgToEnterRoom.nPassword = 0 ;
-// 			msgToEnterRoom.nRoomID = pStateRoom->GetRoomID();
-// 			msgToEnterRoom.nRoomLevel = pStateRoom->GetRoomLevel() ;
-// 			msgToEnterRoom.nRoomType = pStateRoom->GetRoomType() ;
-// 			OnMessage(&msgToEnterRoom);
-// 		}
-// 		break;
-// 	case MSG_PLAYER_SLOT_MACHINE:
-// 		{
-// 			stMsgPlayerSlotMachineRet msgBack ;
-// 			msgBack.nRet = 0 ;
-// 			stMsgPlayerSlotMachine* pRetMsg = (stMsgPlayerSlotMachine*)pMsg ;
-// 			if ( GetBaseData()->GetAllCoin() < pRetMsg->nBetCoin || GetBaseData()->GetAllDiamoned() < pRetMsg->nBetDiamoned )
-// 			{
-// 				msgBack.nRet = 1 ;
-// 			}
-// 			else
-// 			{
-// 				CSlotMachine* pMachine = (CSlotMachine*)CGameServerApp::SharedGameServerApp()->GetConfigMgr()->GetConfig(CConfigManager::eConfig_SlotMachine) ;
-// 				float fRate = 0 ;
-// 				pMachine->RandSlotMachine(pRetMsg->cLevel,msgBack.vCard,fRate) ;
-// 				int64_t nOffsetCoin = pRetMsg->nBetCoin * ( fRate - 1.0 );
-// 				int nOffsetDiamoned = pRetMsg->nBetDiamoned * ( fRate - 1.0 );
-// 				nOffsetDiamoned = abs(nOffsetDiamoned) ;
-// 				nOffsetCoin = abs(nOffsetCoin) ;
-// 				int nOffset = fRate > 1 ? 1 : -1 ;
-// 				GetBaseData()->ModifyMoney(nOffsetCoin * nOffset);
-// 				GetBaseData()->ModifyMoney(nOffsetDiamoned * nOffset,true);				
-// 				msgBack.nFinalAllCoin = GetBaseData()->GetAllCoin();
-// 				msgBack.nFinalDiamoned = GetBaseData()->GetAllDiamoned() ;
-// 				msgBack.nTakeInCoin = GetBaseData()->GetTakeInMoney() ;
-// 				msgBack.nTakeInDiamoned = GetBaseData()->GetTakeInMoney(true) ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 			}
-// 		}
-// 		break;
-// 	case MSG_ROOM_REQUEST_PEER_DETAIL:
-// 		{
-// 			stMsgRoomRequestPeerDetailRet msgBack ;
-// 			stMsgRoomRequestPeerDetail* pMsgRet = (stMsgRoomRequestPeerDetail*)pMsg ;
-// 			msgBack.nPeerSessionID = pMsgRet->nPeerSessionID ;
-// 			CPlayer* pDetailPlayer = CGameServerApp::SharedGameServerApp()->GetPlayerMgr()->GetPlayerBySessionID(pMsgRet->nPeerSessionID) ;
-// 			if ( pDetailPlayer == NULL )
-// 			{
-// 				msgBack.nRet = 1 ;
-// 				SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 				return true ;
-// 			}
-// 
-// 			pDetailPlayer->GetBaseData()->GetPlayerDetailData(&msgBack.stDetailInfo);
-// 			SendMsgToClient((char*)&msgBack,sizeof(msgBack)) ;
-// 		}
-// 		break;
- 	default:
- 		return false ;
-	}
-	return true ;
-}
-
-void CPlayer::onTimerSave( CTimer* p,float fTimeElaps )
+void CPlayer::onTimerSave()
 {
 	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
 	{
@@ -437,71 +282,32 @@ void CPlayer::onTimerSave( CTimer* p,float fTimeElaps )
 	}
 }
 
-//void CPlayer::PushTestAPNs()
-//{
-//#ifdef NDEBUG
-//	return ;
-//#endif
-//	//if ( GetBaseData()->bPlayerEnableAPNs == false )
-//	//{
-//	//	LOGFMTE("you not enable apns ") ;
-//	//	return ;
-//	//}
-//	//char* pString = "\"you disconnected \"" ;
-//	//stMsgToAPNSServer msg ;
-//	//msg.nAlertLen = strlen(pString) ;
-//	//msg.nBadge = 1 ;
-//	//msg.nSoundLen = 0 ;
-//	//memcpy(msg.pDeveiceToken,GetBaseData()->vAPNSToken,32);
-//	//char* pBuffer = new char[sizeof(msg) + msg.nAlertLen ] ;
-//	//unsigned short nOffset = 0 ;
-//	//memcpy(pBuffer,&msg,sizeof(msg));
-//	//nOffset += sizeof(msg);
-//	//memcpy(pBuffer + nOffset , pString ,msg.nAlertLen);
-//	//nOffset += msg.nAlertLen ;
-//	//CGameServerApp::SharedGameServerApp()->SendMsgToAPNsServer(pBuffer,nOffset);
-//	//delete[] pBuffer ;
-//}
-
-void CPlayer::onReactive(uint32_t nSessionID )
+bool CPlayer::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)
 {
-	LOGFMTD("uid = %d reactive with session id = %d", getUserUID(), nSessionID) ;
-	m_nSessionID = nSessionID ;
-	setState(ePlayerState_Online) ;
+	return false;
+}
 
-	for ( int i = ePlayerComponent_None; i < ePlayerComponent_Max ; ++i )
+void CPlayer::saveLoginInfo()
+{
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, "update playerbasedata set loginIP = '%s',loginTime = now() where userUID = %u ;", getIp(), getUserUID() );
+	std::string str = pBuffer;
+	jssql["sql"] = pBuffer;
+	auto pReqQueue = m_pPlayerMgr->getSvrApp()->getAsynReqQueue();
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getUserUID(), getUserUID(), eAsync_DB_Update, jssql);
+}
+
+bool CPlayer::canRemovePlayer()
+{
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
 	{
-		IPlayerComponent* p = m_vAllComponents[i] ;
-		if ( p )
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p && p->canRemovePlayer() == false )
 		{
-			p->onReactive(nSessionID);
+			return false;
 		}
 	}
-	m_tTimerSave.reset() ;
-	m_tTimerSave.start() ;
+	return true;
 }
-
-uint8_t CPlayer::getMsgPortByRoomType(uint8_t nType )
-{
-	switch ( nType )
-	{
-	case eRoom_NiuNiu:
-		return ID_MSG_PORT_NIU_NIU ;
-	case eRoom_TexasPoker:
-		return ID_MSG_PORT_TAXAS ;
-	case eRoom_Golden:
-		return ID_MSG_PORT_GOLDEN;
-	case eRoom_MJ_Blood_River:
-	case eRoom_MJ_Blood_End:
-	case eRoom_MJ_NanJing:
-	case eRoom_MJ_SuZhou:
-		return ID_MSG_PORT_MJ;
-	default:
-		return ID_MSG_PORT_NONE ;
-	}
-
-	return ID_MSG_PORT_NONE ;
-}
-
-
 

@@ -5,6 +5,7 @@
 #define MAX_LEN_CHARACTER_NAME 25 // can not big then unsigned char  max = 255
 #define MAX_LEN_SIGURE 200   // can not big then unsigned char  max = 255
 #define MAX_LEN_ROOM_NAME 25
+#define MAX_LEN_HEADICON_URL 200
 #define MAX_LEN_ROOM_DESC 60  // can not big then unsigned char max = 255
 #define MAX_LEN_ROOM_INFORM 500  
 #define MAX_LEN_EMAIL 50
@@ -33,15 +34,8 @@
 #define GOLDEN_ROOM_COIN_LEVEL_CNT 4
 #define GOLDEN_PK_ROUND 2
 
-#ifndef SERVER
-#define PIEXL_TO_POINT(px) (px)/CC_CONTENT_SCALE_FACTOR()
-#define FOINT_NAME "Helvetica"
-#endif
-
 #define MAX_IP_STRING_LEN 17
 
-#define CIRCLE_TOPIC_CNT_PER_PAGE 7
-#define MAX_CIRCLE_CONTENT_LEN 700
 enum ePayChannel
 {
 	ePay_AppStore,
@@ -277,13 +271,6 @@ static unsigned char s_vChangeCardDimonedNeed[GOLDEN_PEER_CARD] = {0,4,8} ;
 
 #define JS_KEY_MSG_TYPE "msgID"
 
-//enum eSpeed
-//{
-//	eSpeed_Normal,
-//	eSpeed_Quick,
-//	eSpeed_Max,
-//};
-
 enum eNoticeType
 {
 	eNotice_Text,
@@ -370,8 +357,6 @@ enum eRoomFlag
 	eRoomFlag_Max,
 };
 
-
-
  
 
 
@@ -402,25 +387,6 @@ enum eProcessMailAct
 	ePor_Mail_Max,
 };
 
-// item id , here type = id ;
-enum eItemType
-{
-	eItem_None,
-	eItem_Car = eItem_None,
-	eItem_Boat,
-	eItem_Airplane,
-	eItem_House,
-	eItem_Asset, // uplow are assets ;
-	// below are can be used item ;
-	eItem_Props , // can be used item ;
-	eItem_Gift,
-	eItem_Max,
-};
-
-#define ITEM_ID_INTERACTIVE 10
-#define ITEM_ID_LA_BA 12
-#define ITEM_ID_KICK_CARD 11
-#define ITEM_ID_CREATE_ROOM 13
 // game ranker
 enum eRankType
 {
@@ -477,16 +443,5 @@ enum eRoomLevel
 // time for golden
 #define TIME_GOLDEN_DISTRIBUTE_CARD_PER_PLAYER 1.0f 
 
-#define SETTING_MUSIC_ON "MusicOn"
-#define SETTING_SOUND_ON "SoundOn"
-
-#define LOCAL_ACCOUNT "account"
-#define LOCAL_PASSWORD "password"
-#define IS_AUTO_REGISTER "IsAutoLogin"
-#define IS_CREATE_ROLE "IsCreateRole"
-
-#define TEMP_NAME "tempName"
-#define TEMP_ACCOUNT "tempAccount"
-#define TEMP_PASSWORD "tempPassword"
 
 

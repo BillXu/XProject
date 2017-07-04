@@ -32,7 +32,6 @@ public:
 	virtual void Reset();
 	virtual void Init();
 	virtual void OnOtherDoLogined();
-	void OnReactive(uint32_t nSessionID ) override ;
 
 	static void PostOfflineEvent( eOfflineEvent eEvntType ,Json::Value& pEventArg ,uint32_t nTargetUID );
 	static void PostDlgNotice( eNoticeType eNotice ,Json::Value& pEventArg ,uint32_t nTargetUID );

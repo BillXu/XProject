@@ -43,9 +43,18 @@ enum eMsgType
 	MSG_GATE_SVR_IS_FULL, // gate connect is full , let client change other gate ;
 	MSG_PLAYER_REGISTER,     // register an account ;
 	MSG_PLAYER_LOGIN,  // check an account is valid ;
+	MSG_TELL_GATE_PLAYER_OTHER_LOGIN,
 
-
-
+	MSG_REQUEST_PLAYER_DATA, // request player brif data 
+	// client : { nReqID : 23  isDetail : 0 }
+	// svr : { uid : 23 , name : "hello" , headIcon : "http://weshg.wx.com",sex : 1 , ip : "1.0.0.1" }
+	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server
+	// svr : null 
+	MSG_PLAYER_BASE_DATA,
+	// svr: { name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20  }
+	MSG_PLAYER_UPDATE_INFO,
+	// client : { name : "lucy", sex : 1 , headIcon : "http://url.com"  }
+	// svr: { ret : 0 }
 
 
 
@@ -64,8 +73,6 @@ enum eMsgType
 
 
 	// new real new above 
-	MSG_VERIFY_BEGIN,
-	MSG_VERIFY_GAME,  // verify that is game server ;
 	MSG_VERIFY_LOGIN, // verify login server ;
 	MSG_VERIFY_CLIENT, // verify that is client ;
 	MSG_VERIFY_VERIYF, // verify buy transaction ok ;
@@ -105,7 +112,6 @@ enum eMsgType
 	
 	MSG_PLAYER_BIND_ACCOUNT, //  a quick enter player need to bind a real account and password ;
 	MSG_MODIFY_PASSWORD,
-	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server
 	MSG_CROSS_SERVER_REQUEST,
 	MSG_CROSS_SERVER_REQUEST_RET,
 	MSG_READ_PLAYER_TAXAS_DATA,
@@ -119,7 +125,6 @@ enum eMsgType
 	MSG_REQUEST_MY_FOLLOW_ROOMS,
 	//MSG_REQUEST_MY_OWN_ROOM_DETAIL,
 	MSG_REQUEST_ROOM_REWARD_INFO,
-	MSG_REQUEST_PLAYER_DATA,
 	MSG_SELECT_DB_PLAYER_DATA,
 	MSG_PLAYER_BASE_DATA_TAXAS,
 	MSG_ON_PLAYER_BIND_ACCOUNT,
@@ -150,7 +155,6 @@ enum eMsgType
 	MSG_SAVE_EXCHANGE,
 	MSG_DB_PLAYER_MODIFY_NAME,
 	MSG_ASYNC_REQUEST_RESULT,
-	MSG_PLAYER_BASE_DATA = 250,
 	MSG_READ_PLAYER_BASE_DATA,
 	MSG_PLAYER_SAVE_PLAYER_INFO,
 	MSG_PLAYER_LOGOUT,

@@ -14,7 +14,6 @@ public:
 	IGlobalModule(){ m_fTicket = 300; m_app = nullptr ; m_nModuleType = INVALID_MODULE_TYPE ; }
 	virtual ~IGlobalModule(){}
 	IServerApp* getSvrApp(){ return m_app; }
-protected:
 	void setModuleType( uint8_t nModuleType ){ m_nModuleType = nModuleType ; }
 	uint16_t getModuleType(){ return m_nModuleType ; };
 	bool sendMsg(stMsg* pBuffer, uint16_t nLen, uint32_t nSenderUID);

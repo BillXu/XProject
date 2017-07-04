@@ -7,10 +7,6 @@ enum ePlayerComponentType
 {
 	ePlayerComponent_None ,
 	ePlayerComponent_BaseData,
-	//ePlayerComponent_Friend,
-	ePlayerComponent_PlayerShop,
-	ePlayerComponent_PlayerItemMgr,
-	//ePlayerComponent_PlayerMission,
 	ePlayerComponent_PlayerGameData ,
 	ePlayerComponent_Mail,            // last sit the last pos ,
 	ePlayerComponent_Max,
@@ -30,13 +26,15 @@ public:
 	CPlayer* getPlayer(){ return m_pPlayer ;}
 	virtual bool onMsg( stMsg* pMessage , eMsgPort eSenderPort);
 	virtual bool onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort ){ return false ;}
-	virtual void onPlayerDisconnect(){}
+	virtual void onPlayerDisconnect() { timerSave(); }
 	virtual void onPlayerReconnected(){}
-	virtual void onOtherWillLogined(){}
-	virtual void onOtherDoLogined(){}
+	virtual void onPlayerLoseConnect() { timerSave(); }  // wait player reconnect ;
+	virtual void onPlayerOtherDeviceLogin( uint16_t nOldSessionID, uint16_t nNewSessionID  ){}
+	virtual void onPlayerLogined(){}
+
 	virtual bool onPlayerEvent(stPlayerEvetArg* pArg){ return false ; }
 	virtual void timerSave(){};
-	virtual void onReactive(uint32_t nSessionID ){ }
+	virtual bool canRemovePlayer() { return true; }
 protected:
 	CPlayer* m_pPlayer ;
 	ePlayerComponentType m_eType ;	

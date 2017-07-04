@@ -4,6 +4,7 @@
 #include "ServerMessageDefine.h"
 #include "MessageIdentifer.h"
 class CPlayerBaseData ;
+class CPlayerManager;
 struct stMsg ;
 class CPlayer
 {
@@ -18,31 +19,38 @@ public:
 public:
 	CPlayer();
 	~CPlayer();
-	void init(uint32_t nUserUID, uint32_t nSessionID, const char* pIP);
-	void reset( uint32_t nUserUID, uint32_t nSessionID, const char* pIP ) ; // for reuse the object ;
+	void init( CPlayerManager* pPlayerMgr );
+	void reset() ; // for reuse the object ;
+	void onPlayerLogined( uint32_t nSessionID , uint32_t nUserUID, const char* pIP );
+	void onPlayerReconnected( char* pNewIP );
+	void onPlayerLoseConnect();  // wait player reconnect ;
+	void onPlayerOtherDeviceLogin( uint32_t nNewSessionID , const char* pNewIP );
+	void onPlayerDisconnect();  // should offline 
+	void delayRemove();
 	bool onMsg( stMsg* pMessage , eMsgPort eSenderPort, uint32_t nSenderID );
 	bool onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID );
-	void onPlayerDisconnect();
 	void sendMsgToClient( stMsg* pBuffer, uint16_t nLen  );
 	void sendMsgToClient( Json::Value& jsMsg, uint16_t nMsgType );
 	uint32_t getUserUID(){ return m_nUserUID ;}
 	uint32_t getSessionID(){ return m_nSessionID ;}
+	const char* getIp() { return m_strCurIP.c_str(); }
 	IPlayerComponent* getComponent(ePlayerComponentType eType ){ return m_vAllComponents[eType];}
 	CPlayerBaseData* getBaseData(){ return (CPlayerBaseData*)getComponent(ePlayerComponent_BaseData);}
 	bool isState( ePlayerState eState ); 
 	void setState(ePlayerState eSate ){ m_eSate = eSate ; }
-	void onAnotherClientLoginThisPlayer( uint32_t nSessionID, const char* pIP );
 	void postPlayerEvent(stPlayerEvetArg* pEventArg );
-	void onTimerSave(CTimer* pTimer, float fTimeElaps );
-	void onReactive(uint32_t nSessionID );
-	static uint8_t getMsgPortByRoomType(uint8_t nType );
+	void onTimerSave();
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
+	CPlayerManager* getPlyerMgr() { return m_pPlayerMgr; }
 protected:
-	bool processPublicPlayerMsg( stMsg* pMessage , eMsgPort eSenderPort );
+	void saveLoginInfo();
+	bool canRemovePlayer();
 protected:
-	unsigned int m_nUserUID ;
-	unsigned int m_nSessionID ;  // comunicate with the client ;
+	uint32_t m_nUserUID ;
+	uint32_t m_nSessionID ;  // comunicate with the client ;
+	std::string m_strCurIP;
 	IPlayerComponent* m_vAllComponents[ePlayerComponent_Max] ;
 	ePlayerState m_eSate ;
-	CTimer m_tTimerSave ;
+	CPlayerManager* m_pPlayerMgr;
+	CTimer m_tTimerCheckRemovePlayer;
 }; 

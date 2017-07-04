@@ -122,6 +122,11 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 		LOGFMTE("client send msg = %u , port = %d targetid  is null, uid = %u",pMsg->usMsgType,pMsg->cSysIdentifer,pDstClient->getBindUID());
 	}
 
+	if ( pDstClient->getBindUID() == 0 )
+	{
+		LOGFMTE("player DstClient not bind uid , so can not transfer msg ip = %s session id = %u , msg = %u",pDstClient->getIP(),pDstClient->getSessionID(),pMsg->usMsgType );
+		return true;
+	}
 	CGateServer::SharedGateServer()->sendMsg( pMsg,pData->_len ,pDstClient->getSessionID() );
 	return true ;
 }
@@ -394,6 +399,8 @@ void CGateClientMgr::onLogin(stMsg* pmsg, stGateClient* pClient )
 			pGateClient->bindUID(nUserUID);
 			Json::Value jsLogin;
 			jsLogin["uid"] = nUserUID;
+			jsLogin["ip"] = pGateClient->getIP();
+			jsLogin["sessionID"] = pGateClient->getSessionID();
 			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID, pGateClient->getSessionID(), eAsync_Player_Logined, jsLogin);
 		}
 	}, pClient->getSessionID());
@@ -444,7 +451,7 @@ void CGateClientMgr::onRegister(stMsg* pmsg, stGateClient* pClient )
 	// new 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "call RegisterAccountNew('%s','%s','%s',%d,%d,'%s');", strName.c_str(), pLoginRegister->cAccount, pLoginRegister->cPassword, pLoginRegister->cRegisterType, pLoginRegister->nChannel, pClient->getIP());
+	sprintf_s(pBuffer, "call RegisterAccount('%s','%s','%s',%d,%d,'%s');", strName.c_str(), pLoginRegister->cAccount, pLoginRegister->cPassword, pLoginRegister->cRegisterType, pLoginRegister->nChannel, pClient->getIP());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = CGateServer::SharedGateServer()->getAsynReqQueue();
@@ -496,6 +503,8 @@ void CGateClientMgr::onRegister(stMsg* pmsg, stGateClient* pClient )
 			pGateClient->bindUID(msgRet.nUserID);
 			Json::Value jsLogin;
 			jsLogin["uid"] = msgRet.nUserID;
+			jsLogin["sessionID"] = pGateClient->getSessionID();
+			jsLogin["ip"] = pGateClient->getIP();
 			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, msgRet.nUserID, pGateClient->getSessionID(), eAsync_Player_Logined, jsLogin);
 		}
 

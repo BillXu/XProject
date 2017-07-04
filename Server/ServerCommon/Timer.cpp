@@ -62,6 +62,11 @@ void CTimer::start()
 	CTimerManager::getInstance()->startTimer(this) ;
 }
 
+bool CTimer::isRunning()
+{
+	return m_eState == eTimerState_Runing;
+}
+
 void CTimer::reset()
 {
 	if ( eTimerState_Runing == m_eState )

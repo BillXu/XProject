@@ -8,7 +8,7 @@
 #include "MessageIdentifer.h"
 class CPlayer ;
 struct stMsg ;
-class CSelectPlayerDataCacher
+class CPlayerBrifDataCacher
 {
 public:
 	struct stSubscriber
@@ -20,27 +20,30 @@ public:
 	struct stPlayerDataPrifle
 	{
 		uint32_t nPlayerUID ;
-		stPlayerDetailData* pData ;
+		Json::Value jsBrifData;
 		time_t tRequestDataTime ;
 		
 		std::map<uint32_t,stSubscriber> vBrifeSubscribers ;
 		std::map<uint32_t,stSubscriber> vDetailSubscribers ;
-		stPlayerDataPrifle(){ nPlayerUID = 0 ; pData = nullptr ; tRequestDataTime = 0 ; }
-		~stPlayerDataPrifle(){ delete pData ; pData = nullptr ; vBrifeSubscribers.clear() ; vDetailSubscribers.clear() ;}
-		bool isContentData(){ return pData != nullptr ; }
-		void recivedData(stPlayerBrifData* pRecData) ;
+		stPlayerDataPrifle() { nPlayerUID = 0; jsBrifData.clear(); }
+		~stPlayerDataPrifle(){ vBrifeSubscribers.clear() ; vDetailSubscribers.clear() ;}
+		bool isContentData(){ return jsBrifData.isNull() == false ; }
+		void recivedData( Json::Value& jsData, IServerApp* pApp ) ;
 		void addSubscriber( uint32_t nSessionId , bool isDetail );
 	};
 
 	typedef std::map<uint32_t,stPlayerDataPrifle*> MAP_ID_DATA;
 public:
-	CSelectPlayerDataCacher();
-	~CSelectPlayerDataCacher();
+	~CPlayerBrifDataCacher();
+	void init(IServerApp* pApp) { m_pApp = pApp; }
+	stPlayerDataPrifle* getBrifData( uint32_t nUID );
 	void removePlayerDataCache( uint32_t nUID );
-	void cachePlayerData(stMsgSelectPlayerDataRet* pmsg );
-	bool sendPlayerDataProfile(uint32_t nReqUID ,bool isDetail , uint32_t nSubscriberSessionID );
+	bool sendPlayerDataProfile( uint32_t nReqUID ,bool isDetail , uint32_t nSubscriberSessionID );
+	void visitBrifData(Json::Value jsBrifData ,CPlayer* pPlayer );
+	void checkState();
 protected:
 	MAP_ID_DATA m_vDetailData ;
+	IServerApp* m_pApp;
 };
 
 class CPlayerManager
@@ -52,25 +55,26 @@ public:
 public:
 	CPlayerManager();
 	~CPlayerManager();
+	void init(IServerApp* svrApp)override;
 	bool onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID )override ;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID)override;
 	CPlayer* getPlayerByUserUID( uint32_t nUserUID );
 	void update(float fDeta )override ;
 	void onExit()override ;
 	bool onAsyncRequest( uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )override ;
+	void doRemovePlayer(CPlayer* pOfflinePlayer);
+	bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)override;
 protected:
-	void onPlayerOffline(CPlayer* pOfflinePlayer);
 	bool onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
-	void addPlayer( CPlayer* pNewPlayer );
+	void addActivePlayer( CPlayer* pNewPlayer );
 	void logState();
 	CPlayer* getReserverPlayerObj();
-	void addToReserverPlayerObj( CPlayer* pPlayer );
-public:
-	CSelectPlayerDataCacher& getPlayerDataCaher(){ return m_tPlayerDataCaher ;}
+	void onTimeSave()override;
 protected:
 	// logic data ;
 	MAP_UID_PLAYERS m_vAllActivePlayers ;
 	LIST_PLAYERS m_vReserverPlayerObj ;
+	LIST_PLAYERS m_vWillDeletePlayers;
 
-	CSelectPlayerDataCacher m_tPlayerDataCaher ;
+	CPlayerBrifDataCacher m_tPlayerDataCaher ;
 };

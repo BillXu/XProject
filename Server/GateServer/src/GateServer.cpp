@@ -134,6 +134,20 @@ bool CGateServer::onLogicMsg(stMsg* prealMsg, eMsgPort eSenderPort, uint32_t nSe
 	{
 		return false;
 	}
+
+	if ( MSG_TELL_GATE_PLAYER_OTHER_LOGIN == prealMsg->usMsgType)
+	{
+		auto pGateClient = getClientMgr()->getGateClientBySessionID(prealMsg->nTargetID);
+		if ( pGateClient == nullptr)
+		{
+			LOGFMTW("old client is null , so need not delete uid = %u",nSenderID );
+			return true;
+		}
+		pGateClient->bindUID(0);
+		pGateClient->delayClose();
+		LOGFMTD("old client will close , other logined , uid = %u",nSenderID );
+		return true;
+	}
 	
 	return false;
 }

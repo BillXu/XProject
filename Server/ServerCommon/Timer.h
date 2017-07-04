@@ -26,6 +26,7 @@ public:
 	void setCallBack( time_func lpfCallBackFunc );
 	void setInterval(float fNewInterval );
 	void start();
+	bool isRunning();
 protected:
 	void Update( float fTimeElaps );
 	uint32_t getTimerID();

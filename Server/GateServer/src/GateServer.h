@@ -13,7 +13,7 @@ public:
 	bool init();
 	CServerNetwork* GetNetWorkForClients(){ return m_pNetWorkForClients ;}
 	void sendMsgToClient(const char* pData , int nLength , CONNECT_ID nSendToOrExcpet ,bool bBroadcast = false );
-	CGateClientMgr* GetClientMgr(){ return m_pGateManager ;}
+	CGateClientMgr* getClientMgr(){ return m_pGateManager ;}
 	void update(float fDeta );
 	// network
 	bool OnMessage(Packet* pPacket)override;

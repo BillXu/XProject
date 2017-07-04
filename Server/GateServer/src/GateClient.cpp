@@ -174,6 +174,10 @@ void stGateClient::reset()
 
 void stGateClient::delayClose( float fDelay )
 {
+	if ( m_tDelayClose.isRunning() )
+	{
+		return;
+	}
 	LOGFMTD("start wait delay close");
 	m_tDelayClose.setIsAutoRepeat(false);
 	m_tDelayClose.setInterval(fDelay);
