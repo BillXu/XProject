@@ -39,14 +39,14 @@ void connection_manager::stop_all()
 bool connection_manager::getRequestConnects(std::set<connection_ptr>& vOut)
 {
 	vOut.clear();
-	boost::lock_guard<boost::mutex> lock(this->mtx);
+	std::unique_lock<std::mutex> lock(this->mtx);
 	reqConnections.swap(vOut);
 	return vOut.empty() == false;
 }
 
 void connection_manager::addRequestConnects(connection_ptr ptr)
 {
-	boost::lock_guard<boost::mutex> lock(this->mtx);
+	std::unique_lock<std::mutex> lock(this->mtx);
 	reqConnections.insert(ptr);
 }
 

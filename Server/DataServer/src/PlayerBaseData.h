@@ -3,7 +3,6 @@
 #include "CommonDefine.h"
 #include "IPlayerComponent.h"
 #include <string>
-#include "PlayerOnlineBox.h"
 struct stMsg ;
 class CPlayer ;
 struct stEventArg ;

@@ -1,6 +1,5 @@
 #pragma once
 #include "VerifyRequest.h"
-#include "pthread.h"
 #include "ThreadMod.h"
 #include "mutex.h"
 #include "curl/curl.h"

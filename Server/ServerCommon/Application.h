@@ -1,6 +1,6 @@
 #pragma once
 #include "ISeverApp.h"
-#include <windows.h>
+//#include <windows.h>
 #include "catch_dump_file.h"
 class CApplication
 {

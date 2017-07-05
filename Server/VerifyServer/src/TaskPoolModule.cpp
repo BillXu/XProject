@@ -15,14 +15,6 @@ void CTaskPoolModule::init( IServerApp* svrApp )
 {
 	IGlobalModule::init(svrApp) ;
 	m_tTaskPool.init(this,3);
-
-	// test code 
-	//static CTimer tTim ;
-	//tTim.setInterval(2) ;
-	//tTim.setIsAutoRepeat(false);
-	//tTim.setCallBack([this](CTimer* p , float f ){ printf("timer invoker\n");testFunc();}) ;
-	//tTim.start();
-	// test code 
 }
 
 void CTaskPoolModule::onExit()
@@ -52,9 +44,9 @@ bool CTaskPoolModule::onMsg(stMsg* pMsg , eMsgPort eSenderPort , uint32_t nSessi
 	return  false ;
 }
 
-bool CTaskPoolModule::onMsg(Json::Value& prealMsg ,uint16_t nMsgType, eMsgPort eSenderPort , uint32_t nSessionID)
+bool CTaskPoolModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID )
 {
-	if ( IGlobalModule::onMsg(prealMsg,nMsgType,eSenderPort,nSessionID ) )
+	if ( IGlobalModule::onMsg(prealMsg,nMsgType,eSenderPort, nSenderID,nTargetID) )
 	{
 		return  true ;
 	}
@@ -153,48 +145,48 @@ ITask::ITaskPrt CTaskPoolModule::createTask( uint32_t nTaskID )
 // logic  
 void CTaskPoolModule::onWechatOrder( stMsg* pMsg, eMsgPort eSenderPort , uint32_t nSessionID )
 {
-	stMsgVerifyItemOrder* pOrder = (stMsgVerifyItemOrder*)pMsg ;
+	//stMsgVerifyItemOrder* pOrder = (stMsgVerifyItemOrder*)pMsg ;
 
-	auto pTask = getPool().getReuseTaskObjByID(eTask_WechatOrder);
-	CWeChatOrderTask* pTaskObj = (CWeChatOrderTask*)pTask.get();
-	// set call back 
-	if ( pTask->getCallBack() == nullptr )
-	{
-		pTask->setCallBack([this](ITask::ITaskPrt ptr )
-		{
-			CWeChatOrderTask* pTask = (CWeChatOrderTask*)ptr.get();
-			auto pOrder = pTask->getCurRequest().get(); 
-			stMsgVerifyItemOrderRet msgRet ;
-			memset(msgRet.cPrepayId,0,sizeof(msgRet.cPrepayId));
-			memset(msgRet.cOutTradeNo,0,sizeof(msgRet.cOutTradeNo));
-			memcpy(msgRet.cOutTradeNo,pOrder->cOutTradeNo,sizeof(pOrder->cOutTradeNo));
-			memcpy(msgRet.cPrepayId,pOrder->cPrepayId,sizeof(msgRet.cPrepayId));
-			msgRet.nChannel = pOrder->nChannel ;
-			msgRet.nRet = pOrder->nRet ;
-			getSvrApp()->sendMsg(pOrder->nSessionID,(char*)&msgRet,sizeof(msgRet));
-			LOGFMTI("finish order for sessionid = %d, ret = %d ",pOrder->nSessionID,pOrder->nRet) ;
-		}
-		) ;
-	}
+	//auto pTask = getPool().getReuseTaskObjByID(eTask_WechatOrder);
+	//CWeChatOrderTask* pTaskObj = (CWeChatOrderTask*)pTask.get();
+	//// set call back 
+	//if ( pTask->getCallBack() == nullptr )
+	//{
+	//	pTask->setCallBack([this](ITask::ITaskPrt ptr )
+	//	{
+	//		CWeChatOrderTask* pTask = (CWeChatOrderTask*)ptr.get();
+	//		auto pOrder = pTask->getCurRequest().get(); 
+	//		stMsgVerifyItemOrderRet msgRet ;
+	//		memset(msgRet.cPrepayId,0,sizeof(msgRet.cPrepayId));
+	//		memset(msgRet.cOutTradeNo,0,sizeof(msgRet.cOutTradeNo));
+	//		memcpy(msgRet.cOutTradeNo,pOrder->cOutTradeNo,sizeof(pOrder->cOutTradeNo));
+	//		memcpy(msgRet.cPrepayId,pOrder->cPrepayId,sizeof(msgRet.cPrepayId));
+	//		msgRet.nChannel = pOrder->nChannel ;
+	//		msgRet.nRet = pOrder->nRet ;
+	//		getSvrApp()->sendMsg(pOrder->nSessionID,(char*)&msgRet,sizeof(msgRet));
+	//		LOGFMTI("finish order for sessionid = %d, ret = %d ",pOrder->nSessionID,pOrder->nRet) ;
+	//	}
+	//	) ;
+	//}
 
-	// set request info 
-	std::shared_ptr<stShopItemOrderRequest> pRe = pTaskObj->getCurRequest() ;
-	if ( pRe == nullptr )
-	{
-		pRe = std::shared_ptr<stShopItemOrderRequest>( new stShopItemOrderRequest );
-		pTaskObj->setInfo(pRe);
-	}
-	memset(pRe.get(),0,sizeof(stShopItemOrderRequest)) ;
-	sprintf_s(pRe->cShopDesc,50,pOrder->cShopDesc);
-	sprintf_s(pRe->cOutTradeNo,32,pOrder->cOutTradeNo);
-	pRe->nPrize = pOrder->nPrize;
-	sprintf_s(pRe->cTerminalIp,17,pOrder->cTerminalIp);
-	pRe->nChannel = pOrder->nChannel ;
-	pRe->nFromPlayerUserUID =  0 ;
-	pRe->nSessionID = nSessionID ;
+	//// set request info 
+	//std::shared_ptr<stShopItemOrderRequest> pRe = pTaskObj->getCurRequest() ;
+	//if ( pRe == nullptr )
+	//{
+	//	pRe = std::shared_ptr<stShopItemOrderRequest>( new stShopItemOrderRequest );
+	//	pTaskObj->setInfo(pRe);
+	//}
+	//memset(pRe.get(),0,sizeof(stShopItemOrderRequest)) ;
+	//sprintf_s(pRe->cShopDesc,50,pOrder->cShopDesc);
+	//sprintf_s(pRe->cOutTradeNo,32,pOrder->cOutTradeNo);
+	//pRe->nPrize = pOrder->nPrize;
+	//sprintf_s(pRe->cTerminalIp,17,pOrder->cTerminalIp);
+	//pRe->nChannel = pOrder->nChannel ;
+	//pRe->nFromPlayerUserUID =  0 ;
+	//pRe->nSessionID = nSessionID ;
 
-	// do the request 
-	getPool().postTask(pTask);
+	//// do the request 
+	//getPool().postTask(pTask);
 	return  ;
 }
 
@@ -246,100 +238,100 @@ std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_
 
 void CTaskPoolModule::onVerifyMsg( stMsg* pMsg, eMsgPort eSenderPort , uint32_t nSessionID )
 {
-	stMsgToVerifyServer* pReal = (stMsgToVerifyServer*)pMsg ;
+	//stMsgToVerifyServer* pReal = (stMsgToVerifyServer*)pMsg ;
 
-	IVerifyTask::VERIFY_REQUEST_ptr pRequest ( new stVerifyRequest() );
-	pRequest->nFromPlayerUserUID = pReal->nBuyerPlayerUserUID ;
-	pRequest->nShopItemID = pReal->nShopItemID;
-	pRequest->nBuyedForPlayerUserUID = pReal->nBuyForPlayerUserUID ;
-	pRequest->nChannel = pReal->nChannel ;  // now just apple ;
-	pRequest->nSessionID = nSessionID ;
-	pRequest->nMiUserUID = pReal->nMiUserUID ;
+	//IVerifyTask::VERIFY_REQUEST_ptr pRequest ( new stVerifyRequest() );
+	//pRequest->nFromPlayerUserUID = pReal->nBuyerPlayerUserUID ;
+	//pRequest->nShopItemID = pReal->nShopItemID;
+	//pRequest->nBuyedForPlayerUserUID = pReal->nBuyForPlayerUserUID ;
+	//pRequest->nChannel = pReal->nChannel ;  // now just apple ;
+	//pRequest->nSessionID = nSessionID ;
+	//pRequest->nMiUserUID = pReal->nMiUserUID ;
 
-	LOGFMTD("received a transfaction need to verify shop id = %u userUID = %u channel = %d\n",pReal->nShopItemID,pReal->nBuyerPlayerUserUID,pReal->nChannel );
+	//LOGFMTD("received a transfaction need to verify shop id = %u userUID = %u channel = %d\n",pReal->nShopItemID,pReal->nBuyerPlayerUserUID,pReal->nChannel );
 
-	if ( pRequest->nMiUserUID && pRequest->nChannel == ePay_XiaoMi )
-	{
-		memcpy(pRequest->pBufferVerifyID,((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),pReal->nTranscationIDLen);
-		//m_MiVerifyMgr.AddRequest(pRequest) ;
-		LOGFMTE("we don't have xiao mi channel") ;
-		return ;
-	}
-	
-	ITask::ITaskPrt pTask = nullptr ;
-	if ( pRequest->nChannel == ePay_AppStore )
-	{
-		std::string str = base64_encode(((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),pReal->nTranscationIDLen);
-		//std::string str = base64_encode(((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),20);
-		memcpy(pRequest->pBufferVerifyID,str.c_str(),strlen(str.c_str()));
-		pTask = getPool().getReuseTaskObjByID(eTask_AppleVerify) ;
-	}
-	else if ( ePay_WeChat == pRequest->nChannel || ePay_WeChat_365Golden == pRequest->nChannel )
-	{
-		memcpy(pRequest->pBufferVerifyID,((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),pReal->nTranscationIDLen);
-		std::string strTradeNo(pRequest->pBufferVerifyID);
-		std::string shopItem = strTradeNo.substr(0,strTradeNo.find_first_of('E')) ;
-		if ( atoi(shopItem.c_str()) != pRequest->nShopItemID )
-		{
-			printf("shop id and verify id not the same \n") ;
-			pRequest->eResult = eVerify_Apple_Error ;
-			sendVerifyResult(pRequest) ;
-			return ;
-		}
-		else
-		{
-			pTask = getPool().getReuseTaskObjByID(eTask_WechatVerify) ;
-		}
-	}
-	else
-	{
-		LOGFMTE("unknown pay channecl = %d, uid = %d",pRequest->nChannel,pReal->nBuyerPlayerUserUID ) ;
-		return ;
-	}
+	//if ( pRequest->nMiUserUID && pRequest->nChannel == ePay_XiaoMi )
+	//{
+	//	memcpy(pRequest->pBufferVerifyID,((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),pReal->nTranscationIDLen);
+	//	//m_MiVerifyMgr.AddRequest(pRequest) ;
+	//	LOGFMTE("we don't have xiao mi channel") ;
+	//	return ;
+	//}
+	//
+	//ITask::ITaskPrt pTask = nullptr ;
+	//if ( pRequest->nChannel == ePay_AppStore )
+	//{
+	//	std::string str = base64_encode(((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),pReal->nTranscationIDLen);
+	//	//std::string str = base64_encode(((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),20);
+	//	memcpy(pRequest->pBufferVerifyID,str.c_str(),strlen(str.c_str()));
+	//	pTask = getPool().getReuseTaskObjByID(eTask_AppleVerify) ;
+	//}
+	//else if ( ePay_WeChat == pRequest->nChannel || ePay_WeChat_365Golden == pRequest->nChannel )
+	//{
+	//	memcpy(pRequest->pBufferVerifyID,((unsigned char*)pMsg) + sizeof(stMsgToVerifyServer),pReal->nTranscationIDLen);
+	//	std::string strTradeNo(pRequest->pBufferVerifyID);
+	//	std::string shopItem = strTradeNo.substr(0,strTradeNo.find_first_of('E')) ;
+	//	if ( atoi(shopItem.c_str()) != pRequest->nShopItemID )
+	//	{
+	//		printf("shop id and verify id not the same \n") ;
+	//		pRequest->eResult = eVerify_Apple_Error ;
+	//		sendVerifyResult(pRequest) ;
+	//		return ;
+	//	}
+	//	else
+	//	{
+	//		pTask = getPool().getReuseTaskObjByID(eTask_WechatVerify) ;
+	//	}
+	//}
+	//else
+	//{
+	//	LOGFMTE("unknown pay channecl = %d, uid = %d",pRequest->nChannel,pReal->nBuyerPlayerUserUID ) ;
+	//	return ;
+	//}
 
-	if ( !pTask )
-	{
-		LOGFMTE("why verify task is null ? ") ;
-		return ;
-	}
+	//if ( !pTask )
+	//{
+	//	LOGFMTE("why verify task is null ? ") ;
+	//	return ;
+	//}
 
-	auto* pVerifyTask = (IVerifyTask*)pTask.get();
-	pVerifyTask->setVerifyRequest(pRequest) ;
-	pVerifyTask->setCallBack([this](ITask::ITaskPrt ptr ) 
-	{
-		auto* pAready = (IVerifyTask*)ptr.get();
-		auto pResult = pAready->getVerifyResult() ;
-		if ( eVerify_Apple_Error == pResult->eResult )
-		{
-			LOGFMTE("apple verify Error  uid = %u, channel = %u,shopItem id = %u",pResult->nFromPlayerUserUID,pResult->nChannel,pResult->nShopItemID) ;
-			// send to client ;
-			sendVerifyResult(pResult) ;
-			return ;
-		}
+	//auto* pVerifyTask = (IVerifyTask*)pTask.get();
+	//pVerifyTask->setVerifyRequest(pRequest) ;
+	//pVerifyTask->setCallBack([this](ITask::ITaskPrt ptr ) 
+	//{
+	//	auto* pAready = (IVerifyTask*)ptr.get();
+	//	auto pResult = pAready->getVerifyResult() ;
+	//	if ( eVerify_Apple_Error == pResult->eResult )
+	//	{
+	//		LOGFMTE("apple verify Error  uid = %u, channel = %u,shopItem id = %u",pResult->nFromPlayerUserUID,pResult->nChannel,pResult->nShopItemID) ;
+	//		// send to client ;
+	//		sendVerifyResult(pResult) ;
+	//		return ;
+	//	}
 
-		LOGFMTI("apple verify success  uid = %u, channel = %u,shopItem id = %u,go on DB verify",pResult->nFromPlayerUserUID,pResult->nChannel,pResult->nShopItemID) ;
-		doDBVerify(pResult);
-	} ) ;
-	getPool().postTask(pTask);
+	//	LOGFMTI("apple verify success  uid = %u, channel = %u,shopItem id = %u,go on DB verify",pResult->nFromPlayerUserUID,pResult->nChannel,pResult->nShopItemID) ;
+	//	doDBVerify(pResult);
+	//} ) ;
+	//getPool().postTask(pTask);
 }
 
 void CTaskPoolModule::sendVerifyResult(std::shared_ptr<stVerifyRequest> & pResult )
 {
-	stMsgFromVerifyServer msg ;
-	msg.nShopItemID = pResult->nShopItemID ;
-	msg.nRet = pResult->eResult ;
-	msg.nBuyerPlayerUserUID = pResult->nFromPlayerUserUID ;
-	msg.nBuyForPlayerUserUID = pResult->nBuyedForPlayerUserUID ;
-	getSvrApp()->sendMsg(pResult->nSessionID,(char*)&msg,sizeof(msg));
-	LOGFMTI( "finish verify transfaction shopid = %u ,uid = %d ret = %d",msg.nShopItemID,msg.nBuyerPlayerUserUID,msg.nRet ) ;
-	if (msg.nRet == 4) // purchase success
-	{
-		Json::Value jssql;
-		char pBuffer[512] = { 0 };
-		sprintf(pBuffer, "insert into wxrecharge ( userUID,fee,time,tradeOrder ) values ('%u','%u',now(),'%s');", msg.nBuyerPlayerUserUID, pResult->nTotalFee,pResult->pBufferVerifyID );
-		jssql["sql"] = pBuffer;
-		getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, eAsync_DB_Add, jssql);
-	}
+	//stMsgFromVerifyServer msg ;
+	//msg.nShopItemID = pResult->nShopItemID ;
+	//msg.nRet = pResult->eResult ;
+	//msg.nBuyerPlayerUserUID = pResult->nFromPlayerUserUID ;
+	//msg.nBuyForPlayerUserUID = pResult->nBuyedForPlayerUserUID ;
+	//getSvrApp()->sendMsg(pResult->nSessionID,(char*)&msg,sizeof(msg));
+	//LOGFMTI( "finish verify transfaction shopid = %u ,uid = %d ret = %d",msg.nShopItemID,msg.nBuyerPlayerUserUID,msg.nRet ) ;
+	//if (msg.nRet == 4) // purchase success
+	//{
+	//	Json::Value jssql;
+	//	char pBuffer[512] = { 0 };
+	//	sprintf(pBuffer, "insert into wxrecharge ( userUID,fee,time,tradeOrder ) values ('%u','%u',now(),'%s');", msg.nBuyerPlayerUserUID, pResult->nTotalFee,pResult->pBufferVerifyID );
+	//	jssql["sql"] = pBuffer;
+	//	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, eAsync_DB_Add, jssql);
+	//}
 }
 
 void CTaskPoolModule::doDBVerify(uint32_t nUserUID, uint16_t nShopID, uint8_t nChannel,std::string& strTransfcationID, uint32_t nFee )

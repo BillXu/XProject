@@ -6,7 +6,6 @@
 #include "ServerMessageDefine.h"
 #include "ServerCommon.h"
 #include "AutoBuffer.h"
-#include "RoomConfig.h"
 #include "PlayerGameData.h"
 #include "AsyncRequestQuene.h"
 #include "ISeverApp.h"

@@ -22,16 +22,7 @@
     <ClInclude Include="..\..\Common\ConfigManager.h">
       <Filter>Common\Config</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ItemConfig.h">
-      <Filter>Common\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\RoomConfig.h">
-      <Filter>Common\Config</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\ShopConfg.h">
-      <Filter>Common\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\MissionConfig.h">
       <Filter>Common\Config</Filter>
     </ClInclude>
     <ClInclude Include="..\DataServer\src\main.h">
@@ -69,16 +60,7 @@
     <ClCompile Include="..\..\Common\ConfigManager.cpp">
       <Filter>Common\Config</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ItemConfig.cpp">
-      <Filter>Common\Config</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\RoomConfig.cpp">
-      <Filter>Common\Config</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\ShopConfg.cpp">
-      <Filter>Common\Config</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\MissionConfig.cpp">
       <Filter>Common\Config</Filter>
     </ClCompile>
     <ClCompile Include="..\DataServer\src\main.cpp">

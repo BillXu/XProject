@@ -9,6 +9,7 @@
 #include "PlayerBaseData.h"
 #include "AutoBuffer.h"
 #include "AsyncRequestQuene.h"
+#include <ctime>
 void CPlayerBrifDataCacher::stPlayerDataPrifle::recivedData(Json::Value& jsData, IServerApp* pApp )
 {
 	if ( isContentData() )

@@ -10,7 +10,7 @@ CDBVerfiyTask::CDBVerfiyTask(uint32_t nTaskID )
 	CSeverConfigMgr stSvrConfigMgr ;
 	stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
 	// set up data base thread 
-	stServerConfig* pDatabase = stSvrConfigMgr.GetServerConfig(eSvrType_DataBase);
+	stServerConfig* pDatabase = stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_DB);
 	m_pDBTask = std::shared_ptr<CDBTask>(new CDBTask(nTaskID, pDatabase->strIPAddress, pDatabase->nPort, pDatabase->strAccount, pDatabase->strPassword, Game_DB_Name));
 }
 

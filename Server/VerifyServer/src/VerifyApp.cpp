@@ -7,11 +7,10 @@
 bool CVerifyApp::init()
 {
 	IServerApp::init();
-	//CLogMgr::SharedLogMgr()->SetOutputFile("VerifySvr");
 
 	CSeverConfigMgr stSvrConfigMgr ;
 	stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
-	stServerConfig* pConfig = stSvrConfigMgr.GetServerConfig(eSvrType_Center) ;
+	stServerConfig* pConfig = stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_CENTER) ;
 	if ( pConfig == NULL )
 	{
 		LOGFMTE("center svr config is null , so can not connected to !") ;
@@ -21,9 +20,7 @@ bool CVerifyApp::init()
 
 	LOGFMTI("START verify server !") ;
 	installModule(eMod_Pool);
-#ifndef GAME_panda
 	installModule(eMod_Http);
-#endif 
 	return true;
 }
 

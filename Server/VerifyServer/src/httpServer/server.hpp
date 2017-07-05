@@ -15,8 +15,7 @@
 #include "connection.hpp"
 #include "connection_manager.hpp"
 #include "request_handler.hpp"
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 
 namespace http {
 namespace server {
@@ -63,7 +62,7 @@ private:
   request_handler request_handler_;
 
   // run thread ;
-  boost::shared_ptr<boost::thread> runService;
+  //boost::shared_ptr<boost::thread> runService;
 };
 
 } // namespace server

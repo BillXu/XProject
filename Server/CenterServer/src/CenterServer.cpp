@@ -1,4 +1,4 @@
-#include <windows.h>
+//#include <windows.h>
 #include "CenterServer.h"
 #include "log4z.h"
 #include "ServerMessageDefine.h"
@@ -40,7 +40,7 @@ bool CCenterServerApp:: Init()
 	CSeverConfigMgr sg;
 	sg.LoadFile("../configFile/serverConfig.txt");
 
-	stServerConfig* pSvrConfig = sg.GetServerConfig(eSvrType_Center);
+	stServerConfig* pSvrConfig = sg.GetServerConfig(ID_MSG_PORT_CENTER);
 	if ( pSvrConfig == NULL )
 	{
 		LOGFMTE("can not find center server config so start up failed ") ;

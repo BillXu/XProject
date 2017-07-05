@@ -1,5 +1,5 @@
 #define CRTDBG_MAP_ALLOC
-#include <windows.h>
+//#include <windows.h>
 #include <stdlib.h>
 #include "CenterServer.h"
 #include "log4z.h"

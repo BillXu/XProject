@@ -87,21 +87,7 @@ bool DataServerApp::onAsyncRequest(uint16_t nRequestType , const Json::Value& js
 	{
 		return true ;
 	}
-	switch ( nRequestType )
-	{
-	case eAsync_PostDlgNotice:
-		{
-			eNoticeType eType = (eNoticeType)jsReqContent["dlgType"].asUInt() ;
-			uint32_t nTargetUID = jsReqContent["targetUID"].asUInt() ;
-			auto jsArg = jsReqContent["arg"];
-			CPlayerMailComponent::PostDlgNotice(eType,jsArg,nTargetUID) ;
-			LOGFMTD("do async post dlg notice etype = %u ,targetUID = %u",eType,nTargetUID) ;
-		}
-		break ;
-	default:
-		return false ;
-	}
-	return true ;
+	return false;
 }
 
 bool DataServerApp::processPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID )

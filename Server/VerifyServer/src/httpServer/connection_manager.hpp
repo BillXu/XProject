@@ -13,7 +13,7 @@
 
 #include <set>
 #include "connection.hpp"
-#include <boost/thread.hpp>
+#include <mutex>
 namespace http {
 namespace server {
 
@@ -44,7 +44,7 @@ private:
   std::set<connection_ptr> connections_;
 
   std::set<connection_ptr> reqConnections;
-  boost::mutex mtx;
+  std::mutex mtx;
 };
 
 } // namespace server

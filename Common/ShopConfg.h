@@ -61,9 +61,6 @@ public:
     stShopItem* GetAppStoreProductByProductID(std::string productID);//appstore商品
     
     bool UpdateAppStoreProduct(std::string productID,std::string title,float price);
-#ifdef GAME_SERVER
-	friend class CPlayerShop ;
-#endif
 protected:
 	void Clear();
 protected:

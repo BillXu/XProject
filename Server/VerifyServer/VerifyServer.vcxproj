@@ -57,15 +57,14 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;SERVER;VERIFY_SERVER;_WIN32_WINNT=0x0601;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./src/;../../Common;../ServerCommon;../DBServer/src;../ServerCommon/pthreadLib;../DBServer/src/include;../NetworkUtility/src;C:\local\boost_1_63_0;./src/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>-DBOOST_DATE_TIME_NO_LIB -DBOOST_REGEX_NO_LIB  -DASIO_HAS_BOOST_REGEX %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>WIN32;SERVER;VERIFY_SERVER;_WIN32_WINNT=0x0601;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;ASIO_STANDALONE</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./src/;../../Common;../ServerCommon;../DBServer/src;../DBServer/src/include;../NetworkUtility/src;./src/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libmysql.lib;pthreadVC2.lib;libcurl_imp.lib;NetworkUtilityD.lib;ServerCommon_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../Bin/Lib;C:\local\boost_1_63_0\lib32-msvc-14.0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmysql.lib;libcurl_imp.lib;NetworkUtilityD.lib;ServerCommon_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../Bin/Lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -76,18 +75,17 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;SERVER;VERIFY_SERVER;_WIN32_WINNT=0x0601;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./src/;../../Common;../ServerCommon;../DBServer/src;../ServerCommon/pthreadLib;../DBServer/src/include;../NetworkUtility/src;C:\local\boost_1_63_0;./src/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;SERVER;VERIFY_SERVER;_WIN32_WINNT=0x0601;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;ASIO_STANDALONE</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./src/;../../Common;../ServerCommon;../DBServer/src;../DBServer/src/include;../NetworkUtility/src;./src/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalOptions>-DBOOST_REGEX_NO_LIB %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libmysql.lib;pthreadVC2.lib;libcurl_imp.lib;NetworkUtility.lib;ServerCommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../Bin/Lib;C:\local\boost_1_63_0\lib32-msvc-14.0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmysql.lib;libcurl_imp.lib;NetworkUtility.lib;ServerCommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../Bin/Lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -109,7 +107,6 @@
     <ClCompile Include="src\HMAC_SHA1.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Md5.cpp" />
-    <ClCompile Include="src\MiVerifyManager.cpp" />
     <ClCompile Include="src\SHA1.cpp" />
     <ClCompile Include="src\tinyxml\tinystr.cpp" />
     <ClCompile Include="src\tinyxml\tinyxml.cpp" />
@@ -137,11 +134,9 @@
     <ClInclude Include="src\httpServer\server.hpp" />
     <ClInclude Include="src\IVerifyTask.h" />
     <ClInclude Include="src\TaskPoolModule.h" />
-    <ClInclude Include="src\testTask.h" />
     <ClInclude Include="src\WeChatOrderTask.h" />
     <ClInclude Include="src\HMAC_SHA1.h" />
     <ClInclude Include="src\Md5.h" />
-    <ClInclude Include="src\MiVerifyManager.h" />
     <ClInclude Include="src\SHA1.h" />
     <ClInclude Include="src\tinyxml\tinystr.h" />
     <ClInclude Include="src\tinyxml\tinyxml.h" />

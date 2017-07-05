@@ -1,7 +1,6 @@
 #pragma once
 #include "ServerConfig.h"
 #include "ISeverApp.h"
-#include "MiVerifyManager.h"
 #include "TaskPoolModule.h"
 class CVerifyApp
 	:public IServerApp

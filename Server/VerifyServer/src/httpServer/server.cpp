@@ -11,7 +11,7 @@
 #include "server.hpp"
 #include <signal.h>
 #include <utility>
-
+#include <thread>
 namespace http {
 namespace server {
 
@@ -55,7 +55,8 @@ void server::run()
   // for new incoming connections.
 
   //io_service_.run();
-  runService = boost::make_shared<boost::thread>(boost::bind(&asio::io_service::run, &io_service_));
+	std::thread thRun([this]() {io_service_.run(); });
+	thRun.detach();
 }
 
 void server::do_accept()

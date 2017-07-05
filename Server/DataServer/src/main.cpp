@@ -144,8 +144,7 @@
 #include "Application.h"
 int main()
 {
-	CGameServerApp theApp ;
-	CApplication theAplication(&theApp);
+	CApplication theAplication(DataServerApp::getInstance());
 	theAplication.startApp();
 	return 0 ;
 }

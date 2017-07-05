@@ -4,7 +4,6 @@
 #include "PlayerBaseData.h"
 #include <json/json.h>
 #include "AutoBuffer.h"
-#include "RoomConfig.h"
 #include "AsyncRequestQuene.h"
 CPlayerGameData::~CPlayerGameData()
 {
