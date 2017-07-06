@@ -158,7 +158,7 @@ bool CHttpModule::onHandleVXPayResult(http::server::connection_ptr ptr)
 		}
 		
 		std::vector<std::string> vOut;
-		//boost::split(vOut,strTradeNo,boost::is_any_of("E"));
+		StringSplit(strTradeNo,"E",vOut);
 		if (vOut.size() < 2)
 		{
 			LOGFMTE("trade out error = %s",strTradeNo.c_str() );

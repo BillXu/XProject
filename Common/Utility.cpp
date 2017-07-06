@@ -8,30 +8,33 @@
 
 #include "Utility.h"
 #include "log4z.h"
-void StringSplit( const char* pString, char pSplitChar , VEC_STRING& vOutString)
+void StringSplit( std::string& str, const char* delim, VEC_STRING& vOutString)
 {
-    std::string tTemp = "" ;
-    while ( *pString )
-    {
-        if ( *pString == pSplitChar )
-        {
-            if ( tTemp.empty() == false )
-            {
-                vOutString.push_back(tTemp) ;
-                tTemp = "" ;
-            }
-        }
-        else if ( *pString != ' ' && *pString != '\t' )
-        {
-            tTemp.push_back(*pString) ;
-        }
-        ++pString ;
-    }
-    
-    if ( !tTemp.empty())
-    {
-        vOutString.push_back(tTemp) ;
-    }
+	const int len = strlen(delim);
+	std::size_t index = 0;
+	std::size_t pos = str.find(delim, index);
+	while ( pos != std::string::npos )
+	{
+		auto ss = str.substr(index, pos - index);
+		index = pos + len;
+		pos = str.find(delim, index);
+		vOutString.push_back(ss);
+	}
+
+	//cout << "is last?" << " index:" << index << " str.length():" << str.length() << endl;  
+	if ((index + 1) <= str.length())
+	{
+		auto ss = str.substr(index, str.length() - index);
+		vOutString.push_back(ss);
+	}
+}
+
+void StringSplit( const char* pString, char pSplitChar, VEC_STRING& vOutString )
+{
+	std::string str = pString;
+	std::string strDe;
+	strDe.push_back(pSplitChar);
+	StringSplit(str, strDe.c_str(), vOutString);
 }
 
 std::string TimeToStringFormate( unsigned int nSec )
