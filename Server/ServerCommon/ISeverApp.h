@@ -34,7 +34,7 @@ public:
 	void stop();
 	virtual bool onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID );
 	virtual bool onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSenderID, uint32_t nTargetID );
-	void responeAsyncRequest( uint8_t nTargetPort, uint32_t nReqSerialID, uint32_t nSenderID, Json::Value& jsResult );
+	void responeAsyncRequest( uint8_t nTargetPort, uint32_t nReqSerialID, uint32_t nTargetID, Json::Value& jsResult, uint32_t nSenderID = 0  );
 	virtual bool onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult );
 	virtual bool onAsyncRequestDelayResp( uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort , uint32_t nSenderID , uint16_t nTargetID );
 	virtual void update(float fDeta );

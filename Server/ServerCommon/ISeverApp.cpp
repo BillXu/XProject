@@ -201,12 +201,17 @@ bool IServerApp::OnMessage( Packet* pMsg )
 	return false ;
 }
 
-void IServerApp::responeAsyncRequest( uint8_t nTargetPort , uint32_t nReqSerialID , uint32_t nSenderID , Json::Value& jsResult )
+void IServerApp::responeAsyncRequest( uint8_t nTargetPort , uint32_t nReqSerialID , uint32_t nTargetID , Json::Value& jsResult, uint32_t nSenderID )
 {
+	if ( 0 == nSenderID )
+	{
+		nSenderID = nTargetID;
+	}
+
 	stMsgAsyncRequestRet msgBack;
 	msgBack.cSysIdentifer = (eMsgPort)nTargetPort;
 	msgBack.nReqSerailID = nReqSerialID;
-	msgBack.nTargetID = nSenderID;
+	msgBack.nTargetID = nTargetID;
 	msgBack.nResultContentLen = 0;
 	msgBack.nRet = 0;
 	if (jsResult.isNull() == true)

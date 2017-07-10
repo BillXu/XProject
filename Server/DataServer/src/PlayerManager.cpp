@@ -10,6 +10,7 @@
 #include "AutoBuffer.h"
 #include "AsyncRequestQuene.h"
 #include <ctime>
+#include "MailModule.h"
 void CPlayerBrifDataCacher::stPlayerDataPrifle::recivedData(Json::Value& jsData, IServerApp* pApp )
 {
 	if ( isContentData() )
@@ -345,21 +346,6 @@ bool CPlayerManager::onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint3
 
 bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )
 {
-	if ( jsReqContent["playerUID"].isNull() == false )
-	{
-		auto nPlayerUID = jsReqContent["playerUID"].asUInt();
-		auto pPlayer = getPlayerByUserUID(nPlayerUID);
-		if ( pPlayer == nullptr )
-		{
-			jsResult["ret"] = 1; // can not find target player ;
-			return false;
-		}
-		else
-		{
-			return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
-		}
-	}
-
 	// common requst ;
 	switch (nRequestType)
 	{
@@ -383,6 +369,33 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		pPlayer = getReserverPlayerObj();
 		pPlayer->onPlayerLogined(nSessionID, nUID, pIP);
 		addActivePlayer(pPlayer);
+	}
+	break;
+	case eAsync_AgentAddRoomCard:
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["agentID"] = jsReqContent["agentID"];
+		jsMailArg["serialNo"] = jsReqContent["addCardNo"];
+		jsMailArg["cardOffset"] = jsReqContent["addCard"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Agent_AddCard, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_AgentGetPlayerInfo:  // process , when target player is  online 
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if ( pPlayer == nullptr )  // player is not online , so should process in onAsyncRequestDelayResp
+		{
+			return false;
+		}
+
+		jsResult["ret"] = 1;
+		jsResult["isOnline"] = 1;
+		jsResult["name"] = pPlayer->getBaseData()->getPlayerName();
+		jsResult["leftCardCnt"] = pPlayer->getBaseData()->getDiamoned();
 	}
 	break;
 	//case eAsync_ComsumDiamond:
@@ -427,52 +440,107 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	//		}
 	//	}
 	//	break ;
-	//case eAsync_AgentAddRoomCard:
-	//{
-	//	uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
-	//	uint32_t nAddCnt = jsReqContent["addCard"].asUInt();
-	//	uint32_t nSeailNumber = jsReqContent["addCardNo"].asUInt();
-	//	auto pPlayer = getPlayerByUserUID(nUserUID);
-	//	if (nullptr == pPlayer)
-	//	{
-	//		LOGFMTI("player not online agents add card to uid = %u , cnt = %u , addCardNo = %u", nUserUID, nAddCnt, nSeailNumber);
-	//		Json::StyledWriter jsWrite;
-	//		auto str = jsWrite.write(jsReqContent);
-	//		CPlayerMailComponent::PostMailToPlayer(eMailType::eMail_AddRoomCard,str.c_str(),str.size(),nUserUID);
-	//	}
-	//	else
-	//	{
-	//		LOGFMTI("player agents add card to uid = %u , cnt = %u , addCardNo = %u",nUserUID,nAddCnt,nSeailNumber);
-	//		pPlayer->getBaseData()->AddMoney(nAddCnt, true);
-	//		stMsg msgU;
-	//		msgU.usMsgType = MSG_PLAYER_UPDATE_MONEY;
-	//		pPlayer->getBaseData()->OnMessage(&msgU, ID_MSG_PORT_CLIENT);
-	//	}
 
-	//	jsResult = jsReqContent;
-	//}
-	//break;
-	//case eAsync_AgentGetPlayerInfo:
-	//{
-	//	uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
-	//	jsResult["targetUID"] = jsReqContent["targetUID"];
-	//	auto pPlayer = getPlayerByUserUID(nUserUID);
-	//	if (nullptr == pPlayer)
-	//	{
-	//		jsResult["isOnline"] = 0;
-	//	}
-	//	else
-	//	{
-	//		jsResult["isOnline"] = 1; 
-	//		jsResult["name"] = pPlayer->getBaseData()->GetPlayerName();
-	//		jsResult["leftCardCnt"] = pPlayer->getBaseData()->GetAllDiamoned();
-	//	}
-	//}
-	//break;
 	default:
-		return false;
+	{
+		if (jsReqContent["playerUID"].isNull() == false)
+		{
+			auto nPlayerUID = jsReqContent["playerUID"].asUInt();
+			auto pPlayer = getPlayerByUserUID(nPlayerUID);
+			if (pPlayer == nullptr)
+			{
+				jsResult["ret"] = 1; // can not find target player ;
+				return false;
+			}
+			else
+			{
+				return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
+			}
+		}
+	}
+
 	}
 	return true ;
+}
+
+bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID )
+{
+	if ( eAsync_AgentGetPlayerInfo == nRequestType)
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if ( nullptr != pPlayer)  // shold process in onAsyncRequest
+		{
+			return false;
+		}
+		auto async = getSvrApp()->getAsynReqQueue();
+		LOGFMTD("uid = %u not online get info from db ", nUserUID );
+		// not online , must get name first ;
+		Json::Value jsSql;
+		char pBuffer[512] = { 0 };
+		sprintf(pBuffer, "SELECT nickName, diamond FROM playerbasedata WHERE userUID = %u ;", nUserUID );
+		jsSql["sql"] = pBuffer;
+
+		async->pushAsyncRequest(ID_MSG_PORT_DB,nSenderID,nTargetID ,eAsync_DB_Select, jsSql, [nReqSerial, nSenderID,async, nUserUID,this ](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+		{
+			uint8_t nRow = retContent["afctRow"].asUInt();
+
+			Json::Value jsAgentBack;
+			jsAgentBack["ret"] = 1;
+			jsAgentBack["isOnline"] = 0;
+			jsAgentBack["name"] = "";
+			jsAgentBack["leftCardCnt"] = 0;
+
+			if (nRow == 0)
+			{
+				jsAgentBack["ret"] = 0;
+				getSvrApp()->responeAsyncRequest(ID_MSG_PORT_VERIFY, nReqSerial,nSenderID, jsAgentBack, nUserUID );
+				LOGFMTE("get can find uid = %u info from db", nUserUID);
+				return;
+			}
+
+			Json::Value jsData = retContent["data"];
+			Json::Value jsRow = jsData[0u];
+			jsAgentBack["name"] = jsRow["nickName"];
+			jsAgentBack["leftCardCnt"] = jsRow["diamond"];
+			LOGFMTD("uid = %u base data card cnt = %u", nUserUID, jsRow["diamond"].asUInt());
+
+			// take not process add card mail in to account 
+			Json::Value jsSql;
+			char pBuffer[512] = { 0 };
+			sprintf(pBuffer, "SELECT mailDetail FROM mail WHERE userUID = %u and mailType = %u and state = %u limit 10 ;", nUserUID, eMail_Agent_AddCard, eMailState_WaitSysAct);
+			jsSql["sql"] = pBuffer;
+			auto pSvrApp = async->getSvrApp();
+			async->pushAsyncRequest(ID_MSG_PORT_DB, nUserUID, nUserUID, eAsync_DB_Select, jsSql, [nReqSerial, nSenderID, nUserUID, pSvrApp](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+			{
+				uint32_t nTotalCnt = 0;
+				uint8_t nRow = retContent["afctRow"].asUInt();
+				Json::Value jsData = retContent["data"];
+				for (uint8_t nIdx = 0; nIdx < jsData.size(); ++nIdx)
+				{
+					Json::Value jsRow = jsData[nIdx];
+
+					Json::Reader jsReader;
+					Json::Value jsC;
+					auto bRt = jsReader.parse(jsRow["mailDetail"].asString(), jsC);
+					if (!bRt || jsC["cardOffset"].isNull())
+					{
+						LOGFMTE("pasre add card mail error id = %u", nUserUID);
+						continue;
+					}
+					nTotalCnt += jsC["cardOffset"].asUInt();
+				}
+				LOGFMTD("uid = %u mail card cnt = %u", nUserUID, nTotalCnt);
+				jsUserData["leftCardCnt"] = jsUserData["leftCardCnt"].asUInt() + nTotalCnt;
+
+				// build msg to send ;
+				pSvrApp->responeAsyncRequest(ID_MSG_PORT_VERIFY, nReqSerial, nSenderID, jsUserData, nUserUID );
+				LOGFMTD("do get player info cards uid = %u", nUserUID);
+			}, jsAgentBack);
+		});
+		return true;
+	}
+	return false;
 }
 
 void CPlayerManager::update(float fDeta )

@@ -192,190 +192,124 @@ bool CHttpModule::onHandleVXPayResult(http::server::connection_ptr ptr)
 
 bool CHttpModule::handleGetPlayerInfo(http::server::connection_ptr ptr)
 {
-	//auto req = ptr->getReqPtr();
-	//auto res = ptr->getReplyPtr();
-	//LOGFMTD("reciveget player info req = %s",req->reqContent.c_str());
+	auto req = ptr->getReqPtr();
+	auto res = ptr->getReplyPtr();
+	LOGFMTD("reciveget player info req = %s",req->reqContent.c_str());
 
-	//Json::Reader jsReader;
-	//Json::Value jsRoot;
-	//auto bRet = jsReader.parse(req->reqContent, jsRoot);
-	//if (!bRet)
-	//{
-	//	LOGFMTE("parse agent get player info argument error");
-	//	return false;
-	//}
+	Json::Reader jsReader;
+	Json::Value jsRoot;
+	auto bRet = jsReader.parse(req->reqContent, jsRoot);
+	if (!bRet)
+	{
+		LOGFMTE("parse agent get player info argument error");
+		return false;
+	}
 
-	//uint32_t nUID = 0;
-	//if (jsRoot["playerUID"].isNull() || jsRoot["playerUID"].isUInt() == false )
-	//{
-	//	LOGFMTD("cant not finn uid argument");
-	//	return false;
-	//}
-	//nUID = jsRoot["playerUID"].asUInt();
+	uint32_t nUID = 0, nAgentID = 0;
+	if (jsRoot["playerUID"].isNull() || jsRoot["playerUID"].isUInt() == false )
+	{
+		LOGFMTD("cant not finn uid argument");
+		return false;
+	}
 
-	//// do async request 
-	//Json::Value jsReq;
-	//jsReq["targetUID"] = nUID;
-	//auto async = getSvrApp()->getAsynReqQueue();
-	//async->pushAsyncRequest(ID_MSG_PORT_DATA, eAsync_AgentGetPlayerInfo, jsReq, [this, ptr, nUID, async](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
-	//{
-	//	// define help function , fetch not process mail card , and do respone
-	//	auto lpfCheckDBMail = [](CAsyncRequestQuene* async, http::server::connection_ptr ptr, uint32_t nUID, Json::Value& jsAgentBack)
-	//	{
-	//		// take not process add card mail in to account 
-	//		Json::Value jsSql;
-	//		char pBuffer[512] = { 0 };
-	//		sprintf(pBuffer, "SELECT * FROM mail WHERE userUID = '%u' and mailType = %u and state = '0' order by postTime desc limit 5 ;", nUID, eMailType::eMail_AddRoomCard);
-	//		jsSql["sql"] = pBuffer;
-	//		async->pushAsyncRequest(ID_MSG_PORT_DB, eAsync_DB_Select, jsSql, [ptr, nUID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
-	//		{
-	//			uint32_t nTotalCnt = 0;
-	//			uint8_t nRow = retContent["afctRow"].asUInt();
-	//			Json::Value jsData = retContent["data"];
-	//			for (uint8_t nIdx = 0; nIdx < jsData.size(); ++nIdx)
-	//			{
-	//				Json::Value jsRow = jsData[nIdx];
+	if (jsRoot["agentID"].isNull() || jsRoot["agentID"].isUInt() == false)
+	{
+		LOGFMTD("cant not find agentID argument");
+		return false;
+	}
 
-	//				Json::Reader jsReader;
-	//				Json::Value jsC;
-	//				auto bRt = jsReader.parse(jsRow["mailContent"].asString(), jsC);
-	//				if ( !bRt || jsC["addCard"].isNull())
-	//				{
-	//					LOGFMTE("pasre add card mail error id = %u", nUID);
-	//					continue;
-	//				}
-	//				nTotalCnt += jsC["addCard"].asUInt();
-	//			}
-	//			LOGFMTD("uid = %u mail card cnt = %u",nUID,nTotalCnt);
-	//			jsUserData["cardCnt"] = jsUserData["cardCnt"].asUInt() + nTotalCnt;
+	nUID = jsRoot["playerUID"].asUInt();
+	nAgentID = jsRoot["agentID"].asUInt();
+	// do async request 
+	Json::Value jsReq;
+	jsReq["targetUID"] = nUID;
+	jsReq["agentID"] = nAgentID;
+	auto async = getSvrApp()->getAsynReqQueue();
+	async->pushAsyncRequest(ID_MSG_PORT_DATA,nUID,getSvrApp()->getCurSvrIdx(),eAsync_AgentGetPlayerInfo, jsReq, [ptr, nUID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+	{
+		// build msg to send ;
+		Json::Value jsRespone;
+		jsRespone["ret"] = retContent["ret"];
+		jsRespone["name"] = retContent["name"];
+		jsRespone["playerUID"] = nUID;
+		jsRespone["cardCnt"] = retContent["leftCardCnt"];
+		jsRespone["isOnline"] = retContent["isOnline"];
 
-	//			// build msg to send ;
-	//			auto res = ptr->getReplyPtr();
-	//			Json::StyledWriter jswrite;
-	//			auto str = jswrite.write(jsUserData);
-	//			res->setContent(str, "text/json");
-	//			ptr->doReply();
-	//			LOGFMTD("do get player info cards uid = %u", nUID);
-	//		}, jsAgentBack);
-	//	};
-
-	//	bool isOnline = retContent["isOnline"].asUInt() == 1;
-	//	if (isOnline)
-	//	{
-	//		Json::Value jsAgentBack;
-	//		jsAgentBack["ret"] = 1;
-	//		jsAgentBack["name"] = retContent["name"];
-	//		jsAgentBack["playerUID"] = nUID;
-	//		jsAgentBack["cardCnt"] = retContent["leftCardCnt"];
-
-	//		lpfCheckDBMail(async,ptr,nUID,jsAgentBack);
-
-	//		return;
-	//	}
-	//	
-	//	LOGFMTD("uid = %u not online get info from db ",nUID);
-	//	// not online , must get name first ;
-	//	Json::Value jsSql;
-	//	char pBuffer[512] = { 0 };
-	//	sprintf(pBuffer, "SELECT playerName, diamond FROM playerbasedata WHERE userUID = '%u' ;", nUID );
-	//	jsSql["sql"] = pBuffer;
-	//	async->pushAsyncRequest(ID_MSG_PORT_DB, eAsync_DB_Select, jsSql, [lpfCheckDBMail,async, ptr, nUID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
-	//	{
-	//		uint8_t nRow = retContent["afctRow"].asUInt();
-
-	//		Json::Value jsAgentBack;
-	//		jsAgentBack["ret"] = 1;
-	//		jsAgentBack["name"] = "";
-	//		jsAgentBack["playerUID"] = nUID;
-	//		jsAgentBack["cardCnt"] = 0;
-
-	//		if (nRow == 0)
-	//		{
-	//			jsAgentBack["ret"] = 0;
-	//			// build msg to send ;
-	//			auto res = ptr->getReplyPtr();
-	//			Json::StyledWriter jswrite;
-	//			auto str = jswrite.write(jsAgentBack);
-	//			res->setContent(str, "text/json");
-	//			ptr->doReply();
-	//			LOGFMTE("get can find uid = %u info from db",nUID);
-	//			return;
-	//		}
-	//		else
-	//		{
-	//			Json::Value jsData = retContent["data"];
-	//			Json::Value jsRow = jsData[0u];
-	//			jsAgentBack["name"] = jsRow["playerName"];
-	//			jsAgentBack["cardCnt"] = jsRow["diamond"];
-	//			LOGFMTD("uid = %u base data card cnt = %u", nUID, jsRow["diamond"].asUInt());
-	//			lpfCheckDBMail(async, ptr, nUID, jsAgentBack);
-
-	//			return;
-	//		}
-	//	});
-	//});
-	//LOGFMTD("do async agent get player info uid = %u", nUID);
+		Json::StyledWriter jswrite;
+		auto str = jswrite.write(jsRespone);
+		auto res = ptr->getReplyPtr();
+		res->setContent(str, "text/json");
+		ptr->doReply();
+	});
+	LOGFMTD("do async agent get player info uid = %u", nUID);
 	return true;
 }
 
 bool CHttpModule::handleAddRoomCard(http::server::connection_ptr ptr)
 {
-	//auto req = ptr->getReqPtr();
-	//auto res = ptr->getReplyPtr();
-	//LOGFMTD("reciveget add room card info req = %s", req->reqContent.c_str());
+	auto req = ptr->getReqPtr();
+	auto res = ptr->getReplyPtr();
+	LOGFMTD("reciveget add room card info req = %s", req->reqContent.c_str());
 
-	//Json::Reader jsReader;
-	//Json::Value jsRoot;
-	//auto bRet = jsReader.parse(req->reqContent, jsRoot);
-	//if (!bRet)
-	//{
-	//	LOGFMTE("parse add room card argument error");
-	//	return false;
-	//}
+	Json::Reader jsReader;
+	Json::Value jsRoot;
+	auto bRet = jsReader.parse(req->reqContent, jsRoot);
+	if (!bRet)
+	{
+		LOGFMTE("parse add room card argument error");
+		return false;
+	}
 
-	//uint32_t nUID = 0;
-	//uint32_t nAddCard;
-	//uint32_t nAddCardNo;
-	//if (jsRoot["playerUID"].isNull() || jsRoot["playerUID"].isUInt() == false )
-	//{
-	//	LOGFMTD("cant not finn uid argument");
-	//	return false;
-	//}
+	uint32_t nUID = 0, nAgentID = 0 ;
+	uint32_t nAddCard;
+	uint32_t nAddCardNo;
+	if (jsRoot["playerUID"].isNull() || jsRoot["playerUID"].isUInt() == false )
+	{
+		LOGFMTD("cant not finn uid argument");
+		return false;
+	}
 
-	//if (jsRoot["addCard"].isNull() || jsRoot["addCard"].isUInt() == false)
-	//{
-	//	LOGFMTD("cant not finn addCard argument");
-	//	return false;
-	//}
+	if (jsRoot["addCard"].isNull() || jsRoot["addCard"].isInt() == false)
+	{
+		LOGFMTD("cant not finn addCard argument");
+		return false;
+	}
 
-	//if (jsRoot["addCardNo"].isNull() || jsRoot["addCardNo"].isUInt() == false)
-	//{
-	//	LOGFMTD("cant not finn addCardNo argument");
-	//	return false;
-	//}
+	if (jsRoot["addCardNo"].isNull() || jsRoot["addCardNo"].isUInt() == false)
+	{
+		LOGFMTD("cant not finn addCardNo argument");
+		return false;
+	}
 
-	//nAddCard = jsRoot["addCard"].asUInt();
-	//nUID = jsRoot["playerUID"].asUInt();
-	//nAddCardNo = jsRoot["addCardNo"].asUInt();
+	if (jsRoot["agentID"].isNull() || jsRoot["agentID"].isInt() == false)
+	{
+		LOGFMTD("cant not finn agentID argument");
+		return false;
+	}
 
-	//// do async request 
-	//Json::Value jsReq;
-	//jsReq["targetUID"] = nUID;
-	//jsReq["addCard"] = nAddCard;
-	//jsReq["addCardNo"] = nAddCardNo;
-	//auto async =  getSvrApp()->getAsynReqQueue();
-	//async->pushAsyncRequest(ID_MSG_PORT_DATA, eAsync_AgentAddRoomCard, jsReq, [this, ptr, nUID, nAddCardNo](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
-	//{
-	//	auto res = ptr->getReplyPtr();
-	//	// do check 
-	//	jsUserData["ret"] = 1;
-	//	Json::StyledWriter jswrite;
-	//	auto str = jswrite.write(jsUserData);
-	//	res->setContent(str, "text/json");
-	//	ptr->doReply();
-	//	LOGFMTD("do agent add room cards uid = %u, addCardNo = %u ", nUID, nAddCardNo);
-	//}, jsRoot);
-	//LOGFMTD("do async agent add room cards uid = %u cnt = %u,addCardNo = %u", nUID, nAddCard, nAddCardNo);
+	nAddCard = jsRoot["addCard"].asInt();
+	nUID = jsRoot["playerUID"].asUInt();
+	nAgentID = jsRoot["agentID"].asUInt();
+	nAddCardNo = jsRoot["addCardNo"].asUInt();
+	// do async request 
+	Json::Value jsReq;
+	jsReq["targetUID"] = nUID;
+	jsReq["addCard"] = nAddCard;
+	jsReq["addCardNo"] = nAddCardNo;
+	jsReq["agentID"] = nAgentID;
+	auto async =  getSvrApp()->getAsynReqQueue();
+	async->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, getSvrApp()->getCurSvrIdx(),eAsync_AgentAddRoomCard, jsReq, [ptr, nUID, nAddCardNo](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+	{
+		auto res = ptr->getReplyPtr();
+		// do check 
+		jsUserData["ret"] = 1;
+		Json::StyledWriter jswrite;
+		auto str = jswrite.write(jsUserData);
+		res->setContent(str, "text/json");
+		ptr->doReply();
+		LOGFMTD("do agent add room cards uid = %u, addCardNo = %u ", nUID, nAddCardNo);
+	}, jsRoot);
+	LOGFMTD("do async agent add room cards uid = %u cnt = %d,addCardNo = %u", nUID, nAddCard, nAddCardNo);
 	return true;
 }
 
