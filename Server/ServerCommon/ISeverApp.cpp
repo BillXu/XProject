@@ -119,26 +119,7 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		Json::Value jsResult ;
 		if ( onAsyncRequest(pRet->nReqType,jsReqContent,jsResult) )
 		{
-			stMsgAsyncRequestRet msgBack;
-			msgBack.cSysIdentifer = (eMsgPort)pData->nSenderPort;
-			msgBack.nReqSerailID = pRet->nReqSerailID;
-			msgBack.nTargetID = pData->nSessionID;
-			msgBack.nResultContentLen = 0;
-			msgBack.nRet = 0;
-			if (jsResult.isNull() == true)
-			{
-				sendMsg(&msgBack, sizeof(msgBack), pData->nSessionID);
-			}
-			else
-			{
-				Json::StyledWriter jsWrite;
-				auto strResult = jsWrite.write(jsResult);
-				msgBack.nResultContentLen = strResult.size();
-				CAutoBuffer auBuffer(sizeof(msgBack) + msgBack.nResultContentLen);
-				auBuffer.addContent(&msgBack, sizeof(msgBack));
-				auBuffer.addContent(strResult.c_str(), msgBack.nResultContentLen);
-				sendMsg(&msgBack, sizeof(msgBack), pData->nSessionID);
-			}
+			responeAsyncRequest( pData->nSenderPort, pRet->nReqSerailID, pData->nSessionID, jsResult );
 			return true;
 		}
 
@@ -218,6 +199,30 @@ bool IServerApp::OnMessage( Packet* pMsg )
 
 	LOGFMTE("unprocessed msg = %d , from port = %d , session id = %d",preal->usMsgType,pData->nSenderPort,pData->nSessionID) ;
 	return false ;
+}
+
+void IServerApp::responeAsyncRequest( uint8_t nTargetPort , uint32_t nReqSerialID , uint32_t nSenderID , Json::Value& jsResult )
+{
+	stMsgAsyncRequestRet msgBack;
+	msgBack.cSysIdentifer = (eMsgPort)nTargetPort;
+	msgBack.nReqSerailID = nReqSerialID;
+	msgBack.nTargetID = nSenderID;
+	msgBack.nResultContentLen = 0;
+	msgBack.nRet = 0;
+	if (jsResult.isNull() == true)
+	{
+		sendMsg(&msgBack, sizeof(msgBack), nSenderID );
+	}
+	else
+	{
+		Json::StyledWriter jsWrite;
+		auto strResult = jsWrite.write(jsResult);
+		msgBack.nResultContentLen = strResult.size();
+		CAutoBuffer auBuffer(sizeof(msgBack) + msgBack.nResultContentLen);
+		auBuffer.addContent(&msgBack, sizeof(msgBack));
+		auBuffer.addContent(strResult.c_str(), msgBack.nResultContentLen);
+		sendMsg(&msgBack, sizeof(msgBack), nSenderID );
+	}
 }
 
 void IServerApp::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)

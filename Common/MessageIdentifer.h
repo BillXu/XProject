@@ -12,6 +12,7 @@ enum eMsgPort
 	ID_MSG_PORT_DATA,
 	ID_MSG_PORT_TAXAS,
 	ID_MSG_PORT_DB,
+	ID_MSG_PORT_RECORDER_DB,
 	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_NIU_NIU,
 	ID_MSG_PORT_GOLDEN,
@@ -55,6 +56,47 @@ enum eMsgType
 	MSG_PLAYER_UPDATE_INFO,
 	// client : { name : "lucy", sex : 1 , headIcon : "http://url.com"  }
 	// svr: { ret : 0 }
+	MSG_SHOP_MAKE_ORDER,
+	// client : { shopItemID : 23 , channel : ePayChannel }  // ePayChannel ÇþµÀÃ¶¾Ù
+	// svr : { ret : 0 , shopItemID : 23 , channel : ePayChannel,cPrepayId : "asdgsfh234g22jhbjadjg",cOutTradeNo : "232hlhsfhasdg" }
+	// ret : 0 success , 1 can not find shop item , 2 , can not find player , 3 pay channel error , 4 argument error ; 
+	MSG_SHOP_BUY_ITEM,
+	// client : { shopItemID : 23 , channel : ePayChannel, transcationID : "20 len" }
+	// svr : { ret : 0 , shopItemID : 23 }
+	// ret : 0 success , 1 can not find shop item , 2 can not find player , 3 transcationID lenght is not 20 ,4 pay channel error ,5 platform verify error;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

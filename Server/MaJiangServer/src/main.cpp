@@ -4,52 +4,6 @@
 #include "NJMJPlayerCard.h"
 void tempTest()
 {
-	//CMJHuPaiInfo tInfo ;
-	//	std::vector<uint8_t> vCards ;
-	//	uint8_t nValue ;
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,2);
-	//	vCards.push_back(nValue);
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,2);
-	//	vCards.push_back(nValue);
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan, 2);
-	//	vCards.push_back(nValue);
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan, 3);
-	//	vCards.push_back(nValue);
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan, 4);
-	//	vCards.push_back(nValue);
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,3);
-	//	vCards.push_back(nValue);
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,6);
-	//	vCards.push_back(nValue);
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,6);
-	//	vCards.push_back(nValue);
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,4);
-	//	vCards.push_back(nValue);
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,4);
-	//	vCards.push_back(nValue);
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,5);
-	//	vCards.push_back(nValue);
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,5);
-	//	vCards.push_back(nValue);
-	//	
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,6);
-	//	vCards.push_back(nValue);
-	//	nValue = CMJCard::makeCardNumber(eCT_Wan,7);
-	//	vCards.push_back(nValue);
-	//		
-	//	bool b = tInfo.parseHuPaiInfo(vCards);
-	//	if ( b )
-	//	{
-	//		printf("real hu \n") ;
-	//	}
-
 		NJMJPlayerCard tPeer ;
 		tPeer.addDistributeCard(CMJCard::makeCardNumber(eCT_Wan, 1));
 		tPeer.addDistributeCard(CMJCard::makeCardNumber(eCT_Wan, 2));

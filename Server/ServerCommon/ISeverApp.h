@@ -34,6 +34,7 @@ public:
 	void stop();
 	virtual bool onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID );
 	virtual bool onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSenderID, uint32_t nTargetID );
+	void responeAsyncRequest( uint8_t nTargetPort, uint32_t nReqSerialID, uint32_t nSenderID, Json::Value& jsResult );
 	virtual bool onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult );
 	virtual bool onAsyncRequestDelayResp( uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort , uint32_t nSenderID , uint16_t nTargetID );
 	virtual void update(float fDeta );
@@ -46,14 +47,14 @@ public:
 	virtual void onConnectedToSvr( bool isReconnectMode );
 	IGlobalModule* getModuleByType( uint16_t nType );
 	CAsyncRequestQuene* getAsynReqQueue();
+	uint16_t getCurSvrIdx() { return m_nCurSvrIdx; }
+	uint16_t getCurSvrMaxCnt() { return m_nCurSvrPortMaxCnt; }
 protected:
 	bool installModule( uint16_t nModuleType );
 	virtual IGlobalModule* createModule( uint16_t eModuleType );
 	void setConnectServerConfig(stServerConfig* pConfig );
 	void doConnectToTargetSvr();
 	CNetWorkMgr* getNetwork(){ return m_pNetWork ;}
-	uint16_t getCurSvrIdx() { return m_nCurSvrIdx; }
-	uint16_t getCurSvrMaxCnt() { return m_nCurSvrPortMaxCnt; }
 private:
 	bool sendMsg(const char* pBuffer, int nLen);
 	bool registerModule(IGlobalModule* pModule, uint16_t eModuleType );

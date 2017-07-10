@@ -7,7 +7,8 @@
 #include "ServerStringTable.h"
 #include "Player.h"
 #include "PlayerGameData.h"
-
+#include "ShopModule.h"
+#include "MailModule.h"
 #ifndef USHORT_MAX
 #define USHORT_MAX 65535 
 #endif
@@ -55,6 +56,12 @@ CPlayerManager* DataServerApp::getPlayerMgr()
 {
 	auto p = (CPlayerManager*)getModuleByType(eMod_PlayerMgr) ;
 	return p ;
+}
+
+MailModule* DataServerApp::getMailModule()
+{
+	auto p = (MailModule*)getModuleByType(eMod_Mail);
+	return p;
 }
 
 bool DataServerApp::onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID)
@@ -110,6 +117,15 @@ IGlobalModule* DataServerApp::createModule( uint16_t eModuleType )
 			pMod = new CPlayerManager() ;
 		}
 		break;
+	case eMod_Shop:
+		{
+			pMod = new ShopModule();
+		}
+		break;
+	case eMod_Mail:
+	{
+		pMod = new MailModule();
+	}
 	default:
 		break;
 	}

@@ -47,23 +47,11 @@ enum ePayChannel
 	ePay_Max,
 };
 
-enum eRoomType
-{
-	eRoom_None,
-	eRoom_TexasPoker = eRoom_None,
-	eRoom_NiuNiu,
-	eRoom_Golden,
-	eRoom_MJ_Blood_River,// 血流成河
-	eRoom_MJ_Blood_End, // 血战到底 
-	eRoom_MJ_NanJing, 
-	eRoom_MJ_SuZhou,
-	eRoom_Max ,
-};
 
 enum eMJGameType
 {
 	eMJ_None,
-	eMJ_BloodRiver = eRoom_MJ_Blood_River,
+	eMJ_BloodRiver ,
 	eMJ_BloodTheEnd,
 	eMJ_NanJing,
 	eMJ_SuZhou,
@@ -319,7 +307,6 @@ enum eRoomPeerState
 
 enum eSex
 {
-	eSex_Unknown,
 	eSex_Male,
 	eSex_Female,
 	eSex_Max,
@@ -364,6 +351,10 @@ enum eRoomFlag
 #define MAX_KEEP_MAIL_COUNT 50
 enum eMailType
 {
+	eMail_Wechat_Pay, // { ret : 0 , diamondCnt : 23 }  // ret : 1 means verify error 
+	eMail_AppleStore_Pay, // { ret : 0 , diamondCnt : 23 }   // ret : 1 means verify error 
+
+	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;
 	eMail_DlgNotice, // content will be send by , stMsgDlgNotice 
 	eMail_ReadTimeTag,  // use tell time for public mail ;
@@ -377,14 +368,14 @@ enum eMailType
 	eMail_Max,
 };
 
-enum eProcessMailAct
+enum eMailState
 {
-	ePro_Mail_None,
-	ePro_Mail_Delete,
-	ePro_Mail_DoYes,
-	ePro_Mail_DoNo,
-	ePro_Mail_Look,
-	ePor_Mail_Max,
+	eMailState_Unread,
+	eMailState_WaitSysAct,
+	eMailState_WaitPlayerAct,
+	eMailState_SysProcessed,
+	eMailState_Delete,
+	eMailState_Max,
 };
 
 // game ranker

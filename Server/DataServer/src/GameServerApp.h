@@ -5,6 +5,7 @@
 #include "ServerConfig.h"
 #include "PokerCircle.h"
 #include "Singleton.h"
+class MailModule;
 class DataServerApp
 	:public IServerApp
 	, public CSingleton<DataServerApp>
@@ -14,11 +15,14 @@ public:
 	{
 		eMod_None = IServerApp::eDefMod_ChildDef,
 		eMod_PlayerMgr,
+		eMod_Shop,
+		eMod_Mail,
 		eMod_Max,
 	};
 public:
 	~DataServerApp();
 	bool init();
+	MailModule* getMailModule();
 	CPlayerManager* getPlayerMgr();
 	CConfigManager* getConfigMgr(){ return m_pConfigManager ; }
 protected:

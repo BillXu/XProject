@@ -68,7 +68,7 @@ void CAppleVerifyTask::onHttpCallBack(char* pResultData, size_t nDatalen , void*
 	{
 		Json::Value receipt = rootValue["receipt"] ;
 		memset(pResult->pBufferVerifyID,0,sizeof(pResult->pBufferVerifyID)) ;
-		sprintf(pResult->pBufferVerifyID,"%s",receipt["transaction_id"].asCString());
+		sprintf_s(pResult->pBufferVerifyID,sizeof(pResult->pBufferVerifyID),"%s",receipt["transaction_id"].asCString());
 		//LOGFMTD("Bundle  id = %s \n",receipt["bundle_id"].asCString());
 		LOGFMTD("BUY OK product_id = %s \n",receipt["product_id"].asCString());
 		//if ( strcmp(receipt["bundle_id"].asCString(),"com.youhoo.paiyouquan" ) != 0 )

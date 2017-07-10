@@ -21,10 +21,9 @@ public:
 public:
 	void init( IServerApp* svrApp )override ;
 	void onExit()override ;
-	bool onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID)override ;
-	bool onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID )override ;
 	void update(float fDeta )override ;
 	bool onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )override;
+	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)override;
 	void testFunc();
 	ITask::ITaskPrt createTask( uint32_t nTaskID )override ;
 	CTaskPool& getPool(){ return m_tTaskPool ;}
@@ -34,8 +33,8 @@ public:
 protected:
 	void doDBVerify(IVerifyTask::VERIFY_REQUEST_ptr ptr);
 	// logic 
-	void onWechatOrder( stMsg* pOrder, eMsgPort eSenderPort , uint32_t nSessionID );
-	void onVerifyMsg( stMsg* pOrder, eMsgPort eSenderPort , uint32_t nSessionID );
+	void onWechatOrder( uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nTargetID );
+	void onVerifyMsg(uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nTargetID );
 	void sendVerifyResult(std::shared_ptr<stVerifyRequest> & pResult );
 protected:
 	CTaskPool m_tTaskPool ;

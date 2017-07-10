@@ -55,6 +55,12 @@
     <ClInclude Include="..\DataServer\src\PlayerGameData.h">
       <Filter>src\Player</Filter>
     </ClInclude>
+    <ClInclude Include="..\DataServer\src\ShopModule.h">
+      <Filter>src\App</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\MailModule.h">
+      <Filter>src\App</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ConfigManager.cpp">
@@ -89,6 +95,12 @@
     </ClCompile>
     <ClCompile Include="..\DataServer\src\PlayerGameData.cpp">
       <Filter>src\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ShopModule.cpp">
+      <Filter>src\App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\MailModule.cpp">
+      <Filter>src\App</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
