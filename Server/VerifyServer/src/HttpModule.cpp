@@ -10,7 +10,6 @@
 #include "TaskPoolModule.h"
 #include "VerifyApp.h"
 #include "AnyLoginTask.h"
-#include <fstream>
 void CHttpModule::init(IServerApp* svrApp)
 {
 	IGlobalModule::init(svrApp);
@@ -86,7 +85,6 @@ bool CHttpModule::registerHttpHandle(std::string strURI, httpHandle pHandle)
 	vHttphandles[strURI] = pHandle;
 	return true;
 }
-
 
  std::string getXmlNodeValue(const char* pnodeName, TiXmlNode* pRoot)
 {

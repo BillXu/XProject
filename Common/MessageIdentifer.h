@@ -65,10 +65,23 @@ enum eMsgType
 	// svr : { ret : 0 , shopItemID : 23 }
 	// ret : 0 success , 1 can not find shop item , 2 can not find player , 3 transcationID lenght is not 20 ,4 pay channel error ,5 platform verify error;
 
-
-
-
-
+	// in room msg ;
+	MSG_ROOM_INFO, 
+	// svr: { opts: {} , players:[ { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ...}, ... ] , etc }
+	// detail info , deponed on sepcail game ;
+	MSG_ROOM_SIT_DOWN,   // tell all players , some one sit down ;
+	// svr : { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ... }  // the same as MSG_ROOM_INFO players item ;
+	MSG_PLAYER_SIT_DOWN,
+	// client : { idx : 1 } 
+	// svr : { ret : 0 , idx : 1 } ;  // ret : 0 success , 1 pos already have players , 2, already in other room , 3, not in room , can not sit down , 4 already sit down ,5 , unknown error ;
+	MSG_PLAYER_STAND_UP,
+	// client : null ;
+	// svr : { ret : 0 } // ret : 0 success , 1 you are not sit down ,
+	MSG_ROOM_STAND_UP,   // tell all players some one stand up 
+	// svr : { idx : 23 , uid : 234 } 
+	MSG_PLAYER_LEAVE_ROOM,
+	// client : null 
+	// svr : { ret : 0 }; // ret : 0 success , 1 you are not in this room , 2 unknown errro ;
 
 
 
@@ -227,11 +240,7 @@ enum eMsgType
 
 	// new room msg are here ;
 	MSG_PLAYER_ENTER_ROOM,
-	MSG_PLAYER_LEAVE_ROOM,
-	MSG_PLAYER_SITDOWN,
-	MSG_PLAYER_STANDUP,
-	MSG_ROOM_SITDOWN,
-	MSG_ROOM_STANDUP,
+	
 	MSG_SVR_ENTER_ROOM,
 	MSG_SVR_DO_LEAVE_ROOM,
 	MSG_SVR_DELAYED_LEAVE_ROOM,
@@ -404,7 +413,7 @@ enum eMsgType
 	// svr : { ret : 0 , name: "fsg" , creatorUID : 235, baseBet : 2, playerCnt : 23, roomID : 235 , roomType : eRoomType , initTime : 20, playedTime : 2345, seatCnt : 6 ,clubID : 0 }
 	// ret : 0 success , 1 can not find room ;
 
-	MSG_ROOM_INFO,
+	_MSG_ROOM_INFO,
 	// svr : { sieralNum : 2345 , ownerUID : 234552 , roomID : 2345 , seatCnt : 4 , chatID : 23455 , curState : eRoomState , leftTimeSec : 235 , baseTakeIn : 2345 , selfCoin : 2345, isCtrlTakeIn : 0 ,cardNeed : 23 , game : { ... } } 
 	// goldn :  game : { "betRound" = 23, "bankIdx":3 ,"baseBet" : 20 ,"curBet" : 40 ,"mainPool" : 1000 ,curActIdx : 3, maxRound : 23 }
 	// NiuNiu : game : { "bankIdx":3 ,"baseBet" : 20 , "bankerTimes" : 2, unbankerType : 0  }

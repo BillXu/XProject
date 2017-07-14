@@ -221,8 +221,19 @@ void CAsyncRequestQuene::timerCheckReqState(CTimer* pTimer, float fTick )
 	for ( auto pairReq : m_mapRunningRequest )
 	{
 		auto pReq = pairReq.second ;
-		if (pReq->nSendTimes > 20 )
+		if (pReq->nSendTimes > 10 )
 		{
+			// tell callBack , not process ;
+			if (pReq->lpCallBack)
+			{
+				Json::Value jsNullResult;
+				auto bRet = tempFunc(pReq, jsNullResult, pReq->jsUserData);
+				if (!bRet)
+				{
+					LOGFMTE("do have a exption for this request type = %u", pReq->nReqType);
+				}
+			}
+
 			vCanncelReq.push_back(pReq->nReqSerialNum);
 			continue;
 		}

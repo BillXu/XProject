@@ -26,6 +26,7 @@ public:
 	const char* getPlayerName(){ return m_stBaseData.cName ;}
 	const char* getHeadIcon() { return m_stBaseData.cHeadiconUrl; }
 	uint8_t getSex(){ return m_stBaseData.nSex ;}
+	bool isPlayerReady()override { return m_isReadingDB == false; }
 private:
 	stServerBaseData m_stBaseData ;
 	bool m_bMoneyDataDirty;

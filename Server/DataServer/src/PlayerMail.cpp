@@ -64,10 +64,27 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 	case eMail_AppleStore_Pay:
 	case eMail_Wechat_Pay:
 	{
-		if ( pMail->jsDetail["ret"].asUInt() == 0 )
+		if ( getPlayer()->getBaseData()->isPlayerReady() && pMail->jsDetail["ret"].asUInt() == 0 )
 		{
 			auto nDiamondCnt = pMail->jsDetail["diamondCnt"].asUInt();
 			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt, true );
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
+	case eMail_Agent_AddCard:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			auto nDiamondCnt = pMail->jsDetail["cardOffset"].asUInt();
+			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt, true);
+		}
+		else
+		{
+			return false;
 		}
 	}
 	break;

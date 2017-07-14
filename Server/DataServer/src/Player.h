@@ -42,6 +42,7 @@ public:
 	void onTimerSave();
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
 	CPlayerManager* getPlayerMgr() { return m_pPlayerMgr; }
+	bool isPlayerReady();
 protected:
 	void saveLoginInfo();
 	bool canRemovePlayer();

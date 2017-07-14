@@ -9,93 +9,147 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="src\MJBase">
+      <UniqueIdentifier>{caecf671-d2d2-4871-8480-acb0ff9b6ea6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Game">
+      <UniqueIdentifier>{569ee78c-1899-47bf-bd92-e6743f56e67b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Game\Recorder">
+      <UniqueIdentifier>{a3b4c0c4-3e69-4a5b-8768-e23bfe78c2d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Game\Replay">
+      <UniqueIdentifier>{d6da41d4-6d53-4b8c-8b71-7af9ae61b92d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\MJBase\state">
+      <UniqueIdentifier>{00b87f85-d391-4d91-8637-18e8b26da43f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ServerCommon\IRoom.cpp">
+    <ClCompile Include="src\MJPrivateRoom.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\ServerCommon\IRoomDelegate.cpp">
+    <ClCompile Include="src\GameRecorderMgr.cpp">
+      <Filter>src\Game\Recorder</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IGameRecorder.cpp">
+      <Filter>src\Game\Recorder</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IGameRoomManager.cpp">
+      <Filter>src\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJCard.cpp">
+      <Filter>src\MJBase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IMJRoom.cpp">
+      <Filter>src\MJBase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJGameReplayManager.cpp">
+      <Filter>src\Game\Replay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJPlayer.cpp">
+      <Filter>src\MJBase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJPlayerCard.cpp">
+      <Filter>src\MJBase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJRoomManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\ServerCommon\IRoomInterface.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\IRoomManager.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\IRoomPlayer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\IRoomState.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\ISitableRoom.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\ISitableRoomPlayer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\RobotDispatchStrategy.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\SystemRoom.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\CardPoker.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\RoomConfig.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\GameRoom.cpp">
+      <Filter>src\Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ServerCommon\IRoom.h">
+    <ClInclude Include="src\MJPrivateRoom.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\IRoomDelegate.h">
+    <ClInclude Include="src\GameRecorderMgr.h">
+      <Filter>src\Game\Recorder</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IGameRecorder.h">
+      <Filter>src\Game\Recorder</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IGameRoom.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IGameRoomManager.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJPoker.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJPlayer.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJDefine.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJCard.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJRoomState.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJRoom.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJPlayerCard.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJGameReplayManager.h">
+      <Filter>src\Game\Replay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJPlayer.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJPlayerCard.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJRoomManager.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\IRoomInterface.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateAskForPengOrHu.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\IRoomManager.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateAskForRobotGang.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\IRoomPlayer.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateDoPlayerAct.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\IRoomState.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateGameEnd.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\ISitableRoom.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateStartGame.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\ISitableRoomPlayer.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateWaitPlayerAct.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\PrivateRoom.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateWaitPlayerChu.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\RobotDispatchStrategy.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJRoomStateWaitReady.h">
+      <Filter>src\MJBase\state</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\SystemRoom.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\MJReplayFrameType.h">
+      <Filter>src\Game\Replay</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\CardPoker.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\GameRoom.h">
+      <Filter>src\Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\RoomConfig.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\IGamePlayer.h">
+      <Filter>src\Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\IPeerCard.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\stEnterRoomData.h">
+      <Filter>src\Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\IGameReplay.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\IGameRoomDelegate.h">
+      <Filter>src\Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

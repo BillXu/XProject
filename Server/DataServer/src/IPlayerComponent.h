@@ -35,6 +35,7 @@ public:
 	virtual bool onPlayerEvent(stPlayerEvetArg* pArg){ return false ; }
 	virtual void timerSave(){};
 	virtual bool canRemovePlayer() { return true; }
+	virtual bool isPlayerReady() { return true; }
 protected:
 	CPlayer* m_pPlayer ;
 	ePlayerComponentType m_eType ;	

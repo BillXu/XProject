@@ -297,6 +297,19 @@ void CPlayer::saveLoginInfo()
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getUserUID(), getUserUID(), eAsync_DB_Update, jssql);
 }
 
+bool CPlayer::isPlayerReady()
+{
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p && p->isPlayerReady() == false)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 bool CPlayer::canRemovePlayer()
 {
 	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)

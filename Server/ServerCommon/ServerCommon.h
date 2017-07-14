@@ -114,7 +114,10 @@ enum eAsyncReq
 	eAsync_Recived_Verify_Result, // inform data svr player, { ret : 0 , targetID : 2345 , channel : ePaychannel , shopItemID : 23 } // result : null ;
 	eAsync_AgentGetPlayerInfo, // { targetUID : 2345, agentID : 234 } , // ret { ret : 0 , isOnline : 0 , name : "hello name" , leftCardCnt : 2345  }  // ret : 1 , means success , 0 means can not find player ;
 	eAsync_AgentAddRoomCard, // { targetUID : 234523, agentID : 234, addCard : 2345 , addCardNo  : 2345 }  // ret ; always success ; 
-
+	eAsync_Request_EnterRoomInfo, //{ targetUID : 23 } , result : { uid : 2 , coin : 23 , diamond : 23 , curInRoomID : 23  } ;
+	eAsync_Inform_Player_NetState, // { roomID : 23 , playerUID : 23 ,state : 0  } // state : 0 online , 1 wait reconnect , 1 offline . // result : null ;
+	eAsync_Inform_Player_LeavedRoom, // { targetUID : 23 , roomID : 23 }
+	eAsync_Inform_Player_EnterdRoom, // { targetUID : 23 , roomID : 23 }
 
 
 	// above is new 
