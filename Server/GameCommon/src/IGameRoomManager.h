@@ -1,14 +1,22 @@
 #pragma once
 #include "IGlobalModule.h"
 #include <json/json.h>
-struct stMsg;
 class IGameRoom;
 class IGameRoomManager
 	:public IGlobalModule
 {
 public:
-	virtual ~IGameRoomManager(){}
-	virtual IGameRoom* getRoomByID(uint32_t nRoomID) = 0;
-	virtual void sendMsg(stMsg* pmsg, uint32_t nLen, uint32_t nSessionID, uint32_t nSenderID ) = 0;
-	virtual void sendMsg(Json::Value& jsContent, uint16_t nMsgType, uint32_t nSessionID, uint32_t nSenderID, eMsgPort ePort = ID_MSG_PORT_CLIENT) = 0;
+	virtual ~IGameRoomManager();
+	IGameRoom* getRoomByID(uint32_t nRoomID);
+	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)override;
+	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID )override;
+	virtual bool onPublicMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID );
+	uint32_t generateRoomID();
+	uint32_t generateSieralID();
+	void update(float fDeta)override;
+	virtual IGameRoom* createRoom() = 0;
+	void deleteRoom( uint32_t nRoomID );
+protected:
+	std::map<uint32_t, IGameRoom*> m_vRooms;
+	std::vector<uint32_t> m_vWillDeleteRoom;
 };

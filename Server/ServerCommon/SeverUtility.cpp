@@ -34,6 +34,6 @@ void CSendPushNotification::postApns( CAsyncRequestQuene* pAsync , bool isGroup,
 	m_strApns["targets"] = m_arrayTargetIDs ;
 	m_strApns["msgID"] = pmsgID != nullptr ? pmsgID : "def" ;
 	m_strApns["msgdesc"] = pmsgdesc != nullptr ? pmsgdesc : "desc" ;
-	pAsync->pushAsyncRequest(ID_MSG_PORT_VERIFY,m_arrayTargetIDs[0].asUInt(), m_arrayTargetIDs[0].asUInt(),eAsync_Apns,m_strApns);
+	pAsync->pushAsyncRequest(ID_MSG_PORT_VERIFY,m_arrayTargetIDs[0].asUInt(),eAsync_Apns,m_strApns);
 	m_strApns.clear();
 }

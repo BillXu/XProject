@@ -21,7 +21,11 @@ void MailModule::onConnectedSvr( bool isReconnected )
 	auto pSync = getSvrApp()->getAsynReqQueue();
 	Json::Value jsReq;
 	jsReq["sql"] = "SELECT max(mailUID) as maxMailUID FROM mail ;";
-	pSync->pushAsyncRequest(ID_MSG_PORT_DB,getSvrApp()->getCurSvrIdx(),getSvrApp()->getCurSvrIdx(), eAsync_DB_Select,jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData) {
+	pSync->pushAsyncRequest(ID_MSG_PORT_DB,getSvrApp()->getCurSvrIdx(),eAsync_DB_Select,jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
+		if ( isTimeOut )
+		{
+			return ;
+		}
 		uint32_t nAft = retContent["afctRow"].asUInt();
 		auto jsData = retContent["data"];
 		if (nAft == 0 || jsData.isNull())
@@ -72,5 +76,5 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 	std::ostringstream ssSql;
 	ssSql << pBuffer << jsDetail << ");";
 	jssql["sql"] = ssSql.str();
-	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nTargetID, nTargetID, eAsync_DB_Add, jssql);	
+	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nTargetID, eAsync_DB_Add, jssql);	
 }

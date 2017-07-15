@@ -66,8 +66,16 @@ bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSend
 		jsReq["outTradeNo"] = ss.str();
 
 		auto pAsyncQue = getSvrApp()->getAsynReqQueue();
-		pAsyncQue->pushAsyncRequest(ID_MSG_PORT_VERIFY, nTargetID, nTargetID, eAsync_Make_Order, jsReq, [this, nTargetID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+		pAsyncQue->pushAsyncRequest(ID_MSG_PORT_VERIFY, nTargetID,eAsync_Make_Order, jsReq, [this, nTargetID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 		{
+			if (isTimeOut)
+			{
+				jsUserData["ret"] = 4;
+				sendMsg(jsUserData, MSG_SHOP_MAKE_ORDER, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);
+				LOGFMTE("request time out shopitem id = %d shop order failed, uid = %d", jsUserData["shopItemID"].asUInt(), nTargetID);
+				return;
+			}
+
 			jsUserData["ret"] = 0;
 			if (retContent["ret"].asUInt() != 0)
 			{
@@ -141,18 +149,31 @@ bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSend
 		jsReq["transcationID"] = cTranscation;
 
 		auto pAsyncQue = getSvrApp()->getAsynReqQueue();
-		pAsyncQue->pushAsyncRequest(ID_MSG_PORT_VERIFY, nTargetID, nTargetID, eAsync_Verify_Transcation, jsReq, [this, nTargetID, nShopItemID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+		pAsyncQue->pushAsyncRequest(ID_MSG_PORT_VERIFY, nTargetID, eAsync_Verify_Transcation, jsReq, [this, nTargetID, nShopItemID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 		{
 			auto pItem = getShopItem(nShopItemID);
 			bool isDelayGivedDiamond = false;
 
+			if (isTimeOut)
+			{
+				Json::Value jsBack;
+				jsBack["ret"] = 0u;
+				jsBack["shopItemID"] = nShopItemID;
+				if (retContent["ret"].asUInt() != 0)
+				{
+					jsBack["ret"] = 5;
+					sendMsg(jsBack, MSG_SHOP_BUY_ITEM, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);
+					LOGFMTE("request timeout shopitem id = %d buy item, uid = %d", nShopItemID, nTargetID);
+					return ;
+				}
+			}
 			// respone to current player 
 			do
 			{
 				Json::Value jsBack;
 				jsBack["ret"] = 0u;
 				jsBack["shopItemID"] = nShopItemID;
-				if (retContent["ret"].asUInt() != 0)
+				if ( retContent["ret"].asUInt() != 0)
 				{
 					jsBack["ret"] = 5;
 					sendMsg(jsBack, MSG_SHOP_BUY_ITEM, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);

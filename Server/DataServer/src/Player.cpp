@@ -283,6 +283,17 @@ void CPlayer::onTimerSave()
 
 bool CPlayer::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)
 {
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			if (p->onAsyncRequest(nRequestType, jsReqContent, jsResult))
+			{
+				return true;
+			}
+		}
+	}
 	return false;
 }
 
@@ -294,7 +305,7 @@ void CPlayer::saveLoginInfo()
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = m_pPlayerMgr->getSvrApp()->getAsynReqQueue();
-	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getUserUID(), getUserUID(), eAsync_DB_Update, jssql);
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getUserUID(), eAsync_DB_Update, jssql);
 }
 
 bool CPlayer::isPlayerReady()

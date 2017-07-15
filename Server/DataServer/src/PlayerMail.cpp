@@ -102,7 +102,13 @@ void CPlayerMailComponent::readMail( uint16_t nOffset )
 	ss << "SELECT mailUID,unix_timestamp(postTime) as postTime ,mailType,mailDetail,state FROM mail where userUID = " << getPlayer()->getUserUID() << "and state !=  " << eMailState_Delete << " order by mailUID desc limit 3 offset " << nOffset << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
-	asyq->pushAsyncRequest(ID_MSG_PORT_DB,getPlayer()->getUserUID(),getPlayer()->getUserUID(),eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData) {
+	asyq->pushAsyncRequest(ID_MSG_PORT_DB,getPlayer()->getUserUID(),eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
+		if (isTimeOut)
+		{
+			doProcessMailAfterReadDB();
+			return;
+		}
+
 		uint32_t nAft = retContent["afctRow"].asUInt();
 		auto jsData = retContent["data"];
 		if (nAft == 0 || jsData.isNull())
@@ -187,5 +193,5 @@ void CPlayerMailComponent::updateMailsStateToDB(std::vector<uint32_t>& vMailIDs,
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	auto asyq = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
-	asyq->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), getPlayer()->getUserUID(), eAsync_DB_Update, jsReq);
+	asyq->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jsReq);
 }

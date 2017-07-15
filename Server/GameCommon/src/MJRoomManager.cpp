@@ -3,12 +3,9 @@
 #include "log4z.h"
 #include "ServerMessageDefine.h"
 #include "RoomConfig.h"
-#include "MJServer.h"
 #include "IMJPlayer.h"
-#include "XLMJRoom.h"
 #include "MJPrivateRoom.h"
 #include "AsyncRequestQuene.h"
-#include "XZMJRoom.h"
 uint32_t MJRoomManager::s_MaxBillID = 0;
 void MJRoomManager::init(IServerApp* svrApp)
 {

@@ -92,7 +92,6 @@
     <ClCompile Include="src\MJPlayer.cpp" />
     <ClCompile Include="src\MJPlayerCard.cpp" />
     <ClCompile Include="src\MJPrivateRoom.cpp" />
-    <ClCompile Include="src\MJRoomManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GameRecorderMgr.h" />
@@ -114,7 +113,6 @@
     <ClInclude Include="src\MJPlayerCard.h" />
     <ClInclude Include="src\MJPrivateRoom.h" />
     <ClInclude Include="src\MJReplayFrameType.h" />
-    <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJRoomStateAskForPengOrHu.h" />
     <ClInclude Include="src\MJRoomStateAskForRobotGang.h" />
     <ClInclude Include="src\MJRoomStateDoPlayerAct.h" />

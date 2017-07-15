@@ -26,6 +26,7 @@ public:
 	CPlayer* getPlayer(){ return m_pPlayer ;}
 	virtual bool onMsg( stMsg* pMessage , eMsgPort eSenderPort);
 	virtual bool onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort ){ return false ;}
+	virtual bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult) { return false; }
 	virtual void onPlayerDisconnect() { timerSave(); }
 	virtual void onPlayerReconnected(){}
 	virtual void onPlayerLoseConnect() { timerSave(); }  // wait player reconnect ;

@@ -223,7 +223,7 @@ bool CHttpModule::handleGetPlayerInfo(http::server::connection_ptr ptr)
 	jsReq["targetUID"] = nUID;
 	jsReq["agentID"] = nAgentID;
 	auto async = getSvrApp()->getAsynReqQueue();
-	async->pushAsyncRequest(ID_MSG_PORT_DATA,nUID,getSvrApp()->getCurSvrIdx(),eAsync_AgentGetPlayerInfo, jsReq, [ptr, nUID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+	async->pushAsyncRequest(ID_MSG_PORT_DATA,nUID,eAsync_AgentGetPlayerInfo, jsReq, [ptr, nUID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 	{
 		// build msg to send ;
 		Json::Value jsRespone;
@@ -296,7 +296,7 @@ bool CHttpModule::handleAddRoomCard(http::server::connection_ptr ptr)
 	jsReq["addCardNo"] = nAddCardNo;
 	jsReq["agentID"] = nAgentID;
 	auto async =  getSvrApp()->getAsynReqQueue();
-	async->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, getSvrApp()->getCurSvrIdx(),eAsync_AgentAddRoomCard, jsReq, [ptr, nUID, nAddCardNo](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+	async->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_AgentAddRoomCard, jsReq, [ptr, nUID, nAddCardNo](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 	{
 		auto res = ptr->getReplyPtr();
 		// do check 

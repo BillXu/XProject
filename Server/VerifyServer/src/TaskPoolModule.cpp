@@ -291,7 +291,7 @@ void CTaskPoolModule::sendVerifyResult(std::shared_ptr<stVerifyRequest> & pResul
 		char pBuffer[512] = { 0 };
 		sprintf_s(pBuffer, sizeof(pBuffer),"insert into wxrecharge ( userUID,fee,time,tradeOrder, shopItemID ) values ('%u','%u',now(),'%s',%u );", pResult->nTargetID, pResult->nPrice, pResult->pBufferVerifyID,pResult->nShopItemID  );
 		jssql["sql"] = pBuffer;
-		getSvrApp()->getAsynReqQueue()->pushAsyncRequest( ID_MSG_PORT_RECORDER_DB,pResult->nTargetID, getSvrApp()->getCurSvrIdx(), eAsync_DB_Add,jssql);
+		getSvrApp()->getAsynReqQueue()->pushAsyncRequest( ID_MSG_PORT_RECORDER_DB,pResult->nTargetID, eAsync_DB_Add,jssql);
 	}
 
 	// inform data svr ;
@@ -308,7 +308,7 @@ void CTaskPoolModule::sendVerifyResult(std::shared_ptr<stVerifyRequest> & pResul
 		jsResult["targetID"] = pResult->nTargetID;
 		jsResult["shopItemID"] = pResult->nShopItemID;
 		jsResult["channel"] = pResult->nChannel;
-		getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pResult->nTargetID, getSvrApp()->getCurSvrIdx(), eAsync_Recived_Verify_Result, jsResult);
+		getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pResult->nTargetID,eAsync_Recived_Verify_Result, jsResult);
 	}
 	
 	LOGFMTI( "finish verify transfaction shopid = %u ,uid = %d ret = %d", pResult->nShopItemID, pResult->nTargetID, pResult->eResult ) ;

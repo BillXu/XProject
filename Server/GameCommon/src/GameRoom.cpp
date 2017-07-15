@@ -89,6 +89,27 @@ bool GameRoom::isRoomFull()
 	return true;
 }
 
+bool GameRoom::doDeleteRoom()
+{
+	std::vector<uint32_t> vAllInRoomPlayers;
+	for (auto& pPayer : m_vPlayers)
+	{
+		vAllInRoomPlayers.push_back(pPayer->getUserUID());
+	}
+
+	for (auto& pStand : m_vStandPlayers)
+	{
+		vAllInRoomPlayers.push_back(pStand.second->nUserUID );
+	}
+
+	for (auto& ref : vAllInRoomPlayers)
+	{
+		doPlayerLeaveRoom(ref);
+	}
+	LOGFMTD("room id = %u do delete",getRoomID() );
+	return true;
+}
+
 void GameRoom::onWillStartGame()
 {
 	for (auto& ref : m_vPlayers)
@@ -249,6 +270,7 @@ bool GameRoom::doPlayerLeaveRoom(uint32_t nUserUID)
 	auto iterStand = m_vStandPlayers.find( nUserUID );
 	if ( m_vStandPlayers.end() == iterStand)
 	{
+		LOGFMTE("uid = %u not stand in this room = %u how to leave ?",nUserUID,getRoomID());
 		return false;
 	}
 
@@ -258,6 +280,13 @@ bool GameRoom::doPlayerLeaveRoom(uint32_t nUserUID)
 	{
 		getDelegate()->onPlayerDoLeaved(this,nUserUID );
 	}
+
+	// tell data svr player leave ;
+	Json::Value jsReqLeave;
+	jsReqLeave["targetUID"] = nUserUID;
+	jsReqLeave["roomID"] = getRoomID();
+	auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
 	return true;
 }
 
@@ -304,19 +333,14 @@ void GameRoom::sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nO
 
 void GameRoom::sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID )
 {
-	getRoomMgr()->sendMsg(prealMsg, nMsgType, nSessionID,getRoomID());
-}
-
-bool GameRoom::onMsg(stMsg* prealMsg, eMsgPort eSenderPort, uint32_t nSessionID )
-{
-	return false;
+	getRoomMgr()->sendMsg(prealMsg, nMsgType, getRoomID(), nSessionID,ID_MSG_PORT_CLIENT );
 }
 
 bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
 {
 	switch ( nMsgType )
 	{
-	case MSG_ROOM_SIT_DOWN:
+	case MSG_PLAYER_SIT_DOWN:
 	{
 		uint16_t nIdx = prealMsg["idx"].asUInt();
 		stStandPlayer* pStand = nullptr;
@@ -357,16 +381,35 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 		// go on  
 		Json::Value jsReq;
 		jsReq["targetUID"] = pStand->nUserUID;
+		jsReq["roomID"] = getRoomID();
+		jsReq["sessionID"] = nSessionID;
 		auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pStand->nUserUID, getRoomID(), eAsync_Request_EnterRoomInfo, jsReq, [nSessionID,this, nIdx](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pStand->nUserUID, eAsync_Request_EnterRoomInfo, jsReq, [nSessionID,this, nIdx](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 		{
-			auto nCurRoomID = retContent["curInRoomID"].asUInt();
-			if (nCurRoomID != 0 && nCurRoomID != getRoomID())
+			if (isTimeOut)
 			{
-				LOGFMTE( "uid = %u , already in other room id = %u , not in this room id = %u",retContent["uid"].asUInt(),nCurRoomID,getRoomID() );
+				LOGFMTE("request time out uid = %u , already in other room id = %u , not in this room id = %u", retContent["uid"].asUInt(), 0, getRoomID());
 				Json::Value jsRet;
 				jsRet["ret"] = 2;
-				sendMsgToPlayer(jsRet, MSG_ROOM_SIT_DOWN, nSessionID);
+				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+				return;
+			}
+
+			auto nRet = retContent["ret"].asUInt();
+			if ( 1 == nRet )
+			{
+			 
+				Json::Value jsRet;
+				jsRet["ret"] = 2;
+				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+				return;
+			}
+
+			if (nRet)
+			{
+				Json::Value jsRet;
+				jsRet["ret"] = 5;
+				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
 				return;
 			}
 
@@ -379,7 +422,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 
 			Json::Value jsRet;
 			jsRet["ret"] = 0;
-			sendMsgToPlayer(jsRet, MSG_ROOM_SIT_DOWN, nSessionID);
+			sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
 		}, pStand->nUserUID);
 	}
 	break;
@@ -436,6 +479,43 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 	default:
 		break; 
 	}
+	return true;
+}
+
+bool GameRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
+{
+	auto pPlayer = getPlayerByUID(nPlayerID);
+	if (!pPlayer)
+	{
+		LOGFMTE( "inform player state refreshed , but player is null room id = %u , uid = %u",getRoomID(),nPlayerID );
+		return false;
+	}
+
+	if (nState == eNetState::eNet_Offline)
+	{
+		doPlayerLeaveRoom(nPlayerID);
+		return true;
+	}
+
+	pPlayer->setIsOnline(nState == eNetState::eNet_Online);
+	// send msg update net state ;
+	Json::Value jsNetState;
+	jsNetState["idx"] = pPlayer->getIdx();
+	jsNetState["uid"] = pPlayer->getUserUID();
+	jsNetState["state"] = nState;
+	sendRoomMsg(jsNetState, MSG_ROOM_REFRESH_NET_STATE);
+	return true;
+}
+
+bool GameRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)
+{
+	auto pPlayer = getPlayerByUID(nPlayerID);
+	if (!pPlayer)
+	{
+		LOGFMTE("inform player session id  refreshed , but player is null room id = %u , uid = %u", getRoomID(), nPlayerID);
+		return false;
+	}
+	pPlayer->setNewSessionID(nSessinID);
 	return true;
 }
 

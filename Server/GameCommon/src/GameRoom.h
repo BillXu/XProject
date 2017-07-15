@@ -19,6 +19,7 @@ public:
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override; // 0 can enter , 1 room is full ;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	bool isRoomFull()final;
+	bool doDeleteRoom()override; // wanning: invoke by roomMgr ;
 
 	virtual IGamePlayer* createGamePlayer() = 0;
 	virtual void onWillStartGame();
@@ -37,9 +38,10 @@ public:
 	void update(float fDelta)override;
 	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0 )final;
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
-	bool onMsg(stMsg* prealMsg, eMsgPort eSenderPort, uint32_t nSessionID )override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )override;
 	void sendRoomInfo(uint32_t nSessionID)final;
+	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)override;
+	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)final;
 	IGameRoomManager* getRoomMgr();
 	IGamePlayer* getPlayerByUID( uint32_t nUserUID );
 	IGamePlayer* getPlayerBySessionID(uint32_t nSessionID);

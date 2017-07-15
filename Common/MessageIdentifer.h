@@ -66,6 +66,9 @@ enum eMsgType
 	// ret : 0 success , 1 can not find shop item , 2 can not find player , 3 transcationID lenght is not 20 ,4 pay channel error ,5 platform verify error;
 
 	// in room msg ;
+	MSG_ENTER_ROOM,
+	// client : { roomID : 23, uid : 23 }
+	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error ;
 	MSG_ROOM_INFO, 
 	// svr: { opts: {} , players:[ { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ...}, ... ] , etc }
 	// detail info , deponed on sepcail game ;
@@ -73,7 +76,7 @@ enum eMsgType
 	// svr : { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ... }  // the same as MSG_ROOM_INFO players item ;
 	MSG_PLAYER_SIT_DOWN,
 	// client : { idx : 1 } 
-	// svr : { ret : 0 , idx : 1 } ;  // ret : 0 success , 1 pos already have players , 2, already in other room , 3, not in room , can not sit down , 4 already sit down ,5 , unknown error ;
+	// svr : { ret : 0 , idx : 1 } ;  // ret : 0 success , 1 pos already have players , 2, already in other room , 3, not in room , can not sit down , 4 already sit down , 5 session id error , 6 , unknown error ;
 	MSG_PLAYER_STAND_UP,
 	// client : null ;
 	// svr : { ret : 0 } // ret : 0 success , 1 you are not sit down ,
@@ -82,7 +85,8 @@ enum eMsgType
 	MSG_PLAYER_LEAVE_ROOM,
 	// client : null 
 	// svr : { ret : 0 }; // ret : 0 success , 1 you are not in this room , 2 unknown errro ;
-
+	MSG_ROOM_REFRESH_NET_STATE, // player net state , changed 
+	// svr : { idx : 0 , uid : 235 , state : 0  } , 0 is online , 1 lose connect , wait reconnect; 
 
 
 

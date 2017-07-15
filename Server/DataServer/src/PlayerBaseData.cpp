@@ -58,8 +58,12 @@ void CPlayerBaseData::onPlayerLogined()
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
-	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), getPlayer()->getUserUID(), eAsync_DB_Select, jssql, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(),eAsync_DB_Select, jssql, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 	{
+		if (isTimeOut)
+		{
+			return;
+		}
 		Json::Value jsData = retContent["data"];
 		m_isReadingDB = false;
 		if (jsData.size() == 0)
@@ -132,7 +136,7 @@ void CPlayerBaseData::timerSave()
 		std::string str = pBuffer;
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
-		pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
+		pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(),  eAsync_DB_Update, jssql);
 	}
 }
 
@@ -150,7 +154,7 @@ void CPlayerBaseData::saveMoney()
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
-	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
 	LOGFMTD( "uid = %u save money coin = %u , diamond = %u",getPlayer()->getUserUID(),getCoin(),getDiamoned() );
 }
 

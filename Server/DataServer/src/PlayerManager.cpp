@@ -123,7 +123,12 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 	sprintf_s(pBuffer, "SELECT nickName,nsex,headIcon FROM playerbasedata where userUID = %u", nReqUID );
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
-	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, nReqUID, nReqUID, eAsync_DB_Select, jssql, [nReqUID,this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData) {
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, nReqUID,eAsync_DB_Select, jssql, [nReqUID,this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
+		if (isTimeOut)
+		{
+			return;
+		}
+
 		uint8_t nRow = retContent["afctRow"].asUInt();
 		Json::Value jsData = retContent["data"];
 
@@ -398,6 +403,20 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		jsResult["leftCardCnt"] = pPlayer->getBaseData()->getDiamoned();
 	}
 	break;
+	case eAsync_Inform_Player_LeavedRoom:
+	case eAsync_Request_EnterRoomInfo:
+	{
+		auto nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (!pPlayer)
+		{
+			LOGFMTE(" can not find player uid = %u , to process async req = %u, let is time out", nUID,nRequestType );
+			jsResult["ret"] = 2;
+			break;
+		}
+		return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
+	}
+	break;
 	//case eAsync_ComsumDiamond:
 	//	{
 	//		uint32_t nUID = jsReqContent["targetUID"].asUInt() ;
@@ -478,12 +497,17 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 		// not online , must get name first ;
 		Json::Value jsSql;
 		char pBuffer[512] = { 0 };
-		sprintf(pBuffer, "SELECT nickName, diamond FROM playerbasedata WHERE userUID = %u ;", nUserUID );
+		sprintf_s(pBuffer,sizeof(pBuffer), "SELECT nickName, diamond FROM playerbasedata WHERE userUID = %u ;", nUserUID );
 		jsSql["sql"] = pBuffer;
 
-		async->pushAsyncRequest(ID_MSG_PORT_DB,nSenderID,nTargetID ,eAsync_DB_Select, jsSql, [nReqSerial, nSenderID,async, nUserUID,this ](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+		async->pushAsyncRequest(ID_MSG_PORT_DB,nSenderID,eAsync_DB_Select, jsSql, [nReqSerial, nSenderID,async, nUserUID,this ](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 		{
 			uint8_t nRow = retContent["afctRow"].asUInt();
+			if (isTimeOut)
+			{
+				nRow = 0; 
+				LOGFMTE(" request time out , so regart as can not find , uid = %u",nUserUID );
+			}
 
 			Json::Value jsAgentBack;
 			jsAgentBack["ret"] = 1;
@@ -508,11 +532,16 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 			// take not process add card mail in to account 
 			Json::Value jsSql;
 			char pBuffer[512] = { 0 };
-			sprintf(pBuffer, "SELECT mailDetail FROM mail WHERE userUID = %u and mailType = %u and state = %u limit 10 ;", nUserUID, eMail_Agent_AddCard, eMailState_WaitSysAct);
+			sprintf_s(pBuffer, sizeof(pBuffer),"SELECT mailDetail FROM mail WHERE userUID = %u and mailType = %u and state = %u limit 10 ;", nUserUID, eMail_Agent_AddCard, eMailState_WaitSysAct);
 			jsSql["sql"] = pBuffer;
 			auto pSvrApp = async->getSvrApp();
-			async->pushAsyncRequest(ID_MSG_PORT_DB, nUserUID, nUserUID, eAsync_DB_Select, jsSql, [nReqSerial, nSenderID, nUserUID, pSvrApp](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData)
+			async->pushAsyncRequest(ID_MSG_PORT_DB, nUserUID,eAsync_DB_Select, jsSql, [nReqSerial, nSenderID, nUserUID, pSvrApp](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 			{
+				if (isTimeOut)
+				{
+					return;
+				}
+
 				uint32_t nTotalCnt = 0;
 				uint8_t nRow = retContent["afctRow"].asUInt();
 				Json::Value jsData = retContent["data"];

@@ -7,6 +7,14 @@
 #define MAX_NEW_PLAYER_HALO 120
 #define  ROOM_CIRCLES_PER_VIP_ROOM_CARDS 4
 #define ROOM_CARD_CNT_PER_CIRLE_NJMJ 2
+enum eNetState
+{
+	eNet_Online,
+	eNet_WaitReconnect,
+	eNet_Offline,  // wait reconnect time out ;
+	eNet_Max,
+};
+
 enum  eLogType
 {
 	eLog_Register, // externString, {ip:"ipdizhi"}
@@ -95,7 +103,7 @@ enum  eLogType
 //	eCrossSvrReq_Max,
 //};
 
-enum eAsyncReq
+enum eAsyncReq 
 {
 	eAsync_DB_Select,   // { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
 	eAsync_DB_Update, // { sql : "select * from table where uid = 345" , order : 0 } // order [ 0 - 3 ] biger first process ,  result : { afctRow : 1 , data : [row0,row1] }/// row { tile0 : value , title 0 ;}
@@ -114,10 +122,10 @@ enum eAsyncReq
 	eAsync_Recived_Verify_Result, // inform data svr player, { ret : 0 , targetID : 2345 , channel : ePaychannel , shopItemID : 23 } // result : null ;
 	eAsync_AgentGetPlayerInfo, // { targetUID : 2345, agentID : 234 } , // ret { ret : 0 , isOnline : 0 , name : "hello name" , leftCardCnt : 2345  }  // ret : 1 , means success , 0 means can not find player ;
 	eAsync_AgentAddRoomCard, // { targetUID : 234523, agentID : 234, addCard : 2345 , addCardNo  : 2345 }  // ret ; always success ; 
-	eAsync_Request_EnterRoomInfo, //{ targetUID : 23 } , result : { uid : 2 , coin : 23 , diamond : 23 , curInRoomID : 23  } ;
-	eAsync_Inform_Player_NetState, // { roomID : 23 , playerUID : 23 ,state : 0  } // state : 0 online , 1 wait reconnect , 1 offline . // result : null ;
+	eAsync_Request_EnterRoomInfo, //{ targetUID : 23, roomID : 23, sessionID : 23 } , result : { ret : 0 ,uid : 2 , coin : 23 , diamond : 23  } ; // ret : 0 success , 1 already in other room , 2 session id error ;
+	eAsync_Inform_Player_NetState, // { roomID : 23 , uid : 23 ,state : eNetState  } // result : null ; resut : { ret : 0 } ret : 0 ok , 1 can not find room id ;  
+	eAsync_Inform_Player_NewSessionID, // { roomID : 23 , uid : 23 , newSessionID : 23 } // result : { ret : 0 } ret : 0 ok , 1 can not find room id ; 
 	eAsync_Inform_Player_LeavedRoom, // { targetUID : 23 , roomID : 23 }
-	eAsync_Inform_Player_EnterdRoom, // { targetUID : 23 , roomID : 23 }
 
 
 	// above is new 

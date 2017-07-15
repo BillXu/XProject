@@ -17,12 +17,12 @@ void CAsyncRequestQuene::init( IServerApp* svrApp )
 	m_tCheckReqStateTimer.start() ;
 }
 
-bool tempFunc( CAsyncRequestQuene::stAsyncRequest* pReq,Json::Value& jsResultContent, Json::Value& jsUserData )
+bool tempFunc( CAsyncRequestQuene::stAsyncRequest* pReq,Json::Value& jsResultContent, Json::Value& jsUserData, bool isTimeOut )
 {
 	//LOGFMTD("tempFunc");
 	__try
 	{
-		pReq->lpCallBack(pReq->nReqType, jsResultContent, jsUserData );
+		pReq->lpCallBack(pReq->nReqType, jsResultContent, jsUserData , isTimeOut );
 		return true;
 	}
 	__except (CatchDumpFile::CDumpCatch::UnhandledExceptionFilterEx(GetExceptionInformation()))
@@ -66,7 +66,7 @@ bool CAsyncRequestQuene::onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t
 		if ( pReq->lpCallBack )
 		{
 			//pReq->lpCallBack(pReq->nReqType, jsResultContent, pReq->jsUserData);
-			auto bRet = tempFunc(pReq, jsResultContent, pReq->jsUserData );
+			auto bRet = tempFunc(pReq, jsResultContent, pReq->jsUserData,false );
 			if (!bRet)
 			{
 				LOGFMTE("do have a exption for this request type = %u",pReq->nReqType );
@@ -109,7 +109,7 @@ CAsyncRequestQuene::~CAsyncRequestQuene()
 	m_mapRunningRequest.clear() ;
 }
 
-uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack,Json::Value& jsUserData, uint32_t nRequestUID )
+uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack,Json::Value& jsUserData, uint32_t nRequestUID )
 {
 	if (nRequestUID > 0)
 	{
@@ -132,21 +132,21 @@ uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nT
 	pReq->tLastSend = 0 ;
 	pReq->nRequestUID = nRequestUID;
 	pReq->nTargetID = nTargetID;
-	pReq->nSenderID = nSenderID;
+	//pReq->nSenderID = nSenderID;
 	m_mapRunningRequest[pReq->nReqSerialNum] = pReq ;
 	sendAsyncRequest(pReq) ;
 	return pReq->nReqSerialNum ;
 }
 
-uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack, uint32_t nRequestUID)
+uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID,uint16_t nReqType,Json::Value& reqContent, async_req_call_back_func lpCallBack, uint32_t nRequestUID)
 {
 	Json::Value jsValue ;
-	return pushAsyncRequest(nTargetPortID, nTargetID, nSenderID,nReqType,reqContent,lpCallBack,jsValue,nRequestUID);
+	return pushAsyncRequest(nTargetPortID, nTargetID, nReqType,reqContent,lpCallBack,jsValue,nRequestUID);
 }
 
-uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint32_t nSenderID, uint16_t nReqType,Json::Value& reqContent, uint32_t nRequestUID)
+uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nTargetID, uint16_t nReqType,Json::Value& reqContent, uint32_t nRequestUID)
 {
-	return pushAsyncRequest(nTargetPortID, nTargetID, nSenderID, nReqType,reqContent,nullptr, nRequestUID);
+	return pushAsyncRequest(nTargetPortID, nTargetID, nReqType,reqContent,nullptr, nRequestUID);
 }
 
 bool CAsyncRequestQuene::canncelAsyncRequest( uint32_t nReqSerialNum )
@@ -179,7 +179,7 @@ void CAsyncRequestQuene::sendAsyncRequest(stAsyncRequest* pReq )
 	CAutoBuffer auBuffer(sizeof(msgReq) + msgReq.nReqType);
 	auBuffer.addContent(&msgReq,sizeof(msgReq)) ;
 	auBuffer.addContent(str.c_str(),msgReq.nReqContentLen) ;
-	getSvrApp()->sendMsg((stMsg*)auBuffer.getBufferPtr(), auBuffer.getContentSize(), pReq->nSenderID);
+	getSvrApp()->sendMsg((stMsg*)auBuffer.getBufferPtr(), auBuffer.getContentSize(),getSvrApp()->getCurSvrIdx());
 }
 
 CAsyncRequestQuene::stAsyncRequest* CAsyncRequestQuene::getAsynRequestByRequestUID(uint32_t nRequestUID)
@@ -227,7 +227,7 @@ void CAsyncRequestQuene::timerCheckReqState(CTimer* pTimer, float fTick )
 			if (pReq->lpCallBack)
 			{
 				Json::Value jsNullResult;
-				auto bRet = tempFunc(pReq, jsNullResult, pReq->jsUserData);
+				auto bRet = tempFunc(pReq, jsNullResult, pReq->jsUserData,true );
 				if (!bRet)
 				{
 					LOGFMTE("do have a exption for this request type = %u", pReq->nReqType);

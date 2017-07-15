@@ -364,7 +364,18 @@ void CGateClientMgr::onLogin(stMsg* pmsg, stGateClient* pClient )
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = CGateServer::SharedGateServer()->getAsynReqQueue();
 	auto nClientNetID = pClient->getNetworkID();
-	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, pClient->getSessionID(), pClient->getSessionID(), eAsync_DB_Select, jssql, [pReqQueue,this, nClientNetID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData) {
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, pClient->getSessionID(),eAsync_DB_Select, jssql, [pReqQueue,this, nClientNetID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
+			
+		if (isTimeOut)
+		{
+			stMsgLoginRet msgRet;
+			msgRet.nAccountType = 0;
+			msgRet.nRet = 1;  // account error ; 
+			sendMsgToClient(&msgRet, sizeof(msgRet), nClientNetID);
+			LOGFMTE("time out why register affect row = 0 net id %u ",nClientNetID );
+			return;
+		}
+
 		uint8_t nRow = retContent["afctRow"].asUInt();
 		Json::Value jsData = retContent["data"];
 
@@ -401,7 +412,7 @@ void CGateClientMgr::onLogin(stMsg* pmsg, stGateClient* pClient )
 			jsLogin["uid"] = nUserUID;
 			jsLogin["ip"] = pGateClient->getIP();
 			jsLogin["sessionID"] = pGateClient->getSessionID();
-			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID, pGateClient->getSessionID(), eAsync_Player_Logined, jsLogin);
+			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID,eAsync_Player_Logined, jsLogin);
 		}
 	}, pClient->getSessionID());
 }
@@ -457,8 +468,7 @@ void CGateClientMgr::onRegister(stMsg* pmsg, stGateClient* pClient )
 	auto pReqQueue = CGateServer::SharedGateServer()->getAsynReqQueue();
 	auto nRegType = pLoginRegister->cRegisterType;
 	auto nClientNetID = pClient->getNetworkID();
-	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, pClient->getSessionID(), pClient->getSessionID(), eAsync_DB_Select, jssql, [pReqQueue,this, nClientNetID, nRegType](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData) {
-		uint8_t nRow = retContent["afctRow"].asUInt();
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, pClient->getSessionID(),eAsync_DB_Select, jssql, [pReqQueue,this, nClientNetID, nRegType](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
 		Json::Value jsData = retContent["data"];
 		
 		stMsgRegisterRet msgRet;
@@ -505,7 +515,7 @@ void CGateClientMgr::onRegister(stMsg* pmsg, stGateClient* pClient )
 			jsLogin["uid"] = msgRet.nUserID;
 			jsLogin["sessionID"] = pGateClient->getSessionID();
 			jsLogin["ip"] = pGateClient->getIP();
-			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, msgRet.nUserID, pGateClient->getSessionID(), eAsync_Player_Logined, jsLogin);
+			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, msgRet.nUserID, eAsync_Player_Logined, jsLogin);
 		}
 
 	},pClient->getSessionID());

@@ -2,8 +2,6 @@
 #include "log4z.h"
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
-#include "NJMJPlayerRecorderInfo.h"
-#include "SZMJPlayerRecorderInfo.h"
 // game recorder mgr ;
 void GameRecorderMgr::addRoomRecorder(std::shared_ptr<IGameRoomRecorder> pRoomRecorder, bool isSaveToDB)
 {
