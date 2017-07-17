@@ -384,7 +384,7 @@ bool IServerApp::sendMsg( Json::Value& recvValue, uint16_t nMsgID, uint32_t nSen
 	msg.nTargetID = nTargetID;
 	if ( nTargetID == 0 )
 	{
-		LOGFMTE("json msg = %u target = 0 attention", nMsgID );
+		LOGFMTW("json msg = %u target = 0 attention", nMsgID );
 		msg.nTargetID = nSenderID;
 	}
 	CAutoBuffer bufferTemp(sizeof(msg) + msg.nJsLen);

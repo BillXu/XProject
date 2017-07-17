@@ -1,6 +1,7 @@
 #pragma once
 #include "IGameRoom.h"
 #include <vector>
+#include "IGameRecorder.h"
 class IGamePlayer;
 class IGameRoomDelegate;
 class GameRoom
@@ -35,6 +36,7 @@ public:
 
 	uint32_t getRoomID()final;
 	uint32_t getSeiralNum()final;
+	virtual uint32_t getRoomType() = 0 ;
 	void update(float fDelta)override;
 	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0 )final;
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
@@ -47,10 +49,17 @@ public:
 	IGamePlayer* getPlayerBySessionID(uint32_t nSessionID);
 	IGamePlayer* getPlayerByIdx( uint16_t nIdx );
 	uint16_t getSeatCnt();
+
+	virtual std::shared_ptr<IGameRoomRecorder> createRoomRecorder();
+	virtual std::shared_ptr<ISingleRoundRecorder> createSingleRoundRecorder();
 protected:
 	IGameRoomDelegate* getDelegate();
 	stStandPlayer* getStandPlayerBySessionID( uint32_t nSessinID );
 	stStandPlayer* getStandPlayerByUID( uint32_t nUserID );
+	bool addPlayerOneRoundOffsetToRecorder( uint32_t nUserUID , int32_t nOffset , int32_t nWaiBaoOffset = 0 );  // signe player single round offset 
+private:
+	std::shared_ptr<IGameRoomRecorder> getRoomRecorder();
+	std::shared_ptr<ISingleRoundRecorder> getCurRoundRecorder();
 protected:
 	IGameRoomDelegate* m_pDelegate;
 	IGameRoomManager* m_pRoomMgr;
@@ -59,4 +68,7 @@ protected:
 	std::map<uint32_t,stStandPlayer*> m_vStandPlayers;
 	uint32_t m_nRoomID;
 	uint32_t m_nSieralNum;
+private:
+	std::shared_ptr<ISingleRoundRecorder> m_ptrCurRoundRecorder;
+	std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;
 };

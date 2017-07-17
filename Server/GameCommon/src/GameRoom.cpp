@@ -5,6 +5,7 @@
 #include "log4z.h"
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
+#include <ctime>
 bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	m_pDelegate = nullptr;
@@ -14,6 +15,10 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_vPlayers.resize(nSeatCnt);
 	m_jsOpts = vJsOpts;
 	m_vStandPlayers.clear();
+
+	m_ptrCurRoundRecorder = nullptr;
+	m_ptrRoomRecorder = createRoomRecorder();
+	m_ptrRoomRecorder->init(nSeialNum, nRoomID, vJsOpts["creatorUID"].asUInt(), getRoomType(), vJsOpts);
 	return true;
 }
 
@@ -91,6 +96,10 @@ bool GameRoom::isRoomFull()
 
 bool GameRoom::doDeleteRoom()
 {
+	// save room recorder 
+	getRoomRecorder()->doSaveRoomRecorder( getRoomMgr()->getSvrApp()->getAsynReqQueue() );
+
+	// process player leave ;
 	std::vector<uint32_t> vAllInRoomPlayers;
 	for (auto& pPayer : m_vPlayers)
 	{
@@ -135,10 +144,15 @@ void GameRoom::onStartGame()
 			ref->onGameStart();
 		}
 	}
+
 	if (getDelegate())
 	{
 		getDelegate()->onStartGame(this);
 	}
+
+	// cur round recorder ;
+	m_ptrCurRoundRecorder = createSingleRoundRecorder();
+	m_ptrCurRoundRecorder->init(getRoomRecorder()->getRoundRecorderCnt(), time(nullptr), 0);
 }
 
 bool GameRoom::canStartGame()
@@ -168,6 +182,18 @@ void GameRoom::onGameDidEnd()
 
 void GameRoom::onGameEnd()
 {
+	// cacualte player offset ;
+	for (auto& ref : m_vPlayers)
+	{
+		if (!ref)
+		{
+			continue;
+		}
+		addPlayerOneRoundOffsetToRecorder(ref->getUserUID(), ref->getSingleOffset(), ref->getSingleWaiBaoOffset());
+	}
+	getRoomRecorder()->addSingleRoundRecorder(getCurRoundRecorder());
+
+	// all player game end ;
 	for (auto& ref : m_vPlayers)
 	{
 		if (ref)
@@ -594,6 +620,26 @@ uint16_t GameRoom::getSeatCnt()
 	return m_vPlayers.size();
 }
 
+std::shared_ptr<IGameRoomRecorder> GameRoom::getRoomRecorder()
+{
+	return m_ptrRoomRecorder;
+}
+
+std::shared_ptr<ISingleRoundRecorder> GameRoom::getCurRoundRecorder()
+{
+	return m_ptrCurRoundRecorder;
+}
+
+std::shared_ptr<IGameRoomRecorder> GameRoom::createRoomRecorder()
+{
+	return std::make_shared<IGameRoomRecorder>();
+}
+
+std::shared_ptr<ISingleRoundRecorder> GameRoom::createSingleRoundRecorder()
+{
+	return std::make_shared<ISingleRoundRecorder>();
+}
+
 IGameRoomDelegate* GameRoom::getDelegate()
 {
 	return m_pDelegate;
@@ -619,4 +665,17 @@ GameRoom::stStandPlayer* GameRoom::getStandPlayerByUID(uint32_t nUserID)
 		return nullptr;
 	}
 	return iter->second;
+}
+
+bool GameRoom::addPlayerOneRoundOffsetToRecorder(uint32_t nUserUID, int32_t nOffset, int32_t nWaiBaoOffset )
+{
+	auto pCurRecorder = getCurRoundRecorder();
+	if (pCurRecorder == nullptr)
+	{
+		LOGFMTE("why this room id = %u single recorder is null ?  can not add uid = %u offset = %d", getRoomID(),nUserUID,nOffset );
+	}
+	else
+	{
+		pCurRecorder->addPlayerRecorderInfo(nUserUID, nOffset, nWaiBaoOffset );
+	}
 }

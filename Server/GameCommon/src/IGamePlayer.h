@@ -11,6 +11,7 @@ public:
 		m_nSessionID = pEnterPlayer->nSessionID;
 		m_nUserUID = pEnterPlayer->nUserUID;
 		m_nIdx = nIdx;
+		m_nWaiBaoOffset = 0;
 		m_isOnline = true;
 	}
 
@@ -34,6 +35,11 @@ public:
 		return m_nCurOffset;
 	}
 
+	int32_t getSingleWaiBaoOffset()
+	{
+		return m_nWaiBaoOffset;
+	}
+
 	int32_t addSingleOffset(int32_t nOffset)
 	{
 		m_nCurOffset += nOffset;
@@ -55,6 +61,7 @@ private:
 	uint32_t m_nSessionID;
 	uint32_t m_nUserUID;
 	int32_t m_nCurOffset;
+	int32_t m_nWaiBaoOffset;
 	uint16_t m_nIdx;
 	int32_t m_nChips;
 };

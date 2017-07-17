@@ -82,7 +82,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\GameRecorderMgr.cpp" />
     <ClCompile Include="src\GameRoom.cpp" />
     <ClCompile Include="src\IGameRecorder.cpp" />
     <ClCompile Include="src\IGameRoomManager.cpp" />
@@ -94,7 +93,6 @@
     <ClCompile Include="src\MJPrivateRoom.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\GameRecorderMgr.h" />
     <ClInclude Include="src\GameRoom.h" />
     <ClInclude Include="src\IGamePlayer.h" />
     <ClInclude Include="src\IGameRecorder.h" />

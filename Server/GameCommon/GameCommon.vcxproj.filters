@@ -32,9 +32,6 @@
     <ClCompile Include="src\MJPrivateRoom.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\GameRecorderMgr.cpp">
-      <Filter>src\Game\Recorder</Filter>
-    </ClCompile>
     <ClCompile Include="src\IGameRecorder.cpp">
       <Filter>src\Game\Recorder</Filter>
     </ClCompile>
@@ -63,9 +60,6 @@
   <ItemGroup>
     <ClInclude Include="src\MJPrivateRoom.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GameRecorderMgr.h">
-      <Filter>src\Game\Recorder</Filter>
     </ClInclude>
     <ClInclude Include="src\IGameRecorder.h">
       <Filter>src\Game\Recorder</Filter>
