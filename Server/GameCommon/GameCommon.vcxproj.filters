@@ -44,9 +44,6 @@
     <ClCompile Include="src\IMJRoom.cpp">
       <Filter>src\MJBase</Filter>
     </ClCompile>
-    <ClCompile Include="src\MJGameReplayManager.cpp">
-      <Filter>src\Game\Replay</Filter>
-    </ClCompile>
     <ClCompile Include="src\MJPlayer.cpp">
       <Filter>src\MJBase</Filter>
     </ClCompile>
@@ -70,9 +67,6 @@
     <ClInclude Include="src\IGameRoomManager.h">
       <Filter>src\Game</Filter>
     </ClInclude>
-    <ClInclude Include="src\IMJPoker.h">
-      <Filter>src\Game</Filter>
-    </ClInclude>
     <ClInclude Include="src\IMJPlayer.h">
       <Filter>src\MJBase</Filter>
     </ClInclude>
@@ -90,9 +84,6 @@
     </ClInclude>
     <ClInclude Include="src\IMJPlayerCard.h">
       <Filter>src\MJBase</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MJGameReplayManager.h">
-      <Filter>src\Game\Replay</Filter>
     </ClInclude>
     <ClInclude Include="src\MJPlayer.h">
       <Filter>src\MJBase</Filter>
@@ -137,6 +128,12 @@
       <Filter>src\Game</Filter>
     </ClInclude>
     <ClInclude Include="src\IGameRoomDelegate.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJGameReplay.h">
+      <Filter>src\Game\Replay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IPoker.h">
       <Filter>src\Game</Filter>
     </ClInclude>
   </ItemGroup>

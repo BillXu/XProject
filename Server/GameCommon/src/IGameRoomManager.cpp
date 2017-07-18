@@ -4,6 +4,7 @@
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include "stEnterRoomData.h"
+#include <ctime>
 IGameRoomManager::~IGameRoomManager()
 {
 	for (auto pair : m_vRooms)
@@ -205,12 +206,48 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 
 uint32_t IGameRoomManager::generateRoomID()
 {
-	return 0;
+	uint32_t nRoomID = 0;
+	uint32_t nTryTimes = 0;
+	UINT32 nBase = 100000;
+	do
+	{
+		uint32_t nLastID = (uint32_t)time(nullptr) % ( nBase / 100 );
+		uint32_t nFirstID = rand() % 9 + 1; // [ 1- 9 ]
+		uint32_t nSecondID = rand() % 100;
+		nRoomID = nFirstID * nBase + nSecondID * ( nBase / 100 ) + nLastID;
+
+		++nTryTimes;
+		if ( nTryTimes > 1 )
+		{
+			LOGFMTD("try times = %u to generate room id ", nTryTimes);
+			if ( nTryTimes > 600)
+			{
+				LOGFMTE("try to many times ");
+				nBase *= 10;
+				nTryTimes = 1;
+			}
+		}
+		
+		if ( getRoomByID(nRoomID) == nullptr)
+		{
+			return nRoomID;
+		}
+
+	} while ( 1 );
+
+	return nRoomID;
 }
 
 uint32_t IGameRoomManager::generateSieralID()
 {
-	return 0;
+	m_nMaxSieralID += getSvrApp()->getCurSvrMaxCnt();
+	return m_nMaxSieralID;
+}
+
+uint32_t IGameRoomManager::generateReplayID()
+{
+	m_nMaxReplayUID += getSvrApp()->getCurSvrMaxCnt();
+	return m_nMaxReplayUID;
 }
 
 void IGameRoomManager::update(float fDeta)
@@ -238,4 +275,55 @@ void IGameRoomManager::update(float fDeta)
 void IGameRoomManager::deleteRoom( uint32_t nRoomID )
 {
 	m_vWillDeleteRoom.push_back(nRoomID);
+}
+
+void IGameRoomManager::onConnectedSvr(bool isReconnected)
+{
+	if ( isReconnected )
+	{
+		return;
+	}
+
+	auto asyq = getSvrApp()->getAsynReqQueue();
+
+	// read max replay id ;
+	std::ostringstream ss;
+	ss << "SELECT max(replayID) as maxReplayID FROM gamereplay where roomType = " << getRoomType() << ";";
+	Json::Value jsReq;
+	jsReq["sql"] = ss.str();
+	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB,getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
+		uint32_t nAft = retContent["afctRow"].asUInt();
+		auto jsData = retContent["data"];
+		if (nAft == 0 || jsData.isNull())
+		{
+			LOGFMTW("read maxReplayID id error, but no matter ");
+			return;
+		}
+
+		auto jsRow = jsData[(uint32_t)0];
+		m_nMaxReplayUID = jsRow["maxReplayID"].asUInt();
+		m_nMaxReplayUID -= m_nMaxReplayUID % getSvrApp()->getCurSvrMaxCnt();
+		m_nMaxReplayUID += getSvrApp()->getCurSvrIdx();
+		LOGFMTD("maxReplayID id  = %u", m_nMaxReplayUID);
+	});
+
+	// read max room sieral num 
+	ss.clear();
+	ss << "SELECT max(sieralNum) as sieralNum FROM roomrecorder where roomType = " << getRoomType() << ";";
+	jsReq["sql"] = ss.str();
+	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+		uint32_t nAft = retContent["afctRow"].asUInt();
+		auto jsData = retContent["data"];
+		if (nAft == 0 || jsData.isNull())
+		{
+			LOGFMTW("read sieralNum id error, but no matter ");
+			return;
+		}
+
+		auto jsRow = jsData[(uint32_t)0];
+		m_nMaxSieralID = jsRow["sieralNum"].asUInt();
+		m_nMaxSieralID -= m_nMaxSieralID % getSvrApp()->getCurSvrMaxCnt();
+		m_nMaxSieralID += getSvrApp()->getCurSvrIdx();
+		LOGFMTD("sieralNum id  = %u", m_nMaxSieralID);
+	});
 }

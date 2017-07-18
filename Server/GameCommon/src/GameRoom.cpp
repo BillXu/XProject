@@ -19,6 +19,9 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_ptrCurRoundRecorder = nullptr;
 	m_ptrRoomRecorder = createRoomRecorder();
 	m_ptrRoomRecorder->init(nSeialNum, nRoomID, vJsOpts["creatorUID"].asUInt(), getRoomType(), vJsOpts);
+
+	m_ptrGameReplay = std::make_shared<MJReplayGame>();
+	m_ptrGameReplay->init( getRoomType(),vJsOpts);
 	return true;
 }
 
@@ -150,9 +153,11 @@ void GameRoom::onStartGame()
 		getDelegate()->onStartGame(this);
 	}
 
+	// game replayer 
+	m_ptrGameReplay->startNewReplay(getRoomMgr()->generateReplayID());
 	// cur round recorder ;
 	m_ptrCurRoundRecorder = createSingleRoundRecorder();
-	m_ptrCurRoundRecorder->init(getRoomRecorder()->getRoundRecorderCnt(), time(nullptr), 0);
+	m_ptrCurRoundRecorder->init(getRoomRecorder()->getRoundRecorderCnt(), time(nullptr), m_ptrGameReplay->getReplayID() );
 }
 
 bool GameRoom::canStartGame()
@@ -183,15 +188,29 @@ void GameRoom::onGameDidEnd()
 void GameRoom::onGameEnd()
 {
 	// cacualte player offset ;
-	for (auto& ref : m_vPlayers)
+	if (getDelegate() && getDelegate()->isEnableRecorder() )
 	{
-		if (!ref)
+		for (auto& ref : m_vPlayers)
 		{
-			continue;
+			if (!ref)
+			{
+				continue;
+			}
+			addPlayerOneRoundOffsetToRecorder(ref->getUserUID(), ref->getSingleOffset(), ref->getSingleWaiBaoOffset());
 		}
-		addPlayerOneRoundOffsetToRecorder(ref->getUserUID(), ref->getSingleOffset(), ref->getSingleWaiBaoOffset());
+		getRoomRecorder()->addSingleRoundRecorder(getCurRoundRecorder());
 	}
-	getRoomRecorder()->addSingleRoundRecorder(getCurRoundRecorder());
+
+	// do save this game replay
+	if (getDelegate() && getDelegate()->isEnableReplay())
+	{
+		m_ptrGameReplay->doSaveReplayToDB(getRoomMgr()->getSvrApp()->getAsynReqQueue());
+	}
+	
+	if (getDelegate())
+	{
+		getDelegate()->onGameEnd(this);
+	}
 
 	// all player game end ;
 	for (auto& ref : m_vPlayers)
@@ -200,11 +219,6 @@ void GameRoom::onGameEnd()
 		{
 			ref->onGameEnd();
 		}
-	}
-
-	if (getDelegate())
-	{
-		getDelegate()->onGameEnd(this);
 	}
 }
 
@@ -669,6 +683,11 @@ GameRoom::stStandPlayer* GameRoom::getStandPlayerByUID(uint32_t nUserID)
 
 bool GameRoom::addPlayerOneRoundOffsetToRecorder(uint32_t nUserUID, int32_t nOffset, int32_t nWaiBaoOffset )
 {
+	if ( ( nullptr == getDelegate() ) || ( false == getDelegate()->isEnableRecorder() ) )
+	{
+		return false;
+	}
+
 	auto pCurRecorder = getCurRoundRecorder();
 	if (pCurRecorder == nullptr)
 	{
@@ -678,4 +697,16 @@ bool GameRoom::addPlayerOneRoundOffsetToRecorder(uint32_t nUserUID, int32_t nOff
 	{
 		pCurRecorder->addPlayerRecorderInfo(nUserUID, nOffset, nWaiBaoOffset );
 	}
+	return true;
+}
+
+bool GameRoom::addReplayFrame(uint32_t nFrameType, Json::Value& jsFrameArg)
+{
+	if ((nullptr == getDelegate()) || (false == getDelegate()->isEnableReplay()))
+	{
+		return false;
+	}
+
+	m_ptrGameReplay->addFrame(nFrameType, jsFrameArg);
+	return true;
 }

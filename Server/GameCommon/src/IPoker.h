@@ -1,9 +1,9 @@
 #pragma once
 #include "NativeTypes.h"
-class IMJPoker
+class IPoker
 {
 public:
-	virtual ~IMJPoker(){}
+	virtual ~IPoker(){}
 
 	virtual void shuffle() = 0;
 	virtual void pushCardToFron( uint8_t nCard ) = 0;
