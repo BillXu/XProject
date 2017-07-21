@@ -19,4 +19,5 @@ enum eMJFrameType
 	eMJFrame_Decl_BuGang,// { idx : 2 }
 	eMJFrame_HuaGang, // { idx: 2 , hua : 2 , newCard : 23 }
 	eMJFrame_Player_Ting, // { idx : 2 }
+	eMJFrame_Chi,// { invokerIdx : 0 ,idx : 3, card : 23, eatWith : [ 23,23] }
 };

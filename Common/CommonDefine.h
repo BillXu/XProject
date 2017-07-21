@@ -4,34 +4,20 @@
 #define  MAX_LEN_PASSWORD 25 // can not big then unsigned char max = 255
 #define MAX_LEN_CHARACTER_NAME 25 // can not big then unsigned char  max = 255
 #define MAX_LEN_SIGURE 200   // can not big then unsigned char  max = 255
-#define MAX_LEN_ROOM_NAME 25
 #define MAX_LEN_HEADICON_URL 200
-#define MAX_LEN_ROOM_DESC 60  // can not big then unsigned char max = 255
-#define MAX_LEN_ROOM_INFORM 500  
 #define MAX_LEN_EMAIL 50
 #define MAX_LEN_SPEAK_WORDS 200  
 #define MAX_MSG_BUFFER_LEN 59640
 
 #define TIME_HEAT_BEAT 3  // heat beat time ;
 
-#define PEER_CARD_COUNT 3
 #define GOLDEN_PEER_CARD 3
-#define TAXAS_PEER_CARD 2
-#define TAXAS_PUBLIC_CARD 5
 #define MAX_ROOM_PEER 5
-#define MAX_TAXAS_HOLD_CARD 5
 #define MAX_UPLOAD_PIC 4
-#define MAX_JOINED_CLUB_CNT 10
 
-#define MATCH_MGR_UID 1349
 
 #define NIUNIU_HOLD_CARD_COUNT 5
 
-
-#define COIN_CONDITION_TO_GET_CHARITY 500
-#define TIMES_GET_CHARITY_PER_DAY 3   // 2 HOURE
-#define COIN_FOR_CHARITY 800
-#define GOLDEN_ROOM_COIN_LEVEL_CNT 4
 #define GOLDEN_PK_ROUND 2
 
 #define MAX_IP_STRING_LEN 17
@@ -59,15 +45,6 @@ enum eMJGameType
 	eMJ_Max,
 };
 
-enum eVipCardType
-{
-	eCard_None,
-	eCard_LV1,
-	eCard_LV2,
-	eCard_LV3,
-	eCard_Max,
-};
-
 enum ePlayerType
 {
 	ePlayer_Normal,
@@ -78,6 +55,15 @@ enum ePlayerType
 
 enum eRoomState
 {
+	// new state 
+	eRoomSate_WaitReady,
+	eRoomState_StartGame,
+	eRoomState_WaitPlayerAct,  // 等待玩家操作 { idx : 0 , huaCard : 23 }
+	eRoomState_DoPlayerAct,  // 玩家操作 // { idx : 0 ,huIdxs : [1,3,2,], act : eMJAct_Chi , card : 23, invokeIdx : 23, eatWithA : 23 , eatWithB : 22 }
+	eRoomState_AskForRobotGang, // 询问玩家抢杠胡， { invokeIdx : 2 , card : 23 }
+	eRoomState_WaitPlayerChu, // 等待玩家出牌 { idx : 2 }
+
+	// above is new ;
 	eRoomState_None,
 	eRoomState_WaitOpen,
 	eRoomState_Opening,
@@ -86,31 +72,12 @@ enum eRoomState
 	eRoomState_WillDead,
 	eRoomState_TP_Dead = eRoomState_Dead,
 	eRoomState_WaitJoin,
-	eRoomSate_WaitReady = eRoomState_WaitJoin,
 	eRoomState_NN_WaitJoin = eRoomState_WaitJoin ,
 	eRoomState_TP_WaitJoin = eRoomState_WaitJoin,
 	eRoomState_WillClose,
 	eRoomState_Close,
 	eRoomState_DidGameOver,
-	eRoomState_StartGame,
 	eRoomState_NN_Disribute4Card = eRoomState_StartGame,
-	// state for texas poker
-	eRoomState_TP_BetBlind = eRoomState_StartGame,
-	eRoomState_TP_PrivateCard = eRoomState_StartGame,
-	eRoomState_TP_Beting,
-	eRoomState_TP_OneRoundBetEndResult,
-	eRoomState_TP_PublicCard,
-	eRoomState_TP_GameResult,
-	eRoomState_TP_MAX,
-	eRoomState_TP_Insurance = eRoomState_TP_MAX,  // in case of changing below enum value ; i want add a insurance value ;
-
-	// state for Baccarat ;
-	eRoomState_BC_Shuffle,
-	eRoomState_BC_WaitBet,
-	eRoomState_BC_Distribute,
-	eRoomState_BC_AddIdleCard,
-	eRoomState_BC_AddBankerCard,
-	eRoomState_BC_Caculate,
 
 	// state for NiuNiu
 	eRoomState_NN_TryBanker,
@@ -132,12 +99,12 @@ enum eRoomState
 	eRoomState_WaitDecideQue,  // 等待玩家定缺
 	eRoomState_DoDecideQue,  //  玩家定缺
 	eRoomState_DoFetchCard, // 玩家摸牌
-	eRoomState_WaitPlayerAct,  // 等待玩家操作 { idx : 0 , huaCard : 23 }
-	eRoomState_WaitPlayerChu, // 等待玩家出牌 { idx : 2 }
-	eRoomState_DoPlayerAct,  // 玩家操作 // { idx : 0 ,huIdxs : [1,3,2,], act : eMJAct_Chi , card : 23, invokeIdx : 23, eatWithA : 23 , eatWithB : 22 }
+	
+	
+	
 	eRoomState_WaitOtherPlayerAct,  // 等待玩家操作，有人出牌了 { invokerIdx : 0 , card : 0 ,cardFrom : eMJActType , arrNeedIdxs : [2,0,1] } 
 	eRoomState_DoOtherPlayerAct,  // 其他玩家操作了。
-	eRoomState_AskForRobotGang, // 询问玩家抢杠胡， { invokeIdx : 2 , card : 23 }
+	
 	eRoomState_AskForHuAndPeng, // 询问玩家碰或者胡  { invokeIdx : 2 , card : 23 }
 	eRoomState_WaitSupplyCoin, // 等待玩家补充金币  {nextState: 234 , transData : { ... } }
 	eRoomState_WaitPlayerRecharge = eRoomState_WaitSupplyCoin,  //  等待玩家充值
@@ -354,6 +321,7 @@ enum eMailType
 	eMail_Wechat_Pay, // { ret : 0 , diamondCnt : 23 }  // ret : 1 means verify error 
 	eMail_AppleStore_Pay, // { ret : 0 , diamondCnt : 23 }   // ret : 1 means verify error 
 	eMail_Agent_AddCard, // { agentID : 23 , serialNo : 2345 , cardOffset : 23 }
+	eMail_Consume_Diamond, // { diamond : 23 , roomID :23 } 
 
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;
@@ -379,47 +347,11 @@ enum eMailState
 	eMailState_Max,
 };
 
-// game ranker
-enum eRankType
-{
-	eRank_AllCoin,
-	eRank_SingleWinMost,
-	eRank_YesterDayWin,
-	eRank_Max,
-};
-#define RANK_SHOW_PEER_COUNT 50
-
-
-#define MAX_PAIJIU_HISTROY_RECORDER 20
-
-enum eRoomLevel
-{
-	eRoomLevel_None,
-	eRoomLevel_Junior = eRoomLevel_None ,
-	eRoomLevel_Middle,
-	eRoomLevel_Advanced,
-	eRoomLevel_Super,
-	eRoomLevel_Max,
-};
-
 // texas poker timer measus by second
-#define TIME_TAXAS_FILP_CARD 0.2f
 #define TIME_PLAYER_BET_COIN_ANI 0.3f
 #define TIME_BLIND_BET_STATE (TIME_PLAYER_BET_COIN_ANI + 1) 
-#define TIME_TAXAS_BET 15
-#define TIME_TAXAS_WAIT_COIN_GOTO_MAIN_POOL 0.6f
-#define TIME_TAXAS_MAKE_VICE_POOLS 0.8f
-#define TIME_TAXAS_DISTRIBUTE_ONE_HOLD_CARD 0.2f
-#define TIME_TAXAS_DISTRIBUTE_HOLD_CARD_DELAY ( 0.65f * TIME_TAXAS_DISTRIBUTE_ONE_HOLD_CARD )
 #define TIME_DISTRIBUTE_ONE_PUBLIC_CARD 0.5f
-#define TIME_TAXAS_WIN_COIN_GOTO_PLAYER 1.2f
-#define TIME_TAXAS_CACULATE_PER_BET_POOL (TIME_TAXAS_WIN_COIN_GOTO_PLAYER+1.0f)
-#define TIME_TAXAS_SHOW_BEST_CARD 0.7f
-#define TIME_TAXAS_WAIT_BUY_INSURANCE 20
-#define TIME_TAXAS_WAIT_CALCULATE_INSURANCE 4
 
-#define MIN_PEERS_IN_ROOM_ROBOT 6
-#define MAX_PEERS_IN_TAXAS_ROOM 9
 #define TIME_LOW_LIMIT_FOR_NORMAL_ROOM 10
 
 // time for niuniu 

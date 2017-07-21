@@ -1,61 +1,59 @@
-#pragma once 
-#include "NativeTypes.h"
-#include "timer.h"
+#pragma once
+#include "IGamePlayer.h"
+#include "Timer.h"
 class IMJPlayerCard;
-struct stEnterRoomData;
 class IMJPlayer
+	:public IGamePlayer
 {
 public:
-	virtual ~IMJPlayer(){}
-	virtual void init(stEnterRoomData* pData) = 0;
-	virtual void onComeBackRoom(stEnterRoomData* pData) = 0 ;
-	virtual void onWillStartGame() = 0;
-	virtual void onStartGame() = 0;
-	virtual void onGameDidEnd() = 0;
-	virtual void onGameEnd() = 0 ;
-	virtual uint8_t getIdx() = 0;
-	virtual void setIdx(uint8_t nIdx) = 0;
-	virtual int32_t getCoin() = 0;
-	virtual void setCoin( int32_t nNewCoin ) = 0 ;  // only used for comsume desk fee
-	virtual int32_t onRecievedSupplyCoin( uint32_t nSupplyCoin ) = 0;
-	virtual void addOffsetCoin( int32_t nOffset ) = 0 ;
-	virtual int32_t getOffsetCoin() = 0;
-	virtual IMJPlayerCard* getPlayerCard() = 0;
-	virtual void setState( uint32_t eState ) = 0;
-	virtual bool haveState( uint32_t eState ) = 0;
-	virtual uint32_t getState() = 0;
-	virtual uint32_t getSessionID() = 0;
-	virtual uint32_t getUID() = 0;
-	virtual void signGangFlag() = 0;
-	virtual void clearGangFlag() = 0;
-	virtual bool haveGangFalg() = 0;
-	virtual void signDecareBuGangFlag() = 0;
-	virtual void clearDecareBuGangFlag() = 0;
-	virtual bool haveDecareBuGangFalg() = 0;
-	virtual bool isHaveLouHuFlag() = 0;
-	virtual void clearLouHuFlag() = 0 ;
-	virtual void signLouHuFlag() = 0;
-	virtual bool isRobot() = 0;
-	virtual bool isTrusteed() = 0;
-	virtual void switchTrusteed(bool isTrusted) = 0;
-	virtual void setTrusteeActFunc(CTimer::time_func pFunc) = 0;
-	virtual bool isTempLeaveRoom() = 0;
-	virtual bool doTempLeaveRoom() = 0 ;
+	enum eMJActFlag
+	{
+		eMJActFlag_Gang = 1 ,
+		eMJActFlag_DeclBuGang = 1 << 1 ,
+		eMJActFlag_BuGang = 1 << 2 | eMJActFlag_Gang,
+		eMJActFlag_AnGang = 1 << 3 | eMJActFlag_Gang,
+		eMJActFlag_MingGang = 1 << 4 | eMJActFlag_Gang,
 
-	virtual uint8_t getDianPaoCnt() = 0;
-	virtual void addDianPaoCnt() = 0 ;
+		eMJActFlag_LouHu = 1 << 5,
+		eMJActFlag_LouPeng = 1 << 6,
+
+		eMJActFlag_CanTianHu = 1 << 7,
+		eMJActFlag_WaitCheckTianTing = 1 << 8,
+		eMJActFlag_TianTing = 1 << 9,
+		eMJActFlag_Max,
+	};
+public:
+	void init(stEnterRoomData* pData, uint16_t nIdx )override;
+	void onGameWillStart()override;
+	void onGameStart()override;
+	void onGameDidEnd()override;
+	void onGameEnd()override;
 	
-	virtual uint8_t getHuCnt() = 0;
-	virtual void addHuCnt() = 0;
+	void signFlag( uint32_t nFlag );
+	void clearFlag( uint32_t nFlag );
+	bool haveFlag( uint32_t nFlag );
+	void zeroFlag();
 
-	virtual uint8_t getZiMoCnt() = 0 ;
-	virtual void addZiMoCnt() = 0;
+	uint8_t getDianPaoCnt();
+	void addDianPaoCnt();
 
-	virtual uint8_t getAnGangCnt() = 0 ;
-	virtual void addAnGangCnt() = 0;
+	uint8_t getHuCnt();
+	void addHuCnt();
 
-	virtual uint8_t getMingGangCnt() = 0 ;
-	virtual void addMingGangCnt() = 0;
-	virtual void setIsOnline(bool isOnline) = 0;
-	virtual bool isOnline() = 0;
+	uint8_t getZiMoCnt();
+	void addZiMoCnt();
+
+	uint8_t getAnGangCnt();
+	void addAnGangCnt();
+
+	uint8_t getMingGangCnt();
+	void addMingGangCnt();
+	virtual IMJPlayerCard* getPlayerCard() = 0 ;
+private:
+	uint32_t m_nFlag;
+	uint8_t m_nHuCnt;
+	uint8_t m_nZiMoCnt; 
+	uint8_t m_nDianPaoCnt;
+	uint8_t m_nMingGangCnt;
+	uint8_t m_nAnGangCnt;
 };

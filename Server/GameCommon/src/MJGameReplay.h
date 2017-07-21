@@ -35,7 +35,6 @@ public:
 	void init( uint32_t nRoomType ,Json::Value& jsRoomOpts )
 	{
 		setReplayRoomInfo(jsRoomOpts);
-		setReplayID(nReplayID);
 	}
 	
 	void startNewReplay( uint32_t nReplayID )

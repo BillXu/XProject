@@ -1,16 +1,16 @@
 #pragma once 
-#include "IMJRoomState.h"
+#include "IGameRoomState.h"
 #include "IMJRoom.h"
 #include "log4z.h"
 #include "IMJPlayer.h"
 class MJRoomStateDoPlayerAct
-	:public IMJRoomState
+	:public IGameRoomState
 {
 public:
 	uint32_t getStateID()final{ return eRoomState_DoPlayerAct; }
-	void enterState(IMJRoom* pmjRoom, Json::Value& jsTranData)override
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
 	{
-		IMJRoomState::enterState(pmjRoom, jsTranData);
+		IGameRoomState::enterState(pmjRoom, jsTranData);
 		m_nActIdx = jsTranData["idx"].asUInt();
 		m_eActType = jsTranData["act"].asUInt();
 		if (jsTranData["card"].isNull() == false)
@@ -73,7 +73,7 @@ public:
 			break;
 		case eMJAct_Hu:
 		{
-			if (getRoom()->isGameOver())
+			if (((IMJRoom*)getRoom())->isGameOver())
 			{
 				getRoom()->goToState(eRoomState_GameEnd);
 				return;
@@ -90,7 +90,7 @@ public:
 
 			do
 			{
-				nIdx = getRoom()->getNextActPlayerIdx(nIdx);
+				nIdx = ((IMJRoom*)getRoom())->getNextActPlayerIdx(nIdx);
 				LOGFMTD("next act player should not in hu list, try next");
 			} while (std::find(m_vHuIdxs.begin(), m_vHuIdxs.end(), nIdx) != m_vHuIdxs.end());
 			
@@ -100,7 +100,7 @@ public:
 		}
 			break;
 		case eMJAct_Chu:
-			if (getRoom()->isAnyPlayerPengOrHuThisCard(m_nActIdx, m_nCard))
+			if (((IMJRoom*)getRoom())->isAnyPlayerPengOrHuThisCard(m_nActIdx, m_nCard))
 			{
 				Json::Value jsValue;
 				jsValue["invokeIdx"] = m_nActIdx;
@@ -109,14 +109,14 @@ public:
 				return;
 			}
 
-			if (getRoom()->isGameOver())
+			if (((IMJRoom*)getRoom())->isGameOver())
 			{
 				getRoom()->goToState(eRoomState_GameEnd);
 				return;
 			}
 
 			{
-				auto nIdx = getRoom()->getNextActPlayerIdx(m_nActIdx);
+				auto nIdx = ((IMJRoom*)getRoom())->getNextActPlayerIdx(m_nActIdx);
 
 			// next player mo pai 
 				doNextPlayerMoPai(nIdx);
@@ -129,22 +129,23 @@ public:
 protected:
 	virtual void doAct()
 	{
+		auto pRoom = ((IMJRoom*)getRoom());
 		switch (m_eActType)
 		{
 		case eMJAct_Mo:
-			getRoom()->onPlayerMo(m_nActIdx);
+			pRoom->onPlayerMo(m_nActIdx);
 			break;
 		case eMJAct_Peng:
-			getRoom()->onPlayerPeng(m_nActIdx,m_nCard,m_nInvokeIdx);
+			pRoom->onPlayerPeng(m_nActIdx,m_nCard,m_nInvokeIdx);
 			break;
 		case eMJAct_MingGang:
-			getRoom()->onPlayerMingGang(m_nActIdx,m_nCard,m_nInvokeIdx);
+			pRoom->onPlayerMingGang(m_nActIdx,m_nCard,m_nInvokeIdx);
 			break;
 		case eMJAct_AnGang:
-			getRoom()->onPlayerAnGang(m_nActIdx, m_nCard);
+			pRoom->onPlayerAnGang(m_nActIdx, m_nCard);
 			break;
 		case eMJAct_BuGang:
-			getRoom()->onPlayerBuGang(m_nActIdx,m_nCard);
+			pRoom->onPlayerBuGang(m_nActIdx,m_nCard);
 			break;
 		case eMJAct_Hu:
 		{
@@ -152,11 +153,11 @@ protected:
 			{
 				m_vHuIdxs.push_back(m_nActIdx);
 			}
-			getRoom()->onPlayerHu(m_vHuIdxs, m_nCard, m_nInvokeIdx);
+			pRoom->onPlayerHu(m_vHuIdxs, m_nCard, m_nInvokeIdx);
 		}
 			break;
 		case eMJAct_Chu:
-			getRoom()->onPlayerChu(m_nActIdx, m_nCard);
+			pRoom->onPlayerChu(m_nActIdx, m_nCard);
 			break;
 		case eMJAct_Chi:
 			if (m_vEatWith[0] * m_vEatWith[1] == 0)
@@ -164,7 +165,7 @@ protected:
 				LOGFMTE("eat lack of right card");
 				break;
 			}
-			getRoom()->onPlayerEat(m_nActIdx,m_nCard,m_vEatWith[0],m_vEatWith[1],m_nInvokeIdx);
+			pRoom->onPlayerEat(m_nActIdx,m_nCard,m_vEatWith[0],m_vEatWith[1],m_nInvokeIdx);
 			break;
 		default:
 			LOGFMTE("unknow act  how to do it %u",m_eActType);

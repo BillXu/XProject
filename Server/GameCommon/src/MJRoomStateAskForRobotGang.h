@@ -1,26 +1,25 @@
 #pragma once 
-#include "IMJRoomState.h"
+#include "IGameRoomState.h"
 #include "log4z.h"
 #include "IMJRoom.h"
 #include "IMJPlayer.h"
 #include "IMJPlayerCard.h"
 #include <cassert>
 class MJRoomStateAskForRobotGang
-	:public IMJRoomState
+	:public IGameRoomState
 {
 public:
 	uint32_t getStateID()final{ return eRoomState_AskForRobotGang; }
-	void enterState(IMJRoom* pmjRoom, Json::Value& jsTranData)override
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
 	{
-		IMJRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(pmjRoom->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);
+		IGameRoomState::enterState(pmjRoom, jsTranData);
+		setStateDuringTime( 100000000 );
 		m_nInvokeIdx = jsTranData["invokeIdx"].asUInt();
 		m_nCard = jsTranData["card"].asUInt();
 		m_vWaitIdx.clear();
-		getRoom()->onAskForRobotGang(m_nInvokeIdx, m_nCard, m_vWaitIdx);
+		((IMJRoom*)getRoom())->onAskForRobotGang(m_nInvokeIdx, m_nCard, m_vWaitIdx);
 		assert(m_vWaitIdx.empty() == false && "invalid argument");
 		m_vDoHuIdx.clear();
-		getRoom()->onCheckTrusteeForHuOtherPlayerCard(m_vWaitIdx, m_nCard);
 	}
 
 	void onStateTimeUp()override
@@ -34,7 +33,7 @@ public:
 
 	void responeReqActList(uint32_t nSessionID)
 	{
-		auto pPlayer = getRoom()->getMJPlayerBySessionID(nSessionID);
+		auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 		if (!pPlayer)
 		{
 			LOGFMTE("you are  not in room id = %u , session id = %u , can not send you act list", getRoom()->getRoomID(), nSessionID);
@@ -55,7 +54,7 @@ public:
 
 		if (jsActs.empty())
 		{
-			LOGFMTE(" robot gang you are not in any wait list , so cannot resp you act list room id = %u , uid = %u", getRoom()->getRoomID(), pPlayer->getUID());
+			LOGFMTE(" robot gang you are not in any wait list , so cannot resp you act list room id = %u , uid = %u", getRoom()->getRoomID(), pPlayer->getUserUID());
 			return;
 		}
 
@@ -66,7 +65,7 @@ public:
 
 		jsMsg["acts"] = jsActs;
 		getRoom()->sendMsgToPlayer(jsMsg, MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD, nSessionID);
-		LOGFMTD(" resp act list inform uid = %u act about other card room id = %u card = %u", pPlayer->getUID(), getRoom()->getRoomID(), m_nCard);
+		LOGFMTD(" resp act list inform uid = %u act about other card room id = %u card = %u", pPlayer->getUserUID(), getRoom()->getRoomID(), m_nCard);
 	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
@@ -84,7 +83,7 @@ public:
 
 		auto actType = prealMsg["actType"].asUInt();
 		//auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = getRoom()->getMJPlayerBySessionID(nSessionID);
+		auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
 		do
 		{
@@ -114,7 +113,7 @@ public:
 				break;
 			}
 
-			auto pMJCard = pPlayer->getPlayerCard();
+			auto pMJCard = ((IMJPlayer*)pPlayer)->getPlayerCard();
 			if (!pMJCard->canHuWitCard(m_nCard))
 			{
 				nRet = 2;

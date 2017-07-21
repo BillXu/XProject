@@ -8,6 +8,7 @@ public:
 public:
 	virtual ~IMJPlayerCard(){}
 	virtual void reset() = 0;
+	virtual void onDoHu(uint16_t nInvokerIdx , uint8_t nHuCard , bool isInvokerHaveGangFlag ) = 0;
 	virtual void addDistributeCard( uint8_t nCardNum ) = 0 ;
 	virtual bool onGangCardBeRobot(uint8_t nCard ) = 0;
 	virtual bool onCardBeGangPengEat( uint8_t nCard ) = 0 ;

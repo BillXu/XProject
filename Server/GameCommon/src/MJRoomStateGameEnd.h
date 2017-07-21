@@ -1,14 +1,14 @@
 #pragma once 
-#include "IMJRoomState.h"
+#include "IGameRoomState.h"
 #include "IMJRoom.h"
 class MJRoomStateGameEnd
-	:public IMJRoomState
+	:public IGameRoomState
 {
 public:
 	uint32_t getStateID(){ return eRoomState_GameEnd; }
-	void enterState(IMJRoom* pmjRoom, Json::Value& jsTranData)
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
-		IMJRoomState::enterState(pmjRoom, jsTranData);
+		IGameRoomState::enterState(pmjRoom, jsTranData);
 		getRoom()->onGameEnd();
 		setStateDuringTime(eTime_GameOver * 0.1);
 	}

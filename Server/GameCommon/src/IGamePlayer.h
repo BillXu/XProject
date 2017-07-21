@@ -13,6 +13,7 @@ public:
 		m_nIdx = nIdx;
 		m_nWaiBaoOffset = 0;
 		m_isOnline = true;
+		m_nState = 0;
 	}
 
 	void setNewSessionID(uint32_t nNewSessionID)
@@ -48,7 +49,19 @@ public:
 	{
 		return m_nChips;
 	}
+	void setState(uint32_t eState) 
+	{
+		m_nState = eState;
+	};
 
+	bool haveState(uint32_t eState)
+	{
+		return (m_nState & eState) == eState;
+	}
+	uint32_t getState()
+	{
+		return m_nState;
+	}
 	virtual void onGameWillStart(){ m_nCurOffset = 0; };
 	virtual void onGameStart() {};
 	virtual void onGameEnd() {};
@@ -64,4 +77,5 @@ private:
 	int32_t m_nWaiBaoOffset;
 	uint16_t m_nIdx;
 	int32_t m_nChips;
+	uint32_t m_nState;
 };

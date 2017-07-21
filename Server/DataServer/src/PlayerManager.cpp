@@ -403,6 +403,17 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		jsResult["leftCardCnt"] = pPlayer->getBaseData()->getDiamoned();
 	}
 	break;
+	case eAsync_Consume_Diamond:
+	{
+		uint32_t nUserUID = jsReqContent["playerUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["diamond"] = jsReqContent["roomID"];
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Consume_Diamond, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
 	case eAsync_Inform_Player_LeavedRoom:
 	case eAsync_Request_EnterRoomInfo:
 	{

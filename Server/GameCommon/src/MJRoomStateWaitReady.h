@@ -1,20 +1,21 @@
 #pragma once 
-#include "IMJRoomState.h"
+#include "IGameRoomState.h"
 #include "IMJRoom.h"
 #include "log4z.h"
 #include "IMJPlayer.h"
 class CMJRoomStateWaitReady
-	:public IMJRoomState
+	:public IGameRoomState
 {
 public:
 	uint32_t getStateID()final{ return eRoomSate_WaitReady; }
 
 	void update(float fDeta)override
 	{
-		IMJRoomState::update(fDeta);
-		if (getRoom()->canStartGame())
+		IGameRoomState::update(fDeta);
+		auto pRoom = getRoom();
+		if (pRoom->canStartGame())
 		{
-			getRoom()->goToState(eRoomState_StartGame);
+			pRoom->goToState(eRoomState_StartGame);
 		}
 	}
 
@@ -22,13 +23,13 @@ public:
 	{
 		if ( MSG_PLAYER_SET_READY == nMsgType)
 		{
-			auto pPlayer = getRoom()->getMJPlayerBySessionID(nSessionID);
+			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 			if (pPlayer == nullptr || (pPlayer->haveState(eRoomPeer_WaitNextGame) == false ))
 			{
 				LOGFMTE("you are not in this room how to set ready ? session id = %u", nSessionID );
 				return true;
 			}
-			getRoom()->onPlayerSetReady(pPlayer->getIdx());
+			((IMJRoom*)getRoom())->onPlayerSetReady(pPlayer->getIdx());
 			if (getRoom()->canStartGame())
 			{
 				getRoom()->goToState(eRoomState_StartGame);

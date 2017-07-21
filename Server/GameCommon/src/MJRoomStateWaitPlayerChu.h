@@ -1,5 +1,5 @@
 #pragma once 
-#include "IMJRoomState.h"
+#include "IGameRoomState.h"
 #include "log4z.h"
 #include "IMJRoom.h"
 #include "IMJPlayer.h"
@@ -7,14 +7,14 @@
 #include <cassert>
 #include "MJCard.h"
 class MJRoomStateWaitPlayerChu
-	:public IMJRoomState
+	:public IGameRoomState
 {
 public:
 	uint32_t getStateID()final{ return eRoomState_WaitPlayerChu; }
-	void enterState(IMJRoom* pmjRoom, Json::Value& jsTranData)override
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
 	{
-		IMJRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(pmjRoom->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);
+		IGameRoomState::enterState(pmjRoom, jsTranData);
+		setStateDuringTime( 100000000 );
 		if (jsTranData["idx"].isNull() == false && jsTranData["idx"].isUInt())
 		{
 			m_nIdx = jsTranData["idx"].asUInt();
@@ -25,7 +25,7 @@ public:
 
 	void onStateTimeUp()override
 	{
-		auto nCard = getRoom()->getAutoChuCardWhenWaitChuTimeout(m_nIdx);
+		auto nCard = ((IMJRoom*)getRoom())->getAutoChuCardWhenWaitChuTimeout(m_nIdx);
 		Json::Value jsTran;
 		jsTran["idx"] = m_nIdx;
 		jsTran["act"] = eMJAct_Chu;
@@ -42,7 +42,7 @@ public:
 
 		auto actType = prealMsg["actType"].asUInt();
 		auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = getRoom()->getMJPlayerBySessionID(nSessionID);
+		auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
 		do
 		{
@@ -65,7 +65,7 @@ public:
 				break;
 			}
 			
-			auto pMJCard = pPlayer->getPlayerCard();
+			auto pMJCard = ((IMJPlayer*)pPlayer)->getPlayerCard();
 			if (!pMJCard->isHaveCard(nCard))
 			{
 				nRet = 3;

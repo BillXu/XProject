@@ -2,10 +2,10 @@
 #include "MJDefine.h"
 #include "NativeTypes.h"
 #include <vector>
-#include "IMJPoker.h"
+#include "IPoker.h"
 #include "CommonDefine.h"
 class CMJCard
-	:public IMJPoker
+	:public IPoker
 {
 public:
 	typedef std::vector<uint8_t> VEC_UINT8 ;

@@ -1,25 +1,25 @@
 #pragma once 
-#include "IMJRoomState.h"
+#include "IGameRoomState.h"
 #include "IMJRoom.h"
 class MJRoomStateStartGame
-	:public IMJRoomState
+	:public IGameRoomState
 {
 public:
 	uint32_t getStateID(){ return eRoomState_StartGame; }
-	void enterState(IMJRoom* pmjRoom, Json::Value& jsTranData)
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
-		IMJRoomState::enterState(pmjRoom, jsTranData);
-		getRoom()->willStartGame();
-		getRoom()->startGame();
+		IGameRoomState::enterState(pmjRoom, jsTranData);
+		getRoom()->onWillStartGame();
+		getRoom()->onStartGame();
 		setStateDuringTime(eTime_ExeGameStart);
 	}
 
 	void onStateTimeUp()
 	{
 		Json::Value jsValue;
-		jsValue["idx"] = getRoom()->getBankerIdx();
+		jsValue["idx"] = ((IMJRoom*)getRoom())->getBankerIdx();
 		getRoom()->goToState(eRoomState_WaitPlayerAct, &jsValue);
 	}
-	uint8_t getCurIdx()override{ return 0; }
+	uint8_t getCurIdx()override{ return ((IMJRoom*)getRoom())->getBankerIdx(); }
 };
 

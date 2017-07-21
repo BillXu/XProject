@@ -5,6 +5,7 @@
 #include "MJGameReplay.h"
 class IGamePlayer;
 class IGameRoomDelegate;
+class IGameRoomState;
 class GameRoom
 	:public IGameRoom
 {
@@ -53,7 +54,12 @@ public:
 
 	virtual std::shared_ptr<IGameRoomRecorder> createRoomRecorder();
 	virtual std::shared_ptr<ISingleRoundRecorder> createSingleRoundRecorder();
+	IGameRoomState* getCurState();
+	void goToState( IGameRoomState* pTargetState ,Json::Value* jsValue = nullptr);
+	void goToState( uint32_t nStateID , Json::Value* jsValue = nullptr );
+	void setInitState( IGameRoomState* pTargetState );
 protected:
+	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();
 	stStandPlayer* getStandPlayerBySessionID( uint32_t nSessinID );
 	stStandPlayer* getStandPlayerByUID( uint32_t nUserID );
@@ -74,4 +80,6 @@ private:
 	std::shared_ptr<ISingleRoundRecorder> m_ptrCurRoundRecorder;
 	std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;
 	std::shared_ptr<MJReplayGame> m_ptrGameReplay;
+	IGameRoomState* m_pCurState;
+	std::map<uint32_t, IGameRoomState*> m_vAllState;
 };

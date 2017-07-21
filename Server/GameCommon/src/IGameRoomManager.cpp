@@ -220,7 +220,7 @@ uint32_t IGameRoomManager::generateRoomID()
 		if ( nTryTimes > 1 )
 		{
 			LOGFMTD("try times = %u to generate room id ", nTryTimes);
-			if ( nTryTimes > 600)
+			if ( nTryTimes > 999 )
 			{
 				LOGFMTE("try to many times ");
 				nBase *= 10;

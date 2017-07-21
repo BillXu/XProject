@@ -1,30 +1,27 @@
 #pragma once 
-#include "IMJRoomState.h"
+#include "IGameRoomState.h"
 #include "log4z.h"
 #include "IMJRoom.h"
 #include "IMJPlayer.h"
 #include "IMJPlayerCard.h"
 #include <cassert>
-#include "MJPlayer.h"
+#include "IMJPlayer.h"
 class MJRoomStateWaitPlayerAct
-	:public IMJRoomState
+	:public IGameRoomState
 {
 public:
 	uint32_t getStateID()final{ return eRoomState_WaitPlayerAct; }
-	void enterState(IMJRoom* pmjRoom, Json::Value& jsTranData)override
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
 	{
-		IMJRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime( pmjRoom->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);
+		IGameRoomState::enterState(pmjRoom, jsTranData);
+		setStateDuringTime(9999999);
 		if ( jsTranData["idx"].isNull() == false && jsTranData["idx"].isUInt() )
 		{
 			m_nIdx = jsTranData["idx"].asUInt();
-			getRoom()->onWaitPlayerAct(m_nIdx, m_isCanPass );
-
-			// check tuo guan 
-			getRoom()->onCheckTrusteeForWaitPlayerAct(m_nIdx, m_isCanPass);
+			((IMJRoom*)getRoom())->onWaitPlayerAct(m_nIdx, m_isCanPass );
 			return;
 		}
-		assert(0 && "invalid argument");
+		Assert(0  ,"invalid argument");
 	}
 
 	void onStateTimeUp()override 
@@ -35,27 +32,20 @@ public:
 			setStateDuringTime(eTime_WaitPlayerAct);
 			return;
 		}
-		auto nCard = getRoom()->getAutoChuCardWhenWaitActTimeout(m_nIdx);
+		auto nCard = ((IMJRoom*)getRoom())->getAutoChuCardWhenWaitActTimeout(m_nIdx);
 		LOGFMTE("wait time out , auto chu card = %u idx = %u", nCard,m_nIdx);
 		Json::Value jsTran;
 		jsTran["idx"] = m_nIdx;
 		jsTran["act"] = eMJAct_Chu;
 		jsTran["card"] = nCard;
 		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
-
-		// go to tuo guan zhuang tai 
-		auto pPlayer = getRoom()->getMJPlayerByIdx(m_nIdx);
-		if (!pPlayer || pPlayer->haveState(eRoomPeer_AlreadyHu) == false)
-		{
-			getRoom()->onPlayerTrusteedStateChange(m_nIdx, true);
-		}
 	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
 	{
 		if (MSG_REQ_ACT_LIST == nMsgType)
 		{
-			auto pPlayer = getRoom()->getMJPlayerBySessionID(nSessionID);
+			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 			if (pPlayer == nullptr)
 			{
 				LOGFMTE("you are not in room  why req act list" );
@@ -68,9 +58,9 @@ public:
 				return false;
 			}
 
-			if (m_isCanPass)  // means player need wait to do act chose ;
+			if (m_isCanPass)
 			{
-				getRoom()->onWaitPlayerAct(m_nIdx, m_isCanPass);
+				((IMJRoom*)getRoom())->onWaitPlayerAct(m_nIdx, m_isCanPass);
 			}
 			return true;
 		}
@@ -82,7 +72,7 @@ public:
 
 		auto actType = prealMsg["actType"].asUInt();
 		auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = getRoom()->getMJPlayerBySessionID(nSessionID);
+		auto pPlayer = (IMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
 		do
 		{
@@ -154,7 +144,7 @@ public:
 
 		if (eMJAct_Pass == actType)
 		{
-			setStateDuringTime(getRoom()->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);
+			setStateDuringTime(100000000);
 			return true;
 		}
 
@@ -166,8 +156,8 @@ public:
 		jsTran["invokeIdx"] = m_nIdx;
 		if (eMJAct_BuGang_Declare == actType || eMJAct_BuGang == actType)
 		{
-			pPlayer->signDecareBuGangFlag();
-			if (getRoom()->isAnyPlayerRobotGang(m_nIdx, nCard))
+			pPlayer->signFlag(IMJPlayer::eMJActFlag_DeclBuGang);
+			if (((IMJRoom*)getRoom())->isAnyPlayerRobotGang(m_nIdx, nCard))
 			{
 				getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
 				return true;

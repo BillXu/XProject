@@ -29,9 +29,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\MJPrivateRoom.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\IGameRecorder.cpp">
       <Filter>src\Game\Recorder</Filter>
     </ClCompile>
@@ -44,20 +41,20 @@
     <ClCompile Include="src\IMJRoom.cpp">
       <Filter>src\MJBase</Filter>
     </ClCompile>
-    <ClCompile Include="src\MJPlayer.cpp">
-      <Filter>src\MJBase</Filter>
-    </ClCompile>
     <ClCompile Include="src\MJPlayerCard.cpp">
       <Filter>src\MJBase</Filter>
     </ClCompile>
     <ClCompile Include="src\GameRoom.cpp">
       <Filter>src\Game</Filter>
     </ClCompile>
+    <ClCompile Include="src\IMJPlayer.cpp">
+      <Filter>src\MJBase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IPrivateRoom.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\MJPrivateRoom.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\IGameRecorder.h">
       <Filter>src\Game\Recorder</Filter>
     </ClInclude>
@@ -67,25 +64,16 @@
     <ClInclude Include="src\IGameRoomManager.h">
       <Filter>src\Game</Filter>
     </ClInclude>
-    <ClInclude Include="src\IMJPlayer.h">
-      <Filter>src\MJBase</Filter>
-    </ClInclude>
     <ClInclude Include="src\MJDefine.h">
       <Filter>src\MJBase</Filter>
     </ClInclude>
     <ClInclude Include="src\MJCard.h">
       <Filter>src\MJBase</Filter>
     </ClInclude>
-    <ClInclude Include="src\IMJRoomState.h">
-      <Filter>src\MJBase</Filter>
-    </ClInclude>
     <ClInclude Include="src\IMJRoom.h">
       <Filter>src\MJBase</Filter>
     </ClInclude>
     <ClInclude Include="src\IMJPlayerCard.h">
-      <Filter>src\MJBase</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MJPlayer.h">
       <Filter>src\MJBase</Filter>
     </ClInclude>
     <ClInclude Include="src\MJPlayerCard.h">
@@ -135,6 +123,15 @@
     </ClInclude>
     <ClInclude Include="src\IPoker.h">
       <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IGameRoomState.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJPlayer.h">
+      <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IPrivateRoom.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -6,6 +6,7 @@
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include <ctime>
+#include "IGameRoomState.h"
 bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	m_pDelegate = nullptr;
@@ -39,6 +40,16 @@ GameRoom::~GameRoom()
 		ref.second = nullptr;
 	}
 	m_vStandPlayers.clear();
+
+	for (auto& ref : m_vAllState )
+	{
+		if (ref.second)
+		{
+			delete ref.second;
+			ref.second = nullptr;
+		}
+	}
+	m_vAllState.clear();
 }
 
 void GameRoom::setDelegate(IGameRoomDelegate* pDelegate)
@@ -61,7 +72,7 @@ bool GameRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 	auto psitDown = getPlayerByUID(pEnterRoomPlayer->nUserUID );
 	if ( psitDown )
 	{
-		LOGFMTE("this player is sitdown uid = %u , room id = %u , why enter room again ?",psitDown->getUserUID(),getRoomID() );
+		LOGFMTE("this player is already sitdown uid = %u , room id = %u , why enter room again ?",psitDown->getUserUID(),getRoomID() );
 		sendRoomInfo(pEnterRoomPlayer->nSessionID);
 		return true;
 	}
@@ -342,7 +353,7 @@ uint32_t GameRoom::getSeiralNum()
 
 void GameRoom::update(float fDelta)
 {
-
+	m_pCurState->update(fDelta);
 }
 
 void GameRoom::sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID )
@@ -480,7 +491,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 
 		doPlayerStandUp(p->getUserUID());
 		sendMsgToPlayer(js, nMsgType, nSessionID);
-	}
+	}	
 	break;
 	case MSG_PLAYER_LEAVE_ROOM:
 	{
@@ -517,7 +528,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 	}
 	break;
 	default:
-		break; 
+		return getCurState()->onMsg(prealMsg,nMsgType,eSenderPort,nSessionID);
 	}
 	return true;
 }
@@ -652,6 +663,65 @@ std::shared_ptr<IGameRoomRecorder> GameRoom::createRoomRecorder()
 std::shared_ptr<ISingleRoundRecorder> GameRoom::createSingleRoundRecorder()
 {
 	return std::make_shared<ISingleRoundRecorder>();
+}
+
+IGameRoomState* GameRoom::getCurState()
+{
+	return m_pCurState;
+}
+
+void GameRoom::goToState(IGameRoomState* pTargetState, Json::Value* jsValue )
+{
+	if ( !pTargetState )
+	{
+		LOGFMTE( "target state is null room id = %u",getRoomID() );
+		return;
+	}
+	
+	if (nullptr == m_pCurState)
+	{
+		LOGFMTE( "why cur state is null ? room id = %u",getRoomID() );
+		return;
+	}
+	m_pCurState->leaveState();
+	m_pCurState = pTargetState;
+	if (jsValue == nullptr)
+	{
+		Json::Value js;
+		m_pCurState->enterState(this, js);
+	}
+	else
+	{
+		m_pCurState->enterState(this, *jsValue);
+	}
+}
+
+void GameRoom::goToState(uint32_t nStateID, Json::Value* jsValue)
+{
+	auto iter = m_vAllState.find(nStateID);
+	if (iter != m_vAllState.end())
+	{
+		return goToState(iter->second);
+	}
+	LOGFMTE( "room id = %u go to state , targetstate id = %u is null",getRoomID(),nStateID );
+	return;
+}
+
+void GameRoom::setInitState(IGameRoomState* pTargetState)
+{
+	m_pCurState = pTargetState;
+}
+
+bool GameRoom::addRoomState(IGameRoomState* pTargetState)
+{
+	auto iter = m_vAllState.find(pTargetState->getStateID());
+	if ( iter != m_vAllState.end() )
+	{
+		LOGFMTE("already add state id = %u , do not add again ",pTargetState->getStateID() );
+		return false;
+	}
+	m_vAllState[pTargetState->getStateID()] = pTargetState;
+	return true;
 }
 
 IGameRoomDelegate* GameRoom::getDelegate()

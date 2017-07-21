@@ -20,13 +20,6 @@ enum eMsgPort
 	ID_MSG_PORT_MAX,
 };
 
-enum ePlayerFlag
-{
-	ePlayerFlag_CanTianHu = 1,
-	ePlayerFlag_WaitCheckTianTing = 1 << 1,
-	ePlayerFlag_TianTing = 1 << 2 ,
-};
-
 enum eMsgType 
 {
 	MSG_NONE,
