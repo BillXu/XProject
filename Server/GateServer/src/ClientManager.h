@@ -22,6 +22,7 @@ public:
 	stGateClient* getGateClientBySessionID(uint32_t nSessionID);
 	void closeAllClient();
 	void onGateCloseCallBack(stGateClient* pGateClient , bool isWaitReconnect );
+	void onPlayerLogout( uint32_t sessionID );
 protected:
 	void addClientGate(stGateClient* pGateClient );
 	void removeActiveClientGate(stGateClient* pGateClient );

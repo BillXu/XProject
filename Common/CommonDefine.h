@@ -34,23 +34,12 @@ enum ePayChannel
 };
 
 
-enum eMJGameType
+enum eGameType
 {
-	eMJ_None,
-	eMJ_BloodRiver ,
-	eMJ_BloodTheEnd,
-	eMJ_NanJing,
-	eMJ_SuZhou,
-	eMJ_COMMON,
-	eMJ_Max,
-};
-
-enum ePlayerType
-{
-	ePlayer_Normal,
-	ePlayer_Robot,
-	ePlayer_Mgr,
-	ePlayer_Max,
+	eGame_None,
+	eGame_NanJing,
+	eGame_SuZhou,
+	eGame_Max,
 };
 
 enum eRoomState
@@ -240,12 +229,6 @@ enum eNoticeType
 	eNotice_ShopResult, //{ finalDiamond : 234, addDiamond : 2345, nRet : 0 , itemID : 23 }  // nRet : 0 success , 1 failed ; 
 };
 
-enum eRoomSeat
-{
-	eSeatCount_5,
-	eSeatCount_9,
-	eSeatCount_Max,
-};
 // player State 
 enum eRoomPeerState
 {

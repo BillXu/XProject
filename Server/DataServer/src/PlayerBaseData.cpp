@@ -101,6 +101,18 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		m_bPlayerInfoDirty = true;
 		return true;
 	}
+	else if ( MSG_PLAYER_UPDATE_GPS == nmsgType )
+	{
+		m_stBaseData.dfJ = recvValue["J"].asDouble();
+		m_stBaseData.dfW = recvValue["W"].asDouble();
+	}
+	else if ( MSG_PLAYER_REFRESH_MONEY == nmsgType )
+	{
+		Json::Value jsmsg;
+		jsmsg["coin"] = getCoin();
+		jsmsg["diamond"] = getDiamoned();
+		sendMsg(jsmsg, nmsgType);
+	}
 
 	return false ;
 }

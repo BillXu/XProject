@@ -22,6 +22,7 @@ public:
 	uint32_t generateSessionID();
 	void onExit();
 	void onConnectedToSvr(bool isReconnectMode)override;
+	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)override;
 protected:
 	static CGateServer* s_GateServer ;
 	CServerNetwork* m_pNetWorkForClients ;

@@ -84,6 +84,17 @@ void CGateServer::onConnectedToSvr( bool isReconnectMode )
 	LOGFMTI("Gate Server Start ok idx = %d ", getCurSvrIdx());
 }
 
+bool CGateServer::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)
+{
+	if ( eAsync_InformGate_PlayerLogout == nRequestType)
+	{
+		auto nSessionID = jsReqContent["sessionID"].asUInt();
+		m_pGateManager->onPlayerLogout(nSessionID);
+		return true;
+	}
+	return false;
+}
+
 void CGateServer::sendMsgToClient(const char* pData , int nLength , CONNECT_ID nSendToOrExcpet ,bool bBroadcast )
 {
 	if ( m_pNetWorkForClients )

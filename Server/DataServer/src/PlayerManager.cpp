@@ -303,6 +303,32 @@ bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort e
 		}
 		return true;
 	}
+	else if ( MSG_PLAYER_LOGOUT == nMsgType)
+	{
+		if ( pTargetPlayer == nullptr)
+		{
+			Json::Value js;
+			js["ret"] = 1;
+			sendMsg(js, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+			return true;
+		}
+
+		if (pTargetPlayer->canRemovePlayer() == false)
+		{
+			Json::Value js;
+			js["ret"] = 2;
+			sendMsg(js, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+			return true;
+		}
+		pTargetPlayer->onPlayerDisconnect();
+		LOGFMTD( "target id = %u do logout , process as disconnect , inform gate svr session id = %u",nTargetID,nSenderID );
+
+		auto pAsync = getSvrApp()->getAsynReqQueue();
+		Json::Value jsReq;
+		jsReq["sessionID"] = nSenderID;
+		pAsync->pushAsyncRequest(ID_MSG_PORT_GATE,nSenderID, eAsync_InformGate_PlayerLogout,jsReq);
+		return true;
+	}
 	return false ;
 }
 

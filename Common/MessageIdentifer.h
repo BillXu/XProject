@@ -50,6 +50,15 @@ enum eMsgType
 	MSG_PLAYER_UPDATE_INFO,
 	// client : { name : "lucy", sex : 1 , headIcon : "http://url.com"  }
 	// svr: { ret : 0 }
+	MSG_PLAYER_UPDATE_GPS,
+	// client : { J : 23.23 , W : 2345  }   // j : jing du , w: wei du ;  
+	// svr : null 
+	MSG_PLAYER_REFRESH_MONEY,
+	// client : null ;
+	// svr { coin: 235 , diamond : 235 }
+	MSG_PLAYER_LOGOUT,
+	// client : null ;
+	// svr : { ret : 0 }  // ret: 0 success , 1 can not find player , 2 player is doing something , can not logout,eg: in some room ;
 	MSG_SHOP_MAKE_ORDER,
 	// client : { shopItemID : 23 , channel : ePayChannel }  // ePayChannel 渠道枚举
 	// svr : { ret : 0 , shopItemID : 23 , channel : ePayChannel,cPrepayId : "asdgsfh234g22jhbjadjg",cOutTradeNo : "232hlhsfhasdg" }
@@ -60,6 +69,12 @@ enum eMsgType
 	// ret : 0 success , 1 can not find shop item , 2 can not find player , 3 transcationID lenght is not 20 ,4 pay channel error ,5 platform verify error;
 
 	// in room msg ;
+	MSG_CREATE_ROOM = 300,
+	// client: { gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 23 , ..... }
+	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error ;
+	MSG_ROOM_REQ_ROOM_LIST, // send to data svr ;
+	// client : null 
+	// svr : { ret : 0 , roomIDS : [23,23,453,32] }
 	MSG_ENTER_ROOM,
 	// client : { roomID : 23, uid : 23 }
 	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error ;
@@ -81,10 +96,6 @@ enum eMsgType
 	// svr : { ret : 0 }; // ret : 0 success , 1 you are not in this room , 2 unknown errro ;
 	MSG_ROOM_REFRESH_NET_STATE, // player net state , changed 
 	// svr : { idx : 0 , uid : 235 , state : 0  } , 0 is online , 1 lose connect , wait reconnect; 
-
-
-
-
 
 
 
@@ -209,7 +220,6 @@ enum eMsgType
 	MSG_ASYNC_REQUEST_RESULT,
 	MSG_READ_PLAYER_BASE_DATA,
 	MSG_PLAYER_SAVE_PLAYER_INFO,
-	MSG_PLAYER_LOGOUT,
 	// friend module
 	MSG_READ_FRIEND_LIST = 300,  //;
 	MSG_SAVE_FRIEND_LIST,  // send to db 
@@ -389,18 +399,6 @@ enum eMsgType
 	// client : { clubID : 234 }
 	// svr : { ret : 0 , rooms : [21,23,45,23] } 
 	// ret : 0 success , 1 club not exist 
-
-	MSG_CREATE_ROOM, // ID_MSG_PORT_DATA ;
-	// client : { name : "this is room name" ,roomType : eRoomType , baseBet : 23 , duringMin : 2345 , clubID : 23 , baseTakeIn : 235, isControlTakeIn : 0 , seatCnt : 2 , opts : { ... } }
-	// roomType : means eRoomType . baseBet , for taxas , it represent small blind . duringMin : room keep running time , by minite . clubID : when equal 0 , means ,quick game , opts : depend on game type ;
-	// NIU NIU  opts : { unbankerType : 0 }  // 0 no niu leave banker , 1 lose to all  leave banker , 2 manual leave banker;
-	// Taxas Poker opts : { maxTakeIn : 2345, isInsured : 0  }
-	// Golden opts : { maxSingleBet : 20,maxRound : 30 }
-
-	//南京麻将 mj : { roomType : eRoomType ,circle : 2345 , initCoin : 23 , isWaiBao : 0 , isBiXiaHu : 0 , isHuaZa : 0  } 
-
-	// svr : { ret : 0 , roomID : 235 , clubID : 23 } ;
-	// ret : 0 means success , 1 can not create more room , 2 you have not permission to creator room for club; 3 , room type error ; 4, req chat room id error , 5 vip room is not enough , 6 argument error;
 	MSG_DELETE_ROOM, // ID_MSG_PORT_DATA ;
 	// client : { roomID : 2345 , clubID : 23  }
 	// svr : { ret : 0 }

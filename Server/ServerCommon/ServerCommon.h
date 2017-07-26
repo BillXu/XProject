@@ -63,6 +63,9 @@ enum eAsyncReq
 	eAsync_Inform_Player_NewSessionID, // { roomID : 23 , uid : 23 , newSessionID : 23 } // result : { ret : 0 } ret : 0 ok , 1 can not find room id ; 
 	eAsync_Inform_Player_LeavedRoom, // { targetUID : 23 , roomID : 23 }
 	eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23 }
+	eAsync_InformGate_PlayerLogout, //{ "sessionID" : 234 }
+
+
 
 
 

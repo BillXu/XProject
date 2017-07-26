@@ -207,6 +207,18 @@ void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWait
 	addToResever(pGateClient);
 }
 
+void CGateClientMgr::onPlayerLogout(uint32_t sessionID)
+{
+	auto pPlayer = getGateClientBySessionID(sessionID);
+	if (pPlayer == nullptr)
+	{
+		LOGFMTE("player is null , logout session id = %u", sessionID);
+		return;
+	}
+	pPlayer->bindUID(0);
+	LOGFMTD("player session id = %u do logout",sessionID );
+}
+
 void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo)
 {
 	char* strIP = "ip null";

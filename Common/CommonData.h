@@ -16,10 +16,8 @@ struct stPlayerBrifData
 struct stPlayerDetailData
 	:public stPlayerBrifData
 {
-	//char cSignature[MAX_LEN_SIGURE] ;
-	//double dfLongitude;
-	//double dfLatidue;
-	//uint32_t tOfflineTime ;  // last offline time ;
+	double dfJ;  // jing du 
+	double dfW;  // wei du ;
 };
 
 struct stServerBaseData

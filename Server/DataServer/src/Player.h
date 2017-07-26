@@ -43,9 +43,9 @@ public:
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
 	CPlayerManager* getPlayerMgr() { return m_pPlayerMgr; }
 	bool isPlayerReady();
+	bool canRemovePlayer();
 protected:
 	void saveLoginInfo();
-	bool canRemovePlayer();
 protected:
 	uint32_t m_nUserUID ;
 	uint32_t m_nSessionID ;  // comunicate with the client ;
