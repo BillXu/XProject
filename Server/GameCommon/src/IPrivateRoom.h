@@ -20,7 +20,7 @@ public:
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	bool isRoomFull()final;
-	bool doDeleteRoom()override;
+	bool doDeleteRoom()override; // wanning: invoke by roomMgr ;
 
 	uint32_t getRoomID()final;
 	uint32_t getSeiralNum()final;
@@ -30,7 +30,7 @@ public:
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 
 	virtual GameRoom* doCreatRealRoom(Json::Value& vJsOpts) = 0;
-	virtual uint8_t getDiamondNeed(uint8_t nLevel, bool isAA) = 0;
+	uint8_t getDiamondNeed(uint8_t nLevel, bool isAA);
 	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
 
 	void sendRoomInfo(uint32_t nSessionID)override;

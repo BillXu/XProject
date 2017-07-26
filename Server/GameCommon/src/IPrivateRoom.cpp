@@ -270,6 +270,16 @@ void IPrivateRoom::sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uin
 	}
 }
 
+uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, bool isAA )
+{
+	if ( !m_pRoom)
+	{
+		LOGFMTE("room is null , can not return diamond need");
+		return -1;
+	}
+	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, isAA);
+}
+
 void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 {
 	if (m_pRoom)

@@ -288,7 +288,7 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 
 	// read max replay id ;
 	std::ostringstream ss;
-	ss << "SELECT max(replayID) as maxReplayID FROM gamereplay where roomType = " << getRoomType() << ";";
+	ss << "SELECT max(replayID) as maxReplayID FROM gamereplay; ";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB,getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
@@ -309,7 +309,7 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 
 	// read max room sieral num 
 	ss.clear();
-	ss << "SELECT max(sieralNum) as sieralNum FROM roomrecorder where roomType = " << getRoomType() << ";";
+	ss << "SELECT max(sieralNum) as sieralNum FROM roomrecorder ;";
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
 		uint32_t nAft = retContent["afctRow"].asUInt();

@@ -38,7 +38,7 @@ public:
 
 	uint32_t getRoomID()final;
 	uint32_t getSeiralNum()final;
-	virtual uint32_t getRoomType() = 0 ;
+	virtual uint8_t getRoomType() = 0 ;
 	void update(float fDelta)override;
 	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0 )final;
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;

@@ -63,7 +63,13 @@ enum eAsyncReq
 	eAsync_Inform_Player_NewSessionID, // { roomID : 23 , uid : 23 , newSessionID : 23 } // result : { ret : 0 } ret : 0 ok , 1 can not find room id ; 
 	eAsync_Inform_Player_LeavedRoom, // { targetUID : 23 , roomID : 23 }
 	eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23 }
+	eAsync_GiveBackDiamond, // { targetUID : 2345 , diamond : 23,roomID : 23 } ;
 	eAsync_InformGate_PlayerLogout, //{ "sessionID" : 234 }
+	eAsync_Request_CreateRoomInfo, // { sessionID : 23 }  // result : { ret : 0 , uid  23 , diamond : 23 , alreadyRoomCnt : 23 }  // ret : 0 success , 1 not find target player 
+	eAsync_Inform_CreatedRoom, // { targetUID : 23 , roomID : 234 } 
+
+
+
 
 
 
@@ -77,7 +83,6 @@ enum eAsyncReq
 
 	eAsync_ReqRoomSerials, // {roomType : 2 }  // result :  { ret : 0 , serials : [{ serial : 0 , chatRoomID : 2345} , { serial : 0 , chatRoomID : 2345} ,{ serial : 0 , chatRoomID : 2345} ] }  // ret : 0 success , 1 svr is reading from db wait a moment ; 
 	eAsync_Apns, // { apnsType : 0 , targets : [234,2345,23,4] , content : "hello this is" ,msgID : "fs" ,msgdesc : "shfsg" }  apnsType : 0 , group type . 1 , target persions ;
-	eAsync_GiveBackDiamond, // { targetUID : 2345 , diamond : 23 } ;
 	
 	eAsync_ApplyLeaveRoom, // {uid : 234 , roomID : 2345 , reason : 0 } reason : 0 , disconnect , 1 other peer login.  result : { ret : 0 , coin : 2345 } // ret : 0 leave direct, 1 delay leave room , 2 not in room , 3 not find room   ;
 	eAsync_Max,
