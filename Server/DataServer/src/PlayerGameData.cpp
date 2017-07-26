@@ -92,6 +92,11 @@ void CPlayerGameData::onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t 
 {
 	IPlayerComponent::onPlayerOtherDeviceLogin(nOldSessionID,nNewSessionID );
 
+	if (getStayInRoomID() == 0)
+	{
+		return;
+	}
+
 	auto pAsync = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	Json::Value jsReq;
 	jsReq["roomID"] = getStayInRoomID();

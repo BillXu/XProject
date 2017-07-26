@@ -10,7 +10,7 @@ public:
 	static CGateServer* SharedGateServer();
 	CGateServer();
 	~CGateServer();
-	bool init();
+	bool init(Json::Value& jsSvrCfg)override;
 	CServerNetwork* GetNetWorkForClients(){ return m_pNetWorkForClients ;}
 	void sendMsgToClient(const char* pData , int nLength , CONNECT_ID nSendToOrExcpet ,bool bBroadcast = false );
 	CGateClientMgr* getClientMgr(){ return m_pGateManager ;}
@@ -27,6 +27,6 @@ protected:
 	CServerNetwork* m_pNetWorkForClients ;
 	CGateClientMgr* m_pGateManager ;
 
-	CSeverConfigMgr m_stSvrConfigMgr ;
+	uint16_t m_nGatePort = 0 ;
 	uint32_t m_nCurMaxSessionID ;
 };

@@ -6,6 +6,11 @@
 #include "log4z.h"
 #include "ConfigDefine.h"
 #include "CommonDefine.h"
+
+//#define Wechat_notifyUrl "http://njmj.paiyouquan.com:7006/vxpay.php"  // mj test online edtion 
+#define Wechat_MchID "1401856702"
+#define Wechat_appID "wxdaff45ff145c0350"
+#define Wechat_MchKey "NUN5DKS5MJW4UBVJIL1G2XUQ66LU2ENA"
 CWeChatOrderTask::CWeChatOrderTask( uint32_t nTaskID)
 	:ITask(nTaskID)
 {
@@ -86,11 +91,11 @@ uint8_t CWeChatOrderTask::performTask()
 #endif 
 	// ok 
 	pNode = new TiXmlElement("notify_url"); 
-	pValue = new TiXmlText(Wechat_notifyUrl);
+	pValue = new TiXmlText(m_strNotifyUrl.c_str());
 	xmlRoot->LinkEndChild(pNode);
 	pNode->LinkEndChild(pValue);
 	strForMd5 += "&notify_url=" ;
-	strForMd5 += Wechat_notifyUrl;
+	strForMd5 += m_strNotifyUrl;
 
 	// ok 
 	pNode = new TiXmlElement("out_trade_no"); 

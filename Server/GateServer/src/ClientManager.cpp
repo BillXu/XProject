@@ -53,6 +53,12 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 			return true;
 		}
 		pGate->doVerifyed();
+
+		stMsgVerifyClientRet msg;
+		msg.nRet = 0;
+		msg.nSessionID = pGate->getSessionID();
+		msg.nTargetID = pGate->getSessionID();
+		sendMsgToClient(&msg, sizeof(msg), pGate->getNetworkID());
 		return true;
 	}
 
@@ -113,7 +119,7 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 	}
 	else if (MSG_PLAYER_LOGIN == pMsg->usMsgType)
 	{
-		onRegister(pMsg, pDstClient );
+		onLogin(pMsg, pDstClient );
 		return true;
 	}
 
@@ -186,10 +192,13 @@ void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWait
 	}
 
 	// tell client svr do disconnected ;
-	stMsgClientConnectStateChanged msgRet;
-	msgRet.nCurState = 2;
-	msgRet.nTargetID = pGateClient->getBindUID();
-	CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pGateClient->getSessionID());
+	if (pGateClient->getBindUID() > 0)
+	{
+		stMsgClientConnectStateChanged msgRet;
+		msgRet.nCurState = 2;
+		msgRet.nTargetID = pGateClient->getBindUID();
+		CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pGateClient->getSessionID());
+	}
 
 	// do close this connection ;
 	LOGFMTD("client connection do disconnected");
@@ -200,9 +209,10 @@ void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWait
 
 void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo)
 {
-	std::string strIP = "ip null";
+	char* strIP = "ip null";
 	if ( IpInfo )
 	{
+		strIP = (char*)IpInfo->strAddress;
 		LOGFMTD("a peer connected ip = %s ,port = %d",IpInfo->strAddress,IpInfo->nPort ) ;
 	}
 	else
@@ -216,7 +226,7 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 		pGate = new stGateClient();
 	}
 
-	pGate->init(CGateServer::SharedGateServer()->generateSessionID(), nNewPeer,strIP.c_str());
+	pGate->init(CGateServer::SharedGateServer()->generateSessionID(), nNewPeer, strIP );
 	pGate->setCloseCallBack(std::bind(&CGateClientMgr::onGateCloseCallBack,this,std::placeholders::_1,std::placeholders::_2));
 	addClientGate(pGate);
 	
@@ -237,7 +247,7 @@ void CGateClientMgr::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectIn
 	stGateClient* pDstClient = getGateClientByNetWorkID(nPeerDisconnected) ;
 	if ( pDstClient == nullptr || pDstClient->isWaitingReconnect() )
 	{
-		LOGFMTE("gate peer is nullptr , why you get disconnect again ? ");
+		LOGFMTW("gate peer is nullptr , why you get disconnect again ? ");
 		return;
 	}
 

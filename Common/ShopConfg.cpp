@@ -29,8 +29,6 @@ bool CShopConfigMgr::OnPaser(CReaderRow& refReaderRow )
 	}
 #ifndef GAME_SERVER
 	pItem->strItemName = refReaderRow["ShopItemName"]->StringValue() ;
-	pItem->strIcon = refReaderRow["ShopItemIcon"]->StringValue() ;
-	pItem->strAppStroeIdentifer = refReaderRow["AppStroeIdentifer"]->StringValue() ;
 #endif
 	pItem->nFlag = refReaderRow["Flag"]->IntValue() ;
 	pItem->nPrizeType = refReaderRow["PrizeType"]->IntValue() ;

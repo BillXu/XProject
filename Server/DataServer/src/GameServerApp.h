@@ -14,14 +14,14 @@ public:
 	enum eInstallModule
 	{
 		eMod_None = IServerApp::eDefMod_ChildDef,
-		eMod_PlayerMgr,
+		eMod_PlayerMgr = eMod_None,
 		eMod_Shop,
 		eMod_Mail,
 		eMod_Max,
 	};
 public:
 	~DataServerApp();
-	bool init();
+	bool init(Json::Value& jsSvrCfg);
 	MailModule* getMailModule();
 	CPlayerManager* getPlayerMgr();
 	CConfigManager* getConfigMgr(){ return m_pConfigManager ; }

@@ -112,7 +112,7 @@ void CPlayerMailComponent::readMail( uint16_t nOffset )
 {
 	auto asyq = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	std::ostringstream ss;
-	ss << "SELECT mailUID,unix_timestamp(postTime) as postTime ,mailType,mailDetail,state FROM mail where userUID = " << getPlayer()->getUserUID() << "and state !=  " << eMailState_Delete << " order by mailUID desc limit 3 offset " << nOffset << ";";
+	ss << "SELECT mailUID,unix_timestamp(postTime) as postTime ,mailType,mailDetail,state FROM mail where userUID = " << getPlayer()->getUserUID() << " and state !=  " << eMailState_Delete << " order by mailUID desc limit 3 offset " << nOffset << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_DB,getPlayer()->getUserUID(),eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {

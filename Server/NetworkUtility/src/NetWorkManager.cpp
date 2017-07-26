@@ -54,6 +54,7 @@ void CNetWorkMgr::ShutDown()
     {
         m_pNetPeer->shutdown();
     }
+	m_fCheckHeatBetTicket = 0;
 }
 
 //CNetWorkMgr* CNetWorkMgr::SharedNetWorkMgr()

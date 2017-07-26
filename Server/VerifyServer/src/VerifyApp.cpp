@@ -4,24 +4,38 @@
 #include "TaskPoolModule.h"
 #include "HttpModule.h"
 #include "ConfigDefine.h"
-bool CVerifyApp::init()
+bool CVerifyApp::init(Json::Value& jsSvrCfg)
 {
-	IServerApp::init();
-
-	CSeverConfigMgr stSvrConfigMgr ;
-	stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
-	stServerConfig* pConfig = stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_CENTER) ;
-	if ( pConfig == NULL )
-	{
-		LOGFMTE("center svr config is null , so can not connected to !") ;
-		return false;
-	}
-	setConnectServerConfig(pConfig);
-
+	IServerApp::init(jsSvrCfg);
 	LOGFMTI("START verify server !") ;
 	installModule(eMod_Pool);
 	installModule(eMod_Http);
+
+	auto jsHttp = jsSvrCfg["httpSvr"];
+	if (jsHttp.isNull())
+	{
+		LOGFMTE("http svr cfg is null");
+		return false;
+	}
+	m_strWebchatNotifyUrl = jsHttp.asString();
+
+	m_jsDBCfg = jsSvrCfg["gameDB"];
+	if (m_jsDBCfg.isNull())
+	{
+		LOGFMTE("gameDB cfg is null");
+		return false;
+	}
 	return true;
+}
+
+Json::Value& CVerifyApp::getDBCfg()
+{
+	return m_jsDBCfg;
+}
+
+const char* CVerifyApp::getWebchatNotifyUrl()
+{
+	return m_strWebchatNotifyUrl.c_str();
 }
 
 uint16_t CVerifyApp::getLocalSvrMsgPortType()

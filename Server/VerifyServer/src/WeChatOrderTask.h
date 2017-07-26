@@ -12,7 +12,9 @@ public:
 	void onHttpCallBack(char* pResultData, size_t nDatalen , void* pUserData , size_t nUserTypeArg)override ;
 	void setInfo( std::shared_ptr<stShopItemOrderRequest> prequst );
 	std::shared_ptr<stShopItemOrderRequest> getCurRequest(){ return m_ptrCurRequest ;}
+	void setWechatNotifyUrl(const char* pNotifyUrl) { m_strNotifyUrl = pNotifyUrl; }
 protected:
+	std::string m_strNotifyUrl;
 	CHttpRequest m_tHttpRequest ;
 	std::shared_ptr<stShopItemOrderRequest> m_ptrCurRequest ;
 };

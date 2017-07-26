@@ -5,6 +5,8 @@
 #include <synchapi.h>
 #include <time.h>
 #include "ServerConfig.h"
+#include "json\json.h"
+#include <fstream>
 CCenterServerApp* CCenterServerApp::s_GateServer = NULL ;
 CCenterServerApp* CCenterServerApp::SharedCenterServer()
 {
@@ -37,23 +39,32 @@ bool CCenterServerApp:: Init()
 	s_GateServer = this ;
 	m_bRunning = true ;
 
-	CSeverConfigMgr sg;
-	sg.LoadFile("../configFile/serverConfig.txt");
-
-	stServerConfig* pSvrConfig = sg.GetServerConfig(ID_MSG_PORT_CENTER);
-	if ( pSvrConfig == NULL )
+	// pasr svr cfg ;
+	Json::Reader js;
+	Json::Value jsR;
+	std::ifstream ss;
+	ss.open("../configFile/svrCfg.txt", std::ifstream::in);
+	auto bRet = js.parse(ss, jsR);
+	ss.close();
+	if (!bRet)
+	{
+		LOGFMTE( "read svrCfg failed" );
+		return false;
+	}
+	auto jsCenterSvr = jsR["centerSvr"];
+	if ( jsCenterSvr.isNull() )
 	{
 		LOGFMTE("can not find center server config so start up failed ") ;
 		return  false ;
 	}
 	m_pNetwork = new CServerNetwork() ;
-	m_pNetwork->StartupNetwork( pSvrConfig->nPort,120,pSvrConfig->strPassword);
+	m_pNetwork->StartupNetwork(jsCenterSvr["port"].asUInt(),120,"");
 	m_pNetwork->AddDelegate(this);
 
 	for ( uint16_t ndx = ID_MSG_PORT_NONE ; ndx < ID_MSG_PORT_MAX ; ++ndx )
 	{
-		m_vTargetServers[ndx].init((eMsgPort)ndx,2) ;
-		LOGFMTE("temp set max svr cnt = 2");
+		m_vTargetServers[ndx].init((eMsgPort)ndx,1) ;
+		LOGFMTE("temp set max svr cnt = 1");
 	}
 
 	m_tWaitSvrSetup.setIsAutoRepeat(false);

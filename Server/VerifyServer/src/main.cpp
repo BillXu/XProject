@@ -59,7 +59,6 @@ void  testFunc()
 
 #include "VerifyApp.h"
 #include "Application.h"
-
 int main()
 {
 	//testFunc();

@@ -134,7 +134,7 @@ bool CServerNetwork::OnLogicMessage(CServerNetworkDelegate* pDeleate, Packet* pP
 	// recived heat beat ;
 	if ( pDeleate->OnHeatBeat(pPacket->_connectID) )
 	{
-		printf("recieved heat beat , send back heat beat \n");
+		//printf("recieved heat beat , send back heat beat \n");
 		SendMsg(pPacket->_orgdata, pPacket->_len, pPacket->_connectID);
 		return true;
 	}

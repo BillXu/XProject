@@ -26,20 +26,20 @@ void CClientNetworkImp::shutdown()
 {
 	if ( m_nState == eState_Connecting )
 	{
-		m_ptrIoWork.reset();
-		m_ioservice.stop();
+		//m_ptrIoWork.reset();
+		//m_ioservice.stop();
 		m_nState = eState_None;
 		printf("shutdow when connecting\n");
 		return;
 	}
 
-	if (eState_Connected == m_nState)
-	{
-		m_ioservice.post([this]() { m_ptrSession->closeSession(); m_nState = eState_None; });
-	}
+	//if (eState_Connected == m_nState)
+	//{
+		//m_ioservice.post([this]() { m_ptrSession->closeSession(); m_nState = eState_None; });
+	//}
 	
-	m_ptrIoWork.reset();
-	m_ioservice.stop();
+	//m_ptrIoWork.reset();
+	//m_ioservice.stop();
 	printf("shutdow network\n");
 }
 

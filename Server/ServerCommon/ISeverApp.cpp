@@ -10,7 +10,7 @@
 #include "AutoBuffer.h"
 #include "AsyncRequestQuene.h"
 #define TIME_WAIT_FOR_RECONNECT 6
-bool IServerApp::init()
+bool IServerApp::init( Json::Value& jsSvrCfg )
 {
 	m_bRunning = true;
 	m_nTargetSvrNetworkID = INVALID_CONNECT_ID;
@@ -35,6 +35,8 @@ bool IServerApp::init()
 		installModule(nIdx);
 	}
 
+	auto jsCenter = jsSvrCfg["centerSvr"];
+	setConnectServerConfig(jsCenter["ip"].asCString(),jsCenter["port"].asUInt());
 	return true ;
 }
 
@@ -43,7 +45,6 @@ IServerApp::IServerApp()
 	m_pTimerMgr = nullptr ;
 	m_pNetWork = nullptr ;
 	m_eConnectState = CNetWorkMgr::eConnectType_None ;
-	memset(&m_stConnectConfig,0,sizeof(m_stConnectConfig));
 	m_fReconnectTick = 0 ;
 	m_vAllModule.clear() ;
 }
@@ -467,6 +468,9 @@ void IServerApp::update(float fDeta )
 	}
 
 	// caculate fps 
+#ifdef _DEBUG
+	return;
+#endif // _DEBUG
 	++m_nFrameCnt;
 	m_fFrameTicket += fDeta;
 	m_fOutputfpsTickt += fDeta;
@@ -497,15 +501,10 @@ bool IServerApp::isConnected()
 	return m_eConnectState == CNetWorkMgr::eConnectType_Connected;
 }
 
-void IServerApp::setConnectServerConfig(stServerConfig* pConfig )
+void IServerApp::setConnectServerConfig( const char* pCenterSvrIP, uint16_t nCenterSvrPort)
 {
-	if ( pConfig == nullptr )
-	{
-		LOGFMTE("connect config is null") ;
-		return ;
-	}
-
-	m_stConnectConfig = *pConfig ;
+	m_strCenterSvrIP = pCenterSvrIP;
+	m_nCenterSvrPort = nCenterSvrPort;
 
 	if ( m_eConnectState != CNetWorkMgr::eConnectType_Connected && CNetWorkMgr::eConnectType_Connecting != m_eConnectState )
 	{
@@ -521,10 +520,10 @@ void IServerApp::doConnectToTargetSvr()
 	}
 
 	assert(m_pNetWork && "IServer init not invoke" ) ;
-	assert(m_stConnectConfig.nPort && "please set connect config" ) ;
-	m_pNetWork->ConnectToServer(m_stConnectConfig.strIPAddress,m_stConnectConfig.nPort,m_stConnectConfig.strPassword) ;
+	assert(m_nCenterSvrPort && "please set connect config" ) ;
+	m_pNetWork->ConnectToServer(m_strCenterSvrIP.c_str(), m_nCenterSvrPort,"") ;
 	m_eConnectState = CNetWorkMgr::eConnectType_Connecting ;
-	LOGFMTI("connecting to target svr ip = %s", m_stConnectConfig.strIPAddress );
+	LOGFMTI("connecting to target svr ip = %s", m_strCenterSvrIP.c_str());
 }
 
 void IServerApp::onExit()

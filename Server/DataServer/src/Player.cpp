@@ -129,18 +129,20 @@ void CPlayer::onPlayerOtherDeviceLogin(uint32_t nNewSessionID, const char* pNewI
 	msg.nTargetID = m_nSessionID;
 	sendMsgToClient(&msg, sizeof(msg));
 
+	// set new session id ;
+	auto nOldSession = m_nSessionID;
+	m_nSessionID = nNewSessionID;
+	m_strCurIP = pNewIP;
+	saveLoginInfo();
+
 	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
 	{
 		IPlayerComponent* p = m_vAllComponents[i];
 		if (p)
 		{
-			p->onPlayerOtherDeviceLogin(m_nSessionID,nNewSessionID);
+			p->onPlayerOtherDeviceLogin(nOldSession,nNewSessionID);
 		}
 	}
-	// set new session id ;
-	m_nSessionID = nNewSessionID;
-	m_strCurIP = pNewIP;
-	saveLoginInfo();
 }
 
 void CPlayer::onPlayerDisconnect()

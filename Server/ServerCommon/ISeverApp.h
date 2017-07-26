@@ -23,7 +23,7 @@ public:
 public:
 	IServerApp();
 	virtual ~IServerApp();
-	virtual bool init();
+	virtual bool init(Json::Value& jsSvrCfg );
 	virtual bool OnMessage( Packet* pMsg ) ;
 	virtual bool OnLostSever(Packet* pMsg);
 	virtual bool OnConnectStateChanged( eConnectState eSate, Packet* pMsg);
@@ -52,7 +52,7 @@ public:
 protected:
 	bool installModule( uint16_t nModuleType );
 	virtual IGlobalModule* createModule( uint16_t eModuleType );
-	void setConnectServerConfig(stServerConfig* pConfig );
+	void setConnectServerConfig( const char* pCenterSvrIP, uint16_t nCenterSvrPort );
 	void doConnectToTargetSvr();
 	CNetWorkMgr* getNetwork(){ return m_pNetWork ;}
 private:
@@ -65,7 +65,9 @@ private:
 	CTimerManager* m_pTimerMgr ;
 	CNetWorkMgr* m_pNetWork ;
 
-	stServerConfig m_stConnectConfig ;
+	std::string m_strCenterSvrIP = 0 ;
+	uint16_t m_nCenterSvrPort = 0;
+
 	float m_fReconnectTick ;
 	bool m_isSvrFull = false;
 

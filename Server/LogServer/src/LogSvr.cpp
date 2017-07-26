@@ -25,24 +25,21 @@ CLogSvrApp::~CLogSvrApp()
 	}
 }
 
-bool CLogSvrApp::init()
+bool CLogSvrApp::init(Json::Value& jsSvrCfg)
 {
-	IServerApp::init();
+	IServerApp::init(jsSvrCfg);
 
 	CSeverConfigMgr stSvrConfigMgr;
 	stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
-	// setup net work
-	stServerConfig* pConfig = stSvrConfigMgr.GetServerConfig(eSvrType_Center);
-	if ( pConfig == NULL )
+	// set up data base thread 
+	auto jsDB = jsSvrCfg["gameDB"];
+	if (jsDB.isNull())
 	{
-		LOGFMTE("center svr config is null , so can not connected to !") ;
+		LOGFMTE("data base config is null, cant not start server");
 		return false;
 	}
-	setConnectServerConfig(pConfig);
-	// set up data base thread 
 	m_pDBWorkThread = new CDataBaseThread ;
-	stServerConfig* pDatabase = stSvrConfigMgr.GetServerConfig(eSvrType_LogDataBase);
-	m_pDBWorkThread->InitDataBase(pDatabase->strIPAddress, pDatabase->nPort, pDatabase->strAccount, pDatabase->strPassword, Log_DB_Name);
+	m_pDBWorkThread->InitDataBase(jsDB["ip"].asCString(), jsDB["account"].asCString(), jsDB["pwd"].asCString(), jsDB["name"].asCString());
 	m_pDBWorkThread->Start();
 
 	// dbManager ;

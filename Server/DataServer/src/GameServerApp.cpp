@@ -19,20 +19,11 @@ DataServerApp::~DataServerApp()
 	m_pConfigManager = nullptr;
 }
 
-bool DataServerApp::init()
+bool DataServerApp::init(Json::Value& jsSvrCfg)
 {
-	IServerApp::init();
+	IServerApp::init(jsSvrCfg);
 	srand((unsigned int)time(0));
 
-	CSeverConfigMgr SvrConfigMgr ;
-	SvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
-	stServerConfig* pConfig = SvrConfigMgr.GetServerConfig(ID_MSG_PORT_CENTER) ;
-	if ( pConfig == NULL )
-	{
-		LOGFMTE("center svr config is null , so can not connected to !") ;
-		return false;
-	}
-	setConnectServerConfig(pConfig);
 
 	CServerStringTable::getInstance()->LoadFile("../configFile/stringTable.txt");
 

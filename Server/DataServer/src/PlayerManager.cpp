@@ -340,6 +340,7 @@ bool CPlayerManager::onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint3
 			LOGFMTE("uid = %u , recieved unknown net state = %u",pRet->nTargetID,pRet->nCurState);
 			return true;
 		}
+		LOGFMTD( "uid = %u net state changed to %u", pPlayer->getUserUID(), pRet->nCurState);
 	}
 	break;
 	default:
@@ -618,6 +619,7 @@ void CPlayerManager::update(float fDeta )
 			 m_vAllActivePlayers.erase(iter);
 		 }
 	 }
+	 m_vWillDeletePlayers.clear();
 }
 
 CPlayer* CPlayerManager::getPlayerByUserUID( uint32_t nUserUID )

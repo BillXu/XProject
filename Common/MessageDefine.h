@@ -15,6 +15,21 @@ public:
 	stMsg():cSysIdentifer( ID_MSG_PORT_NONE  ),usMsgType(MSG_NONE), nTargetID(0){}
 };
 
+struct stMsgVerifyClient
+	:public stMsg
+{
+	stMsgVerifyClient() { cSysIdentifer = ID_MSG_PORT_GATE, usMsgType = MSG_VERIFY_CLIENT;  }
+	char pToken[32];
+};
+
+struct stMsgVerifyClientRet
+	:public stMsg
+{
+	stMsgVerifyClientRet() { cSysIdentifer = ID_MSG_PORT_CLIENT, usMsgType = MSG_VERIFY_CLIENT; }
+	uint8_t nRet; // 0 success , 1 token error ;
+	uint32_t nSessionID;
+};
+
 struct stMsgJsonContent
 	:public stMsg
 {

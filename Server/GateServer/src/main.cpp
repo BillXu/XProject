@@ -96,6 +96,7 @@
 #include "Application.h"
 int main()
 {
+
 	CGateServer theApp ;
 	CApplication theAplication(&theApp);
 	theAplication.startApp();

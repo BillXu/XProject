@@ -10,11 +10,12 @@
 #include "TaskPoolModule.h"
 #include "VerifyApp.h"
 #include "AnyLoginTask.h"
+#include "VerifyApp.h"
 void CHttpModule::init(IServerApp* svrApp)
 {
 	IGlobalModule::init(svrApp);
-
-	std::string strNotifyUrl = Wechat_notifyUrl;
+	
+	std::string strNotifyUrl = ((CVerifyApp*)svrApp)->getWebchatNotifyUrl();
 	// parse port ;
 	std::size_t nPosDot = strNotifyUrl.find_last_of(':');
 	std::size_t nPosSlash = strNotifyUrl.find_last_of('/');

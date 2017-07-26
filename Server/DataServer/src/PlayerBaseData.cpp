@@ -114,12 +114,14 @@ void CPlayerBaseData::sendBaseDataToClient()
 	 }
 
 	Json::Value jsBaseData;
+	jsBaseData["uid"] = getPlayer()->getUserUID();
 	jsBaseData["name"] = getPlayerName();
 	jsBaseData["sex"] = getSex();
 	jsBaseData["headIcon"] = getHeadIcon();
 	jsBaseData["diamond"] = getDiamoned();
 	jsBaseData["coin"] = getCoin();
 	sendMsg(jsBaseData, MSG_PLAYER_BASE_DATA);
+	LOGFMTD("send msg to client base data uid = %u", getPlayer()->getUserUID() );
 }
 
 void CPlayerBaseData::timerSave()

@@ -11,10 +11,13 @@
 #include "ApnsTask.h"
 #include "AnyLoginTask.h"
 #include "AsyncRequestQuene.h"
+#include "VerifyApp.h"
 void CTaskPoolModule::init( IServerApp* svrApp )
 {
 	IGlobalModule::init(svrApp) ;
 	m_tTaskPool.init(this,3);
+	m_strWechatNotifyUrl = ((CVerifyApp*)svrApp)->getWebchatNotifyUrl();
+	m_jsDBCfg = ((CVerifyApp*)svrApp)->getDBCfg();
 }
 
 void CTaskPoolModule::onExit()
@@ -86,13 +89,15 @@ ITask::ITaskPrt CTaskPoolModule::createTask( uint32_t nTaskID )
 	case eTask_WechatOrder:
 		{
 			std::shared_ptr<CWeChatOrderTask> pTask ( new CWeChatOrderTask(nTaskID)) ;
+			pTask->setWechatNotifyUrl(m_strWechatNotifyUrl.c_str());
 			return pTask  ;
 		}
 		break;
 	case eTask_WechatVerify:
 		{
-			std::shared_ptr<CWechatVerifyTask> pTask ( new CWechatVerifyTask(nTaskID)) ;
-			return pTask  ;
+			LOGFMTE("not use eTask_WechatVerify ");
+			//std::shared_ptr<CWechatVerifyTask> pTask ( new CWechatVerifyTask(nTaskID)) ;
+			return nullptr  ;
 		}
 		break;
 	case eTask_AppleVerify:
@@ -103,7 +108,7 @@ ITask::ITaskPrt CTaskPoolModule::createTask( uint32_t nTaskID )
 		break;
 	case eTask_DBVerify:
 		{
-			std::shared_ptr<CDBVerfiyTask> pTask ( new CDBVerfiyTask(nTaskID)) ;
+			std::shared_ptr<CDBVerfiyTask> pTask ( new CDBVerfiyTask(nTaskID, m_jsDBCfg )) ;
 			return pTask  ;
 		}
 		break;

@@ -12,8 +12,13 @@ public:
 		eMod_Http,
 	};
 public:
-	bool init();
+	bool init(Json::Value& jsSvrCfg)override;
 	uint16_t getLocalSvrMsgPortType()override;
 	CTaskPoolModule* getTaskPoolModule();
 	IGlobalModule* createModule( uint16_t eModuleType )override ;
+	const char* getWebchatNotifyUrl();
+	Json::Value& getDBCfg();
+protected:
+	std::string m_strWebchatNotifyUrl;
+	Json::Value m_jsDBCfg;
 };

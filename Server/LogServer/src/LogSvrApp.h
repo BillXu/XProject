@@ -9,7 +9,7 @@ class CLogSvrApp
 public:
 	CLogSvrApp();
 	~CLogSvrApp();
-	bool init();
+	bool init(Json::Value& jsSvrCfg)override;
 	void update(float fDeta );
 	// net delegate
 	virtual bool onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );

@@ -5,28 +5,19 @@
 #include "log4z.h"
 #include "ConfigDefine.h"
 #include "AutoBuffer.h"
-bool CDBServerApp::init()
+bool CDBServerApp::init(Json::Value& jsSvrCfg)
 {
-	IServerApp::init();
-	
-	m_stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
-	stServerConfig* pCenter = m_stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_CENTER);
-	if ( pCenter == NULL )
-	{
-		LOGFMTE("center svr config is null canont start DB server") ;
-		return false;
-	}
-	setConnectServerConfig(pCenter);
+	IServerApp::init(jsSvrCfg);
 	// set up data base thread 
-	stServerConfig* pDatabase = m_stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_DB);
-	if ( pDatabase == NULL )
+	auto jsDB = jsSvrCfg["gameDB"];
+	if (jsDB.isNull())
 	{
 		LOGFMTE("data base config is null, cant not start server") ;
 		return false;
 	}
 
 	// dbManager ;
-	m_tDBRW.init( pDatabase->strIPAddress, pDatabase->strAccount, pDatabase->strPassword, Game_DB_Name);
+	m_tDBRW.init(jsDB["ip"].asCString(), jsDB["account"].asCString(), jsDB["pwd"].asCString(), jsDB["name"].asCString());
 
 	LOGFMTI("DBServer Start!");
 	return true ;

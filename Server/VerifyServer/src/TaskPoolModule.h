@@ -38,4 +38,6 @@ protected:
 	void sendVerifyResult(std::shared_ptr<stVerifyRequest> & pResult );
 protected:
 	CTaskPool m_tTaskPool ;
+	std::string m_strWechatNotifyUrl;
+	Json::Value m_jsDBCfg;
 };

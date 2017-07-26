@@ -37,6 +37,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkUtility", "NetworkUt
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CenterServer", "CenterServer\CenterServer.vcxproj", "{B48CE06E-A341-4E61-9468-EF821196794E}"
 	ProjectSection(ProjectDependencies) = postProject
+		{1021C400-E90B-4985-982D-DF9DB555F336} = {1021C400-E90B-4985-982D-DF9DB555F336}
 		{3BF0757D-C2EE-47D6-B251-D7B71C08D599} = {3BF0757D-C2EE-47D6-B251-D7B71C08D599}
 	EndProjectSection
 EndProject

@@ -4,14 +4,11 @@
 #include "DBTask.h"
 #include "DBRequest.h"
 #include "../ServerCommon/ConfigDefine.h"
-CDBVerfiyTask::CDBVerfiyTask(uint32_t nTaskID )
+CDBVerfiyTask::CDBVerfiyTask(uint32_t nTaskID, Json::Value& jsDBCfg )
 	:IVerifyTask(nTaskID),m_pDBTask(nullptr)
 {
-	CSeverConfigMgr stSvrConfigMgr ;
-	stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
 	// set up data base thread 
-	stServerConfig* pDatabase = stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_DB);
-	m_pDBTask = std::shared_ptr<CDBTask>(new CDBTask(nTaskID, pDatabase->strIPAddress, pDatabase->nPort, pDatabase->strAccount, pDatabase->strPassword, Game_DB_Name));
+	m_pDBTask = std::shared_ptr<CDBTask>(new CDBTask(nTaskID, jsDBCfg["ip"].asCString(), 3306, jsDBCfg["account"].asCString(), jsDBCfg["pwd"].asCString(), jsDBCfg["name"].asCString() ));
 }
 
 uint8_t CDBVerfiyTask::performTask()

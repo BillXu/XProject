@@ -27,6 +27,7 @@ enum eMsgType
 	// the msg title used between servers 
 	MSG_SERVERS_USE,
 	MSG_VERIFY_SERVER,   // used between svr , not by transfer data ;
+	MSG_VERIFY_CLIENT, // verify that is client ;
 	MSG_TRANSER_DATA, // tranfer data between servers ;
 	MSG_SERVER_DISCONNECT, // some svr disconnected ;  // svr recived , send by center svr , not by transfer data ;
 	MSG_ASYNC_REQUEST, // asyn request 
@@ -45,7 +46,7 @@ enum eMsgType
 	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server
 	// svr : null 
 	MSG_PLAYER_BASE_DATA,
-	// svr: { name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20  }
+	// svr: { uid : 23,name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20  }
 	MSG_PLAYER_UPDATE_INFO,
 	// client : { name : "lucy", sex : 1 , headIcon : "http://url.com"  }
 	// svr: { ret : 0 }
@@ -126,7 +127,6 @@ enum eMsgType
 
 	// new real new above 
 	MSG_VERIFY_LOGIN, // verify login server ;
-	MSG_VERIFY_CLIENT, // verify that is client ;
 	MSG_VERIFY_VERIYF, // verify buy transaction ok ;
 	MSG_VERIFY_GATE, // verify that is gate server 
 	MSG_VERIFY_DB,  // verify that is DBserver ;

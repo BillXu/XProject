@@ -1,7 +1,8 @@
 #include "Application.h"
 #include "log4z.h"
 #include <cassert>
-
+#include "json\json.h"
+#include <fstream>
 bool CustomAssertFunction(bool isfalse, char* description, int line, char*filepath)
 {
 	if (true == isfalse)
@@ -37,7 +38,21 @@ void CApplication::startApp()
 {
 	_CrtSetReportMode(_CRT_ASSERT, 0);
 	zsummer::log4z::ILog4zManager::GetInstance()->Start() ;
-	auto nRet = m_pApp->init();
+
+	// read svr config ;
+	Json::Reader js;
+	Json::Value jsR;
+	std::ifstream ss;
+	ss.open("../configFile/svrCfg.txt", std::ifstream::in);
+	auto bRet = js.parse(ss, jsR);
+	ss.close();
+	if (!bRet)
+	{
+		LOGFMTE("read svrCfg failed");
+		return;
+	}
+
+	auto nRet = m_pApp->init(jsR);
 	assert(nRet && "init svr error");
 	if ( nRet == false )
 	{

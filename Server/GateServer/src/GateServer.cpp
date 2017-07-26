@@ -32,9 +32,9 @@ CGateServer::~CGateServer()
 	s_GateServer = NULL ;
 }
 
-bool CGateServer::init()
+bool CGateServer::init(Json::Value& jsSvrCfg)
 {
-	IServerApp::init();
+	IServerApp::init(jsSvrCfg);
 	if ( s_GateServer )
 	{
 		assert(0&&"only once should");
@@ -43,14 +43,12 @@ bool CGateServer::init()
 	// client player mgr ;
 	m_pGateManager = new CGateClientMgr ;
 	
-	m_stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");
-
-	stServerConfig* pSvrConfig = m_stSvrConfigMgr.GetServerConfig(ID_MSG_PORT_CENTER) ;
-	if ( !pSvrConfig )
+	if ( jsSvrCfg["gatePort"].isNull() )
 	{
+		LOGFMTE("log gate port is null");
 		return false ;
 	}
-	setConnectServerConfig(pSvrConfig);
+	m_nGatePort = jsSvrCfg["gatePort"].asUInt();
 	return true ;
 }
 
@@ -75,11 +73,10 @@ void CGateServer::onExit()
 void CGateServer::onConnectedToSvr( bool isReconnectMode )
 {
 	// start gate svr for client to connected 
-	stServerConfig* pGateConfig = m_stSvrConfigMgr.GetGateServerConfig(getCurSvrIdx());
 	if (nullptr == m_pNetWorkForClients)
 	{
 		m_pNetWorkForClients = new CServerNetwork;
-		m_pNetWorkForClients->StartupNetwork(pGateConfig->nPort, 5000, pGateConfig->strPassword);
+		m_pNetWorkForClients->StartupNetwork(m_nGatePort, 5000, "");
 		m_pNetWorkForClients->AddDelegate(m_pGateManager);
 	}
 
