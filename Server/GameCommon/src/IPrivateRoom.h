@@ -57,7 +57,7 @@ protected:
 	uint8_t m_nRoundLevel; // round level , comsume card and init round deponeded on this level ;
 	uint8_t m_nLeftRounds;
 
-	bool m_bComsumedRoomCards;
+	bool m_isOneRoundNormalEnd;
 	eState m_nPrivateRoomState;
 
 	bool m_bWaitDismissReply;
@@ -67,4 +67,6 @@ protected:
 	uint32_t m_nApplyDismissUID;
 
 	GameRoom* m_pRoom;
+
+	CTimer m_tAutoDismissTimer;
 };

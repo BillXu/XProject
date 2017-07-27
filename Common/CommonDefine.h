@@ -304,7 +304,8 @@ enum eMailType
 	eMail_Wechat_Pay, // { ret : 0 , diamondCnt : 23 }  // ret : 1 means verify error 
 	eMail_AppleStore_Pay, // { ret : 0 , diamondCnt : 23 }   // ret : 1 means verify error 
 	eMail_Agent_AddCard, // { agentID : 23 , serialNo : 2345 , cardOffset : 23 }
-	eMail_Consume_Diamond, // { diamond : 23 , roomID :23 } 
+	eMail_Consume_Diamond, // { diamond : 23 , roomID :23, reason : 0 } 
+	eMail_GiveBack_Diamond, // { diamond : 23 , roomID :23, reason : 0  } 
 
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;

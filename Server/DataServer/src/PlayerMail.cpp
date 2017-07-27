@@ -93,6 +93,19 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 		if (getPlayer()->getBaseData()->isPlayerReady())
 		{
 			auto nDiamondCnt = pMail->jsDetail["diamond"].asUInt();
+			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt * -1 , true);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
+	case eMail_GiveBack_Diamond:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			auto nDiamondCnt = pMail->jsDetail["diamond"].asUInt();
 			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt, true);
 		}
 		else

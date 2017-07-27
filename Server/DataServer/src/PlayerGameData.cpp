@@ -54,6 +54,41 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		setStayInRoomID(nRoomID);
 	}
 	break;
+	case eAsync_Request_CreateRoomInfo:
+	{
+		// { targetUID : 23 , sessionID : 23 }  // result : { ret : 0 , uid  23 , diamond : 23 , alreadyRoomCnt : 23 }  // ret : 0 success ,1 session id and uid not match  .2, not find target player 
+		auto nSessionID = jsReqContent["sessionID"].asUInt();
+		if (nSessionID != getPlayer()->getSessionID())
+		{
+			jsResult["ret"] = 1;
+			LOGFMTE("player uid = %u create room session id not match",getPlayer()->getUserUID());
+			break;
+		}
+		jsResult["uid"] = getPlayer()->getUserUID();
+		jsResult["diamond"] = getPlayer()->getBaseData()->getDiamoned();
+		jsResult["alreadyRoomCnt"] = m_vCreatedRooms.size();
+	}
+	break;
+	case eAsync_Inform_CreatedRoom:
+	{
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		m_vCreatedRooms.push_back(nRoomID);
+		LOGFMTD("player uid = %u create Room id = %u , add to room list",getPlayer()->getUserUID(),nRoomID );
+	}
+	break;
+	case eAsync_Inform_RoomDeleted:
+	{
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		auto iter = std::find(m_vCreatedRooms.begin(),m_vCreatedRooms.end(),nRoomID );
+		if (iter != m_vCreatedRooms.end())
+		{
+			m_vCreatedRooms.erase(iter);
+			LOGFMTD( "uid = %u 's room deleted room id = %u",getPlayer()->getUserUID(),nRoomID );
+			break;
+		}
+		LOGFMTE( "uid = %u don't have room id = %u , how delete ?",getPlayer()->getUserUID(),nRoomID );
+	}
+	break;
 	default:
 		return false;
 	}
@@ -128,6 +163,25 @@ uint16_t CPlayerGameData::getGamePortByRoomID(uint32_t nRoomID)
 bool CPlayerGameData::canRemovePlayer()
 {
 	return 0 == getStayInRoomID();
+}
+
+bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)
+{
+	if ( MSG_ROOM_REQ_ROOM_LIST == nmsgType )
+	{
+		Json::Value jsRoomIDs;
+		for (auto& ref : m_vCreatedRooms)
+		{
+			jsRoomIDs[jsRoomIDs.size()] = ref;
+		}
+		Json::Value jsMsg;
+		jsMsg["ret"] = 0;
+		jsMsg["stayInRoomID"] = m_nStayRoomID;
+		jsMsg["roomIDS"] = jsRoomIDs;
+		sendMsg(jsMsg, nmsgType);
+		return true;
+	}
+	return false;
 }
 
 void CPlayerGameData::informNetState(uint8_t nStateFlag)

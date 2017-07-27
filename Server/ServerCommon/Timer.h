@@ -27,6 +27,7 @@ public:
 	void setInterval(float fNewInterval );
 	void start();
 	bool isRunning();
+	void clearTime();
 protected:
 	void Update( float fTimeElaps );
 	uint32_t getTimerID();

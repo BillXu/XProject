@@ -62,12 +62,12 @@ enum eAsyncReq
 	eAsync_Inform_Player_NetState, // { roomID : 23 , uid : 23 ,state : eNetState  } // result : null ; resut : { ret : 0 } ret : 0 ok , 1 can not find room id ;  
 	eAsync_Inform_Player_NewSessionID, // { roomID : 23 , uid : 23 , newSessionID : 23 } // result : { ret : 0 } ret : 0 ok , 1 can not find room id ; 
 	eAsync_Inform_Player_LeavedRoom, // { targetUID : 23 , roomID : 23 }
-	eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23 }
-	eAsync_GiveBackDiamond, // { targetUID : 2345 , diamond : 23,roomID : 23 } ;
+	eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23, reason : 0 }  // reason : 0 play in room , 1 create room  ;
+	eAsync_GiveBackDiamond, // { targetUID : 2345 , diamond : 23,roomID : 23,reason : 0  } // reason : 0 play in room , 1 create room  ;
 	eAsync_InformGate_PlayerLogout, //{ "sessionID" : 234 }
-	eAsync_Request_CreateRoomInfo, // { sessionID : 23 }  // result : { ret : 0 , uid  23 , diamond : 23 , alreadyRoomCnt : 23 }  // ret : 0 success , 1 not find target player 
+	eAsync_Request_CreateRoomInfo, // { targetUID : 23 , sessionID : 23 }  // result : { ret : 0 , uid  23 , diamond : 23 , alreadyRoomCnt : 23 }  // ret : 0 success , 1 session id error and uid not match, 2, not find target player 
 	eAsync_Inform_CreatedRoom, // { targetUID : 23 , roomID : 234 } 
-
+	eAsync_Inform_RoomDeleted, // { targetUID : 23 , roomID : 234  };
 
 
 

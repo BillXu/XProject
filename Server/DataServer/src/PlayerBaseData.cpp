@@ -132,6 +132,7 @@ void CPlayerBaseData::sendBaseDataToClient()
 	jsBaseData["headIcon"] = getHeadIcon();
 	jsBaseData["diamond"] = getDiamoned();
 	jsBaseData["coin"] = getCoin();
+	jsBaseData["ip"] = getPlayer()->getIp();
 	sendMsg(jsBaseData, MSG_PLAYER_BASE_DATA);
 	LOGFMTD("send msg to client base data uid = %u", getPlayer()->getUserUID() );
 }

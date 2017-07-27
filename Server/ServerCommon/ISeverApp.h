@@ -65,8 +65,8 @@ private:
 	CTimerManager* m_pTimerMgr ;
 	CNetWorkMgr* m_pNetWork ;
 
-	std::string m_strCenterSvrIP = 0 ;
-	uint16_t m_nCenterSvrPort = 0;
+	uint16_t m_nCenterSvrPort;
+	std::string m_strCenterSvrIP;
 
 	float m_fReconnectTick ;
 	bool m_isSvrFull = false;

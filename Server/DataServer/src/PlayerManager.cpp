@@ -170,6 +170,8 @@ void CPlayerBrifDataCacher::visitBrifData(Json::Value jsBrifData, CPlayer* pPlay
 	jsBrifData["headIcon"] = pPlayer->getBaseData()->getHeadIcon();
 	jsBrifData["sex"] = pPlayer->getBaseData()->getSex();
 	jsBrifData["ip"] = pPlayer->getIp();
+	jsBrifData["J"] = pPlayer->getBaseData()->getGPS_J();
+	jsBrifData["W"] = pPlayer->getBaseData()->getGPS_W();
 }
 
 void CPlayerBrifDataCacher::checkState()
@@ -436,13 +438,29 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		Json::Value jsMailArg;
 		jsMailArg["diamond"] = jsReqContent["roomID"];
 		jsMailArg["roomID"] = jsReqContent["roomID"];
+		jsMailArg["reason"] = jsReqContent["reason"];
 
 		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
 		pMailModule->postMail(nUserUID, eMail_Consume_Diamond, jsMailArg, eMailState_WaitSysAct);
 	}
 	break;
+	case eAsync_GiveBackDiamond:
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["diamond"] = jsReqContent["diamond"];
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+		jsMailArg["reason"] = jsReqContent["reason"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_GiveBack_Diamond, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
 	case eAsync_Inform_Player_LeavedRoom:
 	case eAsync_Request_EnterRoomInfo:
+	case eAsync_Request_CreateRoomInfo:
+	case eAsync_Inform_CreatedRoom:
+	case eAsync_Inform_RoomDeleted:
 	{
 		auto nUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUID);

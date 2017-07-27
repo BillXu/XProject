@@ -19,6 +19,7 @@ public:
 	void onPlayerOtherDeviceLogin( uint16_t nOldSessionID, uint16_t nNewSessionID )override;
 	uint16_t getGamePortByRoomID( uint32_t nRoomID );
 	bool canRemovePlayer()override;
+	bool onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)override;
 protected:
 	void informNetState( uint8_t nStateFlag ); //  0 online , 1 wait reconnect , 2 offline .
 protected:

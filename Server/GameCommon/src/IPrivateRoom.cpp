@@ -7,6 +7,7 @@
 #include "AsyncRequestQuene.h"
 #include <time.h>
 #define TIME_WAIT_REPLY_DISMISS 90
+#define TIME_AUTO_DISMISS (60*60*1)
 IPrivateRoom::~IPrivateRoom()
 {
 	delete m_pRoom;
@@ -38,13 +39,29 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_nRoundLevel = vJsOpts["level"].asUInt();
 	m_nLeftRounds = getInitRound(m_nRoundLevel);
 
-	m_bComsumedRoomCards = false;
+	m_isOneRoundNormalEnd = false;
 	m_nPrivateRoomState = eState_WaitStart;
 	m_bWaitDismissReply = false;
 
 	m_vPlayerAgreeDismissRoom.clear();
 	m_tInvokerTime = 0;
 	m_nApplyDismissUID = 0;
+
+	// start auto dismiss timer ;
+	m_tAutoDismissTimer.reset();
+	m_tAutoDismissTimer.setInterval(TIME_AUTO_DISMISS);
+#ifdef _DEBUG
+	m_tAutoDismissTimer.setInterval( 60*5 );
+#endif // _DEBUG
+
+	m_tAutoDismissTimer.setIsAutoRepeat(false);
+	m_tAutoDismissTimer.setCallBack([this](CTimer*p, float f) {
+		m_tInvokerTime = 0;
+		m_nApplyDismissUID = 0;
+		LOGFMTI("system auto dismiss room id = %u , owner id = %u",getRoomID(), m_nOwnerUID );
+		doRoomGameOver(true);
+	});
+	m_tAutoDismissTimer.start();
 	return true;
 }
 
@@ -67,14 +84,10 @@ uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 		return false;
 	}
 
-
-	if ( m_isAA )
+	if ( m_isAA && m_isForFree == false && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, m_isAA))
 	{
-		if ( m_bComsumedRoomCards == false && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel,m_isAA) )
-		{
-			// diamond is not enough 
-			return 3;
-		}
+		// diamond is not enough 
+		return 3;
 	}
 
 	if ( m_pRoom )
@@ -92,6 +105,8 @@ bool IPrivateRoom::isRoomFull()
 
 bool IPrivateRoom::doDeleteRoom()
 {
+	m_tWaitReplyDismissTimer.canncel();
+	m_tAutoDismissTimer.canncel();
 	// tell client closed room ;
 	Json::Value jsDoClosed;
 	jsDoClosed["roomID"] = getRoomID();
@@ -99,7 +114,11 @@ bool IPrivateRoom::doDeleteRoom()
 	sendRoomMsg(jsDoClosed, MSG_VIP_ROOM_DO_CLOSED);
 
 	// tell data svr , the room is closed 
-	LOGFMTE("must tell data svr a room delte ");
+	Json::Value jsReqInfo;
+	jsReqInfo["targetUID"] = m_nOwnerUID;
+	jsReqInfo["roomID"] = getRoomID();
+	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
 	return m_pRoom->doDeleteRoom();
 }
 
@@ -245,12 +264,17 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	}
 	break;
 	default:
-		if (m_pRoom)
+		if (m_pRoom && m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID) )
 		{
-			return m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
+			 
+		}
+		else
+		{
+			return false;
 		}
 	}
 
+	m_tAutoDismissTimer.clearTime(); // recieved client msg , auto reset timer ticket count , count from 0 again ;
 	return true;
 }
 
@@ -363,7 +387,7 @@ void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 
 bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	return m_nLeftRounds > 0;
+	return m_nLeftRounds > 0 ;
 }
 
 void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
@@ -372,11 +396,11 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	--m_nLeftRounds;
 	
 	// consume diamond 
-	if ( m_bComsumedRoomCards == false && m_isForFree == false )
+	if ( m_isOneRoundNormalEnd == false )
 	{
-		m_bComsumedRoomCards = true;
+		m_isOneRoundNormalEnd = true;
 		auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, m_isAA);
-		if ( m_isAA )
+		if ( m_isAA && m_isForFree == false )  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
 		{
 			auto nCnt = m_pRoom->getSeatCnt();
 			for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
@@ -392,18 +416,10 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 				js["playerUID"] = pPlayer->getUserUID();
 				js["diamond"] = nNeedDiamond;
 				js["roomID"] = getRoomID();
+				js["reason"] = 0;
 				auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
 			}
-		}
-		else
-		{
-			Json::Value js;
-			js["playerUID"] = m_nOwnerUID;
-			js["diamond"] = nNeedDiamond;
-			js["roomID"] = getRoomID();
-			auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Consume_Diamond, js);
 		}
 	}
 
@@ -426,13 +442,27 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	{
 		// if we need invoker oom game end ;
 		auto nCurState = m_pRoom->getCurState()->getStateID();
-		if (eRoomSate_WaitReady != nCurState && eRoomState_GameEnd != nCurState)
+		if (eRoomSate_WaitReady != nCurState && eRoomState_GameEnd != nCurState && isDismissed )
 		{
 			m_pRoom->onGameEnd();
 		}
 
 		// prepare game over bills 
 		doSendRoomGameOverInfoToClient(isDismissed);
+	}
+
+	// give back room card 
+	bool isAlreadyComsumedDiamond = ( m_isAA == false && m_isForFree == false );
+	if ( isDismissed && isAlreadyComsumedDiamond && m_isOneRoundNormalEnd == false )
+	{
+		Json::Value jsReq;
+		jsReq["targetUID"] = m_nOwnerUID;
+		jsReq["diamond"] = getDiamondNeed(m_nRoundLevel, m_isAA);
+		jsReq["roomID"] = getRoomID();
+		jsReq["reason"] = 1;
+		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_GiveBackDiamond, jsReq);
+		LOGFMTD( "room id = %u dissmiss give back uid = %u diamond = %u",getRoomID(),m_nOwnerUID,jsReq["diamond"].asUInt() );
 	}
 
 	m_nPrivateRoomState = eState_RoomOvered;

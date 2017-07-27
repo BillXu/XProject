@@ -42,11 +42,11 @@ enum eMsgType
 
 	MSG_REQUEST_PLAYER_DATA, // request player brif data 
 	// client : { nReqID : 23  isDetail : 0 }
-	// svr : { uid : 23 , name : "hello" , headIcon : "http://weshg.wx.com",sex : 1 , ip : "1.0.0.1" }
+	// svr : { uid : 23 , name : "hello" , headIcon : "http://weshg.wx.com",sex : 1 , ip : "1.0.0.1" , J : 23.0002, W : 232.234}  // J , W : GPS positon , maybe null ;
 	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server
 	// svr : null 
 	MSG_PLAYER_BASE_DATA,
-	// svr: { uid : 23,name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20  }
+	// svr: { uid : 23,name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20, ip: "234.234.234"  }
 	MSG_PLAYER_UPDATE_INFO,
 	// client : { name : "lucy", sex : 1 , headIcon : "http://url.com"  }
 	// svr: { ret : 0 }
@@ -70,11 +70,11 @@ enum eMsgType
 
 	// in room msg ;
 	MSG_CREATE_ROOM = 300,
-	// client: { gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 23 , ..... }
+	// client: { uid : 234 , gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 2 , opts : {  .... }  }
 	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error ;
 	MSG_ROOM_REQ_ROOM_LIST, // send to data svr ;
 	// client : null 
-	// svr : { ret : 0 , roomIDS : [23,23,453,32] }
+	// svr : { ret : 0 , roomIDS : [23,23,453,32], stayInRoomID : 0  }
 	MSG_ENTER_ROOM,
 	// client : { roomID : 23, uid : 23 }
 	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error ;

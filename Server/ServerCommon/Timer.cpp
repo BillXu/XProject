@@ -72,6 +72,11 @@ bool CTimer::isRunning()
 	return m_eState == eTimerState_Runing;
 }
 
+void CTimer::clearTime()
+{
+	m_fIntervalKeeper = 0;
+}
+
 void CTimer::reset()
 {
 	if ( eTimerState_Runing == m_eState )

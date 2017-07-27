@@ -114,7 +114,7 @@ uint32_t CAsyncRequestQuene::pushAsyncRequest(uint8_t nTargetPortID, uint32_t nT
 	if (nRequestUID > 0)
 	{
 		auto pReq = getAsynRequestByRequestUID(nRequestUID);
-		if ( pReq )
+		if ( pReq && pReq->nReqType == nReqType )
 		{
 			LOGFMTW("already sended this rquest type = %u, port = %u target id = %u",nReqType,nTargetPortID,nTargetID);
 			return pReq->nReqSerialNum;

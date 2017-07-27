@@ -27,6 +27,8 @@ public:
 	const char* getHeadIcon() { return m_stBaseData.cHeadiconUrl; }
 	uint8_t getSex(){ return m_stBaseData.nSex ;}
 	bool isPlayerReady()override { return m_isReadingDB == false; }
+	double getGPS_J() { return m_stBaseData.dfJ; }
+	double getGPS_W() { return m_stBaseData.dfW; }
 private:
 	stServerBaseData m_stBaseData ;
 	bool m_bMoneyDataDirty;

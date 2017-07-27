@@ -5,6 +5,7 @@
 #include "AsyncRequestQuene.h"
 #include "stEnterRoomData.h"
 #include <ctime>
+#define MAX_CREATE_ROOM_CNT 5
 IGameRoomManager::~IGameRoomManager()
 {
 	for (auto pair : m_vRooms)
@@ -198,6 +199,12 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 		},nUserID);
 	}
 	break;
+	case MSG_CREATE_ROOM:
+	{
+		// req create player info 
+		onPlayerCreateRoom(prealMsg,nSenderID );
+	}
+	break;
 	default:
 		break; 
 	}
@@ -326,4 +333,96 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 		m_nMaxSieralID += getSvrApp()->getCurSvrIdx();
 		LOGFMTD("sieralNum id  = %u", m_nMaxSieralID);
 	});
+}
+
+void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSenderID )
+{
+	// request create RoomID room info 
+	auto nUserID = prealMsg["uid"].asUInt();
+	Json::Value jsReq;
+	jsReq["sessionID"] = nSenderID;
+	jsReq["targetUID"] = nUserID;
+	auto pAsync = getSvrApp()->getAsynReqQueue();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_CreateRoomInfo, jsReq, [pAsync,nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+	{
+		if (isTimeOut)
+		{
+			LOGFMTE(" request time out uid = %u , can not create room ", nUserID);
+			Json::Value jsRet;
+			jsRet["ret"] = 4;
+			sendMsg(jsRet, MSG_CREATE_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+			return;
+		}
+
+		uint8_t nReqRet = retContent["ret"].asUInt();
+		uint8_t nRet = 0;
+		uint32_t nRoomID = 0;
+		// { ret : 0 , uid  23 , diamond : 23 , alreadyRoomCnt : 23 }
+		do
+		{
+			if ( 0 != nReqRet )
+			{
+				nRet = 3;
+				break;
+			}
+
+			jsUserData["uid"] = retContent["uid"];
+			auto nDiamond = retContent["diamond"].asUInt();
+			auto nAlreadyRoomCnt = retContent["alreadyRoomCnt"].asUInt();
+
+			auto nRoomType = jsUserData["gameType"].asUInt();
+			auto nLevel = jsUserData["level"].asUInt();
+			auto isAA = jsUserData["isAA"].asUInt() == 1 ;
+			auto isForFree = jsUserData["isFree"].asUInt() == 1;
+
+			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
+			{
+				nRet = 2;
+				break;
+			}
+			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel,isAA);
+			if ( nDiamond < nDiamondNeed )
+			{
+				nRet = 1;
+				break;
+			}
+
+			// do create room ;
+			auto pRoom = createRoom(nRoomType);
+			if (!pRoom)
+			{
+				nRet = 4;
+				LOGFMTE("game room type is null , uid = %u create room failed",nUserID );
+				break;
+			}
+			pRoom->init(this, generateSieralID(), generateRoomID(), jsUserData["seatCnt"].asUInt(), jsUserData);
+			m_vRooms[pRoom->getRoomID()] = pRoom;
+			nRoomID = pRoom->getRoomID();
+			// inform do created room ;
+			Json::Value jsInformCreatRoom;
+			jsInformCreatRoom["targetUID"] = nUserID;
+			jsInformCreatRoom["roomID"] = nRoomID;
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_CreatedRoom, jsInformCreatRoom );
+			 
+			// consume diamond 
+			if ( isAA == false && isForFree == false )
+			{
+				//eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23, reason : 0 }  // reason : 0 play in room , 1 create room  ;
+				Json::Value jsConsumDiamond;
+				jsConsumDiamond["playerUID"] = nUserID;
+				jsConsumDiamond["diamond"] = nDiamondNeed;
+				jsConsumDiamond["roomID"] = nRoomID;
+				jsConsumDiamond["reason"] = 1;
+				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Consume_Diamond, jsConsumDiamond );
+				LOGFMTD( "user uid = %u agent create room do comuse diamond = %u room id = %u",nUserID,nDiamondNeed,nRoomID  );
+			}
+ 
+		} while (0);
+
+		Json::Value jsRet;
+		jsRet["ret"] = nRet;
+		jsRet["roomID"] = nRoomID;
+		sendMsg(jsRet, MSG_CREATE_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+		LOGFMTD("uid = %u create room ret = %u , room id = %u", nUserID,nRet,nRoomID );
+	},prealMsg,nUserID );
 }

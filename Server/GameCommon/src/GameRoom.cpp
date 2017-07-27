@@ -19,7 +19,7 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 
 	m_ptrCurRoundRecorder = nullptr;
 	m_ptrRoomRecorder = createRoomRecorder();
-	m_ptrRoomRecorder->init(nSeialNum, nRoomID, vJsOpts["creatorUID"].asUInt(), getRoomType(), vJsOpts);
+	m_ptrRoomRecorder->init(nSeialNum, nRoomID, vJsOpts["uid"].asUInt(), getRoomType(), vJsOpts);
 
 	m_ptrGameReplay = std::make_shared<MJReplayGame>();
 	m_ptrGameReplay->init( getRoomType(),vJsOpts);
