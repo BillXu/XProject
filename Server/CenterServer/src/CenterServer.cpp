@@ -4,7 +4,6 @@
 #include "ServerMessageDefine.h"
 #include <synchapi.h>
 #include <time.h>
-#include "ServerConfig.h"
 #include "json\json.h"
 #include <fstream>
 CCenterServerApp* CCenterServerApp::s_GateServer = NULL ;

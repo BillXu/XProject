@@ -36,9 +36,6 @@
     <ClCompile Include="Timer.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="ServerConfig.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="SeverUtility.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -108,9 +105,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerConfig.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="ServerDefine.h">

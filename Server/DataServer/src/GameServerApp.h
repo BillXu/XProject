@@ -2,7 +2,6 @@
 #include "ISeverApp.h"
 #include "PlayerManager.h"
 #include "ConfigManager.h"
-#include "ServerConfig.h"
 #include "PokerCircle.h"
 #include "Singleton.h"
 class MailModule;

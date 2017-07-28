@@ -1,7 +1,6 @@
 #pragma once
 #include "ServerNetwork.h"
 #include "ClientManager.h"
-#include "ServerConfig.h"
 #include "ISeverApp.h"
 class CGateServer
 	:public IServerApp

@@ -1,6 +1,5 @@
 #include "DBVerifyTask.h"
 #include "VerifyRequest.h"
-#include "ServerConfig.h"
 #include "DBTask.h"
 #include "DBRequest.h"
 #include "../ServerCommon/ConfigDefine.h"

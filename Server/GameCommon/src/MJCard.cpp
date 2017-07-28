@@ -101,19 +101,10 @@ void CMJCard::debugCardInfo()
 	printf("card info end \n\n") ;
 }
 
-void CMJCard::initAllCard( eMJGameType eType )
+void CMJCard::init()
 {
 	m_vAllCards.clear() ;
 	m_nCurCardIdx = 0 ;
-
-	Assert(eType < eMJ_Max && eType >= eMJ_None , "invalid card type");
-	//if ( eMJ_TwoBird == eType )
-	//{
-	//	initTwoBirdCard() ;
-	//	return ;
-	//}
-
-	m_eMJGameType = eType ;
 
 	// every card are 4 count 
 	for ( uint8_t nCnt = 0 ; nCnt < 4 ; ++nCnt )
@@ -126,35 +117,6 @@ void CMJCard::initAllCard( eMJGameType eType )
 			{
 				m_vAllCards.push_back(makeCardNumber((eMJCardType)nType,nValue)) ;
 			}
-		}
-
-		if (eMJ_COMMON == m_eMJGameType || eMJ_NanJing == m_eMJGameType || eMJ_SuZhou == m_eMJGameType )
-		{
-			// add feng , add ke
-			for ( uint8_t nValue = 1 ; nValue <= 4 ; ++nValue )
-			{
-				m_vAllCards.push_back(makeCardNumber(eCT_Feng,nValue)) ;
-			}
-
-			for ( uint8_t nValue = 1 ; nValue <= 3 ; ++nValue )
-			{
-				m_vAllCards.push_back(makeCardNumber(eCT_Jian,nValue)) ;
-			}
-		}
-	}
-
-	if (eMJ_NanJing == m_eMJGameType)
-	{
-		for (uint8_t nValue = 1; nValue <= 8; ++nValue)
-		{
-			m_vAllCards.push_back(makeCardNumber(eCT_Hua, nValue));
-		}
-	}
-	else if ( eMJ_SuZhou == m_eMJGameType )
-	{
-		for (uint8_t nValue = 1; nValue <= 10; ++nValue)
-		{
-			m_vAllCards.push_back(makeCardNumber(eCT_Hua, nValue));
 		}
 	}
 }
@@ -189,11 +151,6 @@ void CMJCard::initTwoBirdCard()
 			m_vAllCards.push_back(makeCardNumber(eCT_Jian,nValue)) ;
 		}
 	}
-}
-
-eMJGameType CMJCard::getGameType()
-{
-	return m_eMJGameType ;
 }
 
 bool CMJCard::isEmpty()

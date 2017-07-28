@@ -1,11 +1,10 @@
 #pragma once
 
 #include "NetWorkManager.h"
-
 #include "Timer.h"
-#include "ServerConfig.h"
 #include "MessageIdentifer.h"
 #include "json/json.h"
+#include "CommonDefine.h"
 struct stMsg ;
 class CAsyncRequestQuene ;
 class IGlobalModule ;

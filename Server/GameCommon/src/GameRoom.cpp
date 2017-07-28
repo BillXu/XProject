@@ -657,7 +657,8 @@ std::shared_ptr<ISingleRoundRecorder> GameRoom::getCurRoundRecorder()
 
 std::shared_ptr<IGameRoomRecorder> GameRoom::createRoomRecorder()
 {
-	return std::make_shared<IGameRoomRecorder>();
+	auto ptr = std::make_shared<IGameRoomRecorder>();
+	return ptr;
 }
 
 std::shared_ptr<ISingleRoundRecorder> GameRoom::createSingleRoundRecorder()

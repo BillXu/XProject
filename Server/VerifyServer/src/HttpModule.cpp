@@ -11,6 +11,7 @@
 #include "VerifyApp.h"
 #include "AnyLoginTask.h"
 #include "VerifyApp.h"
+#include "Utility.h"
 void CHttpModule::init(IServerApp* svrApp)
 {
 	IGlobalModule::init(svrApp);

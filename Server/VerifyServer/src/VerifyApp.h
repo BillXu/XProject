@@ -1,5 +1,4 @@
 #pragma once
-#include "ServerConfig.h"
 #include "ISeverApp.h"
 #include "TaskPoolModule.h"
 class CVerifyApp

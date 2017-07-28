@@ -1,6 +1,5 @@
 #pragma once 
 #include "IMJPlayerCard.h"
-#include "IMJPlayerCardCheckPaixingHelper.h"
 #include "MJDefine.h"
 #include <algorithm>  
 #include <set>

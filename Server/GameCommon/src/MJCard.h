@@ -11,14 +11,13 @@ public:
 	typedef std::vector<uint8_t> VEC_UINT8 ;
 public:
 	CMJCard(){ m_vAllCards.clear() ; m_nCurCardIdx = 0 ;}
+	void init()override;
 	uint8_t getCard();
 	void pushCardToFron(uint8_t nCard)override;
 	uint8_t getLeftCardCount()override;
 	uint8_t distributeOneCard()override { return getCard(); }
 	void shuffle()override;
 	void debugCardInfo();
-	void initAllCard( eMJGameType eType );
-	eMJGameType getGameType();
 	bool isEmpty();
 	void debugPokerInfo();
 	static eMJCardType parseCardType(uint8_t nCardNum);
@@ -29,7 +28,6 @@ public:
 protected:
 	void initTwoBirdCard();
 protected:
-	eMJGameType m_eMJGameType;
 	VEC_UINT8 m_vAllCards ;
 	uint8_t m_nCurCardIdx ;
 };

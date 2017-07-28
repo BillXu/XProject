@@ -96,7 +96,6 @@
     <ClCompile Include="jsoncpp.cpp" />
     <ClCompile Include="log4z.cpp" />
     <ClCompile Include="MySqlData.cpp" />
-    <ClCompile Include="ServerConfig.cpp" />
     <ClCompile Include="ServerStringTable.cpp" />
     <ClCompile Include="SeverUtility.cpp" />
     <ClCompile Include="TaskPool.cpp" />
@@ -128,7 +127,6 @@
     <ClInclude Include="log4z.h" />
     <ClInclude Include="MySqlData.h" />
     <ClInclude Include="ServerCommon.h" />
-    <ClInclude Include="ServerConfig.h" />
     <ClInclude Include="ServerDefine.h" />
     <ClInclude Include="ServerMessageDefine.h" />
     <ClInclude Include="ServerStringTable.h" />

@@ -43,6 +43,6 @@ protected:
 	uint32_t m_nRoomType;
 	uint32_t m_nSieralNum;
 	uint32_t m_nCreaterUID;
-	Json::Value& m_jsOpts;
+	Json::Value m_jsOpts;
 	std::map<uint16_t, std::shared_ptr<ISingleRoundRecorder>> m_vAllRoundRecorders;  // roundIdx : SingleRoundRecorder ;
 };

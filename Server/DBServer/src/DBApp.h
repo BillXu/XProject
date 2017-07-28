@@ -1,6 +1,5 @@
 #pragma once
 #include "ISeverApp.h"
-#include "ServerConfig.h"
 #include "DBRWModule.h"
 class CDBServerApp
 	:public IServerApp

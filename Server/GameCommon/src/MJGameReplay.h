@@ -75,6 +75,7 @@ public:
 		auto ptr = std::make_shared<MJReplayFrame>();
 		ptr->init(nFrameType, jsFrameArg);
 		m_vAllFrames.push_back(ptr);
+		return true;
 	}
 	bool doSaveReplayToDB( CAsyncRequestQuene* pSyncQuene )
 	{
@@ -97,6 +98,7 @@ public:
 		ss << pBuffer << strJs << " ) ;";
 		jssql["sql"] = ss.str();
 		pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getReplayID(), eAsync_DB_Add, jssql);
+		return true;
 	}
 protected:
 	void setReplayID(uint32_t nReplayID)

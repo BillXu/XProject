@@ -719,8 +719,8 @@ bool MJPlayerCard::onChuCard(uint8_t nChuCard)
 
 	//debugCardInfo();
 	m_vLouPenged.clear();
-	clearFlag(ePlayerFlag_CanTianHu);
-	clearFlag( ePlayerFlag_WaitCheckTianTing );
+	//clearFlag(ePlayerFlag_CanTianHu);
+	//clearFlag( ePlayerFlag_WaitCheckTianTing );
 	return true;
 }
 
