@@ -5,9 +5,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="SvrCommon">
-      <UniqueIdentifier>{fd9d5f2a-2b34-47c0-b1a3-291741d87331}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DBApp.h">
@@ -16,15 +13,6 @@
     <ClInclude Include="src\main.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\ServerCommon\mutex.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ServerCommon\Sem.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ServerCommon\ThreadMod.h">
-      <Filter>SvrCommon</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -32,15 +20,6 @@
     </ClCompile>
     <ClCompile Include="src\DBApp.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\mutex.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\Sem.cpp">
-      <Filter>SvrCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ServerCommon\ThreadMod.cpp">
-      <Filter>SvrCommon</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

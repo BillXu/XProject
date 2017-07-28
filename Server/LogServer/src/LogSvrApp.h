@@ -1,22 +1,16 @@
 #pragma once
 #include "ISeverApp.h"
-#include "ServerConfig.h"
-class CDBManager ;
-class CDataBaseThread ;
+#include "DBRWModule.h"
 class CLogSvrApp
 	:public IServerApp
 {
 public:
-	CLogSvrApp();
-	~CLogSvrApp();
 	bool init(Json::Value& jsSvrCfg)override;
-	void update(float fDeta );
-	// net delegate
-	virtual bool onLogicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
-	void onExit();
-	CDataBaseThread* GetDBThread(){ return m_pDBWorkThread ; }
-	uint16_t getLocalSvrMsgPortType();
+	uint16_t getLocalSvrMsgPortType() { return ID_MSG_PORT_RECORDER_DB; }
+	void update(float fdeta)override;
+	void onExit()override;
+	DBRWModule* getDBModule() { return &m_tDBRW; }
+	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)override;
 protected:
-	CDBManager* m_pDBManager ;
-	CDataBaseThread* m_pDBWorkThread ;
+	DBRWModule m_tDBRW;
 };

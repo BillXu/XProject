@@ -88,16 +88,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\ServerCommon\mutex.h" />
-    <ClInclude Include="..\ServerCommon\Sem.h" />
-    <ClInclude Include="..\ServerCommon\ThreadMod.h" />
     <ClInclude Include="src\DBApp.h" />
     <ClInclude Include="src\main.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ServerCommon\mutex.cpp" />
-    <ClCompile Include="..\ServerCommon\Sem.cpp" />
-    <ClCompile Include="..\ServerCommon\ThreadMod.cpp" />
     <ClCompile Include="src\DBApp.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
