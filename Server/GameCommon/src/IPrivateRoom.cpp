@@ -16,7 +16,7 @@ IPrivateRoom::~IPrivateRoom()
 
 bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts )
 {
-	m_pRoom = doCreatRealRoom(vJsOpts);
+	m_pRoom = doCreatRealRoom();
 	if (!m_pRoom)
 	{
 		LOGFMTE("create private room error ");
@@ -145,6 +145,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 {
 	switch (nMsgType)
 	{
+	case MSG_PLAYER_STAND_UP:
 	case MSG_PLAYER_LEAVE_ROOM:
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
@@ -468,6 +469,10 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	m_nPrivateRoomState = eState_RoomOvered;
 	// delete self
 	m_pRoomMgr->deleteRoom(getRoomID());
+}
+GameRoom* IPrivateRoom::getCoreRoom()
+{
+	return m_pRoom;
 }
 
 bool IPrivateRoom::isRoomStarted()

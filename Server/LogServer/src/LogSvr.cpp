@@ -9,7 +9,7 @@ bool CLogSvrApp::init(Json::Value& jsSvrCfg)
 {
 	IServerApp::init(jsSvrCfg);
 	// set up data base thread 
-	auto jsDB = jsSvrCfg["gameDB"];
+	auto jsDB = jsSvrCfg["logDB"];
 	if (jsDB.isNull())
 	{
 		LOGFMTE("data base config is null, cant not start server");

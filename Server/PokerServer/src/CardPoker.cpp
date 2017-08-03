@@ -22,7 +22,7 @@ void CCard::RsetCardByCompositeNum( unsigned char nCompositeNum )
 	assert(nCompositeNum > 0 && nCompositeNum <= 54 && "illegal composite Number" );
 	if ( (nCompositeNum > 0 && nCompositeNum <= 54) != true )
 	{
-        #ifdef SERVER
+#ifdef SERVER
 		LOGFMTE("Illegal composite Number = %d",nCompositeNum );
 #endif
 		return ;
@@ -117,78 +117,27 @@ CPoker::~CPoker()
 	}
 } 
 
-void CPoker::InitPaiJiu()
-{
-	SetupCardCount(32);
-	// red 
-	unsigned char nRed[] = { 12,2,8,4,10,7,6,9,5} ;
-	unsigned char nBlack[] = {10,6,4,7,8,11} ;
-	
-	CCard stcard(2) ;
-	// red ;
-	unsigned char ncount = sizeof(nRed) / (sizeof(unsigned char));
-	for (int i = 0 ; i < ncount ; ++i )
-	{
-		stcard.SetCard(CCard::eCard_Heart,nRed[i]);
-		AddCard(&stcard);
-		stcard.SetCard(CCard::eCard_Diamond,nRed[i]);
-		AddCard(&stcard);
-	}
 
-	// black 
-	ncount = sizeof(nBlack) / (sizeof(unsigned char));
-	for (int i = 0 ; i < ncount ; ++i )
-	{
-		stcard.SetCard(CCard::eCard_Club,nBlack[i]);
-		AddCard(&stcard);
-		stcard.SetCard(CCard::eCard_Sword,nBlack[i]);
-		AddCard(&stcard);
-	}
-
-	// add hei tao A , and  3 ;
-	stcard.SetCard(CCard::eCard_Sword,1);
-	AddCard(&stcard);
-	stcard.SetCard(CCard::eCard_Sword,3);
-	AddCard(&stcard);
-}
-
-void CPoker::InitTaxasPoker()
+void CPoker::init()
 {
 	SetupCardCount(52);
 	for ( int i = 1 ; i <= 52 ; ++i )
 	{
 		AddCard(i) ;
 	}
-	RestAllPoker() ;
+	shuffle() ;
 }
 
-void CPoker::InitBaccarat()
+void CPoker::pushCardToFron(uint8_t nCard)
 {
-	int nCard = 8 ;
-	SetupCardCount(52 * nCard );
-	while ( nCard-- )
-	{
-		for ( int i = 1 ; i <= 52 ; ++i )
-		{
-			AddCard(i) ;
-		}
-	}
-
-	RestAllPoker() ;
+	LOGFMTE( "not implement this method  CPoker::pushCardToFron" );
 }
 
-void CPoker::InitGolden()
-{
-    #ifdef SERVER
-	LOGFMTE("Implement this method please ");
-#endif
-}
-
-unsigned char CPoker::GetCardWithCompositeNum()
+uint8_t CPoker::distributeOneCard()
 {
 	if ( m_nCardCount <= m_nCurIdx )
 	{
-		RestAllPoker();
+		shuffle();
 	}
 	return m_vCards[m_nCurIdx++] ;
 }
@@ -202,13 +151,7 @@ unsigned char CPoker::getCardNum( unsigned char nIdx )
 	return m_vCards[nIdx] ;
 }
 
-void CPoker::ComfirmKeepCard( unsigned char nCardLeft )
-{
-	if ( GetLeftCard() < nCardLeft )
-		RestAllPoker();
-}
-
-void CPoker::RestAllPoker()
+void CPoker::shuffle()
 {
 	// ---
 	int n = 0 ;
@@ -231,7 +174,7 @@ void CPoker::AddCard(unsigned char nCard )   // invoke when init
 {
 	if ( nCard < 0 || nCard > 54 )
 	{
-        #ifdef SERVER
+#ifdef SERVER
 		LOGFMTE("unlegal card composite number = %d", nCard ) ;
 #endif
 		return ;
@@ -239,7 +182,7 @@ void CPoker::AddCard(unsigned char nCard )   // invoke when init
 	
 	if ( m_nCurIdx >= m_nCardCount )
 	{
-        #ifdef SERVER
+#ifdef SERVER
 		LOGFMTE("Poker room space is full , can not add more card ") ;
 #endif
 	}

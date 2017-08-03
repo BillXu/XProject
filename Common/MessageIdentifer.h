@@ -7,16 +7,17 @@ enum eMsgPort
 	ID_MSG_PORT_CENTER,
 	ID_MSG_PORT_LOGIN,
 	ID_MSG_PORT_VERIFY,
-	ID_MSG_PORT_APNS,
-	ID_MSG_PORT_LOG,
-	ID_MSG_PORT_DATA,
-	ID_MSG_PORT_TAXAS,
-	ID_MSG_PORT_DB,
 	ID_MSG_PORT_RECORDER_DB,
-	ID_MSG_PORT_ALL_SERVER,
+	ID_MSG_PORT_DATA,
+	ID_MSG_PORT_DB,
+	ID_MSG_PORT_MJ,
+	ID_MSG_PORT_POKER,
+	ID_MSG_PORT_TAXAS,
+	ID_MSG_PORT_APNS,
 	ID_MSG_PORT_NIU_NIU,
 	ID_MSG_PORT_GOLDEN,
-	ID_MSG_PORT_MJ,
+	ID_MSG_PORT_LOG,
+	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_MAX,
 };
 
@@ -68,6 +69,7 @@ enum eMsgType
 	// svr : { ret : 0 , shopItemID : 23 }
 	// ret : 0 success , 1 can not find shop item , 2 can not find player , 3 transcationID lenght is not 20 ,4 pay channel error ,5 platform verify error;
 
+	MSG_ASYNC_REQUEST_RESULT,  // temp put here
 	// in room msg ;
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 , gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 2 , opts : {  .... }  }
@@ -77,9 +79,11 @@ enum eMsgType
 	// svr : { ret : 0 , roomIDS : [23,23,453,32], stayInRoomID : 0  }
 	MSG_ENTER_ROOM,
 	// client : { roomID : 23, uid : 23 }
-	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error ;
+	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error, 7 arg not allow enter ;
+	MSG_ROOM_CHANGE_STATE,
+	// svr : { lastState : 23 , newState : 23 }
 	MSG_ROOM_INFO, 
-	// svr: { opts: {} , players:[ { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ...}, ... ] , etc }
+	// svr: { state : 2 , roomID: 23, opts: {} , players:[ { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23, state : 23 ...}, ... ] , etc }
 	// detail info , deponed on sepcail game ;
 	MSG_ROOM_SIT_DOWN,   // tell all players , some one sit down ;
 	// svr : { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ... }  // the same as MSG_ROOM_INFO players item ;
@@ -97,7 +101,43 @@ enum eMsgType
 	MSG_ROOM_REFRESH_NET_STATE, // player net state , changed 
 	// svr : { idx : 0 , uid : 235 , state : 0  } , 0 is online , 1 lose connect , wait reconnect; 
 
+	MSG_PLAYER_SET_READY = 600,   	// player do ready
+	// client : { dstRoomID : 2345 } ;
+	MSG_ROOM_PLAYER_READY,  // some player did ready
+	// svr : { idx : 2 }
 
+	// niuniu msg 
+	MSG_ROOM_PRODUCED_BANKER,
+	// svr : { bankerIdx : 0 } 
+
+	MSG_ROOM_START_BET,
+	// svr : null ;
+	MSG_PLAYER_DO_BET,
+	// client : { betTimes : 2 }
+	// svr : { ret: 0 } , ret : 0 success , 1 invalid arguments , 2 you are not in room , 3 already beted, 4 state error  ;
+	MSG_ROOM_DO_BET,
+	// svr : { idx : 2 , betTimes : 23 }
+	MSG_ROOM_START_ROBOT_BANKER,
+	// svr : null ;
+	MSG_PLAYER_ROBOT_BANKER,
+	// client : { robotTimes : 2 }
+	// svr : { ret : 0 }  ret : 0 success , 1 invalid arguments , 2 you are not in room , 3 already beted, 4 state error  ;
+	MSG_ROOM_ROBOT_BANKER,
+	// svr : { idx : 2 , robotTimes : 23 }
+	MSG_ROOM_DISTRIBUTE_CARD,
+	// svr: { info : [ { idx : 0 , cards : [23,23,42,2] }, ..... ] } // info is a array , per item is a player , idx is player idx , cards is current sended hold cards , may be not 5 ;
+	MSG_PLAYER_CACULATE_NIU,
+	// client : null ;
+	// svr : { ret: 0 } , ret : 0 success , 1 you are not in room , 2 already beted ;
+	MSG_ROOM_CACULATE_NIU,
+	// svr : { idx : 2  }
+	MSG_ROOM_NIUNIU_GAME_END, 
+	// svr: { bankerIdx : 2 , result : [ { uid : 23 , offset : 23, final : -23 }, .... ] }
+	MSG_ROOM_GAME_OVER,
+	// svr : { dismissID : 23 , result: [ { uid : 23 , final : -23 }, .... ]  }
+	// dismissID is null or 0 , means normal dismiss ;
+	// dismissID is 1 , means system dismiss room ;
+	// dismissID biger than 1 , means player dismiss room ;
 
 
 
@@ -217,7 +257,7 @@ enum eMsgType
 	MSG_READ_EXCHANGE,
 	MSG_SAVE_EXCHANGE,
 	MSG_DB_PLAYER_MODIFY_NAME,
-	MSG_ASYNC_REQUEST_RESULT,
+	
 	MSG_READ_PLAYER_BASE_DATA,
 	MSG_PLAYER_SAVE_PLAYER_INFO,
 	// friend module
@@ -576,11 +616,9 @@ enum eMsgType
 	MSG_CONSUM_VIP_ROOM_CARDS,   // server used 
 	// js : { uid : 235, cardCnt : 2 }
 
-	MSG_PLAYER_SET_READY = 2554,   // 玩家准备
-	// client : { dstRoomID : 2345 } ;
 
-	MSG_ROOM_PLAYER_READY,  // 其他玩家准备
-	// svr : { idx : 2 }
+
+
 
 	MSG_ROOM_START_GAME,  // 开始游戏的消息
 	// svr : { banker: 2 , dice : 3 , peerCards : [ { cards : [1,3,4,5,64,23,64] },{ cards : [1,3,4,5,64,23,64] },{cards : [1,3,4,5,64,23,64] },{ cards : [1,3,4,5,64,23,64] } ] }
@@ -654,11 +692,6 @@ enum eMsgType
 	MSG_ROOM_SETTLE_ZI_MO, // 实时结算 自摸
 	// svr ： { ziMoIdx: 234, losers : [{idx: 23, lose : 234 }, .....] }
 	// ziMoIdx : 自摸的人的索引。 losers ： 自摸导致别人数钱了。一个数字。 {idx 输钱人的索引， lose ： 输了多少钱 } 
-
-	MSG_ROOM_GAME_OVER, // 游戏结束
-	// svr : { players : [ {idx : 0 , coin : 2345 ,huType : eFanxingType, offset : 23 , beiShu : 20 } ,{idx : 1 , coin : 2345 ,huType : eFanxingType , offset : 23 } ,{idx : 2 , coin : 2345,huType : eFanxingType, offset : 23 },{idx : 3 , coin : 2345,huType : eFanxingType, offset : 23 } ]  } 
-	// eFanxingType 参照枚举值
-	// players: 结束后，每个玩家最终的钱数。
 
 	MSG_PLAYER_DETAIL_BILL_INFOS, // 游戏结束后收到的个人详细账单，每个人只能收到自己的。
 	// svr ： { idx： 23 ， bills：[ { type: 234, offset : -23, huType : 23, beiShu : 234, target : [2, 4] } , .......... ] } 

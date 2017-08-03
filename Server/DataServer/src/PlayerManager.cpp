@@ -347,6 +347,12 @@ bool CPlayerManager::onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint3
 			LOGFMTE( "player is null uid = %u , can not update net state = %u , ip = %s",pRet->nTargetID,pRet->nCurState,pRet->cIP );
 			return true;
 		}
+
+		if (pPlayer->getSessionID() != nSenderUID)
+		{
+			LOGFMTD( "old gate client delay disconnect uid = %u",pRet->nTargetID  );
+			return true;
+		}
 		switch ( pRet->nCurState )
 		{
 		case 0 :  // do reconnected 
@@ -436,7 +442,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		uint32_t nUserUID = jsReqContent["playerUID"].asUInt();
 		Json::Value jsMailArg;
-		jsMailArg["diamond"] = jsReqContent["roomID"];
+		jsMailArg["diamond"] = jsReqContent["diamond"];
 		jsMailArg["roomID"] = jsReqContent["roomID"];
 		jsMailArg["reason"] = jsReqContent["reason"];
 

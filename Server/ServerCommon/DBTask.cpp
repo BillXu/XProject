@@ -31,6 +31,12 @@ bool CDBTask::setupMysqlConnection()
 	}
 
 	m_pMySql = mysql_init(NULL);
+	if (m_pMySql == nullptr)
+	{
+		printf("why my sql is null can not set up ");
+		return false;
+	}
+
 	char bReconnect = 1 ;
 	mysql_options(m_pMySql,MYSQL_OPT_RECONNECT,&bReconnect);
 	if ( !mysql_real_connect(m_pMySql,m_strIP.c_str(),m_strUserName.c_str(),m_strPassword.c_str(),m_strDBName.c_str(),m_nPort,NULL,CLIENT_MULTI_STATEMENTS) )

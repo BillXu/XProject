@@ -1,4 +1,5 @@
 #pragma once 
+#include "IPoker.h"
 class CCard
 {
 public:
@@ -29,19 +30,17 @@ protected:
 };
 
 class CPoker
+	: public IPoker
 {
 public:
 	CPoker();
 	~CPoker();
-	void InitPaiJiu() ;
-	void InitTaxasPoker();
-	void InitBaccarat();
-	void InitGolden();
-	unsigned char GetCardWithCompositeNum();
-	unsigned short GetLeftCard(){ return m_nCardCount - m_nCurIdx; }
+	void init()override;
+	void shuffle()override;
+	void pushCardToFron(uint8_t nCard)override;
+	uint8_t getLeftCardCount()override { return m_nCardCount - m_nCurIdx; };
+	uint8_t distributeOneCard()override;
 	unsigned short GetAllCard(){ return m_nCardCount;  }
-	void ComfirmKeepCard( unsigned char nCardLeft = 3 * 5 ); // 开局发牌之前，一定要确认牌堆里是否有足够的牌。
-	void RestAllPoker();
 	unsigned char getCardNum( unsigned char nIdx );
 protected:
 	void AddCard(unsigned char nCard );   // invoke when init

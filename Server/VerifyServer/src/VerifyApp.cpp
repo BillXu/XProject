@@ -8,9 +8,6 @@ bool CVerifyApp::init(Json::Value& jsSvrCfg)
 {
 	IServerApp::init(jsSvrCfg);
 	LOGFMTI("START verify server !") ;
-	installModule(eMod_Pool);
-	installModule(eMod_Http);
-
 	auto jsHttp = jsSvrCfg["httpSvr"];
 	if (jsHttp.isNull())
 	{
@@ -25,6 +22,9 @@ bool CVerifyApp::init(Json::Value& jsSvrCfg)
 		LOGFMTE("gameDB cfg is null");
 		return false;
 	}
+
+	installModule(eMod_Pool);
+	installModule(eMod_Http);
 	return true;
 }
 

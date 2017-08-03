@@ -7,6 +7,7 @@
 #include "AsyncRequestQuene.h"
 #include <ctime>
 #include "IGameRoomState.h"
+#include "IPoker.h"
 bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	m_pDelegate = nullptr;
@@ -16,6 +17,7 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_vPlayers.resize(nSeatCnt);
 	m_jsOpts = vJsOpts;
 	m_vStandPlayers.clear();
+	getPoker()->init();
 
 	m_ptrCurRoundRecorder = nullptr;
 	m_ptrRoomRecorder = createRoomRecorder();
@@ -117,6 +119,10 @@ bool GameRoom::doDeleteRoom()
 	std::vector<uint32_t> vAllInRoomPlayers;
 	for (auto& pPayer : m_vPlayers)
 	{
+		if ( pPayer == nullptr )
+		{
+			continue;
+		}
 		vAllInRoomPlayers.push_back(pPayer->getUserUID());
 	}
 
@@ -164,6 +170,7 @@ void GameRoom::onStartGame()
 		getDelegate()->onStartGame(this);
 	}
 
+	getPoker()->shuffle();
 	// game replayer 
 	m_ptrGameReplay->startNewReplay(getRoomMgr()->generateReplayID());
 	// cur round recorder ;
@@ -233,6 +240,20 @@ void GameRoom::onGameEnd()
 	}
 }
 
+void GameRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,uint32_t nVisitorSessionID)
+{
+	if ( pPlayer == nullptr )
+	{
+		return;
+	}
+	//{ idx: 23, uid : 23, isOnline : 0, chips : 23 ...}
+	jsPlayerInfo["idx"] = pPlayer->getIdx();
+	jsPlayerInfo["uid"] = pPlayer->getUserUID();
+	jsPlayerInfo["isOnline"] = pPlayer->isOnline() ? 1 : 0;
+	jsPlayerInfo["chips"] = pPlayer->getChips();
+	jsPlayerInfo["state"] = pPlayer->getState();
+}
+
 bool GameRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx )
 {
 	auto pPlayer = getPlayerByIdx(nIdx);
@@ -256,7 +277,7 @@ bool GameRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx 
 	m_vPlayers[p->getIdx()] = p;
 	
 	Json::Value jsRoomPlayerSitDown;
-	visitPlayerInfo(p, jsRoomPlayerSitDown);
+	visitPlayerInfo(p, jsRoomPlayerSitDown,0 );
 	sendRoomMsg(jsRoomPlayerSitDown,MSG_ROOM_SIT_DOWN);
 	if (getDelegate())
 	{
@@ -538,6 +559,11 @@ bool GameRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
 	auto pPlayer = getPlayerByUID(nPlayerID);
 	if (!pPlayer)
 	{
+		auto pStand = getStandPlayerByUID(nPlayerID);
+		if ( pStand )
+		{
+			return true;
+		}
 		LOGFMTE( "inform player state refreshed , but player is null room id = %u , uid = %u",getRoomID(),nPlayerID );
 		return false;
 	}
@@ -574,6 +600,8 @@ void GameRoom::sendRoomInfo(uint32_t nSessionID)
 {
 	Json::Value jsRoomInfo;
 	jsRoomInfo["opts"] = m_jsOpts;
+	jsRoomInfo["state"] = getCurState()->getStateID();
+	jsRoomInfo["roomID"] = getRoomID();
 	packRoomInfo(jsRoomInfo);
 	Json::Value jsArraPlayers;
 	for (auto& ref : m_vPlayers)
@@ -581,25 +609,12 @@ void GameRoom::sendRoomInfo(uint32_t nSessionID)
 		if ( ref )
 		{
 			Json::Value jsPlayer;
-			visitPlayerInfo(ref, jsPlayer);
+			visitPlayerInfo(ref, jsPlayer,nSessionID );
 			jsArraPlayers[jsArraPlayers.size()] = jsPlayer;
 		}
 	}
 	jsRoomInfo["players"] = jsArraPlayers;
 	sendMsgToPlayer(jsRoomInfo, MSG_ROOM_INFO, nSessionID);
-}
-
-void GameRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo)
-{
-	if (pPlayer == nullptr)
-	{
-		return;
-	}
-
-	jsPlayerInfo["idx"] = pPlayer->getIdx();
-	jsPlayerInfo["uid"] = pPlayer->getUserUID();
-	jsPlayerInfo["isOnline"] = pPlayer->isOnline() ? 1 : 0;
-	jsPlayerInfo["chips"] = pPlayer->getChips();
 }
 
 IGameRoomManager* GameRoom::getRoomMgr()
@@ -684,6 +699,10 @@ void GameRoom::goToState(IGameRoomState* pTargetState, Json::Value* jsValue )
 		LOGFMTE( "why cur state is null ? room id = %u",getRoomID() );
 		return;
 	}
+
+	Json::Value jsMsg;
+	jsMsg["lastState"] = m_pCurState->getStateID();
+
 	m_pCurState->leaveState();
 	m_pCurState = pTargetState;
 	if (jsValue == nullptr)
@@ -695,6 +714,9 @@ void GameRoom::goToState(IGameRoomState* pTargetState, Json::Value* jsValue )
 	{
 		m_pCurState->enterState(this, *jsValue);
 	}
+
+	jsMsg["newState"] = m_pCurState->getStateID();
+	sendRoomMsg(jsMsg, MSG_ROOM_CHANGE_STATE );
 }
 
 void GameRoom::goToState(uint32_t nStateID, Json::Value* jsValue)

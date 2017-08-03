@@ -315,7 +315,7 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 	});
 
 	// read max room sieral num 
-	ss.clear();
+	ss.str("");     
 	ss << "SELECT max(sieralNum) as sieralNum FROM roomrecorder ;";
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {

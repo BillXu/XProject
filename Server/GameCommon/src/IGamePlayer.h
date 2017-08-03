@@ -2,6 +2,7 @@
 #include "NativeTypes.h"
 #include "json\json.h"
 #include "stEnterRoomData.h"
+#include "CommonDefine.h"
 class IGamePlayer
 {
 public:
@@ -14,6 +15,7 @@ public:
 		m_nWaiBaoOffset = 0;
 		m_isOnline = true;
 		m_nState = 0;
+		setState(eRoomPeer_WaitNextGame);
 	}
 
 	void setNewSessionID(uint32_t nNewSessionID)
@@ -44,6 +46,8 @@ public:
 	int32_t addSingleOffset(int32_t nOffset)
 	{
 		m_nCurOffset += nOffset;
+		m_nChips += nOffset;
+		return m_nCurOffset;
 	}
 	int32_t getChips()
 	{
@@ -58,14 +62,27 @@ public:
 	{
 		return (m_nState & eState) == eState;
 	}
+
 	uint32_t getState()
 	{
 		return m_nState;
 	}
+
 	virtual void onGameWillStart(){ m_nCurOffset = 0; };
-	virtual void onGameStart() {};
+	virtual void onGameStart()
+	{
+		setState(eRoomPeer_CanAct);
+	};
 	virtual void onGameEnd() {};
-	virtual void onGameDidEnd() { m_nCurOffset = 0; };
+	virtual void onGameDidEnd()
+	{ 
+		m_nCurOffset = 0; 
+		if ( false == haveState(eRoomPeer_Ready) )
+		{ 
+			setState(eRoomPeer_WaitNextGame);
+		}
+	 }
+
 	uint16_t getIdx() { return m_nIdx; }
 	bool isOnline() { return m_isOnline; }
 	void setIsOnline(bool isOnline) { m_isOnline = isOnline; }

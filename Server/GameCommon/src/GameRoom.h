@@ -6,6 +6,7 @@
 class IGamePlayer;
 class IGameRoomDelegate;
 class IGameRoomState;
+class IPoker;
 class GameRoom
 	:public IGameRoom
 {
@@ -31,7 +32,7 @@ public:
 	virtual void onGameDidEnd();
 	virtual void onGameEnd();
 	virtual void packRoomInfo(Json::Value& jsRoomInfo) = 0;
-	virtual void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo) = 0;
+	virtual void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID );
 	virtual bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer,uint16_t nIdx );
 	virtual bool doPlayerStandUp(uint32_t nUserUID);
 	virtual bool doPlayerLeaveRoom( uint32_t nUserUID );
@@ -58,6 +59,7 @@ public:
 	void goToState( IGameRoomState* pTargetState ,Json::Value* jsValue = nullptr);
 	void goToState( uint32_t nStateID , Json::Value* jsValue = nullptr );
 	void setInitState( IGameRoomState* pTargetState );
+	virtual IPoker* getPoker() = 0;
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();

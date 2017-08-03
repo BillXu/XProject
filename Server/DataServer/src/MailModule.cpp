@@ -74,7 +74,8 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 	sprintf_s(pBuffer, sizeof(pBuffer), "insert into mail ( mailUID,userUID,postTime,mailType,state, mailDetail ) values ( %u,%u,now(),%u,%u,", nNewMailID, nTargetID, emailType, nState);
 
 	std::ostringstream ssSql;
-	ssSql << pBuffer << jsDetail << ");";
+	ssSql << pBuffer << " ' "<< jsDetail << " ' );";
+	auto s = ssSql.str();
 	jssql["sql"] = ssSql.str();
 	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nTargetID, eAsync_DB_Add, jssql);	
 }

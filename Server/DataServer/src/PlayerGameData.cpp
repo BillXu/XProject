@@ -157,7 +157,7 @@ void CPlayerGameData::onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t 
 
 uint16_t CPlayerGameData::getGamePortByRoomID(uint32_t nRoomID)
 {
-	return ID_MSG_PORT_MJ;
+	return ID_MSG_PORT_POKER;
 }
 
 bool CPlayerGameData::canRemovePlayer()

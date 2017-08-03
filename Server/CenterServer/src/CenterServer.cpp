@@ -292,28 +292,29 @@ void  CCenterServerApp::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, Connec
 
 const char* CCenterServerApp::getServerDescByType( uint16_t eType)
 {
-	static const char* vSvrString[] =
+	static std::vector<const char*> vSvrString  =
 	{
 		"PORT_CLIENT",
 		"PORT_GATE",
 		"PORT_CENTER",
 		"PORT_LOGIN",
 		"PORT_VERIFY",
-		"PORT_APNS",
-		"PORT_LOG",
+		"PORT_RECORDER_DB",
 		"PORT_DATA",
-		"PORT_TAXAS",
 		"PORT_DB",
-		"PORT_ALL_SERVER",
+		"PORT_MJ",
+		"PORT_POKER",
+		"PORT_TAXAS",
+		"PORT_APNS",
 		"PORT_NIU_NIU",
 		"PORT_GOLDEN",
-		"PORT_MJ",
 		"PORT_MAX",
 	};
 
-	if ( eType >= ID_MSG_PORT_MAX)
+	if ( eType >= ID_MSG_PORT_MAX || vSvrString.size() <= eType )
 	{
-		return "unknown server type ";
+		LOGFMTE("unknown server type = %u",eType);
+		return "unknown sever type";
 	}
 	return vSvrString[eType];
 }

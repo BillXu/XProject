@@ -29,7 +29,7 @@ public:
 	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0)final;
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 
-	virtual GameRoom* doCreatRealRoom(Json::Value& vJsOpts) = 0;
+	virtual GameRoom* doCreatRealRoom() = 0;
 	uint8_t getDiamondNeed(uint8_t nLevel, bool isAA);
 	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
 
@@ -47,6 +47,7 @@ public:
 	void doRoomGameOver(bool isDismissed);
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
 protected:
+	GameRoom* getCoreRoom();
 	bool isRoomStarted();
 protected:
 	IGameRoomManager* m_pRoomMgr;

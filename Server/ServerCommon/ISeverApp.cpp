@@ -16,7 +16,7 @@ bool IServerApp::init( Json::Value& jsSvrCfg )
 	m_nTargetSvrNetworkID = INVALID_CONNECT_ID;
 	
 	m_pNetWork = new CNetWorkMgr ;
-	m_pNetWork->SetupNetwork(1);
+	m_pNetWork->SetupNetwork(1,TIME_HEAT_BEAT);
 	m_pNetWork->AddMessageDelegate(this);
 
 	m_pTimerMgr = CTimerManager::getInstance() ;
@@ -227,7 +227,7 @@ void IServerApp::responeAsyncRequest( uint8_t nTargetPort , uint32_t nReqSerialI
 		CAutoBuffer auBuffer(sizeof(msgBack) + msgBack.nResultContentLen);
 		auBuffer.addContent(&msgBack, sizeof(msgBack));
 		auBuffer.addContent(strResult.c_str(), msgBack.nResultContentLen);
-		sendMsg(&msgBack, sizeof(msgBack), nSenderID );
+		sendMsg((stMsg*)auBuffer.getBufferPtr(), auBuffer.getContentSize(), nSenderID );
 	}
 }
 
@@ -341,7 +341,7 @@ bool IServerApp::sendMsg( stMsg* pBuffer , uint16_t nLen, uint32_t nSenderID )
 
 	if (pBuffer->nTargetID == 0)
 	{
-		LOGFMTE("msg = %u target = 0 attention",pBuffer->usMsgType );
+		LOGFMTW("msg = %u target = 0 attention",pBuffer->usMsgType );
 		pBuffer->nTargetID = nSenderID;
 	}
 	stMsgTransferData msgTransData ;

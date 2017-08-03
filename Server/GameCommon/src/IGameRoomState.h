@@ -6,7 +6,7 @@ class GameRoom;
 class IGameRoomState
 {
 public:
-	IGameRoomState(){ m_fStateDuring = 99999; m_pRoom = nullptr; };
+	IGameRoomState(){ m_fStateDuring = 999999; m_pRoom = nullptr; };
 	virtual ~IGameRoomState(){}
 	virtual void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{

@@ -152,7 +152,7 @@ bool CGateServer::onLogicMsg(stMsg* prealMsg, eMsgPort eSenderPort, uint32_t nSe
 			return true;
 		}
 		pGateClient->bindUID(0);
-		pGateClient->delayClose();
+		pGateClient->delayClose(0.2);
 		LOGFMTD("old client will close , other logined , uid = %u",nSenderID );
 		return true;
 	}

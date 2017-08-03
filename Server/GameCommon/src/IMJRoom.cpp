@@ -97,7 +97,7 @@ bool IMJRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPo
 			LOGFMTE( "MSG_SET_NEXT_CARD key is null or invalid" );
 			return true;
 		}
-		getMJPoker()->pushCardToFron(prealMsg["card"].asUInt());
+		getPoker()->pushCardToFron(prealMsg["card"].asUInt());
 		return true ;
 	}
 
@@ -140,7 +140,7 @@ void IMJRoom::onStartGame()
 {
 	GameRoom::onStartGame();
 	// distribute card 
-	auto pPoker = getMJPoker();
+	auto pPoker = getPoker();
 	pPoker->shuffle();
 	for (auto& pPlayer : m_vPlayers )
 	{
@@ -331,7 +331,7 @@ void IMJRoom::onPlayerMo(uint8_t nIdx)
 		return;
 	}
 
-	auto nNewCard = getMJPoker()->distributeOneCard();
+	auto nNewCard = getPoker()->distributeOneCard();
 	if (nNewCard == 0)
 	{
 		Assert(0,"invlid card" );
@@ -430,7 +430,7 @@ void IMJRoom::onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)
 	pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
 	pPlayer->addMingGangCnt();
 
-	auto nGangGetCard = getMJPoker()->distributeOneCard();
+	auto nGangGetCard = getPoker()->distributeOneCard();
 	if (pPlayer->getPlayerCard()->onMingGang(nCard, nGangGetCard) == false)
 	{
 		LOGFMTE("nidx = %u ming gang card = %u error,", nIdx, nCard );
@@ -464,7 +464,7 @@ void IMJRoom::onPlayerAnGang(uint8_t nIdx, uint8_t nCard)
 	pPlayer->signFlag(IMJPlayer::eMJActFlag_AnGang);
 	pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
 	pPlayer->addAnGangCnt();
-	auto nGangGetCard = getMJPoker()->distributeOneCard();
+	auto nGangGetCard = getPoker()->distributeOneCard();
 	if (pPlayer->getPlayerCard()->onAnGang(nCard, nGangGetCard) == false)
 	{
 		LOGFMTE("nidx = %u an gang card = %u error,", nIdx, nCard);
@@ -497,7 +497,7 @@ void IMJRoom::onPlayerBuGang(uint8_t nIdx, uint8_t nCard)
 	pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
 	pPlayer->clearFlag(IMJPlayer::eMJActFlag_DeclBuGang);
 
-	auto nGangCard = getMJPoker()->distributeOneCard();
+	auto nGangCard = getPoker()->distributeOneCard();
 	if (pPlayer->getPlayerCard()->onBuGang(nCard, nGangCard) == false)
 	{
 		LOGFMTE("nidx = %u bu gang card = %u error,", nIdx, nCard);
@@ -772,7 +772,7 @@ bool IMJRoom::isGameOver()
 
 bool IMJRoom::isCanGoOnMoPai()
 {
-	return getMJPoker()->getLeftCardCount() > 0 ;
+	return getPoker()->getLeftCardCount() > 0 ;
 }
 
 void IMJRoom::onPlayerLouHu(uint8_t nIdx, uint8_t nInvokerIdx)

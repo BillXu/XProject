@@ -38,7 +38,6 @@ public:
 	virtual uint8_t getNextActPlayerIdx(uint8_t nCurActIdx);
 	virtual bool isGameOver();
 	virtual bool isCanGoOnMoPai();
-	virtual IPoker* getMJPoker() = 0;
 	virtual void onPlayerLouHu( uint8_t nIdx , uint8_t nInvokerIdx );
 	virtual void onPlayerLouPeng(uint8_t nIdx, uint32_t nLouCard );
 	virtual bool isHaveLouHu() { return true; };

@@ -9,7 +9,11 @@
 #define MAX_LEN_SPEAK_WORDS 200  
 #define MAX_MSG_BUFFER_LEN 59640
 
+#ifdef _DEBUG
+#define TIME_HEAT_BEAT 30  // heat beat time ;
+#else
 #define TIME_HEAT_BEAT 3  // heat beat time ;
+#endif // _DEBUG
 
 #define GOLDEN_PEER_CARD 3
 #define MAX_ROOM_PEER 5
@@ -37,8 +41,7 @@ enum ePayChannel
 enum eGameType
 {
 	eGame_None,
-	eGame_NanJing,
-	eGame_SuZhou,
+	eGame_NiuNiu,
 	eGame_Max,
 };
 
@@ -51,6 +54,17 @@ enum eRoomState
 	eRoomState_DoPlayerAct,  // Íæ¼Ò²Ù×÷ // { idx : 0 ,huIdxs : [1,3,2,], act : eMJAct_Chi , card : 23, invokeIdx : 23, eatWithA : 23 , eatWithB : 22 }
 	eRoomState_AskForRobotGang, // Ñ¯ÎÊÍæ¼ÒÇÀ¸Üºú£¬ { invokeIdx : 2 , card : 23 }
 	eRoomState_WaitPlayerChu, // µÈ´ýÍæ¼Ò³öÅÆ { idx : 2 }
+
+	// niu niu special ;
+	eRoomState_DecideBanker,
+	eRoomState_RobotBanker = eRoomState_DecideBanker,
+	eRoomState_DistributeFirstCard,
+	eRoomState_DoBet ,
+	eRoomState_DistributeCard, 
+	eRoomState_DistributeFinalCard = eRoomState_DistributeCard,
+	eRoomState_CaculateNiu,
+	eRoomState_GameEnd,
+	
 
 	// above is new ;
 	eRoomState_None,
@@ -98,7 +112,7 @@ enum eRoomState
 	eRoomState_WaitSupplyCoin, // µÈ´ýÍæ¼Ò²¹³ä½ð±Ò  {nextState: 234 , transData : { ... } }
 	eRoomState_WaitPlayerRecharge = eRoomState_WaitSupplyCoin,  //  µÈ´ýÍæ¼Ò³äÖµ
 	eRoomState_NJ_Auto_Buhua, // ÄÏ¾©Âé½«×Ô¶¯²»»¨ 
-	eRoomState_GameEnd, // ÓÎÏ·½áÊø
+	
 	eRoomState_Max,
 };
 
@@ -180,6 +194,7 @@ enum eSettleType    // Õâ¸öÃ¶¾Ù¶¨ÒåµÄÖ»ÊÇÒ»¸öÖÐÁ¢µÄÊÂ¼þ£¬¶ÔÓÚ·¢ÉúÊÂ¼þµÄË«·½£¬½Ð·
 
 enum eTime
 {
+	eTime_WaitRobotBanker = 5,
 	eTime_ExeGameStart = 2,			// Ö´ÐÐÓÎÏ·¿ªÊ¼ µÄÊ±¼ä
 	eTime_WaitChoseExchangeCard = 5, //  µÈ´ýÍæ¼ÒÑ¡Ôñ»»ÅÆµÄÊ±¼ä
 	eTime_DoExchangeCard = 3, //   Ö´ÐÐ»»ÅÆµÄÊ±¼ä
@@ -214,20 +229,6 @@ static unsigned char s_vChangeCardDimonedNeed[GOLDEN_PEER_CARD] = {0,4,8} ;
 
 
 #define JS_KEY_MSG_TYPE "msgID"
-
-enum eNoticeType
-{
-	eNotice_Text,
-	eNotice_BeInvite, // { targetUID : 2345 , addCoin : 34556 }
-	eNotice_InvitePrize, // { targetUID : 2345 addCoin : 3555 }
-	eNotice_ApplyTakeIn, // { roomID : 235 ,roomName : "hello", applyUID : 234 , takeIn : 23423 }
-	eNotice_ReplyTakeIn, // { roomID : 2345,roomName : "hello" , coin : 235 , isAgree : 0 }  // isAgree : 1 agree , 0 refuse ;
-	eNotice_BeAddedToClub, // { clubID : 2356 }
-	eNotice_BeRemoveFromClub, // { clubID : 2345 }
-	eNotice_RecivedApplyToJoinClub, // { applicantUID : 2345 , clubID : 2345 , text : "join me" }
-	eNotice_RecivedReplyForApplyForJoinClub, // { clubID : 23455 , isAgree : 1 , text : "text" }
-	eNotice_ShopResult, //{ finalDiamond : 234, addDiamond : 2345, nRet : 0 , itemID : 23 }  // nRet : 0 success , 1 failed ; 
-};
 
 // player State 
 enum eRoomPeerState
@@ -310,14 +311,11 @@ enum eMailType
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;
 	eMail_DlgNotice, // content will be send by , stMsgDlgNotice 
-	eMail_ReadTimeTag,  // use tell time for public mail ;
-	eMail_AddRoomCard, // { addCard : 235 , addCardNo : 23452345 }
 	eMail_Sys_End = 499,
 
 	eMail_RealMail_Begin = 500, // will mail will show in golden server windown ;
 	eMail_PlainText,  // need not parse , just display the content ;
 	eMail_InvitePrize, // { targetUID : 2345 , addCoin : 300 } // you invite player to join game ,and give prize to you 
-	eMail_WinMatch, // { gameType:234,roomName:234,rankIdx:2,addCoin:345,cup : 2 , diamomd : 34 }
 	eMail_Max,
 };
 
@@ -331,9 +329,7 @@ enum eMailState
 	eMailState_Max,
 };
 
-// texas poker timer measus by second
-#define TIME_PLAYER_BET_COIN_ANI 0.3f
-#define TIME_BLIND_BET_STATE (TIME_PLAYER_BET_COIN_ANI + 1) 
+// poker timer measus by second
 #define TIME_DISTRIBUTE_ONE_PUBLIC_CARD 0.5f
 
 #define TIME_LOW_LIMIT_FOR_NORMAL_ROOM 10

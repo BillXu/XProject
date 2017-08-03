@@ -6,6 +6,7 @@ CWorkThread::CWorkThread( CTaskPool* pool, uint8_t nIdx )
 	m_pTask = nullptr ;
 	m_pPool = pool ;
 	m_nIdx = nIdx ;
+	m_isHaveNewTask = false;
 }
 
 void CWorkThread::assignTask(ITask::ITaskPrt pTask )
@@ -35,8 +36,11 @@ void CWorkThread::__run()
 {
 	while ( true )
 	{
-		std::unique_lock<std::mutex> tLock(m_tMutex);
-		m_tCondition.wait(tLock, [this]() { return m_isHaveNewTask; });
+		{
+			std::unique_lock<std::mutex> tLock(m_tMutex);
+			m_tCondition.wait(tLock, [this]() { return m_isHaveNewTask; });
+		}
+
 		if ( m_isClose )
 		{
 			printf("do close thread \n") ;
@@ -58,6 +62,7 @@ void CWorkThread::__run()
 				printf("why pool is null , how to tell pool result \n ") ;
 			}
 		}
+		m_isHaveNewTask = false;
 	}
 }
 
