@@ -35,7 +35,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_pRoomMgr = pRoomMgr;
 	m_isForFree = vJsOpts["isFree"].asUInt() == 1;
 	m_isAA = vJsOpts["isAA"].asUInt() == 1;
-	m_nOwnerUID = vJsOpts["createUID"].asUInt();
+	m_nOwnerUID = vJsOpts["uid"].asUInt();
 	m_nRoundLevel = vJsOpts["level"].asUInt();
 	m_nLeftRounds = getInitRound(m_nRoundLevel);
 

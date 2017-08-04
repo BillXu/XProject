@@ -139,7 +139,6 @@ void CPlayerMailComponent::readMail( uint16_t nOffset )
 		auto jsData = retContent["data"];
 		if (nAft == 0 || jsData.isNull())
 		{
-			LOGFMTE("read max bill id error ");
 			doProcessMailAfterReadDB();
 			return;
 		}
