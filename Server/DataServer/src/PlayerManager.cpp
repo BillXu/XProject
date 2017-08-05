@@ -163,7 +163,7 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 	return true ;
 }
 
-void CPlayerBrifDataCacher::visitBrifData(Json::Value jsBrifData, CPlayer* pPlayer )
+void CPlayerBrifDataCacher::visitBrifData(Json::Value& jsBrifData, CPlayer* pPlayer )
 {
 	jsBrifData["uid"] = pPlayer->getUserUID();
 	jsBrifData["name"] = pPlayer->getBaseData()->getPlayerName();

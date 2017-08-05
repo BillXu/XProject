@@ -206,9 +206,9 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 	}
 	break;
 	default:
-		break; 
+		return false; 
 	}
-	return false;
+	return true;
 }
 
 uint32_t IGameRoomManager::generateRoomID()

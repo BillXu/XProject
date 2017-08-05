@@ -39,7 +39,7 @@ public:
 	stPlayerDataPrifle* getBrifData( uint32_t nUID );
 	void removePlayerDataCache( uint32_t nUID );
 	bool sendPlayerDataProfile( uint32_t nReqUID ,bool isDetail , uint32_t nSubscriberSessionID );
-	void visitBrifData(Json::Value jsBrifData ,CPlayer* pPlayer );
+	void visitBrifData(Json::Value& jsBrifData ,CPlayer* pPlayer );
 	void checkState();
 protected:
 	MAP_ID_DATA m_vDetailData ;
