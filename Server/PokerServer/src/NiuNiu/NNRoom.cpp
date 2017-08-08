@@ -86,7 +86,7 @@ void NNRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,ui
 		return;
 	}
 
-	jsPlayerInfo = ((NNPlayer*)pPlayer)->getBetTimes();
+	jsPlayerInfo["betTimes"] = ((NNPlayer*)pPlayer)->getBetTimes();
 	bool isSendHoldCard = false;
 	auto nCurState = getCurState()->getStateID();
 	isSendHoldCard = ( nCurState == eRoomState_CaculateNiu || nCurState == eRoomState_GameEnd || nCurState == eRoomState_DistributeCard );
@@ -218,7 +218,7 @@ bool NNRoom::canStartGame()
 			++nReadyCnt;
 		}
 	}
-	return nReadyCnt > 2;
+	return nReadyCnt >= 2;
 }
 
 IPoker* NNRoom::getPoker()

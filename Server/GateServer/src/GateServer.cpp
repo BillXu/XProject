@@ -113,6 +113,15 @@ bool CGateServer::OnMessage( Packet* pPacket )
 		stMsg* prealMsg = (stMsg*)(pPacket->_orgdata + sizeof(stMsgTransferData));
 		if ( ID_MSG_PORT_CLIENT == prealMsg->cSysIdentifer )
 		{
+			if (MSG_JSON_CONTENT == prealMsg->usMsgType && isNative() == false)
+			{
+				stMsgJsonContent* jsContent = (stMsgJsonContent*)prealMsg;
+				std::string strJson(((char*)prealMsg) + sizeof(stMsgJsonContent), jsContent->nJsLen);
+#ifdef _DEBUG
+				LOGFMTI("do replay client msg :%s :len = %u", strJson.c_str(), strJson.size());
+#endif // _DEBUG
+			}
+
 			auto pGate = m_pGateManager->getGateClientBySessionID(prealMsg->nTargetID);
 			if (pGate == nullptr)
 			{
@@ -130,10 +139,6 @@ bool CGateServer::OnMessage( Packet* pPacket )
 			{
 				stMsgJsonContent* jsContent = (stMsgJsonContent*)prealMsg;
 				std::string strJson( ((char*)prealMsg) + sizeof(stMsgJsonContent),jsContent->nJsLen );
-#ifdef _DEBUG
-				LOGFMTI( "do replay client msg :%s :len = %u",strJson.c_str(),strJson.size() );
-#endif // _DEBUG
-
 				sendMsgToClient(strJson.c_str(), jsContent->nJsLen, pGate->getNetworkID());
 			}
 			else

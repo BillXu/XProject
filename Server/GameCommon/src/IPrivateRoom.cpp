@@ -74,7 +74,10 @@ bool IPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 		LOGFMTE("why room is null ? ");
 		return false;
 	}
-	m_pRoom->onPlayerEnter(pEnterRoomPlayer);
+	if (m_pRoom->onPlayerEnter(pEnterRoomPlayer))
+	{
+		sendRoomInfo(pEnterRoomPlayer->nSessionID);
+	}
 	return true;
 }
 
@@ -328,10 +331,6 @@ void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 	LOGFMTD("send vip room info ext to player session id = %u", nSessionID);
 	Json::Value jsMsg;
 	jsMsg["leftCircle"] = m_nLeftRounds;
-	jsMsg["creatorUID"] = m_nOwnerUID;
-	jsMsg["level"] = m_nRoundLevel;
-	jsMsg["roomType"] = m_pRoom->getRoomType();
-	jsMsg["isAA"] = m_isAA ? 1 : 0;
 	jsMsg["isOpen"] = m_isOpen ? 1 : 0;
 	// is waiting vote dismiss room ;
 	jsMsg["isWaitingDismiss"] = m_bWaitDismissReply ? 1 : 0;

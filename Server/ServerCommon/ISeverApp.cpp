@@ -157,10 +157,10 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		char* pBuffer = (char*)preal ;
 		pBuffer += sizeof(stMsgJsonContent);
 		//#ifdef __DEBUG
-		static char pLog[1024] = { 0 };
-		if ( pRet->nJsLen >= 1024 )
+		static char pLog[2048] = { 0 };
+		if ( pRet->nJsLen >= 2048)
 		{
-			LOGFMTE("session id = %u send a invalid len json msg, len = %u ",pData->nSessionID,pRet->nJsLen) ;
+			LOGFMTE("session id = %u send a invalid len json msg, len = %u",pData->nSessionID,pRet->nJsLen) ;
 			return true;
 		}
 		memset(pLog,0,sizeof(pLog)) ;
@@ -174,7 +174,8 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		auto bRet = reader.parse(pBuffer,pBuffer + pRet->nJsLen,rootValue,false) ;
 		if ( !bRet )
 		{
-			LOGFMTE("session id = %u send a invalid json msg format error ",pData->nSessionID ) ;
+			std::string str(pBuffer, pRet->nJsLen);
+			LOGFMTE("recieved session id = %u invalid json msg format error : %s",pData->nSessionID,str.c_str() ) ;
 			return true ;
 		}
 

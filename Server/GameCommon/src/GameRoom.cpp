@@ -75,7 +75,7 @@ bool GameRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 	if ( psitDown )
 	{
 		LOGFMTE("this player is already sitdown uid = %u , room id = %u , why enter room again ?",psitDown->getUserUID(),getRoomID() );
-		sendRoomInfo(pEnterRoomPlayer->nSessionID);
+		//sendRoomInfo(pEnterRoomPlayer->nSessionID);
 		return true;
 	}
 
@@ -93,7 +93,7 @@ bool GameRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 		LOGFMTE("room id = %u uid = %u already in this room why enter again ?",getRoomID(),pEnterRoomPlayer->nUserUID);
 		iterStand->second->nSessionID = pEnterRoomPlayer->nSessionID;
 	}
-	sendRoomInfo(pEnterRoomPlayer->nSessionID);
+	//sendRoomInfo(pEnterRoomPlayer->nSessionID);
 	return true;
 }
 

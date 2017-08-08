@@ -205,7 +205,7 @@ bool CPlayer::onMsg( stMsg* pMsg , eMsgPort eSenderPort, uint32_t nSenderID )
 		}
 	}
 
-	LOGFMTE("Unprocessed msg id = %d, from = %d  uid = %d",pMsg->usMsgType,eSenderPort,getUserUID() ) ;
+	//LOGFMTE("Unprocessed msg id = %d, from = %d  uid = %d",pMsg->usMsgType,eSenderPort,getUserUID() ) ;
 	return false ;
 }
 
@@ -222,7 +222,7 @@ bool CPlayer::onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSende
 			}
 		}
 	}
-	LOGFMTE("Unprocessed json msg id = %d, from = %d  uid = %d",nmsgType,eSenderPort,getUserUID() ) ;
+	//LOGFMTE("Unprocessed json msg id = %d, from = %d  uid = %d",nmsgType,eSenderPort,getUserUID() ) ;
 	return false ;
 }
 

@@ -105,6 +105,8 @@ enum eMsgType
 	// svr: { ret : 0 } // 0 success , 1 you are not owner , 2 you are not in room ;
 	MSG_ROOM_DO_OPEN,
 	// svr : null ;
+	MSG_VIP_ROOM_INFO_EXT, // VIP 房间的额外信息；
+	// svr : { leftCircle : 2 ,isOpen : 1 , isWaitingDismiss : 0 ,applyDismissUID : 234, agreeIdxs : [2,3,1] ，leftWaitTime ： 234 }
 
 	MSG_PLAYER_SET_READY = 600,   	// player do ready
 	// client : { dstRoomID : 2345 } ;
@@ -730,15 +732,6 @@ enum eMsgType
 	// leftCardCnt : 剩余牌的数量，重新进入已经在玩的房间，或者断线重连，就会收到这个消息，
 	// bankerIdx : 庄家的索引
 	// curActIdx :  当前正在等待操作的玩家
-
-	MSG_VIP_ROOM_INFO_EXT, // VIP 房间的额外信息；
-	// svr : { leftCircle : 2 , baseBet : 1 , creatorUID : 2345 , initCoin : 2345, roomType : 2, applyDismissUID : 234, isWaitingDismiss : 0 , agreeIdxs : [2,3,1] ，leftWaitTime ： 234 }
-	// letCircle : 剩余的圈数， baseBet 基础底注 ，creatorUID 创建者的ID , initCoin 每个人的初始金币
-	// roomType : 游戏类型，参考枚举 eRoomType ；
-	// isWaitingDismiss : 是否在等待投票，解散房间。0 是没有在等待， 1 是在等待
-	// agreeIdxs ： 已经投票同意的玩家 索引数组
-	// leftWaitTime : 等待解散房间的剩余时间，单位秒
-	// applyDismissUID : 申请解散房间者的ID
 
 	MSG_APPLY_DISMISS_VIP_ROOM, // 申请解散vip 房间
 	// client : { dstRoomID : 234 } 

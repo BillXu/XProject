@@ -276,17 +276,6 @@ bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort e
 	{
 		return true;
 	}
-	else
-	{
-		if (pTargetPlayer == NULL)
-		{
-			LOGFMTE("can not find session id = %d to process msg id = %d ,from = %d", nSenderID, nMsgType, eSenderPort);
-		}
-		else
-		{
-			LOGFMTE("unprocess msg for player uid = %d , msg = %d ,from %d ", pTargetPlayer->getUserUID(), nMsgType, eSenderPort);
-		}
-	}
 
 	if ( nMsgType == MSG_REQUEST_PLAYER_DATA )
 	{
@@ -330,6 +319,17 @@ bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort e
 		jsReq["sessionID"] = nSenderID;
 		pAsync->pushAsyncRequest(ID_MSG_PORT_GATE,nSenderID, eAsync_InformGate_PlayerLogout,jsReq);
 		return true;
+	}
+	else
+	{
+		if (pTargetPlayer == NULL)
+		{
+			LOGFMTE("can not find session id = %d to process msg id = %d ,from = %d", nSenderID, nMsgType, eSenderPort);
+		}
+		else
+		{
+			LOGFMTE("unprocess msg for player uid = %d , msg = %d ,from %d ", pTargetPlayer->getUserUID(), nMsgType, eSenderPort);
+		}
 	}
 	return false ;
 }
