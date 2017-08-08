@@ -59,7 +59,10 @@ void stGateClient::init(unsigned int nSessionID, CONNECT_ID nNetWorkID, const ch
 		}
 		m_isRecievedHeatBet = false;
 	});
-	m_tCheckHeatBet.start();
+#ifdef _DEBUG
+	//m_tCheckHeatBet.start();
+#endif // DEBUG
+	
 }
 
 void stGateClient::onReconnected( stGateClient* pBeReconnected )

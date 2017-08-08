@@ -9,7 +9,6 @@
 bool CMJServerApp::init()
 {
 	IServerApp::init();
-	srand((unsigned int)time(0));
 
 	CSeverConfigMgr stSvrConfigMgr ;
 	stSvrConfigMgr.LoadFile("../configFile/serverConfig.txt");

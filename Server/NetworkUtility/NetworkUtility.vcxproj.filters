@@ -38,6 +38,12 @@
     <ClInclude Include="src\SeverNetworkImp.h">
       <Filter>src\NetworkCore</Filter>
     </ClInclude>
+    <ClInclude Include="src\IServerNetworkImp.h">
+      <Filter>src\NetworkCore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\H5ServerNetworkImp.h">
+      <Filter>src\NetworkCore</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NetWorkManager.cpp">
@@ -53,6 +59,9 @@
       <Filter>src\NetworkCore</Filter>
     </ClCompile>
     <ClCompile Include="src\SeverNetworkImp.cpp">
+      <Filter>src\NetworkCore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\H5ServerNetworkImp.cpp">
       <Filter>src\NetworkCore</Filter>
     </ClCompile>
   </ItemGroup>

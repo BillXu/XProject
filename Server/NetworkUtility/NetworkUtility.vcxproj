@@ -52,10 +52,10 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;ASIO_STANDALONE;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;ASIO_STANDALONE;_DEBUG;_LIB;%(PreprocessorDefinitions);_WEBSOCKETPP_CPP11_TYPE_TRAITS_</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>./src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>-DBOOST_DATE_TIME_NO_LIB -DBOOST_REGEX_NO_LIB %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-DBOOST_DATE_TIME_NO_LIB -DBOOST_REGEX_NO_LIB  -D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -70,9 +70,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;ASIO_STANDALONE;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;ASIO_STANDALONE;NDEBUG;_LIB;%(PreprocessorDefinitions);_WEBSOCKETPP_CPP11_TYPE_TRAITS_</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>./src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions> -D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -86,7 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ClientNetworkImp.h" />
+    <ClInclude Include="src\H5ServerNetworkImp.h" />
     <ClInclude Include="src\InternalBuffer.h" />
+    <ClInclude Include="src\IServerNetworkImp.h" />
     <ClInclude Include="src\NetworkDefine.h" />
     <ClInclude Include="src\NetWorkManager.h" />
     <ClInclude Include="src\ServerNetwork.h" />
@@ -95,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ClientNetworkImp.cpp" />
+    <ClCompile Include="src\H5ServerNetworkImp.cpp" />
     <ClCompile Include="src\NetWorkManager.cpp" />
     <ClCompile Include="src\ServerNetwork.cpp" />
     <ClCompile Include="src\Session.cpp" />

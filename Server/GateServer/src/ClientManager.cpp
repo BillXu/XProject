@@ -11,6 +11,7 @@
 #include "AsyncRequestQuene.h"
 #include "GateServer.h"
 #include "Utility.h"
+#include "AutoBuffer.h"
 #define MAX_INCOME_PLAYER 2000
 CGateClientMgr::CGateClientMgr()
 {
@@ -41,12 +42,30 @@ CGateClientMgr::~CGateClientMgr()
 
 bool CGateClientMgr::OnMessage( Packet* pData )
 {
+	if ( CGateServer::SharedGateServer()->isNative() == false)
+	{
+		Json::Reader jsRader;
+		Json::Value jsRoot;
+		auto nRet = jsRader.parse(pData->_orgdata, pData->_orgdata + pData->_len, jsRoot);
+		if ( !nRet )
+		{
+			std::string str(pData->_orgdata,pData->_len);
+			LOGFMTE("can not parse the js msg : %s",str.c_str());
+			return false;
+		}
+		return onMsg(jsRoot,pData->_connectID );
+	}
 	// verify identify 
 	stMsg* pMsg = (stMsg*)pData->_orgdata ;
 	CHECK_MSG_SIZE(stMsg,pData->_len);
-	if ( MSG_VERIFY_CLIENT == pMsg->usMsgType )
+	return onMsg(pMsg,pData->_len,pData->_connectID);
+}
+
+bool CGateClientMgr::onMsg(stMsg* pMsg, size_t nMsgLen, CONNECT_ID nNetID)
+{
+	if ( MSG_VERIFY_CLIENT == pMsg->usMsgType)
 	{
-		auto pGate = getGateClientByNetWorkID(pData->_connectID);
+		auto pGate = getGateClientByNetWorkID(nNetID);
 		if (pGate == nullptr)
 		{
 			LOGFMTE("you do not connect how to send verify msg");
@@ -63,20 +82,19 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 	}
 
 	// client reconnect ;
-	if ( MSG_RECONNECT == pMsg->usMsgType )
+	if (MSG_RECONNECT == pMsg->usMsgType)
 	{
-		stMsgReconnect* pRet = (stMsgReconnect*)pMsg ;
-		CHECK_MSG_SIZE(stMsgReconnect,pData->_len);
+		stMsgReconnect* pRet = (stMsgReconnect*)pMsg;
 		auto pBeConnectGate = getGateClientBySessionID(pRet->nSessionID);
-		bool bReconnectOk = pBeConnectGate != NULL && pBeConnectGate->getBindUID() > 0 ;
-		stGateClient* pCurGate = getGateClientByNetWorkID(pData->_connectID);
+		bool bReconnectOk = pBeConnectGate != NULL && pBeConnectGate->getBindUID() > 0;
+		stGateClient* pCurGate = getGateClientByNetWorkID(nNetID);
 		if (pCurGate == nullptr)
 		{
 			LOGFMTE("do reconnect why cur player is nullptr ?");
 			bReconnectOk = false;
 		}
 
-		if ( bReconnectOk )
+		if (bReconnectOk)
 		{
 			// remove origin 
 			removeActiveClientGate(pCurGate);
@@ -85,56 +103,187 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 			addClientGate(pCurGate);
 
 			pBeConnectGate->reset();
-			addToResever(pBeConnectGate );
+			addToResever(pBeConnectGate);
 
 			LOGFMTI("MSG¡¡reconnected ! session id = %d", pRet->nSessionID);
 			stMsgClientConnectStateChanged msgRet;
 			msgRet.nCurState = 0;
 			msgRet.nTargetID = pCurGate->getBindUID();
 			sprintf_s(msgRet.cIP, sizeof(msgRet.cIP), "%s", pCurGate->getIP());
-			CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pCurGate->getSessionID() );
+			CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pCurGate->getSessionID());
 			LOGFMTD("tell data svr reconnected ok");
 		}
 
 		// send msg to client ;
-		stMsgReconnectRet msgback ;
-		msgback.nRet = (bReconnectOk ? 0 : 1 ) ;
-		CGateServer::SharedGateServer()->sendMsgToClient( (char*)&msgback,sizeof(msgback),pData->_connectID ) ;
-		return true ;
+		stMsgReconnectRet msgback;
+		msgback.nRet = (bReconnectOk ? 0 : 1);
+		CGateServer::SharedGateServer()->sendMsgToClient((char*)&msgback, sizeof(msgback), nNetID);
+		return true;
 	}
 
 	// transfer to center server 
-	stGateClient* pDstClient = getGateClientByNetWorkID(pData->_connectID) ;
-	if ( pDstClient == NULL )
+	stGateClient* pDstClient = getGateClientByNetWorkID(nNetID);
+	if (pDstClient == NULL)
 	{
-		LOGFMTE("can not send message to Center Server , client is NULL or not verified, so close the unknown connect") ;
-		CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(pData->_connectID) ;
-		return true ;
+		LOGFMTE("can not send message to Center Server , client is NULL or not verified, so close the unknown connect");
+		CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(nNetID);
+		return true;
 	}
 
-	if (MSG_PLAYER_REGISTER == pMsg->usMsgType )
+	if (MSG_PLAYER_REGISTER == pMsg->usMsgType)
 	{
-		onRegister(pMsg, pDstClient );
+		//onRegister(pMsg, pDstClient);
 		return true;
 	}
 	else if (MSG_PLAYER_LOGIN == pMsg->usMsgType)
 	{
-		onLogin(pMsg, pDstClient );
+		//onLogin(pMsg, pDstClient);
 		return true;
 	}
 
-	if ( pMsg->nTargetID == 0 )
+	if (pMsg->nTargetID == 0)
 	{
-		LOGFMTE("client send msg = %u , port = %d targetid  is null, uid = %u",pMsg->usMsgType,pMsg->cSysIdentifer,pDstClient->getBindUID());
+		LOGFMTE("client send msg = %u , port = %d targetid  is null, uid = %u", pMsg->usMsgType, pMsg->cSysIdentifer, pDstClient->getBindUID());
 	}
 
-	if ( pDstClient->getBindUID() == 0 )
+	if (pDstClient->getBindUID() == 0)
 	{
-		LOGFMTE("player DstClient not bind uid , so can not transfer msg ip = %s session id = %u , msg = %u",pDstClient->getIP(),pDstClient->getSessionID(),pMsg->usMsgType );
+		LOGFMTE("player DstClient not bind uid , so can not transfer msg ip = %s session id = %u , msg = %u", pDstClient->getIP(), pDstClient->getSessionID(), pMsg->usMsgType);
 		return true;
 	}
-	CGateServer::SharedGateServer()->sendMsg( pMsg,pData->_len ,pDstClient->getSessionID() );
-	return true ;
+	CGateServer::SharedGateServer()->sendMsg(pMsg, nMsgLen, pDstClient->getSessionID());
+	return true;
+}
+
+bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
+{
+	auto nPort = jsMsg["cSysIdentifer"].asUInt();
+	if ( ID_MSG_PORT_GATE != nPort )
+	{		
+		stMsgJsonContent msg;
+		msg.cSysIdentifer = nPort;
+		msg.nJsLen = jsMsg["nJsLen"].asUInt();
+		msg.nTargetID = jsMsg["nTargetID"].asUInt();
+		// transfer to center server 
+		stGateClient* pDstClient = getGateClientByNetWorkID(nNetID);
+		if (pDstClient == NULL)
+		{
+			LOGFMTE("can not send message to Center Server , client is NULL or not verified, so close the unknown connect");
+			CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(nNetID);
+			return true;
+		}
+
+		if ( msg.nTargetID == 0 )
+		{
+			LOGFMTE("client send msg = %u , port = %d targetid  is null, uid = %u", msg.usMsgType, msg.cSysIdentifer, pDstClient->getBindUID());
+		}
+
+		if (pDstClient->getBindUID() == 0)
+		{
+			LOGFMTE("player DstClient not bind uid , so can not transfer msg ip = %s session id = %u , msg = %u", pDstClient->getIP(), pDstClient->getSessionID(), msg.usMsgType);
+			return true;
+		}
+
+		auto js = jsMsg["JS"].asString();
+		msg.nJsLen = js.size();
+		CAutoBuffer msgBuffer(sizeof(msg) + js.size());
+		msgBuffer.addContent(&msg, sizeof(msg));
+		msgBuffer.addContent(js.c_str(), js.size());
+
+		return CGateServer::SharedGateServer()->sendMsg((stMsg*)msgBuffer.getBufferPtr(), msgBuffer.getContentSize(), pDstClient->getSessionID());
+	}
+
+	if ( jsMsg["JS"].isNull() || jsMsg["JS"].isString() == false )
+	{
+		LOGFMTE( "js key is null " );
+		return false;
+	}
+	auto nGateMsg = jsMsg["JS"].asString();
+	Json::Value jsGateMsg;
+	Json::Reader jsR;
+	auto ret = jsR.parse(nGateMsg, jsGateMsg);
+	if (!ret)
+	{
+		LOGFMTE( "parse gate msg error = %s",nGateMsg.c_str());
+		return true;
+	}
+
+	auto nmsgType = jsGateMsg[JS_KEY_MSG_TYPE].asUInt();
+	switch (nmsgType)
+	{
+	case MSG_VERIFY_CLIENT:
+	{
+		auto pGate = getGateClientByNetWorkID(nNetID);
+		if (pGate == nullptr)
+		{
+			LOGFMTE("you do not connect how to send verify msg netID = %u",nNetID );
+			return true;
+		}
+		pGate->doVerifyed();
+
+		Json::Value jsRet;
+		jsRet["nRet"] = 0;
+		jsRet["nSessionID"] = pGate->getSessionID();
+		jsRet["nTargetID"] = pGate->getSessionID();
+		sendMsgToClient(jsRet, nmsgType, pGate->getNetworkID() );
+	}
+	break;
+	case MSG_RECONNECT:
+	{
+		auto nSessionID = jsGateMsg["nSessionID"].asUInt();
+		auto pBeConnectGate = getGateClientBySessionID(nSessionID);
+		bool bReconnectOk = pBeConnectGate != NULL && pBeConnectGate->getBindUID() > 0;
+		stGateClient* pCurGate = getGateClientByNetWorkID(nNetID);
+		if (pCurGate == nullptr)
+		{
+			LOGFMTE("do reconnect why cur player is nullptr ?");
+			bReconnectOk = false;
+		}
+
+		if (bReconnectOk)
+		{
+			// remove origin 
+			removeActiveClientGate(pCurGate);
+			removeActiveClientGate(pBeConnectGate);
+			pCurGate->onReconnected(pBeConnectGate);
+			addClientGate(pCurGate);
+
+			pBeConnectGate->reset();
+			addToResever(pBeConnectGate);
+
+			LOGFMTI("MSG¡¡reconnected ! session id = %d", nSessionID );
+			stMsgClientConnectStateChanged msgRet;
+			msgRet.nCurState = 0;
+			msgRet.nTargetID = pCurGate->getBindUID();
+			sprintf_s(msgRet.cIP, sizeof(msgRet.cIP), "%s", pCurGate->getIP());
+			CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pCurGate->getSessionID());
+			LOGFMTD("tell data svr reconnected ok");
+		}
+
+		// send msg to client ;
+		Json::Value jsRet;
+		jsRet["nRet"] = (bReconnectOk ? 0 : 1);
+		sendMsgToClient(jsRet,nmsgType, nNetID );
+		return true;
+	}
+	break;
+	case MSG_PLAYER_REGISTER:
+	{
+		stGateClient* pDstClient = getGateClientByNetWorkID(nNetID);
+		onRegister(jsGateMsg, pDstClient);
+	}
+	break;
+	case MSG_PLAYER_LOGIN:
+	{
+		stGateClient* pDstClient = getGateClientByNetWorkID(nNetID);
+		onLogin(jsGateMsg, pDstClient);
+	}
+	break;
+	default:
+		LOGFMTE( "unknown msg type = %u",nmsgType );
+		break;
+	}
+	return true;
 }
 
 bool CGateClientMgr::OnHeatBeat( CONNECT_ID nNewPeer )
@@ -201,7 +350,7 @@ void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWait
 	}
 
 	// do close this connection ;
-	LOGFMTD("client connection do disconnected");
+	LOGFMTD("client connection do disconnected netID = %u",pGateClient->getNetworkID() );
 	CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(pGateClient->getNetworkID());
 	removeActiveClientGate(pGateClient);
 	addToResever(pGateClient);
@@ -225,7 +374,7 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 	if ( IpInfo )
 	{
 		strIP = (char*)IpInfo->strAddress;
-		LOGFMTD("a peer connected ip = %s ,port = %d",IpInfo->strAddress,IpInfo->nPort ) ;
+		LOGFMTD("a peer connected ip = %s ,port = %d netID = %u",IpInfo->strAddress,IpInfo->nPort,nNewPeer ) ;
 	}
 	else
 	{
@@ -367,17 +516,26 @@ void CGateClientMgr::sendMsgToClient( stMsg* pmsg, uint16_t nLen, CONNECT_ID nNe
 	CGateServer::SharedGateServer()->sendMsgToClient((char*)pmsg, nLen, nNetWorkID);
 }
 
-void CGateClientMgr::onLogin(stMsg* pmsg, stGateClient* pClient )
+void CGateClientMgr::sendMsgToClient(Json::Value jsMsg, uint16_t nMsgType, CONNECT_ID nNetWorkID)
 {
-	stMsgLogin* pLoginCheck = (stMsgLogin*)pmsg;
+	jsMsg[JS_KEY_MSG_TYPE] = nMsgType;
+	Json::StyledWriter jsWrite;
+	auto str = jsWrite.write(jsMsg);
+	sendMsgToClient((stMsg*)str.c_str(),str.size(),nNetWorkID);
+}
+
+void CGateClientMgr::onLogin( Json::Value& jsMsg, stGateClient* pClient )
+{
+	auto cAccount = jsMsg["cAccount"].asString();
+	auto cPassword = jsMsg["cPassword"].asString();
 	// must end with \0
-	if (strlen(pLoginCheck->cAccount) >= MAX_LEN_ACCOUNT || strlen(pLoginCheck->cPassword) >= MAX_LEN_PASSWORD)
+	if (cAccount.size() >= MAX_LEN_ACCOUNT || cPassword.size() >= MAX_LEN_PASSWORD)
 	{
 		LOGFMTE("password or account len is too long ");
 		return;
 	}
-	auto strAccount = checkStringForSql(pLoginCheck->cAccount);
-	auto strPass = checkStringForSql(pLoginCheck->cPassword);
+	auto strAccount = checkStringForSql(cAccount.c_str());
+	auto strPass = checkStringForSql(cPassword.c_str());
 	// new 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
@@ -387,13 +545,13 @@ void CGateClientMgr::onLogin(stMsg* pmsg, stGateClient* pClient )
 	auto pReqQueue = CGateServer::SharedGateServer()->getAsynReqQueue();
 	auto nClientNetID = pClient->getNetworkID();
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, pClient->getSessionID(),eAsync_DB_Select, jssql, [pReqQueue,this, nClientNetID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
-			
+		
+		Json::Value jsRet;
+		jsRet["nAccountType"] = 0;
 		if (isTimeOut)
 		{
-			stMsgLoginRet msgRet;
-			msgRet.nAccountType = 0;
-			msgRet.nRet = 1;  // account error ; 
-			sendMsgToClient(&msgRet, sizeof(msgRet), nClientNetID);
+			jsRet["nRet"] = 1;
+			sendMsgToClient(jsRet, MSG_PLAYER_LOGIN, nClientNetID);
 			LOGFMTE("time out why register affect row = 0 net id %u ",nClientNetID );
 			return;
 		}
@@ -401,26 +559,24 @@ void CGateClientMgr::onLogin(stMsg* pmsg, stGateClient* pClient )
 		uint8_t nRow = retContent["afctRow"].asUInt();
 		Json::Value jsData = retContent["data"];
 
-		stMsgLoginRet msgRet;
-		msgRet.nAccountType = 0;
 		uint32_t nUserUID = 0;
 		if (jsData.size() != 1)
 		{
-			msgRet.nRet = 1;  // account error ; 
-			sendMsgToClient(&msgRet, sizeof(msgRet), nClientNetID);
+			jsRet["nRet"] = 1;  // account error ; 
+			sendMsgToClient(jsRet, MSG_PLAYER_LOGIN, nClientNetID);
 			LOGFMTE("why register affect row = 0 ");
 			return;
 		}
 
 		Json::Value jsRow = jsData[0u];
-		msgRet.nRet = jsRow["nOutRet"].asUInt();
-		msgRet.nAccountType = jsRow["nOutRegisterType"].asUInt();
+		jsRet["nRet"] = jsRow["nOutRet"].asUInt();
+		jsRet["nAccountType"] = jsRow["nOutRegisterType"].asUInt();
 		nUserUID = jsRow["nOutUID"].asUInt();
-		LOGFMTD("check accout = %s  ret = %d", jsRow["strAccount"].asCString(), msgRet.nRet);
-		sendMsgToClient(&msgRet, sizeof(msgRet), nClientNetID);
+		LOGFMTD("check accout = %s  ret = %d", jsRow["strAccount"].asCString(), jsRet["nRet"].asUInt());
+		sendMsgToClient(jsRet, MSG_PLAYER_LOGIN, nClientNetID);
 
 		// tell data svr this login ;
-		if ( 0 == msgRet.nRet )
+		if ( 0 == jsRet["nRet"].asUInt() )
 		{
 			auto pGateClient = getGateClientByNetWorkID(nClientNetID);
 			if (pGateClient == nullptr)
@@ -439,16 +595,18 @@ void CGateClientMgr::onLogin(stMsg* pmsg, stGateClient* pClient )
 	}, pClient->getSessionID());
 }
 
-void CGateClientMgr::onRegister(stMsg* pmsg, stGateClient* pClient )
+void CGateClientMgr::onRegister( Json::Value& jsMsg,stGateClient* pClient )
 {
-	stMsgRegister* pLoginRegister = (stMsgRegister*)pmsg;
-	if (pLoginRegister->cRegisterType == 0)
+	std::string strName = jsMsg["cName"].asString();
+	auto cAccount = jsMsg["cAccount"].asString();
+	auto cPassword = jsMsg["cPassword"].asString();
+	auto cRegisterType = jsMsg["cRegisterType"].asUInt();
+	auto nChannel = jsMsg["nChannel"].asUInt();
+	if ( cRegisterType == 0 )
 	{
-		memset(pLoginRegister->cAccount, 0, sizeof(pLoginRegister->cAccount));
-		memset(pLoginRegister->cPassword, 0, sizeof(pLoginRegister->cPassword));
-		memset(pLoginRegister->cName, 0, sizeof(pLoginRegister->cName));
-
 		// rand a name and account 
+		char cUAccount[MAX_LEN_ACCOUNT] = { 0 };
+		char cUName[MAX_LEN_ACCOUNT] = { 0 };
 		for (uint8_t nIdx = 0; nIdx < 8; ++nIdx)
 		{
 			char acc, cName;
@@ -471,59 +629,57 @@ void CGateClientMgr::onRegister(stMsg* pmsg, stGateClient* pClient )
 			{
 				cName = 'A' + (cName - 25);
 			}
-			pLoginRegister->cAccount[nIdx] = acc;
-			pLoginRegister->cName[nIdx] = cName;
+			cUAccount[nIdx] = acc;
+			cUName[nIdx] = cName;
 		}
-		memset(pLoginRegister->cName, 0, sizeof(pLoginRegister->cName));
-		sprintf_s(pLoginRegister->cName, "guest%u", rand() % 10000 + 1);
-		sprintf_s(pLoginRegister->cPassword, "hello");
+		cPassword = "hello";
+		cAccount = cUAccount;
+		strName = cUName;
 	}
-	auto strName = checkStringForSql(pLoginRegister->cName);
-	auto strAccount = checkStringForSql(pLoginRegister->cAccount);
-	auto strPassword = checkStringForSql(pLoginRegister->cPassword);
+	strName = checkStringForSql(strName.c_str());
+	cAccount = checkStringForSql(cAccount.c_str());
+	cPassword = checkStringForSql(cPassword.c_str());
 	// new 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "call RegisterAccount('%s','%s','%s',%d,%d,'%s');", strName.c_str(), pLoginRegister->cAccount, pLoginRegister->cPassword, pLoginRegister->cRegisterType, pLoginRegister->nChannel, pClient->getIP());
+	sprintf_s(pBuffer,sizeof(pBuffer), "call RegisterAccount('%s','%s','%s',%d,%d,'%s');", strName.c_str(), cAccount.c_str(), cPassword.c_str(), cRegisterType, nChannel, pClient->getIP());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = CGateServer::SharedGateServer()->getAsynReqQueue();
-	auto nRegType = pLoginRegister->cRegisterType;
+	auto nRegType = cRegisterType;
 	auto nClientNetID = pClient->getNetworkID();
-	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, pClient->getSessionID(),eAsync_DB_Select, jssql, [pReqQueue,this, nClientNetID, nRegType](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, pClient->getSessionID(),eAsync_DB_Select, jssql, [cRegisterType,pReqQueue,this, nClientNetID, nRegType](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
 		Json::Value jsData = retContent["data"];
 		
-		stMsgRegisterRet msgRet;
-		msgRet.cRegisterType = nRegType;
-		memset(msgRet.cAccount, 0, sizeof(msgRet.cAccount));
-		memset(msgRet.cPassword, 0, sizeof(msgRet.cPassword));
-		msgRet.nUserID = 0;
-		if (jsData.size() != 1)
+		uint8_t nRet = 0;
+		Json::Value jsRet;
+		jsRet["cRegisterType"] = cRegisterType;
+		do
 		{
-			msgRet.nRet = 1;
-			sendMsgToClient(&msgRet, sizeof(msgRet), nClientNetID);
-			LOGFMTE("why register affect row = 0 ");
-			return;
-		}
+			if (jsData.size() != 1)
+			{
+				nRet = 1;
+				break;
+			}
 
-		Json::Value jsRow = jsData[0u];
-		msgRet.nRet = jsRow["nOutRet"].asUInt();
-		if (msgRet.nRet != 0 )
-		{
-			sendMsgToClient(&msgRet, sizeof(msgRet), nClientNetID);
-			LOGFMTD("register failed duplicate account = %s", jsRow["strAccount"].asCString());
-			return;
-		}
+			Json::Value jsRow = jsData[0u];
+			nRet = jsRow["nOutRet"].asUInt();
+			if ( nRet != 0)
+			{
+				LOGFMTD("register failed duplicate account = %s", jsRow["strAccount"].asCString());
+				break;
+			}
 
-		sprintf_s(msgRet.cAccount, "%s", jsRow["strAccount"].asCString());
-		sprintf_s(msgRet.cPassword, "%s", jsRow["strPassword"].asCString());
-		msgRet.nUserID = jsRow["nOutUserUID"].asUInt();
+			jsRet["cAccount"] = jsRow["strAccount"];
+			jsRet["cPassword"] = jsRow["strPassword"];
+			jsRet["nUserID"] = jsRow["nOutUserUID"];
+		} while (0);
 
 		// tell client the success register result ;
-		sendMsgToClient(&msgRet, sizeof(msgRet), nClientNetID);
-
+		jsRet["nRet"] = nRet;
+		sendMsgToClient(jsRet, MSG_PLAYER_REGISTER, nClientNetID);
 		// tell data svr this login ;
-		if ( 0 == msgRet.nRet )
+		if ( 0 == nRet )
 		{
 			auto pGateClient = getGateClientByNetWorkID(nClientNetID);
 			if (pGateClient == nullptr)
@@ -532,12 +688,12 @@ void CGateClientMgr::onRegister(stMsg* pmsg, stGateClient* pClient )
 				return;
 			}
 
-			pGateClient->bindUID(msgRet.nUserID);
+			pGateClient->bindUID(jsRet["nUserID"].asUInt());
 			Json::Value jsLogin;
-			jsLogin["uid"] = msgRet.nUserID;
+			jsLogin["uid"] = jsRet["nUserID"].asUInt();
 			jsLogin["sessionID"] = pGateClient->getSessionID();
 			jsLogin["ip"] = pGateClient->getIP();
-			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, msgRet.nUserID, eAsync_Player_Logined, jsLogin);
+			pReqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, jsRet["nUserID"].asUInt(), eAsync_Player_Logined, jsLogin);
 		}
 
 	},pClient->getSessionID());

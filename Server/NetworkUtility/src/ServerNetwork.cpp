@@ -1,5 +1,6 @@
 #include "ServerNetwork.h"
 #include "SeverNetworkImp.h"
+#include "H5ServerNetworkImp.h"
 CServerNetwork::CServerNetwork()
 {
 	m_pNetPeer = NULL;
@@ -14,7 +15,7 @@ CServerNetwork::~CServerNetwork()
 	ShutDown();
 }
 
-bool CServerNetwork::StartupNetwork( unsigned short nPort , int nMaxInComming ,const char* pIncomingPassword )
+bool CServerNetwork::StartupNetwork( unsigned short nPort , int nMaxInComming , bool isNative )
 {
 	assert(m_pNetPeer == NULL && nMaxInComming > 0 && "m_pNetPeer Must NULL" ) ;
 	if ( m_pNetPeer )
@@ -22,7 +23,15 @@ bool CServerNetwork::StartupNetwork( unsigned short nPort , int nMaxInComming ,c
 		ShutDown();
 	}
 
-	m_pNetPeer = new CServerNetworkImp();
+	if (isNative)
+	{
+		m_pNetPeer = new CServerNetworkImp();
+	}
+	else
+	{
+		m_pNetPeer = new H5ServerNetworkImp();
+	}
+	
 	if (  !m_pNetPeer->init(nPort))
 	{
 		printf( "Can not Start ServerNetwork \n" );

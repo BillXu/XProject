@@ -1,28 +1,26 @@
 #pragma once
 #include "asio.hpp"
-#include "InternalBuffer.h"
 #include <map>
-#include <list>
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "../../ServerCommon/log4z.h"
+#include "IServerNetworkImp.h"
 using asio::ip::tcp;  
 class CSession;
 class CServerNetworkImp
+	:public IServerNetworkImp
 {
 public:
 	typedef std::map<uint32_t,std::shared_ptr<CSession>> MAP_SESSION ;
-	typedef std::list<Packet*> LIST_PACKET;
 	typedef std::shared_ptr<CSession> session_ptr ;
 public:
 	CServerNetworkImp();
 	~CServerNetworkImp();
-	bool init(uint16_t nPort );
-	bool sendMsg(uint32_t nConnectID , const char* pData , size_t nLen );
-	bool getAllPacket(LIST_PACKET& vOutPackets ); // must delete out side ;
-	bool getFirstPacket(Packet** ppPacket ); // must delete out side ;
-	void closePeerConnection( uint32_t nConnectID );
+	bool init(uint16_t nPort )override ;
+	bool sendMsg(uint32_t nConnectID , const char* pData , size_t nLen )override;
+	bool getAllPacket(LIST_PACKET& vOutPackets )override; // must delete out side ;
+	bool getFirstPacket(Packet** ppPacket )override; // must delete out side ;
+	void closePeerConnection( uint32_t nConnectID )override;
 	void handleAccept( const asio::error_code& error, session_ptr session );
 protected:
 	void doCloseSession(uint32_t nConnectID, bool bServerClose);

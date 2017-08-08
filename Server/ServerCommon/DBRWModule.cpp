@@ -96,6 +96,29 @@ void DBRWModule::onTaskFinish( ITask::ITaskPrt pTask )
 	// request obj push to reserver for resue 
 	pReq->reset();
 	m_vReseverDBRequest.push_back(pReq);
+
+	// check wait process db request 
+	if ( m_vWaitToProcessDBRequest.empty() )
+	{
+		return;
+	}
+
+	auto pTaskGoOn = m_tTaskPool.getReuseTaskObjByID(1);
+	if (pTaskGoOn == nullptr)
+	{
+		LOGFMTE( "why this time ptask is null ? should not be null ,just one task finished" );
+		return;
+	}
+	pTaskGoOn->setCallBack(std::bind(&DBRWModule::onTaskFinish, this, std::placeholders::_1));
+
+	auto pDBTaskGoOn = std::static_pointer_cast<CDBTask>(pTaskGoOn);
+	auto pIter = m_vWaitToProcessDBRequest.begin();
+	auto ptrRequest = *pIter;
+	m_vWaitToProcessDBRequest.erase(pIter);
+
+	pDBTaskGoOn->setDBRequest(ptrRequest);
+	m_tTaskPool.postTask(pDBTaskGoOn);
+	LOGFMTD( "go on do request " );
 }
 
 void DBRWModule::closeAll()

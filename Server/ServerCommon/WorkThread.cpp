@@ -1,5 +1,6 @@
 #include "WorkThread.h"
 #include "TaskPool.h"
+#include "log4z.h"
 CWorkThread::CWorkThread( CTaskPool* pool, uint8_t nIdx )
 {
 	m_isClose = false ;
@@ -37,13 +38,16 @@ void CWorkThread::__run()
 	while ( true )
 	{
 		{
+			LOGFMTD("thrad enter idx = %u",getIdx());
 			std::unique_lock<std::mutex> tLock(m_tMutex);
 			m_tCondition.wait(tLock, [this]() { return m_isHaveNewTask; });
+			LOGFMTD(" awake thread idx = %u", getIdx());
+			m_isHaveNewTask = false;
 		}
 
 		if ( m_isClose )
 		{
-			printf("do close thread \n") ;
+			LOGFMTE("do close thread \n") ;
 			m_pTask = nullptr ;
 			break;
 		}
@@ -54,21 +58,21 @@ void CWorkThread::__run()
 			m_pTask->setResultCode(ret) ;
 			if ( m_pPool )
 			{
-				printf("thread idx = %u ok \n",m_nIdx) ;
+				LOGFMTD("thread idx = %u ok \n", getIdx()) ;
 				m_pPool->onThreadFinishTask(this) ;
+				LOGFMTD("thread idx = %u do finished \n", getIdx());
 			}
 			else
 			{
-				printf("why pool is null , how to tell pool result \n ") ;
+				LOGFMTD("why pool is null , how to tell pool result \n ") ;
 			}
 		}
-		m_isHaveNewTask = false;
 	}
 }
 
 void CWorkThread::close()
 {
-	printf("send close cmd \n") ;
+	LOGFMTD("send close cmd \n") ;
 	{
 		std::unique_lock<std::mutex> tLock(m_tMutex);
 		m_isClose = true;

@@ -100,6 +100,11 @@ enum eMsgType
 	// svr : { ret : 0 }; // ret : 0 success , 1 you are not in this room , 2 unknown errro ;
 	MSG_ROOM_REFRESH_NET_STATE, // player net state , changed 
 	// svr : { idx : 0 , uid : 235 , state : 0  } , 0 is online , 1 lose connect , wait reconnect; 
+	MSG_PLAYER_OPEN_ROOM,
+	// client : null ;
+	// svr: { ret : 0 } // 0 success , 1 you are not owner , 2 you are not in room ;
+	MSG_ROOM_DO_OPEN,
+	// svr : null ;
 
 	MSG_PLAYER_SET_READY = 600,   	// player do ready
 	// client : { dstRoomID : 2345 } ;

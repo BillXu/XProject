@@ -1,7 +1,7 @@
 #pragma once
 #include "NetworkDefine.h"
 #include <list>
-class  CServerNetworkImp ;
+class  IServerNetworkImp;
 class CServerNetworkDelegate
 {
 public:
@@ -23,7 +23,7 @@ public:
 public:
 	CServerNetwork();
 	~CServerNetwork();
-	bool StartupNetwork( unsigned short nPort , int nMaxInComming, const char* pIncomingPassword = NULL );
+	bool StartupNetwork( unsigned short nPort , int nMaxInComming, bool isNative );
 	void ShutDown();
 	void RecieveMsg();
 	void SendMsg(const char* pData , int nLength , CONNECT_ID& nSendToOrExcpet ,bool bBroadcast = false );
@@ -36,6 +36,6 @@ protected:
 	bool OnLogicMessage(CServerNetworkDelegate* pDelegate, Packet* pData);
 	void EnumDelegate( lpFunc pFunc, Packet* pData );
 protected:
-	CServerNetworkImp* m_pNetPeer ;
+	IServerNetworkImp* m_pNetPeer ;
 	LIST_DELEGATE m_vAllDelegates ;
 };

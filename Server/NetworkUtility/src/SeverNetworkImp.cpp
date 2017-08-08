@@ -1,6 +1,7 @@
  #include <WinSock2.h>
 #include "SeverNetworkImp.h"
 #include "Session.h"
+#include "../../ServerCommon/log4z.h"
 CServerNetworkImp::CServerNetworkImp()
 {
 	m_acceptor = nullptr ;
@@ -70,7 +71,6 @@ void CServerNetworkImp::handleAccept( const asio::error_code& error, session_ptr
 	}
 	startAccept(); //每连接上一个socket都会调用  
 }
-
 
 void CServerNetworkImp::doCloseSession( uint32_t nConnectID , bool bServerClose )
 {

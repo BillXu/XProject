@@ -54,6 +54,7 @@ protected:
 	uint32_t m_nOwnerUID;
 	bool m_isForFree;
 	bool m_isAA;
+	bool m_isOpen; 
 
 	uint8_t m_nRoundLevel; // round level , comsume card and init round deponeded on this level ;
 	uint8_t m_nLeftRounds;

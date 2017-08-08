@@ -6,7 +6,6 @@
 bool PokerServerApp::init(Json::Value& jsSvrCfg)
 {
 	IServerApp::init(jsSvrCfg);
-	srand((unsigned int)time(0));
 	installModule(eMod_RoomMgr);
 	return true ;
 }

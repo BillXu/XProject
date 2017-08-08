@@ -49,6 +49,7 @@ bool CGateServer::init(Json::Value& jsSvrCfg)
 		return false ;
 	}
 	m_nGatePort = jsSvrCfg["gatePort"].asUInt();
+	m_isNative = jsSvrCfg["isNative"].asUInt() == 1;  // is natvie or h5 gate ;
 	return true ;
 }
 
@@ -76,7 +77,7 @@ void CGateServer::onConnectedToSvr( bool isReconnectMode )
 	if (nullptr == m_pNetWorkForClients)
 	{
 		m_pNetWorkForClients = new CServerNetwork;
-		m_pNetWorkForClients->StartupNetwork(m_nGatePort, 5000, "");
+		m_pNetWorkForClients->StartupNetwork(m_nGatePort, 5000 ,m_isNative );
 		m_pNetWorkForClients->AddDelegate(m_pGateManager);
 	}
 
@@ -124,7 +125,21 @@ bool CGateServer::OnMessage( Packet* pPacket )
 				LOGFMTE("gate is waiting reconnect , should not send msg to it , msg = %u, sender port = %u , nSendID = %u, targetID = %u", prealMsg->usMsgType, pData->nSenderPort, pData->nSessionID, prealMsg->nTargetID );
 				return true;
 			}
-			sendMsgToClient((const char*)prealMsg, pPacket->_len - sizeof(stMsgTransferData) , pGate->getNetworkID());
+
+			if ( MSG_JSON_CONTENT == prealMsg->usMsgType && isNative() == false )
+			{
+				stMsgJsonContent* jsContent = (stMsgJsonContent*)prealMsg;
+				std::string strJson( ((char*)prealMsg) + sizeof(stMsgJsonContent),jsContent->nJsLen );
+#ifdef _DEBUG
+				LOGFMTI( "do replay client msg :%s :len = %u",strJson.c_str(),strJson.size() );
+#endif // _DEBUG
+
+				sendMsgToClient(strJson.c_str(), jsContent->nJsLen, pGate->getNetworkID());
+			}
+			else
+			{
+				sendMsgToClient((const char*)prealMsg, pPacket->_len - sizeof(stMsgTransferData), pGate->getNetworkID());
+			}
 			return true;
 		}
 	}

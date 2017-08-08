@@ -66,12 +66,11 @@ void CTaskPool::update()
 	for ( auto& ref : vTask )
 	{
 		auto pCallBck = ref->getCallBack();
-
+		m_vResultObjs[ref->getTaskID()].push_back(ref);
 		if ( pCallBck != nullptr )
 		{
 			pCallBck(ref) ;
 		}
-		m_vResultObjs[ref->getTaskID()].push_back(ref);
 	}
 	vTask.clear();
 }

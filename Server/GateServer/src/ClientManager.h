@@ -3,6 +3,7 @@
 #include <set>
 #include "ServerNetwork.h"
 #include "CommonDefine.h"
+#include "json\json.h"
 struct stGateClient ;
 struct stMsg;
 class CGateClientMgr
@@ -16,6 +17,8 @@ public:
 	CGateClientMgr();
 	~CGateClientMgr();
 	bool OnMessage( Packet* pData )override;
+	bool onMsg( Json::Value& jsMsg, CONNECT_ID nNetID );
+	bool onMsg( stMsg* pmsg, size_t nMsgLen ,CONNECT_ID nNetID);
 	void OnNewPeerConnected( CONNECT_ID nNewPeer, ConnectInfo* IpInfo)override;
 	void OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectInfo* IpInfo )override;
 	bool OnHeatBeat(CONNECT_ID nNewPeer)override;
@@ -30,8 +33,9 @@ protected:
 	stGateClient* getGateClientByNetWorkID(CONNECT_ID nNetWorkID );
 	void addToResever( stGateClient* pClient );
 	void sendMsgToClient( stMsg* pmsg , uint16_t nLen ,CONNECT_ID nNetWorkID);
-	void onRegister(stMsg* pmsg, stGateClient* pClient );
-	void onLogin(stMsg* pmsg, stGateClient* pClient );
+	void sendMsgToClient( Json::Value jsMsg, uint16_t nMsgType, CONNECT_ID nNetWorkID);
+	void onRegister( Json::Value& jsMsg, stGateClient* pClient );
+	void onLogin( Json::Value& jsMsg, stGateClient* pClient );
 protected:
 	friend struct stGateClient ;
 protected:

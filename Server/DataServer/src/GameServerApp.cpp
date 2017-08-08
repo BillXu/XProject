@@ -22,8 +22,6 @@ DataServerApp::~DataServerApp()
 bool DataServerApp::init(Json::Value& jsSvrCfg)
 {
 	IServerApp::init(jsSvrCfg);
-	srand((unsigned int)time(0));
-
 
 	CServerStringTable::getInstance()->LoadFile("../configFile/stringTable.txt");
 

@@ -22,6 +22,7 @@ public:
 	void onExit();
 	void onConnectedToSvr(bool isReconnectMode)override;
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)override;
+	bool isNative() { return m_isNative; } // is native or html5
 protected:
 	static CGateServer* s_GateServer ;
 	CServerNetwork* m_pNetWorkForClients ;
@@ -29,4 +30,5 @@ protected:
 
 	uint16_t m_nGatePort = 0 ;
 	uint32_t m_nCurMaxSessionID ;
+	bool m_isNative; // is natvie or h5 gate ;
 };

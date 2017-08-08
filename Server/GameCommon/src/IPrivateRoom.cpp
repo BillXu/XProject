@@ -46,6 +46,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_vPlayerAgreeDismissRoom.clear();
 	m_tInvokerTime = 0;
 	m_nApplyDismissUID = 0;
+	m_isOpen = false;
 
 	// start auto dismiss timer ;
 	m_tAutoDismissTimer.reset();
@@ -145,6 +146,13 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 {
 	switch (nMsgType)
 	{
+	case MSG_PLAYER_OPEN_ROOM:
+	{
+		m_isOpen = true;
+		Json::Value js;
+		sendRoomMsg(js, MSG_ROOM_DO_OPEN);
+	}
+	break;
 	case MSG_PLAYER_STAND_UP:
 	case MSG_PLAYER_LEAVE_ROOM:
 	{
@@ -324,6 +332,7 @@ void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 	jsMsg["level"] = m_nRoundLevel;
 	jsMsg["roomType"] = m_pRoom->getRoomType();
 	jsMsg["isAA"] = m_isAA ? 1 : 0;
+	jsMsg["isOpen"] = m_isOpen ? 1 : 0;
 	// is waiting vote dismiss room ;
 	jsMsg["isWaitingDismiss"] = m_bWaitDismissReply ? 1 : 0;
 	int32_t nLeftSec = 0;
@@ -388,7 +397,7 @@ void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 
 bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	return m_nLeftRounds > 0 ;
+	return m_nLeftRounds > 0 && m_isOpen;
 }
 
 void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)

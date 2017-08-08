@@ -12,6 +12,7 @@
 #define TIME_WAIT_FOR_RECONNECT 6
 bool IServerApp::init( Json::Value& jsSvrCfg )
 {
+	srand((unsigned int)time(0));
 	m_bRunning = true;
 	m_nTargetSvrNetworkID = INVALID_CONNECT_ID;
 	

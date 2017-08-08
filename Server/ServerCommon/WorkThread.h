@@ -13,6 +13,7 @@ public:
 	ITask::ITaskPrt getTask();
 	void __run() ;
 	void close();
+	uint8_t getIdx() { return m_nIdx; }
 protected:
 	ITask::ITaskPrt m_pTask ;
 
