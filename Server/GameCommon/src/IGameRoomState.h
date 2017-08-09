@@ -11,6 +11,7 @@ public:
 	virtual void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		m_pRoom = pmjRoom;
+		setStateDuringTime(999999);
 	}
 	virtual uint32_t getStateID() = 0;
 	virtual bool onMsg( Json::Value& jsmsg,uint16_t nMsgType,eMsgPort eSenderPort, uint32_t nSessionID ){ return false; }

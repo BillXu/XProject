@@ -10,7 +10,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(eTime_ExeGameStart);
+		setStateDuringTime(5);
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)

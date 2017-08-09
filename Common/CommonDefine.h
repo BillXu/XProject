@@ -50,10 +50,7 @@ enum eRoomState
 	// new state 
 	eRoomSate_WaitReady,
 	eRoomState_StartGame,
-	eRoomState_WaitPlayerAct,  // 等待玩家操作 { idx : 0 , huaCard : 23 }
-	eRoomState_DoPlayerAct,  // 玩家操作 // { idx : 0 ,huIdxs : [1,3,2,], act : eMJAct_Chi , card : 23, invokeIdx : 23, eatWithA : 23 , eatWithB : 22 }
-	eRoomState_AskForRobotGang, // 询问玩家抢杠胡， { invokeIdx : 2 , card : 23 }
-	eRoomState_WaitPlayerChu, // 等待玩家出牌 { idx : 2 }
+	eRoomState_Common_Max = 20,
 
 	// niu niu special ;
 	eRoomState_DecideBanker,
@@ -64,7 +61,14 @@ enum eRoomState
 	eRoomState_DistributeFinalCard = eRoomState_DistributeCard,
 	eRoomState_CaculateNiu,
 	eRoomState_GameEnd,
+	eRoomState_NN_Max = 50,
 	
+	// mj specail ;
+	eRoomState_WaitPlayerAct,  // 等待玩家操作 { idx : 0 , huaCard : 23 }
+	eRoomState_DoPlayerAct,  // 玩家操作 // { idx : 0 ,huIdxs : [1,3,2,], act : eMJAct_Chi , card : 23, invokeIdx : 23, eatWithA : 23 , eatWithB : 22 }
+	eRoomState_AskForRobotGang, // 询问玩家抢杠胡， { invokeIdx : 2 , card : 23 }
+	eRoomState_WaitPlayerChu, // 等待玩家出牌 { idx : 2 }
+	eRoomState_MJ_Common_Max = 80, 
 
 	// above is new ;
 	eRoomState_None,
@@ -82,14 +86,6 @@ enum eRoomState
 	eRoomState_DidGameOver,
 	eRoomState_NN_Disribute4Card = eRoomState_StartGame,
 
-	// state for NiuNiu
-	eRoomState_NN_TryBanker,
-	eRoomState_NN_GrabBanker = eRoomState_NN_TryBanker,
-	eRoomState_NN_RandBanker,
-	eRoomState_NN_StartBet,
-	eRoomState_NN_FinalCard,
-	eRoomState_NN_CaculateCard,
-	eRoomState_NN_GameResult,
 
 	// state for golden
 	eRoomState_Golden_Bet,

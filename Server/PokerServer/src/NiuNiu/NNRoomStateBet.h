@@ -12,7 +12,7 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		auto pRoom = (NNRoom*)getRoom();
 		pRoom->doStartBet();
-		setStateDuringTime(eTime_ExeGameStart);
+		setStateDuringTime(15);
 	}
 
 	bool onMsg( Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )

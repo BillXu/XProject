@@ -193,9 +193,6 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 			}
 			jsRet["ret"] = 0;
 			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
-
-			// tell data svr entered room ;
-			
 		},nUserID);
 	}
 	break;
