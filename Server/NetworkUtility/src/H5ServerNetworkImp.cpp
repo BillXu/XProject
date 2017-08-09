@@ -52,7 +52,8 @@ bool H5ServerNetworkImp::sendMsg(uint32_t nConnectID, const char* pData, size_t 
 	}
 	catch ( websocketpp::exception& ec )
 	{
-		LOGFMTE("send msg error : %s , --what : %s ; conetn : %s", ec.m_msg, ec.what(),pData );
+		std::string str(pData,nLen);
+		LOGFMTE("send msg error : %s , --what : %s ; conetn : %s", ec.m_msg.c_str(), ec.what(), str.c_str());
 	}
 
 	return true;

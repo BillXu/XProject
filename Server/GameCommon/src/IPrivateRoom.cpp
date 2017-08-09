@@ -282,6 +282,14 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 		}
 		else
 		{
+			if (!m_pRoom)
+			{
+				LOGFMTE( "why private room core Room is null" );
+				return false;
+			}
+
+			prealMsg["roomState"] = getCoreRoom()->getCurState()->getStateID();
+			LOGFMTE( "room id = %u do not process msg = %u , room state = %u idx = %u",nMsgType,getCoreRoom()->getCurState()->getStateID(), getCoreRoom()->getCurState()->getCurIdx() );
 			return false;
 		}
 	}

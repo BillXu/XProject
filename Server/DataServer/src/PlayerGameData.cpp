@@ -137,7 +137,7 @@ void CPlayerGameData::onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t 
 	jsReq["roomID"] = getStayInRoomID();
 	jsReq["uid"] = getPlayer()->getUserUID();
 	jsReq["newSessionID"] = nNewSessionID;
-	pAsync->pushAsyncRequest(getGamePortByRoomID(getStayInRoomID()), getStayInRoomID(), eAsync_Inform_Player_NetState, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+	pAsync->pushAsyncRequest(getGamePortByRoomID(getStayInRoomID()), getStayInRoomID(), eAsync_Inform_Player_NewSessionID, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 	{
 		if (isTimeOut)
 		{
@@ -152,6 +152,7 @@ void CPlayerGameData::onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t 
 			LOGFMTE("inform player new session id  ,can not find room id = %u , uid = %u", getStayInRoomID(), getPlayer()->getUserUID());
 			return;
 		}
+		LOGFMTD( "inform new state to game svr! uid = %u ",getPlayer()->getUserUID() );
 	});
 }
 
@@ -211,5 +212,6 @@ void CPlayerGameData::informNetState(uint8_t nStateFlag)
 			LOGFMTE("inform player net stae ,can not find room id = %u , uid = %u", getStayInRoomID(), getPlayer()->getUserUID());
 			return;
 		}
+		LOGFMTD("inform new state to game svr! uid = %u new", getPlayer()->getUserUID());
 	});
 }
