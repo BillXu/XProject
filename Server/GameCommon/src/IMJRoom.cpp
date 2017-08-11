@@ -12,6 +12,7 @@
 bool IMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	GameRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	m_pFanxingChecker = nullptr;
 	setBankIdx(-1);
 	return true;
 }
@@ -546,6 +547,7 @@ void IMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard)
 		LOGFMTE("why this player is null idx = %u , can not chu", nIdx);
 		return;
 	}
+	pPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
 
 	// send msg ;
 	Json::Value msg;

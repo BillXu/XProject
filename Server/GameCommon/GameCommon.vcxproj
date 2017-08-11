@@ -92,7 +92,15 @@
     <ClCompile Include="src\IPrivateRoom.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Fanxing7Dui.h" />
+    <ClInclude Include="src\FanxingChecker.h" />
+    <ClInclude Include="src\FanxingDuiDuiHu.h" />
+    <ClInclude Include="src\FanxingQingYiSe.h" />
+    <ClInclude Include="src\FanxingQuanQiuDuDiao.h" />
+    <ClInclude Include="src\FanxingShuang7Dui.h" />
+    <ClInclude Include="src\FanxingTianHu.h" />
     <ClInclude Include="src\GameRoom.h" />
+    <ClInclude Include="src\IFanxing.h" />
     <ClInclude Include="src\IGamePlayer.h" />
     <ClInclude Include="src\IGameRecorder.h" />
     <ClInclude Include="src\IGameRoom.h" />

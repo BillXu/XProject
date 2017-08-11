@@ -24,6 +24,9 @@
     <Filter Include="src\MJBase\state">
       <UniqueIdentifier>{00b87f85-d391-4d91-8637-18e8b26da43f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\MJBase\Fanxing">
+      <UniqueIdentifier>{00b8a0f1-e6ee-4242-9eb6-8f54c90c516d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -132,6 +135,30 @@
     </ClInclude>
     <ClInclude Include="src\IPrivateRoom.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IFanxing.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingDuiDuiHu.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingQingYiSe.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingQuanQiuDuDiao.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Fanxing7Dui.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingTianHu.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingShuang7Dui.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingChecker.h">
+      <Filter>src\MJBase\Fanxing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

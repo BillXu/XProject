@@ -143,35 +143,21 @@ enum eFanxingType
 	eFanxing_DuiDuiHu, //  对对胡
 
 	eFanxing_QingYiSe, // 清一色
-	eFanxing_DaiYaoJiu, //  带幺九
 	eFanxing_QiDui, //  七对
-	eFanxing_JinGouDiao, //  金钩钓
-
-	eFanxing_QingDuiDuiHu, // 清对对胡
-
-	eFanxing_QingDui, //  清七对
-	eFanxing_LongQiDui, //  龙七对
-	eFanxing_QingDaiYaoJiu, //  清 带幺九
-	eFanxing_JiangJinGouDiao, // 将金钩钓
-	eFanxing_QingJinGouDiao, // 清金钩钓
-
-	eFanxing_QingLongQiDui, //  清龙七对
-	eFanxing_ShiBaLuoHan, //  十八罗汉
+	eFanxing_QuanQiuDuDiao, // 全球独钓
+	eFanxing_TianHu, //天胡
+	eFanxing_ShuangQiDui, // 双七对
 
 	eFanxing_MengQing, // 门清
-	eFanxing_ShuangQiDui, // 双七对
-	eFanxing_QuanQiuDuDiao, // 全球独钓
+	
 	eFanxing_YaJue, // 压绝 
 	eFanxing_HunYiSe, // 混一色
 	eFanxing_WuHuaGuo, // 无花果
-	eFanxing_TianHu , //天胡
 	eFanxing_DiHu,//地胡
 
 	eFanxing_HaiDiLaoYue, // 海底捞月
 	eFanxing_DaMenQing, // 大门清
 	eFanxing_XiaoMenQing, // 小门清
-	eFanxing_HaoHuaQiDui, // 豪华七对
-	eFanxing_DaDiaoChe, // 大吊车
 
 	eFanxing_Max, // 没有胡
 };

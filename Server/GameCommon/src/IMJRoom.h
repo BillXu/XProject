@@ -2,6 +2,7 @@
 #include "GameRoom.h"
 class IMJPlayer;
 class IPoker;
+class FanxingChecker;
 #define MAX_SEAT_CNT 4 
 class IMJRoom
 	:public GameRoom
@@ -44,4 +45,5 @@ public:
 	virtual bool isHaveLouPeng() { return false; }
 protected:
 	uint8_t m_nBankerIdx;
+	FanxingChecker* m_pFanxingChecker;
 };
