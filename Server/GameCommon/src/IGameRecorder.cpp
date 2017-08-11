@@ -165,7 +165,7 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	char pBuffer[512] = { 0 };
 	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roomrecorder ( sieralNum,roomID,createUID,time,roomType,opts,roundResults ) values (%u,%u,%u,now(),'%u',", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nRoomType );
 	std::ostringstream ss;
-	ss << pBuffer << strOpts << "," << strRounds << " ) ;";
+	ss << pBuffer << "'" << strOpts << "','" << strRounds << "' ) ;";
 	jssql["sql"] = ss.str();
 	pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB,getSieralNum(), eAsync_DB_Add, jssql );
 

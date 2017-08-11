@@ -23,12 +23,28 @@ public:
 		if (MSG_PLAYER_SET_READY == nMsgType)
 		{
 			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
-			if (pPlayer == nullptr || (pPlayer->haveState(eRoomPeer_WaitNextGame) == false))
+			Json::Value jsRet;
+			if (pPlayer == nullptr )
 			{
+				jsRet["ret"] = 1;
+				getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 				LOGFMTE("you are not in this room how to set ready ? session id = %u", nSessionID);
 				return true;
 			}
+			
+			if ( pPlayer->haveState(eRoomPeer_WaitNextGame) == false )
+			{
+				jsRet["ret"] = 2;
+				jsRet["curState"] = pPlayer->getState();
+				getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				LOGFMTE( "player state error uid = %u , state = %u",pPlayer->getUserUID(),pPlayer->getState() );
+				return true;
+			}
+
 			((NNRoom*)getRoom())->onPlayerReady(pPlayer->getIdx());
+			jsRet["ret"] = 0;
+			getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+
 			if (getRoom()->canStartGame())
 			{
 				getRoom()->goToState(eRoomState_StartGame);

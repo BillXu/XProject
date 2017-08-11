@@ -21,6 +21,7 @@ public:
 	void setNewSessionID(uint32_t nNewSessionID)
 	{
 		m_nSessionID = nNewSessionID;
+		m_isOnline = true;
 	}
 
 	uint32_t getUserUID()
@@ -71,7 +72,11 @@ public:
 	virtual void onGameWillStart(){ m_nCurOffset = 0; };
 	virtual void onGameStart()
 	{
-		setState(eRoomPeer_CanAct);
+		if ( haveState(eRoomPeer_Ready))
+		{
+			setState(eRoomPeer_CanAct);
+		}
+		
 	};
 	virtual void onGameEnd() {};
 	virtual void onGameDidEnd()

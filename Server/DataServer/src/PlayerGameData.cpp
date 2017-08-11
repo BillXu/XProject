@@ -49,6 +49,7 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		jsResult["uid"] = getPlayer()->getUserUID();
 		jsResult["coin"] = getPlayer()->getBaseData()->getCoin();
 		jsResult["diamond"] = getPlayer()->getBaseData()->getDiamoned();
+		jsResult["stayRoomID"] = getStayInRoomID();
 
 		// do stay in this room ;
 		setStayInRoomID(nRoomID);

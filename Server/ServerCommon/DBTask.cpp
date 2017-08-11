@@ -1,6 +1,7 @@
 #include "DBTask.h"
 #include "DBRequest.h"
 #include "log4z.h"
+#include <thread>
 #define  MYSQL_PING_TIME (3600*8 + 30)
 CDBTask::CDBTask( uint32_t nTaskID,const char* pIP,uint16 pPort , const char* pUserName,const char* pPassword, const char* pDBName ) 
 	:ITask(nTaskID),m_pResult(new stDBResult() ),m_pMySql(nullptr),m_tNextMysqlPingTime(0)
@@ -26,14 +27,14 @@ bool CDBTask::setupMysqlConnection()
 {
 	if ( m_pMySql )
 	{
-		printf("already have my sql object \n") ;
+		LOGFMTE("already have my sql object \n") ;
 		return true;
 	}
 
 	m_pMySql = mysql_init(NULL);
 	if (m_pMySql == nullptr)
 	{
-		printf("why my sql is null can not set up ");
+		LOGFMTE("why my sql is null can not set up ");
 		return false;
 	}
 
@@ -49,7 +50,7 @@ bool CDBTask::setupMysqlConnection()
 
 	if (!mysql_set_character_set(m_pMySql, "utf8mb4"))
 	{
-		printf("New client character set: %s\n",
+		LOGFMTI("New client character set: %s\n",
 			mysql_character_set_name(m_pMySql));
 	}
 	else
@@ -59,9 +60,9 @@ bool CDBTask::setupMysqlConnection()
 	}
 
 	uint32_t nVer = mysql_get_client_version();
-	printf("mysql client ver : %u \n",nVer ) ;
+	LOGFMTI("mysql client ver : %u \n",nVer ) ;
 	nVer = mysql_get_server_version(m_pMySql);
-	printf("mysql server ver : %u \n",nVer ) ;
+	LOGFMTI("mysql server ver : %u \n",nVer ) ;
 
 	MY_CHARSET_INFO tep ;
 	mysql_get_character_set_info(m_pMySql,&tep);    
@@ -76,6 +77,18 @@ uint8_t CDBTask::performTask()
 	if ( m_pMySql == nullptr )
 	{
 		auto ret = setupMysqlConnection();
+		uint8_t nTryTimes = 0;
+		while (m_pMySql == nullptr && false == ret)
+		{
+			ret = setupMysqlConnection();
+			++nTryTimes;
+			if (nTryTimes > 20)
+			{
+				LOGFMTE( "try 20 times still can not work well" );
+				break;
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
 		if ( ret == false )
 		{
 			LOGFMTE("connect data base failed , can not do more task" );

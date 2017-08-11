@@ -159,7 +159,9 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 					break;
 				}
 
-				if (pRoom->isRoomFull())
+				auto nStatyRoomID = retContent["stayRoomID"].asUInt();
+				bool isAlreadyInThisRoom = nStatyRoomID == nRoomID;
+				if ( isAlreadyInThisRoom == false && pRoom->isRoomFull())
 				{
 					nRet = 3;
 					break;
@@ -172,7 +174,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 				tInfo.nChip = retContent["coin"].asUInt();
 
 				nRet = pRoom->checkPlayerCanEnter(&tInfo);
-				if ( nRet )
+				if ( isAlreadyInThisRoom == false &&  nRet )
 				{
 					break;
 				}

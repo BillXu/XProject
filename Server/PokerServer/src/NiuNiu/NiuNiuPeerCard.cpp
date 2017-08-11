@@ -123,12 +123,12 @@ CNiuNiuPeerCard::NiuNiuType CNiuNiuPeerCard::getType()
 void CNiuNiuPeerCard::toJson(Json::Value& js)
 {
 	auto nCnt = getHoldCardCnt();
-	while ( nCnt-- )
+	for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
 	{
-		auto nCard = getCardByIdx(nCnt);
-		if ( nCard == 0 )
+		auto nCard = getCardByIdx(nIdx);
+		if (nCard == 0)
 		{
-			LOGFMTE("error invalid card idx = %u ",nCnt);
+			LOGFMTE("error invalid card idx = %u ", nIdx);
 			break;
 		}
 		js[js.size()] = nCard;
@@ -220,7 +220,7 @@ bool CNiuNiuPeerCard::checkFiveSmall()
 		nTotalPoint += nCard.GetCardFaceNum() ;
 	}
 
-	return nTotalPoint <= 10 ;
+	return nTotalPoint < 10 ;
 }
 
 

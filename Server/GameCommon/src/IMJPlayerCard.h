@@ -18,16 +18,16 @@ public:
 	virtual bool canAnGangWithCard(uint8_t nCard) = 0;
 	virtual bool canBuGangWithCard(uint8_t nCard) = 0;
 	virtual bool canPengWithCard(uint8_t nCard) = 0;
-	virtual bool canEatCard(uint8_t nCard, uint8_t& nWithA, uint8_t& withB ) = 0 ;
+	virtual bool canEatCard(uint8_t nCard) = 0 ;
 	virtual bool canHuWitCard( uint8_t nCard ) = 0;
-	virtual bool isTingPai() = 0 ;
+	virtual bool isTingPai( uint8_t& nTingCardType ) = 0 ;
 	virtual bool getHoldCardThatCanAnGang( VEC_CARD& vGangCards ) = 0 ;
 	virtual bool getHoldCardThatCanBuGang(VEC_CARD& vGangCards) = 0;
 	virtual bool isHoldCardCanHu() = 0 ;
 
 	virtual void onMoCard(uint8_t nMoCard) = 0;
-	virtual bool onPeng( uint8_t nCard ) = 0 ;
-	virtual bool onMingGang(uint8_t nCard, uint8_t nGangGetCard ) = 0;
+	virtual bool onPeng( uint8_t nCard, uint16_t nInvokerIdx ) = 0 ;
+	virtual bool onDirectGang(uint8_t nCard, uint8_t nGangGetCard, uint16_t nInvokerIdx ) = 0;
 	virtual bool onAnGang(uint8_t nCard, uint8_t nGangGetCard ) = 0;
 	virtual bool onBuGang(uint8_t nCard, uint8_t nGangGetCard ) = 0;
 	virtual bool onEat(uint8_t nCard, uint8_t nWithA, uint8_t withB ) = 0;
@@ -42,8 +42,4 @@ public:
 	virtual uint32_t getNewestFetchedCard() = 0 ;
 
 	virtual void addLouPengedCard(uint8_t nLouPengedCard) = 0;
-
-	virtual void signFlag(uint32_t nFlag) = 0;
-	virtual bool isHaveFlag(uint32_t nFlag) = 0;
-	virtual void clearFlag(uint32_t nFlag) = 0;
 };

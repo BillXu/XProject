@@ -43,6 +43,26 @@ void IMJPlayer::onGameEnd()
 	//clearDecareBuGangFlag();
 }
 
+void IMJPlayer::signFlag(uint32_t nFlag)
+{
+	m_nFlag = m_nFlag | nFlag;
+}
+
+void IMJPlayer::clearFlag(uint32_t nFlag)
+{
+	m_nFlag = m_nFlag & (~nFlag);
+}
+
+bool IMJPlayer::haveFlag(uint32_t nFlag)
+{
+	return nFlag == (m_nFlag & nFlag);
+}
+
+void IMJPlayer::zeroFlag()
+{
+	m_nFlag = 0;
+}
+
 uint8_t IMJPlayer::getDianPaoCnt()
 {
 	return m_nDianPaoCnt;

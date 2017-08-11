@@ -100,14 +100,6 @@ bool IMJRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPo
 		getPoker()->pushCardToFron(prealMsg["card"].asUInt());
 		return true ;
 	}
-
-	if ( MSG_REQUEST_ROOM_INFO == nMsgType)
-	{
-		LOGFMTD("reback room state and info msg to session id =%u", nSessionID);
-		sendRoomInfo(nSessionID);
-		return true;
-	}
- 
 	return GameRoom::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
 }
 
@@ -141,7 +133,6 @@ void IMJRoom::onStartGame()
 	GameRoom::onStartGame();
 	// distribute card 
 	auto pPoker = getPoker();
-	pPoker->shuffle();
 	for (auto& pPlayer : m_vPlayers )
 	{
 		if (!pPlayer)
@@ -361,7 +352,7 @@ void IMJRoom::onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)
 		return;
 	}
 
-	if (pPlayer->getPlayerCard()->onPeng(nCard) == false)
+	if (pPlayer->getPlayerCard()->onPeng(nCard, nInvokeIdx ) == false)
 	{
 		LOGFMTE( "nidx = %u peng card = %u error",nIdx,nCard );
 	}
@@ -431,7 +422,7 @@ void IMJRoom::onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)
 	pPlayer->addMingGangCnt();
 
 	auto nGangGetCard = getPoker()->distributeOneCard();
-	if (pPlayer->getPlayerCard()->onMingGang(nCard, nGangGetCard) == false)
+	if (pPlayer->getPlayerCard()->onDirectGang(nCard, nGangGetCard,nInvokeIdx ) == false)
 	{
 		LOGFMTE("nidx = %u ming gang card = %u error,", nIdx, nCard );
 	}
@@ -601,8 +592,7 @@ bool IMJRoom::isAnyPlayerPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard)
 
 		if (ref->getIdx() == (nInvokeIdx + 1) % getSeatCnt())
 		{
-			uint8_t a = 0, b = 0;
-			if (pMJCard->canEatCard(nCard, a, b))
+			if (pMJCard->canEatCard(nCard))
 			{
 				return true;
 			}
@@ -650,9 +640,8 @@ void IMJRoom::onAskForPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, std::v
 
 		if (ref->getIdx() == (nInvokeIdx + 1) % getSeatCnt())
 		{
-			uint8_t a = 0, b = 0;
 			isNeedWaitEat = false;
-			if (pMJCard->canEatCard(nCard, a, b))
+			if (pMJCard->canEatCard(nCard))
 			{
 				isNeedWaitEat = true;
 				jsActs[jsActs.size()] = eMJAct_Chi;
@@ -746,9 +735,13 @@ void IMJRoom::onAskForRobotGang(uint8_t nInvokeIdx, uint8_t nCard, std::vector<u
 			jsFrameArg[jsFrameArg.size()] = ref->getIdx();
 		}
 
-		if (jsActs.size() > 0)
+		if ( jsActs.size() > 0 )
 		{
 			jsActs[jsActs.size()] = eMJAct_Pass;
+		}
+		else
+		{
+			continue;
 		}
 
 		jsMsg["acts"] = jsActs;

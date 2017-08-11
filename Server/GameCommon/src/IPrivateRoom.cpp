@@ -23,13 +23,13 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 		return false;
 	}
 	LOGFMTD("create 1 private room");
-	m_pRoom->setDelegate(this);
 	auto bRet = m_pRoom->init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
 	if (!bRet)
 	{
 		LOGFMTE("init private room error ");
 		return false;
 	}
+	m_pRoom->setDelegate(this);
 
 	// init member 
 	m_pRoomMgr = pRoomMgr;
@@ -83,10 +83,10 @@ bool IPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 
 uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-	if ( isRoomStarted() )
-	{
-		return false;
-	}
+	//if ( isRoomStarted() )
+	//{
+	//	return 7;
+	//}
 
 	if ( m_isAA && m_isForFree == false && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, m_isAA))
 	{
@@ -149,11 +149,18 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 {
 	switch (nMsgType)
 	{
+	case MSG_REQUEST_ROOM_INFO:
+	{
+		LOGFMTD("reback room state and info msg to session id =%u", nSessionID);
+		sendRoomInfo(nSessionID);
+	}
+	break;
 	case MSG_PLAYER_OPEN_ROOM:
 	{
 		m_isOpen = true;
 		Json::Value js;
 		sendRoomMsg(js, MSG_ROOM_DO_OPEN);
+		LOGFMTI(" room id = %u do set open",getRoomID() );
 	}
 	break;
 	case MSG_PLAYER_STAND_UP:
@@ -278,7 +285,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	default:
 		if (m_pRoom && m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID) )
 		{
-			 
+			m_tAutoDismissTimer.clearTime(); // recieved client msg , auto reset timer ticket count , count from 0 again ;
 		}
 		else
 		{
@@ -289,7 +296,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			}
 
 			prealMsg["roomState"] = getCoreRoom()->getCurState()->getStateID();
-			LOGFMTE( "room id = %u do not process msg = %u , room state = %u idx = %u",nMsgType,getCoreRoom()->getCurState()->getStateID(), getCoreRoom()->getCurState()->getCurIdx() );
+			LOGFMTE( "room id = %u do not process msg = %u , room state = %u idx = %u",getRoomID(),nMsgType,getCoreRoom()->getCurState()->getStateID(), getCoreRoom()->getCurState()->getCurIdx() );
 			return false;
 		}
 	}
@@ -425,7 +432,7 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 				auto pPlayer = m_pRoom->getPlayerByIdx(nIdx);
 				if (!pPlayer)
 				{
-					LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
+					//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
 					continue;
 				}
 

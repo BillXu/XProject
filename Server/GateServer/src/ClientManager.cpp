@@ -270,12 +270,22 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 	case MSG_PLAYER_REGISTER:
 	{
 		stGateClient* pDstClient = getGateClientByNetWorkID(nNetID);
+		if ( !pDstClient )
+		{
+			LOGFMTE( "MSG_PLAYER_REGISTER gate client is null id = %u",nNetID );
+			return false;
+		}
 		onRegister(jsGateMsg, pDstClient);
 	}
 	break;
 	case MSG_PLAYER_LOGIN:
 	{
 		stGateClient* pDstClient = getGateClientByNetWorkID(nNetID);
+		if (!pDstClient)
+		{
+			LOGFMTE("MSG_PLAYER_LOGIN gate client is null id = %u", nNetID);
+			return false ;
+		}
 		onLogin(jsGateMsg, pDstClient);
 	}
 	break;

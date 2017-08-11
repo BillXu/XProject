@@ -238,7 +238,8 @@ void NNRoom::onPlayerReady(uint16_t nIdx)
 	// msg ;
 	Json::Value jsMsg;
 	jsMsg["idx"] = nIdx;
-	sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_READY);
+	sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_READY );
+	LOGFMTD( "do send player set ready idx = %u room id = %u",nIdx,getRoomID() )
 }
 
 uint8_t NNRoom::doProduceNewBanker()
@@ -247,6 +248,21 @@ uint8_t NNRoom::doProduceNewBanker()
 	{
 	case eDecideBank_NiuNiu:
 	{
+		if ((uint16_t)-1 == m_nBankerIdx)
+		{
+			m_nBankerIdx = rand() % getSeatCnt();
+			for (uint8_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
+			{
+				auto nReal = nIdx % getSeatCnt();
+				auto p = getPlayerByIdx(nReal);
+				if (p)
+				{
+					m_nBankerIdx = nReal;
+					break;
+				}
+			}
+		}
+
 		if (m_nLastNiuNiuIdx != (uint16_t)-1 )
 		{
 			m_nBankerIdx = m_nLastNiuNiuIdx;
@@ -255,6 +271,15 @@ uint8_t NNRoom::doProduceNewBanker()
 	break;
 	case eDecideBank_OneByOne:
 	{
+		if ((uint16_t)-1 == m_nBankerIdx)
+		{
+			m_nBankerIdx = rand() % getSeatCnt();
+		}
+		else
+		{
+			++m_nBankerIdx ;
+		}
+		
 		for ( uint8_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx )
 		{
 			auto nReal = nIdx % getSeatCnt();

@@ -234,7 +234,7 @@ enum eRoomPeerState
 	eRoomPeer_SitDown = 1,
 	eRoomPeer_StandUp = 1 << 1,
 	eRoomPeer_Ready =  (1<<12)|eRoomPeer_SitDown ,
-	eRoomPeer_StayThisRound = ((1 << 2)|eRoomPeer_SitDown)| eRoomPeer_Ready ,
+	eRoomPeer_StayThisRound = ((1 << 2)|eRoomPeer_SitDown) ,
 	eRoomPeer_WaitCaculate = ((1 << 7)|eRoomPeer_StayThisRound ),
 	eRoomPeer_AllIn = ((1 << 3)|eRoomPeer_WaitCaculate) ,
 	eRoomPeer_GiveUp = ((1 << 4)|eRoomPeer_StayThisRound),

@@ -71,6 +71,8 @@ enum eMsgType
 
 	MSG_ASYNC_REQUEST_RESULT,  // temp put here
 	// in room msg ;
+	MSG_REQUEST_ROOM_INFO,
+	// client : null ;
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 , gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 2 , opts : {  .... }  }
 	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error ;
@@ -108,8 +110,28 @@ enum eMsgType
 	MSG_VIP_ROOM_INFO_EXT, // VIP 房间的额外信息；
 	// svr : { leftCircle : 2 ,isOpen : 1 , isWaitingDismiss : 0 ,applyDismissUID : 234, agreeIdxs : [2,3,1] ，leftWaitTime ： 234 }
 
+	MSG_APPLY_DISMISS_VIP_ROOM, // 申请解散vip 房间
+	// client : { dstRoomID : 234 } 
+
+	MSG_ROOM_APPLY_DISMISS_VIP_ROOM, //房间里有人申请解散vip 房间
+	// svr : { applyerIdx : 2 }
+	// applyerIdx : 申请者的idx 
+
+	MSG_REPLY_DISSMISS_VIP_ROOM_APPLY,  // 答复申请解散的请求
+	// client { dstRoomID : 23 , reply : 0 }
+	// reply ： 1 表示同意， 0 表示拒绝。
+
+	MSG_ROOM_REPLY_DISSMISS_VIP_ROOM_APPLY, // 收到有人回复解散房间
+	// svr { idx : 23 , reply : 0 }
+	// reply ： 1 表示同意， 0 表示拒绝。
+
+	MSG_VIP_ROOM_DO_CLOSED, // vip 房间结束通知
+	// svr : { isDismiss : 0 , roomID : 2345 , eType : eroomType }  
+	// isDismiss : 是否是解散结束的房间。1 是解散房间，0 是自然结束。
+
 	MSG_PLAYER_SET_READY = 600,   	// player do ready
 	// client : { dstRoomID : 2345 } ;
+	// svr : { ret : 1 , curState : 23 } // 1 you are not in room , 2 you are not state waitNextGame, tell curState ;
 	MSG_ROOM_PLAYER_READY,  // some player did ready
 	// svr : { idx : 2 }
 
@@ -146,515 +168,9 @@ enum eMsgType
 	// dismissID is 1 , means system dismiss room ;
 	// dismissID biger than 1 , means player dismiss room ;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// new real new above 
-	MSG_VERIFY_LOGIN, // verify login server ;
-	MSG_VERIFY_VERIYF, // verify buy transaction ok ;
-	MSG_VERIFY_GATE, // verify that is gate server 
-	MSG_VERIFY_DB,  // verify that is DBserver ;
-	MSG_VERIFY_APNS, // apple push notification ;
-	MSG_VERIFY_MJ = MSG_VERIFY_APNS, // apple push notification ;
-	MSG_VERIFY_LOG, // LOG sever 
-	MSG_VERIFY_TAXAS, // TAXAS POKER SERVER 
-	MSG_VERIFY_DATA, // VIERIFY DATA SERVER ;
-	MSG_VERIFY_NIU_NIU,
-	MSG_VERIFY_END,
-	MSG_CONTROL_FLAG,
-	MSG_REQUEST_CLIENT_IP,
-	MSG_VERIFY_GOLDEN,
+	MSG_POKER_GAME_MSG_MAX = 1000,
 	
-	MSG_CLIENT_NET_STATE,
-	
-	MSG_DISCONNECT_SERVER, 
-	
-	MSG_CONNECT_NEW_CLIENT,
-	MSG_VERIFY_TANSACTION,
-	MSG_APNS_INFO,   // send push notification ;
-	MSG_PUSH_APNS_TOKEN,  // used for apns ; APPLE remote push notification ;
-	MSG_SAVE_LOG,
-	MSG_LOGIN_INFORM_GATE_SAVE_LOG,
-	// msg title used between server and client ;
-	
-	MSG_SAVE_PLAYER_MONEY, // send to DB ;
-	MSG_SAVE_COMMON_LOGIC_DATA,
-	MSG_SAVE_DB_LOG, // save log inter log db ;
-	
-	MSG_GATESERVER_INFO,
-	// login 
-	
-	MSG_REQUEST_CREATE_PLAYER_DATA,  // INFORM DB prepare data for player
-	
-	MSG_PLAYER_BIND_ACCOUNT, //  a quick enter player need to bind a real account and password ;
-	MSG_MODIFY_PASSWORD,
-	MSG_CROSS_SERVER_REQUEST,
-	MSG_CROSS_SERVER_REQUEST_RET,
-	MSG_READ_PLAYER_TAXAS_DATA,
-	MSG_SAVE_CREATE_TAXAS_ROOM_INFO_unUse,
-	MSG_SAVE_UPDATE_TAXAS_ROOM_INFO_unUse,
-	MSG_READ_TAXAS_ROOM_INFO_unUse,
-	MSG_SAVE_TAXAS_ROOM_PLAYER,
-	MSG_SAVE_REMOVE_TAXAS_ROOM_PLAYERS,
-	MSG_READ_TAXAS_ROOM_PLAYERS,
-	MSG_REQUEST_MY_OWN_ROOMS,
-	MSG_REQUEST_MY_FOLLOW_ROOMS,
-	//MSG_REQUEST_MY_OWN_ROOM_DETAIL,
-	MSG_REQUEST_ROOM_REWARD_INFO,
-	MSG_SELECT_DB_PLAYER_DATA,
-	MSG_PLAYER_BASE_DATA_TAXAS,
-	MSG_ON_PLAYER_BIND_ACCOUNT,
-	// modify name and sigure
-	MSG_PLAYER_MODIFY_NAME,
-	MSG_PLAYER_MODIFY_SIGURE,
-	MSG_PLAYER_MODIFY_PHOTO,
-	MSG_PLAYER_UPDATE_MONEY,  // USE WHEN OTHER MAIL A GITF  ;
-	MSG_PLAYER_MODIFY_SEX,
-	MSG_RESET_PASSWORD,
-	MSG_SAVE_CREATE_ROOM_INFO,
-	MSG_SAVE_UPDATE_ROOM_INFO,
-	MSG_READ_ROOM_INFO,
-	MSG_PLAYER_BASE_DATA_NIUNIU,
-	MSG_READ_PLAYER_GAME_DATA,
-	MSG_SAVE_PLAYER_GAME_DATA,
-	MSG_DB_CHECK_INVITER,
-	MSG_PLAYER_CHECK_INVITER,
-	MSG_DLG_NOTICE,
-	MSG_REQUEST_EXCHANGE_LIST,
-	MSG_REQUEST_EXCHANGE_DETAIL,
-	MSG_PLAYER_EXCHANGE,
-	MSG_GET_VIP_CARD_GIFT,
-	MSG_READ_NOTICE_PLAYER,
-	MSG_PUSH_NOTICE,
-	MSG_SAVE_NOTICE_PLAYER,
-	MSG_READ_EXCHANGE,
-	MSG_SAVE_EXCHANGE,
-	MSG_DB_PLAYER_MODIFY_NAME,
-	
-	MSG_READ_PLAYER_BASE_DATA,
-	MSG_PLAYER_SAVE_PLAYER_INFO,
-	// friend module
-	MSG_READ_FRIEND_LIST = 300,  //;
-	MSG_SAVE_FRIEND_LIST,  // send to db 
-	MSG_REQUEST_FRIEND_LIST,
-	MSG_PLAYER_ADD_FRIEND,  // want to add other player 
-	MSG_PLAYER_ADD_FRIEND_REPLAY,  // other player replay my request ;
-	MSG_PLAYER_BE_ADDED_FRIEND,   // other player want to add me 
-	MSG_PLAYER_BE_ADDED_FRIEND_REPLY,
-	MSG_PLAYER_REPLAY_BE_ADD_FRIEND,  // I replay to other player who want to add me ;
-	MSG_PLAYER_SERACH_PEERS, // mo hu search , to add other o be firend ;
-	MSG_PLAYER_DELETE_FRIEND, // remove friend ;
-
-	// friend invite ;
-	MSG_PlAYER_INVITED_FRIEND_TO_JOIN_ROOM,  // invite a friend to join
-	MSG_PLAYER_BE_INVITED,   // i were invited by my friend ;
-	MSG_PLAYER_REPLAY_BE_INVITED,   // when i were invited by friend, i make a choice , reply;
-	MSG_PLAYER_RECIEVED_INVITED_REPLAY, // the player I invited ,replayed me ;
-	MSG_REQUEST_ROOM_RANK,
-	MSG_REQUEST_LAST_TERM_ROOM_RANK,
-
-	// msg request math list ;
-	MSG_REQUEST_MATCH_ROOM_LIST,
-	// message id for taxas poker
-
-
-	// new room msg are here ;
-	MSG_PLAYER_ENTER_ROOM,
-	
-	MSG_SVR_ENTER_ROOM,
-	MSG_SVR_DO_LEAVE_ROOM,
-	MSG_SVR_DELAYED_LEAVE_ROOM,
-	MSG_GET_MAX_ROOM_ID,
-	MSG_PRIVATE_ROOM_PLAYER_REBUY,
-	MSG_SYNC_PRIVATE_ROOM_RESULT,
-	MSG_REQUEST_PRIVATE_ROOM_RECORDER,
-	MSG_PLAYER_REQUEST_GAME_RECORDER,
-	MSG_SAVE_GAME_RESULT,
-	MSG_READ_GAME_RESULT,
-	MSG_SAVE_PLAYER_GAME_RECORDER,
-	MSG_READ_PLAYER_GAME_RECORDER,
-	MSG_TP_BEGIN = 450,
-	MSG_TP_CREATE_ROOM,
-
-	MSG_TP_ROOM_OWNER_BEGIN ,
-	MSG_TP_MODIFY_ROOM_NAME,
-	MSG_TP_MODIFY_ROOM_DESC,
-	MSG_ADD_RENT_TIME,
-	MSG_TP_ADD_RENT_TIME = MSG_ADD_RENT_TIME,
-	MSG_TP_MODIFY_ROOM_INFORM,
-	MSG_CACULATE_ROOM_PROFILE,
-	MSG_TP_CACULATE_ROOM_PROFILE = MSG_CACULATE_ROOM_PROFILE,
-	MSG_TP_REMIND_NEW_ROOM_INFORM,
-	MSG_REMIND_NEW_ROOM_INFORM = MSG_TP_REMIND_NEW_ROOM_INFORM,
-	MSG_TP_REQUEST_ROOM_LIST,
-	MSG_REQUEST_ROOM_LIST = MSG_TP_REQUEST_ROOM_LIST,
-	MSG_TP_ROOM_OWNER_END,
-
-	MSG_TP_QUICK_ENTER,
-	MSG_TP_REQUEST_PLAYER_DATA,
-	unUsed_MSG_TP_ROOM_BASE_INFO,
-	MSG_TP_ROOM_VICE_POOL,
-	MSG_TP_ROOM_PLAYER_DATA,
-
-	MSG_TP_WITHDRAWING_MONEY,
-
-	MSG_TP_SYNC_PLAYER_DATA,
-	// in room msg 
-	MSG_TP_ENTER_STATE,
-	MSG_TP_START_ROUND,
-	MSG_TP_PRIVATE_CARD,
-	MSG_TP_WAIT_PLAYER_ACT,
-	MSG_TP_PLAYER_ACT,
-	MSG_TP_ROOM_ACT,
-	MSG_TP_ONE_BET_ROUND_RESULT,
-	MSG_TP_PUBLIC_CARD,
-	MSG_TP_GAME_RESULT,
-	MSG_TP_UPDATE_PLAYER_STATE,
-
-	MSG_TP_READ_MY_OWN_ROOMS,
-	MSG_READ_MY_OWN_ROOMS = MSG_TP_READ_MY_OWN_ROOMS,
-	MSG_TP_CHANGE_ROOM,
-	MSG_REQUEST_ROOM_INFO,
-	MSG_TP_END = 700,
-	// mail module
-	MSG_PLAYER_SAVE_MAIL ,
-	MSG_PLAYER_SET_MAIL_STATE,
-	MSG_PLAYER_READ_MAIL_LIST,
-	MSG_PLAYER_REQUEST_MAIL_LIST,
-	MSG_PLAYER_NEW_MAIL_ARRIVED,
-	MSG_PLAYER_INFORM_NEW_MAIL,
-	MSG_PLAYER_LOOK_MAIL,
-	MSG_GAME_SERVER_GET_MAX_MAIL_UID,
-	MSG_PLAYER_PROCESSED_MAIL,
-	MSG_SAVE_PLAYER_ADVICE,
-	MSG_PLAYER_ADVICE,
-	MSG_PLAYER_MAIL_MODULE = 750,
-	MSG_PLAYER_REQUEST_CHARITY_STATE,
-	MSG_PLAYER_GET_CHARITY,
-	MSG_BUY_SHOP_ITEM,
-
-	MSG_SAVE_ROOM_PLAYER,
-	MSG_READ_ROOM_PLAYER,
-	MSG_REMOVE_ROOM_PLAYER,
-
-	MSG_SHOP_BUY_ITEM_ORDER,
-	MSG_VERIFY_ITEM_ORDER,
-	MSG_SAVE_PRIVATE_ROOM_PLAYER,
-	MSG_READ_PRIVATE_ROOM_PLAYER,
-	MSG_ROOM_ENTER_NEW_STATE = 800,
-	// niuniu room 
-	MSG_NN_PLAYER_CACULATE_CARD_OK,
-	MSG_NN_CACULATE_CARD_OK,
-	MSG_NN_ROOM_PLAYERS,
-	unUsd_MSG_NN_REQUEST_ROOM_INFO,
-	MSG_NN_DISTRIBUTE_4_CARD,
-	MSG_NN_PLAYER_TRY_BANKER,
-	MSG_NN_TRY_BANKER,
-	MSG_NN_PRODUCED_BANKER,
-	MSG_NN_RAND_BANKER,
-	MSG_NN_PLAYER_BET,
-	MSG_NN_BET,
-	MSG_NN_DISTRIBUTE_FINAL_CARD,
-	MSG_NN_GAME_RESULT,
-	MSG_NN_CREATE_ROOM,
-	MSG_NN_MODIFY_ROOM_NAME,
-
-	// golden msg 
-	MSG_GOLDEN_WAIT_PLAYER_ACT,
-	MSG_GOLDEN_PLAYER_ACT,
-	MSG_GOLDEN_ROOM_ACT,
-	MSG_GOLDEN_ROOM_DISTRIBUTE,
-	MSG_GOLDEN_PLAYER_PK,
-	MSG_GOLDEN_ROOM_PK,
-	MSG_GOLDEN_ROOM_PLAYERS,
-	// poker circle 
-	MSG_CIRCLE_BEGIN = 1000,
-	MSG_CIRCLE_READ_TOPICS,
-	MSG_CIRCLE_SAVE_ADD_TOPIC,
-	MSG_CIRCLE_SAVE_DELETE_TOPIC,
-	MSG_CIRCLE_PUBLISH_TOPIC,
-	MSG_CIRCLE_DELETE_TOPIC,
-	MSG_CIRCLE_REQUEST_TOPIC_DETAIL,
-	MSG_CIRCLE_REQUEST_TOPIC_LIST,
-
-	MSG_PLAYER_USE_ENCRYPT_NUMBER,
-	MSG_VERIFY_ENCRYPT_NUMBER,
-	// robot special msg 
-	MSG_ADD_MONEY = 1300, 
-	MSG_TELL_PLAYER_TYPE,
-	MSG_TELL_ROBOT_IDLE,
-	MSG_TELL_ROBOT_ENTER_ROOM,
-	MSG_REQ_ROBOT_ENTER_ROOM,
-	MSG_TELL_ROBOT_LEAVE_ROOM,
-	MSG_REQ_CUR_GAME_OFFSET,
-	MSG_REQ_TOTAL_GAME_OFFSET,
-	MSG_ADD_TEMP_HALO,
-	MSG_MODIFY_ROOM_RANK,
-	MSG_ROBOT_GENERATE_ENCRYPT_NUMBER,
-	MSG_SAVE_ENCRYPT_NUMBER,
-
-	// new request zhan ji ;
-	MSG_REQUEST_PRIVATE_ROOM_RECORDER_NEW,
-	MSG_PLAYER_REQUEST_GAME_RECORDER_NEW,
-	// server used 
-	MSG_INFORM_PLAYER_ONLINE_STATE,
-	// msg js content type 
-	MSG_CREATE_CLUB = 1511,  // ID_MSG_PORT_DATA ;
-	// client : { newClubID : 2345 , cityCode : 23 }
-	// svr : { ret : 0 ,newClubID : 234 }
-	// ret : 0 , means ok , 1 means  can not create more clubs ;
-	MSG_DISMISS_CLUB, // ID_MSG_PORT_DATA ;
-	// client : { clubID : 235 }
-	// svr : { ret : 0 }
-	// ret : 0 success , 1 you do not have that club , 2 club have room keep running .
-
-	MSG_REQ_CLUB_ROOM, // ID_MSG_PORT_DATA ;
-	// client : { clubID : 234 }
-	// svr : { ret : 0 , rooms : [21,23,45,23] } 
-	// ret : 0 success , 1 club not exist 
-	MSG_DELETE_ROOM, // ID_MSG_PORT_DATA ;
-	// client : { roomID : 2345 , clubID : 23  }
-	// svr : { ret : 0 }
-	// ret : 0 means success , 1 you are not creator , 2 room is running, try later , 3 club do not have room with that id ;
-	MSG_REQUEST_ROOM_ITEM_DETAIL, //eMsgPort::ID_MSG_PORT_TAXAS , eMsgPort::ID_MSG_PORT_GOLDEN , eMsgPort::ID_MSG_PORT_NIU_NIU  , 
-	// client : { roomID : 0 }
-	// svr : { ret : 0 , name: "fsg" , creatorUID : 235, baseBet : 2, playerCnt : 23, roomID : 235 , roomType : eRoomType , initTime : 20, playedTime : 2345, seatCnt : 6 ,clubID : 0 }
-	// ret : 0 success , 1 can not find room ;
-
-	_MSG_ROOM_INFO,
-	// svr : { sieralNum : 2345 , ownerUID : 234552 , roomID : 2345 , seatCnt : 4 , chatID : 23455 , curState : eRoomState , leftTimeSec : 235 , baseTakeIn : 2345 , selfCoin : 2345, isCtrlTakeIn : 0 ,cardNeed : 23 , game : { ... } } 
-	// goldn :  game : { "betRound" = 23, "bankIdx":3 ,"baseBet" : 20 ,"curBet" : 40 ,"mainPool" : 1000 ,curActIdx : 3, maxRound : 23 }
-	// NiuNiu : game : { "bankIdx":3 ,"baseBet" : 20 , "bankerTimes" : 2, unbankerType : 0  }
-	// taxas :   game : { isInsurd : 0 ,"litBlind":20,"maxTakIn":300, "bankIdx":3 ,"litBlindIdx":2,"bigBlindIdx" : 0,"curActIdx" : 3,"curPool":4000,"mostBet":200,"pubCards":[0,1] };
-
-	MSG_SET_GAME_STATE, //eMsgPort::ID_MSG_PORT_TAXAS , eMsgPort::ID_MSG_PORT_GOLDEN , eMsgPort::ID_MSG_PORT_NIU_NIU  , 
-	// client : { roomID : 0 , state : 2 , uid : 2345 }  
-	// state : 2 start game , 3 pause game 
-	// svr : { ret : 0 }
-	// ret : 0 success , 1 can not find room , 2 you are not creator , 3 do not set the same state , 4 , you are not the creator , 5, invalid state value; 
-
-	MSG_ROOM_GAME_STATE_CHANGED,
-	// svr : { state : 2 }
-	// state : 2 start game , 3 pause game 
-
-	MSG_APPLY_TAKE_IN, //eMsgPort::ID_MSG_PORT_TAXAS , eMsgPort::ID_MSG_PORT_GOLDEN , eMsgPort::ID_MSG_PORT_NIU_NIU  , 
-	// client : { roomID : 234 , takeIn : 2345 }
-	// svr : { ret : 0 , isApply : 1 , inRoomCoin : 23455 }
-	// ret : 0 success , 1 can not find room , 2 take in reached limit , 3 coin not enough , 4 already applying , do not do again;
-	// isApply , 0 means direct takeIn , 1 waiting creator check ;
-
-	MSG_REPLY_APPLY_TAKE_IN, //eMsgPort::ID_MSG_PORT_TAXAS , eMsgPort::ID_MSG_PORT_GOLDEN , eMsgPort::ID_MSG_PORT_NIU_NIU  , 
-	// client : { roomID : 2445 , replyToUID : 2345, isAgree : 0 , coin : 2300 }
-	// isAgree : 1 agree, 0 refuse ;
-	// replyUID : the applyer uid ;
-	// svr: { ret : 0 , replyToUID : 2345, isAgree : 0 , coin : 2300 } 
-	// ret : 0 success ; 1 tareget not exsit , 2 target not applying , 3 target coin is not engouh, 4 , unknown error , 100 can not find room 
-
-	MSG_REQUEST_ROOM_AUDIENTS, // audients ;
-	// client : { roomID : 2345 }
-	// svr : { audients : [234, 235 ,2456 ] }  , audients player uid array ;
-
-	MSG_CLUB_ADD_MEMBER,
-	// client : { groupID : 2345 , userAccount : 2345 }  // gotpe user account , not game player user account 
-	// client { ret : 0 , groupID : 2345 , userAccount : 2345 } // ret : 1 can not find groupID ; 2 svr error , 3 reach member cnt limit, 4 already in club;
-
-	MSG_CLUB_DELETE_MEMBER,
-	// client : { groupID : 2345 , userAccount : 2345 }  // gotpe user account , not game player user account 
-	// client { ret : 0 , groupID : 2345 , userAccount : 2345 } // ret : 1 can not find groupID ; 2 not in clib , 3 svr error ;
-
-	MSG_REQ_CLUB_INFO,
-	//client : { groupID : 23455 }
-	// svr: { ret : 0 , groupID : 23455,curCnt : 23 , capacity : 80, level : 0 , deadTime : 2345523 } , ret : 0 success , 1 can not find club ;
-
-	MSG_REQ_RECORMED_CLUB,
-	// client : null
-	// svr { clubIDs : [234, 234 ,23452,2345] } 
-
-	MSG_REQ_LEVEL_UP_CLUB,
-	// client : { clubID : 234, level : 234 } 
-	// svr : { ret : 0 , clubID : 2345 , level : 2345 , deadTime : 23456 }
-	// ret : 0 , success , 1 can not find club , 2 diamond is not enough, 3 invalid argument  , 4 target level invalid;
-
-	MSG_REQ_RESIGN_BANKER, // request leave banker ;
-	// client : null 
-	// svr : { ret : 0 } ;
-	// ret : 0 success , 1 you are not banker now , 2 , current leave banker mode is not manual leave ;
-
-	MSG_REQ_PLAYER_JOINED_CLUBS,  // request player joined clubs 
-	// client : { uid : 2345 }
-	// svr : { uid : 2345 , clubIDs : [2 , 3 ,6 ,3 ]  } 
-
-	MSG_REQ_SELF_CREATE_ROOMS, 
-	// client : { uid : 2345 }
-	// svr : { roomIDs : [234,2345,2345,2345] } 
-
-	MSG_REQ_CLUB_MEMBER,
-	// client : { clubID : 345345, pageIdx : 234 } 
-	// svr : { ret : 0 , clubID : 345345, pageIdx : 234, members : [123,1234,234,2345] }
-	// ret : 0 success , 1 can not find tareget club ;
-
-	MSG_REQ_CITY_CLUB,
-	// client: { cityCode : 2345, pageIdx : 23  }
-	// svr : { cityCode : 234 , pageIdx : 23, clubs : [234,2345,2345] }
-
-	// insurance module 
-
-	MSG_INFORM_BUY_INSURANCE,
-	// svr : { buyerIdx : 2345 , lowLimit : 23456, outs : [2,345,34 ], playerouts : [ {idx : 0 , outs : 23 },{idx : 0 , outs : 23 } ]  }
-
-	MSG_PLAYER_SELECT_INSURED_AMOUNT,
-	// client : { roomID : 33, amount : 23405 }
-	// svr : { ret : 0 }
-	// ret : 0 success , 1 you are not the insurance buyer ;
-
-	MSG_ROOM_SELECT_INSURED_AMOUNT,
-	// svr : { buyerIdx : 2345 , amount : 2345 }
-
-	MSG_CONFIRM_INSURED_AMOUNT,
-	// client : { roomID : 23, amount : 2345 }
-	// svr : { ret : 0 }
-	// ret : 0 success , 1 you are not insurance buyer , 2 amount not proper ;
-
-	MSG_ROOM_FINISHED_BUY_INSURANCE,
-	// svr : { idx : 2, amount : 2345 }
-	// amount = 0 , means give up buy insurance ;
-
-	MSG_INSURANCE_CALCULATE_RESULT,
-	// svr : { idx : 2 , offset : 2345 }  
-
-	MSG_CHECK_REG_ACCOUNT,  // check the register account , if it already exist
-	// client : { account : 18917562006 }
-	// svr : { ret : 0 , account : 18917562006 } 
-	// ret : 0 ok , 1 already exist ;
-
-	MSG_SYNC_TAXAS_ROOM_PLAYER_COIN, 
-	// svr : { players : [ { idx : 234, coin : 2345} , {idx : 234 , coin : 2345 } ] }
-
-	MSG_SKIP_BUY_INSURANCE,
-
-	MSG_CLUB_APPLY_TO_JOIN,
-	// client : { clubID : 2345 , text : 234524 }
-	// svr : { ret : 0 , clubID : 23452 }
-	// ret : 0 ,success , 1 club do not exsit , 2 club is full, 3 you are not login , 4 already in the club;
-
-	MSG_CLUB_REPLY_APPLY_TO_JOIN,
-	// client : { clubID : 2345 , applicantUID : 2345 , isAgree : 0, text : "do not apply again" } 
-	// svr : { ret : 0 , clubID : 2345 ,applicantUID : 2345 }
-	// ret : 0 success , 1 club is full , 2 club is not exist , 3 you are not the owner, 4 already in club;
-
-	MSG_CLUB_CHAT_MESSAGE,   // to data svr 
-	// client : { clubID : 2355, type : 0 } 
-	// type : 0 text message , 1 voice message  , 2 emoji
-
-	MSG_CLUB_UPDATE_NAME , // to data svr 
-	// client : { clubID : 2345 , newName : "hello" }
-
-	MSG_PLAYER_GOLDEN_LOOK, //eMsgPort::ID_MSG_PORT_TAXAS , eMsgPort::ID_MSG_PORT_GOLDEN , eMsgPort::ID_MSG_PORT_NIU_NIU  , 
-	// client : { roomID : 2445  }
-	// svr : { ret : 0 , cards : [2,3,5] }
-	// ret : 0 success , 1 can not do act , 2, not in game ;
-	MSG_GOLDEN_ROOM_LOOK,
-	// svr : { idx : 234 }
-
-	MSG_GOLDEN_ROOM_RESULT_NEW ,
-	// svr : { winnerIdx : 234 , players : [ {idx : 23 ,UID :2, offset : 23 , final : 234, card:[2,3,5 ] } , {idx : 23 , offset : 23 ,UID :2, final : 234, card:[2,3,5 ] } , ..... ] }
-	
-	MSG_REQUEST_PLAYER_IP,  // send to data svr 
-	// client : { reqUID : 23456 }
-	// svr : { reqUID : 23456 , ip : "128.0.0.1" }
-
-	MSG_PLAYER_APPLY_DISMISS_ROOM,
-	// client : { roomID : 2345 }
-	// svr : { ret : 0 } 
-	// ret : 0 success , 1 you not sitdown , 2 , room already dismiss , 3 state error , 4 unknown error ;
-
-	MSG_ROOM_APPLY_DISMISS_ROOM , 
-	// client : { idx : 234 }
-
-	MSG_PLAYER_REPLY_DIMISS_ROOM,
-	// client : { roomID : 234 , isAgree : 0  }
-	// isAgree : 0 disagree , 1 agree ;
-	// svr : { ret : 0 }
-	// ret : 0 , success , 1 you can not do that , 2 unknown error ;
-
-	MSG_ROOM_REPLY_DISMISS_ROOM,
-	// svr : { idx : 23 , isAgree : 0 }
-
-	MSG_DIMISS_ROOM_RESULT,
-	// svr : { isDismiss : 0 }
-	// isDismiss : 0 not dismiss , 1 do dismiss room ;
-
-
-	// mj room msg 麻将房间信息。客户端发给svr的信息，必须包含 dstRoomID 的 key 
-	MSG_CONSUM_VIP_ROOM_CARDS,   // server used 
-	// js : { uid : 235, cardCnt : 2 }
-
-
-
-
-
-	MSG_ROOM_START_GAME,  // 开始游戏的消息
-	// svr : { banker: 2 , dice : 3 , peerCards : [ { cards : [1,3,4,5,64,23,64] },{ cards : [1,3,4,5,64,23,64] },{cards : [1,3,4,5,64,23,64] },{ cards : [1,3,4,5,64,23,64] } ] }
-	// banker 庄家的索引 , dice : 骰子的点数； cards ： 玩家的手牌
-
-	MSG_ROOM_WAIT_CHOSE_EXCHANG,  //  通知玩家选择三张牌 进行交互
-	// svr : null 
-
-	MSG_PLAYER_CHOSED_EXCHANGE,   // 玩家选好要交换的牌
-	// client : { dstRoomID : 2345 ,cards: [ 3, 1,2] }
-	// svr : { ret : 0 }
-	// ret : 0 成功 , 1 你选择的牌里面有错误, 2 选择的牌 张数不对 3 . 你没有参加牌局 , 4 你已经选择了，不要选择两次;
-
-	MSG_ROOM_FINISH_EXCHANGE,  //  所有玩家完成选择,换三张；
-	// svr : { mode : 0 , result : [ { idx = 0 , cards : [ 2, 4 ,5]}, { idx = 1 , cards : [ 2, 4 ,5]},{ idx = 2 , cards : [ 2, 4 ,5]},{ idx = 3 , cards : [ 2, 4 ,5]}  ] }
-	// mode : 换牌模式， 0 顺时针换 , 1 逆时针换, 2 对家换 
-
-	MSG_ROOM_WAIT_DECIDE_QUE, // 进入等待玩家定缺的状态
-	// svr : null ;
-
-	MSG_PLAYER_DECIDE_QUE,  // 玩家定缺
-	// client : { dstRoomID : 2345 , type : 2 }
-	// type: 定缺的类型，1,万 2, 筒 3, 条
-
-
-	MSG_ROOM_FINISH_DECIDE_QUE,  // 玩家完成 定缺
-	// svr : { ret : [ {type : 0, idx : 2 }, {type : 0, idx : 1 } , {type : 0, idx : 2 }, {type : 0, idx : 3 }] }
-	// 数组对应玩家 定的缺门类型。
-
+	// mj specail msg ;
 	MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD,  // 有人出了一张牌，等待需要这张牌的玩家 操作，可以 碰，杠，胡
 	// svr : { invokerIdx : 2,cardNum : 32 , acts : [type0, type 1 , ..] }  ;
 	// 这个消息不会广播，只会发给需要这张牌的玩家，cardNum 待需要的牌，type 类型参照 eMJActType
@@ -680,7 +196,42 @@ enum eMsgType
 	// client : { dstRoomID : 356 } ,
 	// svr : { ret : 0 } ;
 	// ret : 0 等待你出牌，只能出牌，1 此刻不是你该操作的时候。
+	MSG_SET_NEXT_CARD, // send to mj server 
+	 //client : {card : 0,dstRoomID : 123465}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// new request zhan ji 
 	MSG_ROOM_SETTLE_DIAN_PAO, //  实结算的 点炮
 	//svr : { paoIdx : 234 , isGangPao : 0 , isRobotGang : 0 , huPlayers : [ { idx : 2 , coin : 2345 }, { idx : 2, coin : 234 }, ... ]  }
 	// paoIdx : 引跑者的索引， isGangShangPao ： 是否是杠上炮， isRobotGang ： 是否是被抢杠， huPlayer ： 这一炮 引发的所有胡牌这，是一个数组。 { idx ： 胡牌人的索引， coin 胡牌人赢的金币} 
@@ -733,28 +284,7 @@ enum eMsgType
 	// bankerIdx : 庄家的索引
 	// curActIdx :  当前正在等待操作的玩家
 
-	MSG_APPLY_DISMISS_VIP_ROOM, // 申请解散vip 房间
-	// client : { dstRoomID : 234 } 
-
-	MSG_ROOM_APPLY_DISMISS_VIP_ROOM, //房间里有人申请解散vip 房间
-	// svr : { applyerIdx : 2 }
-	// applyerIdx : 申请者的idx 
-
-	MSG_REPLY_DISSMISS_VIP_ROOM_APPLY,  // 答复申请解散的请求
-	// client { dstRoomID : 23 , reply : 0 }
-	// reply ： 1 表示同意， 0 表示拒绝。
-
-	MSG_VIP_ROOM_GAME_OVER,  // vip 房间结束
-	// svr : { ret : 0 , initCoin : 235 , bills : [ { uid : 2345 ,waiBaoCoin : -23, curCoin : 234, ziMoCnt : 2 , huCnt : 23,dianPaoCnt :2, mingGangCnt : 23,AnGangCnt : 23  }, ....]  }
-	// ret , 0 正常结束， 1 房间被解散。 initCoin 房间的初始金币，bills，是一个数组 放着具体每个玩家的情况，curCoin 表示玩家最终剩余金额, uid 玩家的唯一id waiBaoCoin :南京麻将外包的钱 
-
-	MSG_VIP_ROOM_DO_CLOSED, // vip 房间结束通知
-	// svr : { isDismiss : 0 , roomID : 2345 , eType : eroomType }  
-	// isDismiss : 是否是解散结束的房间。1 是解散房间，0 是自然结束。
-
-	MSG_ROOM_REPLY_DISSMISS_VIP_ROOM_APPLY, // 收到有人回复解散房间
-	// svr { idx : 23 , reply : 0 }
-	// reply ： 1 表示同意， 0 表示拒绝。
+	
 
 	MSG_VIP_ROOM_CLOSED,
 	// { uid : 2345 , roomID : 2345 , eType : eroomType } 
@@ -836,21 +366,6 @@ enum eMsgType
 	MSG_CHANGE_BAOPAI_CARD,
 	// svr: {idx : 0,card : 0}
 	//card : 0是取消，其它的是包牌的card
-
-	MSG_SET_NEXT_CARD, // send to mj server 
-	//client : {card : 0,dstRoomID : 123465}
-
-	MSG_REQ_GAME_REPLAY,
-	// client : { replayID : 2345 }
-	// svr : { replayID : 2345 , ret : 0  , roomInfo : {} }
-	// replayID : 回放ID，
-	// ret: 0 表示成功，1 表示没有回放数据，id 错误或者超过保存期限
-	// roomInfo :  回放的时候，房间信息，每个游戏 都不一样
-
-	MSG_REPLAY_FRAME,
-	// svr: { isEnd : 0 , replayID : 234 , data : { type : 23, time : 34 , arg : { ...}  } }
-	// type : 当前帧的事件类型，time 当前帧的时间，arg ： json 对象，不同的事件 参数不一样，用于表示当前帧的详情
-	// isEnd : 是否是最后一帧。
 
 
 
