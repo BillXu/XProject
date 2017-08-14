@@ -10,7 +10,7 @@ public:
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		getRoom()->onGameEnd();
-		setStateDuringTime(1);
+		setStateDuringTime(3);
 	}
 
 	void onStateTimeUp()
