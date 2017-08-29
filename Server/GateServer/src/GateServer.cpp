@@ -113,7 +113,7 @@ bool CGateServer::OnMessage( Packet* pPacket )
 		stMsg* prealMsg = (stMsg*)(pPacket->_orgdata + sizeof(stMsgTransferData));
 		if ( ID_MSG_PORT_CLIENT == prealMsg->cSysIdentifer )
 		{
-			if (MSG_JSON_CONTENT == prealMsg->usMsgType && isNative() == false)
+			if (MSG_JSON_CONTENT == prealMsg->usMsgType/* && isNative() == false*/)
 			{
 				stMsgJsonContent* jsContent = (stMsgJsonContent*)prealMsg;
 				std::string strJson(((char*)prealMsg) + sizeof(stMsgJsonContent), jsContent->nJsLen);
@@ -135,7 +135,7 @@ bool CGateServer::OnMessage( Packet* pPacket )
 				return true;
 			}
 
-			if ( MSG_JSON_CONTENT == prealMsg->usMsgType && isNative() == false )
+			if ( MSG_JSON_CONTENT == prealMsg->usMsgType/* && isNative() == false*/ )
 			{
 				stMsgJsonContent* jsContent = (stMsgJsonContent*)prealMsg;
 				std::string strJson( ((char*)prealMsg) + sizeof(stMsgJsonContent),jsContent->nJsLen );

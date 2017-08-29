@@ -27,8 +27,8 @@ public:
 		Niu_None,
 		Niu_Single,
 		Niu_Niu,
-        Niu_Boom,
         Niu_FiveFlower,
+		Niu_Boom,
 		Niu_FiveSmall,
 		Niu_Max,
 	};

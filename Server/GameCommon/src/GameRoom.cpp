@@ -516,7 +516,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 	break;
 	case MSG_PLAYER_LEAVE_ROOM:
 	{
-		uint16_t nUID = 0;
+		uint32_t nUID = 0;
 		auto pPlayer = getPlayerBySessionID(nSessionID);
 		if (pPlayer == nullptr)
 		{
@@ -601,6 +601,7 @@ void GameRoom::sendRoomInfo(uint32_t nSessionID)
 	Json::Value jsRoomInfo;
 	jsRoomInfo["opts"] = m_jsOpts;
 	jsRoomInfo["state"] = getCurState()->getStateID();
+	jsRoomInfo["stateTime"] = getCurState()->getStateDuring();
 	jsRoomInfo["roomID"] = getRoomID();
 	packRoomInfo(jsRoomInfo);
 	Json::Value jsArraPlayers;
@@ -716,6 +717,7 @@ void GameRoom::goToState(IGameRoomState* pTargetState, Json::Value* jsValue )
 	}
 
 	jsMsg["newState"] = m_pCurState->getStateID();
+	jsMsg["stateTime"] = m_pCurState->getStateDuring();
 	sendRoomMsg(jsMsg, MSG_ROOM_CHANGE_STATE );
 }
 

@@ -102,6 +102,7 @@ void CPlayer::onPlayerReconnected(char* pNewIP)
 		}
 	}
 	saveLoginInfo();
+	m_tTimerCheckRemovePlayer.canncel();
 }
 
 void CPlayer::onPlayerLoseConnect()
@@ -143,6 +144,7 @@ void CPlayer::onPlayerOtherDeviceLogin(uint32_t nNewSessionID, const char* pNewI
 			p->onPlayerOtherDeviceLogin(nOldSession,nNewSessionID);
 		}
 	}
+	m_tTimerCheckRemovePlayer.canncel();
 }
 
 void CPlayer::onPlayerDisconnect()

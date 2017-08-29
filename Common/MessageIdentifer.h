@@ -73,6 +73,13 @@ enum eMsgType
 	// in room msg ;
 	MSG_REQUEST_ROOM_INFO,
 	// client : null ;
+
+	MSG_PLAYER_CHAT_MSG, // 玩家发送 聊天信息
+	// client : { type : 1 , content : "biao qing or viceID" }
+	// svr : { ret : 0 } 
+	MSG_ROOM_CHAT_MSG, // 房间内有玩家 发送聊天信息；
+	// svr:  { playerIdx : 2 , type : 1 , content : "biao qing or viceID" } 
+
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 , gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 2 , opts : {  .... }  }
 	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error ;
@@ -325,13 +332,6 @@ enum eMsgType
 	// svr : { ret : 0 , sieral : 234, billTime : 23453, roomID : 235, roomType : eRoomType , creatorUID : 345 , circle： 8 ，initCoin : 2345 , detail : [  { uid : 2345 , curCoin : 234, ziMoCnt : 2 , huCnt : 23,dianPaoCnt :2, mingGangCnt : 23,AnGangCnt : 23  }, ....]  } 
 	// ret : 0 成功，1 账单id不存在，billID, 账单ID， billTime ： 账单产生的时间, roomID : 房间ID ， roomType 房间类型eRoomType， creatorUID 创建者的ID，circle 房间的圈数，initCoin ： 初始金币，detail : 每个人的输赢详情 json数组
 	// uid : 玩家的uid，curCoin 结束时剩余钱；
-
-	MSG_PLAYER_CHAT_MSG, // 玩家发送 聊天信息
-	// client : { dstRoomID : 234 , type : 1 , content : "biao qing or viceID" }
-	// svr : { ret : 0 } 
-
-	MSG_ROOM_CHAT_MSG, // 房间内有玩家 发送聊天信息；
-	// svr:  { playerIdx : 2 , type : 1 , content : "biao qing or viceID" } 
 
 	// su zhou ma jiang
 	MSG_ROOM_SZ_PLAYER_HU, // 苏州麻将玩家胡牌 

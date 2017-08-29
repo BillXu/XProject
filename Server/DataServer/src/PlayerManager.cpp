@@ -120,7 +120,7 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 	// new 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,nsex,headIcon FROM playerbasedata where userUID = %u", nReqUID );
+	sprintf_s(pBuffer, "SELECT nickName,sex,headIcon FROM playerbasedata where userUID = %u", nReqUID );
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, nReqUID,eAsync_DB_Select, jssql, [nReqUID,this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
@@ -139,6 +139,10 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 			jsBrifData["name"] = jsData["nickName"];
 			jsBrifData["headIcon"] = jsData["headIcon"];
 			jsBrifData["sex"] = jsData["nsex"];
+		}
+		else
+		{
+			jsBrifData["ret"] = 1;
 		}
 
 		auto pDataIter = m_vDetailData.find(nReqUID);

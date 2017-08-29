@@ -176,6 +176,7 @@ enum eSettleType    // Õâ¸öÃ¶¾Ù¶¨ÒåµÄÖ»ÊÇÒ»¸öÖĞÁ¢µÄÊÂ¼ş£¬¶ÔÓÚ·¢ÉúÊÂ¼şµÄË«·½£¬½Ğ·
 
 enum eTime
 {
+	eTime_WaitPlayerReady = 15,
 	eTime_WaitRobotBanker = 5,
 	eTime_ExeGameStart = 2,			// Ö´ĞĞÓÎÏ·¿ªÊ¼ µÄÊ±¼ä
 	eTime_WaitChoseExchangeCard = 5, //  µÈ´ıÍæ¼ÒÑ¡Ôñ»»ÅÆµÄÊ±¼ä

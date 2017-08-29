@@ -8,6 +8,27 @@ class NNRoomStateWaitReady
 public:
 	uint32_t getStateID()final { return eRoomSate_WaitReady; }
 
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
+	{
+		IGameRoomState::enterState(pmjRoom, jsTranData);
+		setStateDuringTime(eTime_WaitPlayerReady);
+	}
+
+	void onStateTimeUp()
+	{
+		 // all room set ready 
+		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
+		{
+			auto ptrPlayer = getRoom()->getPlayerByIdx(nIdx);
+			if (ptrPlayer == nullptr || ptrPlayer->haveState(eRoomPeer_WaitNextGame) == false )
+			{
+				continue;
+			}
+			((NNRoom*)getRoom())->onPlayerReady(nIdx);
+			LOGFMTD( "auto set ready room id = %u , uid = %u",getRoom()->getRoomID(),ptrPlayer->getUserUID() );
+		}
+	}
+
 	void update(float fDeta)override
 	{
 		IGameRoomState::update(fDeta);

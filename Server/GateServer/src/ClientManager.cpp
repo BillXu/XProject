@@ -55,10 +55,30 @@ bool CGateClientMgr::OnMessage( Packet* pData )
 		}
 		return onMsg(jsRoot,pData->_connectID );
 	}
-	// verify identify 
-	stMsg* pMsg = (stMsg*)pData->_orgdata ;
-	CHECK_MSG_SIZE(stMsg,pData->_len);
-	return onMsg(pMsg,pData->_len,pData->_connectID);
+	else
+	{
+		stMsg* pMsg = (stMsg*)pData->_orgdata;
+		CHECK_MSG_SIZE(stMsg, pData->_len);
+		if (MSG_JSON_CONTENT != pMsg->usMsgType)
+		{
+			LOGFMTE( "native must send json content msg not id = %u",pMsg->usMsgType );
+			return true;
+		}
+		stMsgJsonContent* pRet = (stMsgJsonContent*)pMsg;
+		char* pBuffer = pData->_orgdata + sizeof(stMsgJsonContent);
+
+		Json::Reader jsRader;
+		Json::Value jsRoot;
+		auto nRet = jsRader.parse(pBuffer, pBuffer + pRet->nJsLen, jsRoot);
+		if (!nRet)
+		{
+			std::string str(pData->_orgdata + sizeof(stMsgJsonContent), pRet->nJsLen );
+			LOGFMTE("can not parse the js msg : %s", str.c_str());
+			return false;
+		}
+		return onMsg(jsRoot, pData->_connectID);
+	}
+	return true;
 }
 
 bool CGateClientMgr::onMsg(stMsg* pMsg, size_t nMsgLen, CONNECT_ID nNetID)
@@ -163,6 +183,11 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 		stMsgJsonContent msg;
 		msg.cSysIdentifer = nPort;
 		msg.nJsLen = jsMsg["nJsLen"].asUInt();
+		if ( jsMsg["nTargetID"].isUInt() == false)
+		{
+			LOGFMTE( "jsMsg[nTargetID] type is error %u", jsMsg["nTargetID"].type());
+			return false;
+		}
 		msg.nTargetID = jsMsg["nTargetID"].asUInt();
 		// transfer to center server 
 		stGateClient* pDstClient = getGateClientByNetWorkID(nNetID);
@@ -238,6 +263,7 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 		{
 			LOGFMTE("do reconnect why cur player is nullptr ?");
 			bReconnectOk = false;
+			nSessionID = pCurGate->getSessionID();
 		}
 
 		if (bReconnectOk)
@@ -263,6 +289,7 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 		// send msg to client ;
 		Json::Value jsRet;
 		jsRet["nRet"] = (bReconnectOk ? 0 : 1);
+		jsRet["sessionID"] = nSessionID;
 		sendMsgToClient(jsRet,nmsgType, nNetID );
 		return true;
 	}

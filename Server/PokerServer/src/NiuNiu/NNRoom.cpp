@@ -537,3 +537,39 @@ int16_t NNRoom::getBeiShuByCardType(uint16_t nType, uint16_t nPoint)
 {
 	return 1;
 }
+
+bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
+{
+	if ( GameRoom::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID) )
+	{
+		return true;
+	}
+
+	if ( MSG_PLAYER_SET_READY == nMsgType )
+	{
+		auto pPlayer = getPlayerBySessionID(nSessionID);
+		Json::Value jsRet;
+		if (pPlayer == nullptr)
+		{
+			jsRet["ret"] = 1;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("you are not in this room how to set ready ? session id = %u", nSessionID);
+			return true;
+		}
+
+		if (pPlayer->haveState(eRoomPeer_WaitNextGame) == false)
+		{
+			jsRet["ret"] = 2;
+			jsRet["curState"] = pPlayer->getState();
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("player state error uid = %u , state = %u", pPlayer->getUserUID(), pPlayer->getState());
+			return true;
+		}
+
+		onPlayerReady(pPlayer->getIdx());
+		jsRet["ret"] = 0;
+		sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+		return true;
+	}
+	return false;
+}

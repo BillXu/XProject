@@ -24,10 +24,13 @@ public:
 	void closePeerConnection(uint32_t nConnectID)override;
 protected:
 	void addPacket(Packet* pPacket);
-	void on_close( websocketpp::connection_hdl hdl );
+	void on_close( websocketpp::connection_hdl hdl, bool isServerClose );
 	void on_open( websocketpp::connection_hdl hdl );
 	void on_message( websocketpp::connection_hdl hdl, message_ptr msg );
+	uint32_t getNetID(websocketpp::connection_hdl hdl );
 private:
+	uint32_t m_nCurMaxNetID = 0 ;
+
 	server m_pNetServer;
 
 	std::mutex m_SessionMutex;

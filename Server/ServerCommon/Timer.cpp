@@ -63,6 +63,7 @@ void CTimer::start()
 		LOGFMTE("timer already running , don't runed it again") ;
 		return ;
 	}
+	m_fIntervalKeeper = 0;
 	m_eState = eTimerState_Runing ;
 	CTimerManager::getInstance()->startTimer(this) ;
 }

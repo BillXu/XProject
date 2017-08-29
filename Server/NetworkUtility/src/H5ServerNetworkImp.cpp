@@ -20,7 +20,7 @@ bool H5ServerNetworkImp::init(uint16_t nPort)
 
 	// Register our message handler
 	m_pNetServer.set_open_handler(std::bind(&H5ServerNetworkImp::on_open, this, std::placeholders::_1 ));
-	m_pNetServer.set_close_handler(std::bind(&H5ServerNetworkImp::on_close, this, std::placeholders::_1) );
+	m_pNetServer.set_close_handler(std::bind(&H5ServerNetworkImp::on_close, this, std::placeholders::_1,false ) );
 	m_pNetServer.set_message_handler(std::bind(&H5ServerNetworkImp::on_message,this, std::placeholders::_1, std::placeholders::_2));
 
 	// Listen on port 
@@ -94,7 +94,7 @@ void H5ServerNetworkImp::closePeerConnection(uint32_t nConnectID)
 			LOGFMTE("why nconnect id = %u is null ?",nConnectID );
 			return;
 		}
-		on_close(piter->second);
+		on_close(piter->second,true );
 	}
 	);
 }
@@ -105,22 +105,33 @@ void H5ServerNetworkImp::addPacket(Packet* pPacket)
 	m_vRecivedPackets.push_back(pPacket);
 }
 
-void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl )
+void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl, bool isServerClose )
 {
-	auto nConnectID = (uint32_t)(hdl.lock().get());
+	auto nConnectID = 0;
 	LOGFMTD("begin close connectID = %u", nConnectID);
 	{
 		std::lock_guard<std::mutex> tLock(m_SessionMutex);
-		auto iter = m_vActiveSessions.find(nConnectID);
-		if (iter == m_vActiveSessions.end())
+		auto iter = m_vActiveSessions.begin();
+		for (; iter != m_vActiveSessions.end(); ++iter)
+		{
+			if (hdl.lock().get() == iter->second.lock().get() )
+			//if ( m_pNetServer.get_con_from_hdl(hdl) == m_pNetServer.get_con_from_hdl(iter->second) )
+			{
+				nConnectID = iter->first;
+				m_vActiveSessions.erase(iter);
+				break;
+			}
+		}
+		if ( nConnectID == 0 )
 		{
 			LOGFMTD("can not find  close connectID = %u", nConnectID);
 			return;
 		}
-		m_vActiveSessions.erase(iter);
+		
 	}
 
-	//if ( bServerClose == false ) //  always post this disconnect notice 
+	LOGFMTD( "do close net id = %u",nConnectID );
+	if ( isServerClose == false ) //  always post this disconnect notice 
 	{
 		Packet* pack = new Packet();
 		pack->_brocast = false;
@@ -129,22 +140,35 @@ void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl )
 		pack->_len = 0;
 		memset(pack->_orgdata, 0, sizeof(pack->_orgdata));
 		addPacket(pack);
+		LOGFMTD("client invoker after closeSession end id = %u", nConnectID);
 	}
-	LOGFMTD("after closeSession end id = %u", nConnectID);
+	else
+	{
+		m_pNetServer.close(hdl, websocketpp::close::status::normal, "invalid");
+		LOGFMTD("svr do client after closeSession end id = %u", nConnectID);
+	}
+	
 }
 
 void H5ServerNetworkImp::on_open(websocketpp::connection_hdl hdl)
 {
 	m_SessionMutex.lock();
-	m_vActiveSessions[(uint32_t)(hdl.lock().get())] = hdl;
+	auto netID= ++m_nCurMaxNetID;
+	if (m_vActiveSessions.find(netID) != m_vActiveSessions.end())
+	{
+		LOGFMTE("why have double netid = %u",netID);
+		m_SessionMutex.unlock();
+		assert(0 && "duplicate net id " );
+		return;
+	}
+	m_vActiveSessions[netID] = hdl;
 	m_SessionMutex.unlock();
-
 	std::string str = m_pNetServer.get_con_from_hdl(hdl)->get_host();// session->socket().remote_endpoint().address().to_string();
-	LOGFMTD("a peer connected ip = %s id = %u", str.c_str(), (uint32_t)(hdl.lock().get()));
+	LOGFMTD("a peer connected ip = %s id = %u", str.c_str(), netID );
 	Packet* pack = new Packet;
 	pack->_brocast = false;
 	pack->_packetType = _PACKET_TYPE_CONNECTED;
-	pack->_connectID = (uint32_t)(hdl.lock().get());
+	pack->_connectID = netID;
 	pack->_len = str.size();
 	memset(pack->_orgdata, 0, sizeof(pack->_orgdata));
 	memcpy_s(pack->_orgdata, sizeof(pack->_orgdata), str.c_str(), pack->_len);
@@ -162,7 +186,7 @@ void H5ServerNetworkImp::on_message(websocketpp::connection_hdl hdl, message_ptr
 	Packet* pack = new Packet;
 	pack->_brocast = false;
 	pack->_packetType = _PACKET_TYPE_MSG;
-	pack->_connectID = (uint32_t)hdl.lock().get();
+	pack->_connectID = getNetID(hdl);
 	pack->_len = pData.size();
 	if (pack->_len > sizeof(pack->_orgdata))
 	{
@@ -173,4 +197,18 @@ void H5ServerNetworkImp::on_message(websocketpp::connection_hdl hdl, message_ptr
 	}
 	memcpy_s(pack->_orgdata, sizeof(pack->_orgdata), pData.c_str(), pack->_len);
 	addPacket(pack);
+}
+
+uint32_t H5ServerNetworkImp::getNetID( websocketpp::connection_hdl hdl )
+{
+	std::lock_guard<std::mutex> tLock(m_SessionMutex);
+	auto iter = m_vActiveSessions.begin();
+	for (; iter != m_vActiveSessions.end(); ++iter)
+	{
+		if (hdl.lock().get() == iter->second.lock().get())
+		{
+			return iter->first;
+		}
+	}
+	return 0;
 }
