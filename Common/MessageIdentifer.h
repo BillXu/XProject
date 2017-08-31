@@ -98,7 +98,7 @@ enum eMsgType
 	// svr : { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ... }  // the same as MSG_ROOM_INFO players item ;
 	MSG_PLAYER_SIT_DOWN,
 	// client : { idx : 1 } 
-	// svr : { ret : 0 , idx : 1 } ;  // ret : 0 success , 1 pos already have players , 2, already in other room , 3, not in room , can not sit down , 4 already sit down , 5 session id error , 6 , unknown error ;
+	// svr : { ret : 0 , idx : 1 } ;  // ret : 0 success , 1 pos already have players , 2, already in other room , 3, not in room , can not sit down , 4 already sit down , 5 session id error , 6 , unknown error  , 7 not in white list ;
 	MSG_PLAYER_STAND_UP,
 	// client : null ;
 	// svr : { ret : 0 } // ret : 0 success , 1 you are not sit down ,
@@ -135,6 +135,20 @@ enum eMsgType
 	MSG_VIP_ROOM_DO_CLOSED, // vip 房间结束通知
 	// svr : { isDismiss : 0 , roomID : 2345 , eType : eroomType }  
 	// isDismiss : 是否是解散结束的房间。1 是解散房间，0 是自然结束。
+
+	MSG_ADD_WHILE_LIST,
+	// client : { uid : 23 }
+	// ret : { ret : 0 , uid : 23 }
+	// 0 success , 1 white list is full  ;
+
+	MSG_REMOVE_WHITE_LIST,
+	// client : { uid : 23 }
+	// svr : { ret : 0 , uid : 23 }
+	// ret : 0 success , 1 , uid not in white list ;
+
+	MSG_REQUEST_WHITE_LIST,
+	// client : null
+	// svr : { list : [ 23, 232,52 ... ] } 
 
 	MSG_PLAYER_SET_READY = 600,   	// player do ready
 	// client : { dstRoomID : 2345 } ;
@@ -174,6 +188,9 @@ enum eMsgType
 	// dismissID is null or 0 , means normal dismiss ;
 	// dismissID is 1 , means system dismiss room ;
 	// dismissID biger than 1 , means player dismiss room ;
+	MSG_REQ_ROOM_ITEM_INFO,
+	// client : { roomID : 23 }
+	// svr : { state : 2 ,isOpen : 0 , roomID: 23, opts: {} , players: [23,234,23 ..] }
 
 	MSG_POKER_GAME_MSG_MAX = 1000,
 	
@@ -588,8 +605,6 @@ enum eMsgType
 	// new taxas poker msg id 
 	MSG_TAXAS_ROOM_INFO,
 
-	MSG_TAXAS_PLAYER_SITDOWN,
-	MSG_TAXAS_ROOM_SITDOWN,
 
 	MSG_TAXAS_PLAYER_STANDUP,
 	MSG_TAXAS_ROOM_STANDUP,

@@ -68,7 +68,7 @@ enum eAsyncReq
 	eAsync_Request_CreateRoomInfo, // { targetUID : 23 , sessionID : 23 }  // result : { ret : 0 , uid  23 , diamond : 23 , alreadyRoomCnt : 23 }  // ret : 0 success , 1 session id error and uid not match, 2, not find target player 
 	eAsync_Inform_CreatedRoom, // { targetUID : 23 , roomID : 234 } 
 	eAsync_Inform_RoomDeleted, // { targetUID : 23 , roomID : 234  };
-
+	eAsync_Check_WhiteList, // { listOwner: 234 , checkUID : 2 } , result : { ret : 0  } // 0 in white list , 1 not in white list ;
 
 
 

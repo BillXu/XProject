@@ -282,6 +282,25 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 		}
 	}
 	break;
+	case MSG_REQ_ROOM_ITEM_INFO:
+	{
+		Json::Value jsMsg;
+		getCoreRoom()->packRoomInfo(jsMsg);
+		jsMsg["isOpen"] = m_isOpen ? 1 : 0;
+		Json::Value jsArrayUIDs;
+		for (uint32_t nIdx = 0; nIdx < getCoreRoom()->getSeatCnt(); ++nIdx)
+		{
+			auto p = getCoreRoom()->getPlayerByIdx(nIdx);
+			if (p == nullptr)
+			{
+				continue;
+			}
+			jsArrayUIDs[jsArrayUIDs.size()] = p->getUserUID();
+		}
+		jsMsg["players"] = jsArrayUIDs;
+		sendMsgToPlayer(jsMsg, nMsgType, nSessionID );
+	}
+	break;
 	default:
 		if (m_pRoom && m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID) )
 		{

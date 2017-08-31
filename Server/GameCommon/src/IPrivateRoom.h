@@ -46,8 +46,8 @@ public:
 
 	void doRoomGameOver(bool isDismissed);
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
-protected:
 	GameRoom* getCoreRoom();
+protected:
 	bool isRoomStarted();
 protected:
 	IGameRoomManager* m_pRoomMgr;

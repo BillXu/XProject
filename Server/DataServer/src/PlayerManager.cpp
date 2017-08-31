@@ -135,10 +135,11 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 		Json::Value jsBrifData;
 		if (jsData.size() == 1)
 		{
+			auto jsRow = jsData[(uint32_t)0];
 			jsBrifData["uid"] = nReqUID;
-			jsBrifData["name"] = jsData["nickName"];
-			jsBrifData["headIcon"] = jsData["headIcon"];
-			jsBrifData["sex"] = jsData["nsex"];
+			jsBrifData["name"] = jsRow["nickName"];
+			jsBrifData["headIcon"] = jsRow["headIcon"];
+			jsBrifData["sex"] = jsRow["sex"];
 		}
 		else
 		{
@@ -478,6 +479,19 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		{
 			LOGFMTE(" can not find player uid = %u , to process async req = %u, let is time out", nUID,nRequestType );
 			jsResult["ret"] = 2;
+			break;
+		}
+		return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
+	}
+	break;
+	case eAsync_Check_WhiteList:
+	{
+		auto nUID = jsReqContent["listOwner"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (!pPlayer)
+		{
+			LOGFMTE(" can not find player uid listowner = %u , to process async listOwner, let is time out", nUID );
+			jsResult["ret"] = 1;
 			break;
 		}
 		return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);

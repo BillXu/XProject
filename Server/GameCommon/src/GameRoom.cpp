@@ -21,7 +21,7 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 
 	m_ptrCurRoundRecorder = nullptr;
 	m_ptrRoomRecorder = createRoomRecorder();
-	m_ptrRoomRecorder->init(nSeialNum, nRoomID, vJsOpts["uid"].asUInt(), getRoomType(), vJsOpts);
+	m_ptrRoomRecorder->init(nSeialNum, nRoomID, getRoomType(), vJsOpts["uid"].asUInt(), vJsOpts);
 
 	m_ptrGameReplay = std::make_shared<MJReplayGame>();
 	m_ptrGameReplay->init( getRoomType(),vJsOpts);
@@ -596,13 +596,17 @@ bool GameRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)
 	return true;
 }
 
-void GameRoom::sendRoomInfo(uint32_t nSessionID)
+void GameRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
-	Json::Value jsRoomInfo;
 	jsRoomInfo["opts"] = m_jsOpts;
 	jsRoomInfo["state"] = getCurState()->getStateID();
 	jsRoomInfo["stateTime"] = getCurState()->getStateDuring();
 	jsRoomInfo["roomID"] = getRoomID();
+}
+
+void GameRoom::sendRoomInfo(uint32_t nSessionID)
+{
+	Json::Value jsRoomInfo;
 	packRoomInfo(jsRoomInfo);
 	Json::Value jsArraPlayers;
 	for (auto& ref : m_vPlayers)

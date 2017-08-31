@@ -67,6 +67,7 @@ IGamePlayer* NNRoom::createGamePlayer()
 
 void NNRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
+	GameRoom::packRoomInfo(jsRoomInfo);
 	jsRoomInfo["bankIdx"] = m_nBankerIdx;
 	jsRoomInfo["curActIdex "] = getCurState()->getCurIdx();
 	jsRoomInfo["waitTimer "] = getCurState()->getStateDuring();

@@ -7,9 +7,16 @@
 #include "AsyncRequestQuene.h"
 #include "PlayerManager.h"
 #include "ISeverApp.h"
+#define MAX_WHITE_LIST_CNT 50
 CPlayerGameData::~CPlayerGameData()
 {
 
+}
+
+void CPlayerGameData::reset()
+{
+	m_vWhiteList.clear();
+	m_isWhiteListDirty = false;
 }
 
 bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)
@@ -90,6 +97,12 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		LOGFMTE( "uid = %u don't have room id = %u , how delete ?",getPlayer()->getUserUID(),nRoomID );
 	}
 	break;
+	case eAsync_Check_WhiteList:
+	{
+		auto nCheckUID = jsReqContent["checkUID"].asUInt();
+		jsResult["ret"] = isUserIDInWhiteList(nCheckUID) ? 0 : 1;
+	}
+	break;
 	default:
 		return false;
 	}
@@ -164,7 +177,7 @@ uint16_t CPlayerGameData::getGamePortByRoomID(uint32_t nRoomID)
 
 bool CPlayerGameData::canRemovePlayer()
 {
-	return 0 == getStayInRoomID();
+	return 0 == getStayInRoomID() && m_vCreatedRooms.empty();
 }
 
 bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)
@@ -183,7 +196,144 @@ bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		sendMsg(jsMsg, nmsgType);
 		return true;
 	}
+
+	if ( MSG_ADD_WHILE_LIST == nmsgType )
+	{
+		if ( MAX_WHITE_LIST_CNT < m_vWhiteList.size() )
+		{
+			recvValue["ret"] = 1;
+			sendMsg(recvValue,nmsgType);
+			return true;
+		}
+
+		auto nUID = recvValue["uid"].asUInt();
+		if ( nUID == 0 )
+		{
+			LOGFMTE( "add white list erro uid = 0" );
+			return true;
+		}
+		m_vWhiteList.insert(nUID);
+		m_isWhiteListDirty = true;
+		recvValue["ret"] = 0;
+		sendMsg(recvValue, nmsgType);
+		return true;
+	}
+
+	if ( MSG_REMOVE_WHITE_LIST == nmsgType )
+	{
+		auto nUID = recvValue["uid"].asUInt();
+		if ( nUID == 0 )
+		{
+			LOGFMTE("remove white list erro uid = 0");
+			return true;
+		}
+		auto nIter = std::find(m_vWhiteList.begin(), m_vWhiteList.end(), nUID);
+		if (nIter == m_vWhiteList.end())
+		{
+			recvValue["ret"] = 1;
+			sendMsg(recvValue, nmsgType);
+			return true;
+		}
+		m_vWhiteList.erase(nIter);
+		m_isWhiteListDirty = true;
+
+		recvValue["ret"] = 0;
+		sendMsg(recvValue, nmsgType);
+		return true;
+	}
+
+	if (MSG_REQUEST_WHITE_LIST == nmsgType)
+	{
+		Json::Value jsArray;
+		for (auto& ref : m_vWhiteList)
+		{
+			jsArray[jsArray.size()] = ref;
+		}
+		Json::Value msg;
+		msg["list"] = jsArray;
+		sendMsg(msg,nmsgType);
+		return true;
+	}
 	return false;
+}
+
+void CPlayerGameData::onPlayerLogined()
+{
+	// do read from db 
+	Json::Value jssql;
+	std::ostringstream ssSql;
+	ssSql << "select jsWhiteList from playerwhitelist where userUID = " << getPlayer()->getUserUID();
+	auto s = ssSql.str();
+	jssql["sql"] = ssSql.str();
+	auto pAsyncQueu = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
+	pAsyncQueu->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Select, jssql, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) 
+	{
+		if (isTimeOut)
+		{
+			LOGFMTE( "uid = %u read white list time out", getPlayer()->getUserUID());
+			return;
+		}
+
+		uint32_t nAft = retContent["afctRow"].asUInt();
+		auto jsData = retContent["data"];
+		if (nAft == 0 || jsData.isNull())
+		{
+			return;
+		}
+		auto jsRow = jsData[(uint32_t)0];
+		Json::Value jsWhiteList;
+		Json::Reader jsReader;
+		if ( !jsReader.parse(jsRow["jsWhiteList"].asString(), jsWhiteList))
+		{
+			LOGFMTE( "uid = %u paser jswhitelist error",getPlayer()->getUserUID() );
+			return;
+		}
+
+		m_vWhiteList.clear();
+		for (uint16_t nIdx = 0; nIdx < jsWhiteList.size(); ++nIdx)
+		{
+			m_vWhiteList.insert(jsWhiteList[nIdx].asUInt());
+		}
+
+	},getPlayer()->getUserUID());
+}
+
+void CPlayerGameData::timerSave()
+{
+	if ( false == m_isWhiteListDirty )
+	{
+		return;
+	}
+
+	// construct msg ;
+	m_isWhiteListDirty = false;
+	Json::Value jsArray;
+	for (auto& ref : m_vWhiteList)
+	{
+		jsArray[jsArray.size()] = ref;
+	}
+
+	Json::StyledWriter ss;
+	auto jsDetail = ss.write(jsArray);
+
+	Json::Value jssql;
+	std::ostringstream ssSql;
+	ssSql << "insert into playerwhitelist ( userUID,jsWhiteList) values (" << getPlayer()->getUserUID() << " ,'" << jsDetail << " ' ) ON DUPLICATE KEY UPDATE jsWhiteList = ' " << jsDetail << " ' ;";
+	auto s = ssSql.str();
+	jssql["sql"] = ssSql.str();
+	auto pAsyncQueu = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
+	pAsyncQueu->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Add, jssql);
+}
+
+bool CPlayerGameData::isUserIDInWhiteList( uint32_t nUserUID )
+{
+	if (nUserUID == getPlayer()->getUserUID())
+	{
+		return true;
+	}
+
+	auto iter = std::find( m_vWhiteList.begin(),m_vWhiteList.end(),nUserUID );
+	return iter != m_vWhiteList.end();
 }
 
 void CPlayerGameData::informNetState(uint8_t nStateFlag)

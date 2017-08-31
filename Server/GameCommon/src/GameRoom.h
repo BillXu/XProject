@@ -31,7 +31,7 @@ public:
 	virtual bool canStartGame();
 	virtual void onGameDidEnd();
 	virtual void onGameEnd();
-	virtual void packRoomInfo(Json::Value& jsRoomInfo) = 0;
+	virtual void packRoomInfo(Json::Value& jsRoomInfo) ;
 	virtual void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID );
 	virtual bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer,uint16_t nIdx );
 	virtual bool doPlayerStandUp(uint32_t nUserUID);
@@ -60,10 +60,10 @@ public:
 	void goToState( uint32_t nStateID , Json::Value* jsValue = nullptr );
 	void setInitState( IGameRoomState* pTargetState );
 	virtual IPoker* getPoker() = 0;
+	stStandPlayer* getStandPlayerBySessionID(uint32_t nSessinID);
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();
-	stStandPlayer* getStandPlayerBySessionID( uint32_t nSessinID );
 	stStandPlayer* getStandPlayerByUID( uint32_t nUserID );
 	bool addPlayerOneRoundOffsetToRecorder( uint32_t nUserUID , int32_t nOffset , int32_t nWaiBaoOffset = 0 );  // signe player single round offset 
 	bool addReplayFrame( uint32_t nFrameType , Json::Value& jsFrameArg );
