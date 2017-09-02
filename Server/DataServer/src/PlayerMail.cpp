@@ -208,10 +208,10 @@ void CPlayerMailComponent::doProcessMailAfterReadDB()
 void CPlayerMailComponent::updateMailsStateToDB(std::vector<uint32_t>& vMailIDs, eMailState eNewState)
 {
 	std::ostringstream ss;
-	ss << "UPDATE mail SET state = " << eNewState << "where mailUID = " << vMailIDs[0]; 
+	ss << "UPDATE mail SET state = " << eNewState << " where mailUID = " << vMailIDs[0]; 
 	for ( uint16_t nIdx = 1; nIdx < vMailIDs.size(); ++nIdx)
 	{
-		ss << "and mailUID = " << vMailIDs[nIdx];
+		ss << " and mailUID = " << vMailIDs[nIdx];
 	}
 	ss << " limit " << vMailIDs.size() << ";";
 
