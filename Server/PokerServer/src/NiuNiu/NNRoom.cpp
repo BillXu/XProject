@@ -12,6 +12,7 @@
 #include "NiuNiu\NNRoomStateLRBRobotBanker.h"
 #include "NiuNiu\NNRoomStateLRBDistributeFristCard.h"
 #include "NiuNiu\NNRoomStateLRBDistributeFinalCard.h"
+#include "NiuNiu\NiuNiuPlayerRecorder.h"
 bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
@@ -537,6 +538,38 @@ bool NNRoom::isAllPlayerRobotedBanker()
 int16_t NNRoom::getBeiShuByCardType(uint16_t nType, uint16_t nPoint)
 {
 	return 1;
+}
+
+bool NNRoom::addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)
+{
+	if (pPlayer == nullptr || pPlayer->haveState( eRoomPeer_StayThisRound) == false )
+	{
+		LOGFMTE("player is null how to add recorder room id = %u", getRoomID());
+		return false;
+	}
+
+	auto pCurRecorder = getCurRoundRecorder();
+	if (pCurRecorder == nullptr)
+	{
+		LOGFMTE("why this room id = %u single recorder is null ?  can not add uid = %u offset = %d", getRoomID(), pPlayer->getUserUID(), pPlayer->getSingleOffset());
+	}
+	else
+	{
+		auto pNiu = (NNPlayer*)pPlayer;
+		auto ptr = std::make_shared<NiuNiuPlayerRecorder>(pPlayer->getUserUID(), pPlayer->getSingleOffset());
+		ptr->nBetTimes = pNiu->getBetTimes();
+		if (pNiu->getIdx() == getBankerIdx())
+		{
+			ptr->nBetTimes = 0;
+		}
+		auto pCards = pNiu->getPlayerCard();
+		for (uint8_t nIdx = 0; nIdx < NIUNIU_HOLD_CARD_COUNT; ++nIdx)
+		{
+			ptr->vCards[nIdx] = pCards->getCardByIdx(nIdx);
+		}
+		pCurRecorder->addPlayerRecorderInfo(ptr);
+	}
+	return true;
 }
 
 bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)

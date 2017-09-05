@@ -2,27 +2,38 @@
 #include "NativeTypes.h"
 #include "json/json.h"
 #include <memory>
+// one round player recorder info ;
+class IPlayerRecorder
+{
+public:
+	IPlayerRecorder( uint32_t nUserUID , int32_t nOffset ) 
+	{
+		this->nUserUID = nUserUID; 
+		this->nOffset = nOffset;
+	}
+	virtual ~IPlayerRecorder(){}
+	virtual bool toJson(Json::Value& js) { js["uid"] = getUserUID(); js["offset"] = getOffset(); return true; }
+	uint32_t getUserUID() { return nUserUID; }
+	int32_t getOffset() { return nOffset; }
+public:
+	uint32_t nUserUID;
+	int32_t nOffset;
+};
+
 class CAsyncRequestQuene;
 class ISingleRoundRecorder
 {
-public:
-	struct stPlayerRecorder
-	{
-		uint32_t nUserUID = 0 ;
-		int32_t nOffset = 0 ;
-		int32_t nWaiBaoOffset = 0 ;
-	};
 public:
 	virtual ~ISingleRoundRecorder() {}
 	virtual void init(uint16_t nRoundIdx, uint32_t nFinishTime, uint32_t nReplayID );
 	uint16_t getRoundIdx();
 	uint32_t getFinishTime();
 	uint32_t getReplayID();
-	bool addPlayerRecorderInfo( uint32_t nUserUID , int32_t nOffset , int32_t nWaitBaoOffset = 0 );
+	bool addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorder> ptrPlayerRecorderInfo );
 	void toJson(Json::Value& js );
-	bool calculatePlayerTotalOffset(std::map<uint32_t, stPlayerRecorder>& vPlayers );
+	bool calculatePlayerTotalOffset(std::map<uint32_t, int32_t>& vPlayersOffset );
 protected:
-	std::map<uint32_t, stPlayerRecorder> m_vPlayerRecorderInfo;
+	std::map<uint32_t, std::shared_ptr<IPlayerRecorder>> m_vPlayerRecorderInfo;
 	uint32_t m_nFinishTime;
 	uint32_t m_nReplayID;
 	uint16_t m_nRoundIdx;

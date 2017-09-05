@@ -210,11 +210,11 @@ void GameRoom::onGameEnd()
 	{
 		for (auto& ref : m_vPlayers)
 		{
-			if (!ref)
+			if ( !ref  || ref->haveState(eRoomPeer_StayThisRound) == false )
 			{
 				continue;
 			}
-			addPlayerOneRoundOffsetToRecorder(ref->getUserUID(), ref->getSingleOffset(), ref->getSingleWaiBaoOffset());
+			addPlayerOneRoundOffsetToRecorder(ref);
 		}
 		getRoomRecorder()->addSingleRoundRecorder(getCurRoundRecorder());
 	}
@@ -780,21 +780,28 @@ GameRoom::stStandPlayer* GameRoom::getStandPlayerByUID(uint32_t nUserID)
 	return iter->second;
 }
 
-bool GameRoom::addPlayerOneRoundOffsetToRecorder(uint32_t nUserUID, int32_t nOffset, int32_t nWaiBaoOffset )
+bool GameRoom::addPlayerOneRoundOffsetToRecorder( IGamePlayer* pPlayer )
 {
 	if ( ( nullptr == getDelegate() ) || ( false == getDelegate()->isEnableRecorder() ) )
 	{
 		return false;
 	}
 
+	if (pPlayer == nullptr)
+	{
+		LOGFMTE( "player is null how to add recorder room id = %u" ,getRoomID() );
+		return false;
+	}
+
 	auto pCurRecorder = getCurRoundRecorder();
 	if (pCurRecorder == nullptr)
 	{
-		LOGFMTE("why this room id = %u single recorder is null ?  can not add uid = %u offset = %d", getRoomID(),nUserUID,nOffset );
+		LOGFMTE("why this room id = %u single recorder is null ?  can not add uid = %u offset = %d", getRoomID(),pPlayer->getUserUID(),pPlayer->getSingleOffset() );
 	}
 	else
 	{
-		pCurRecorder->addPlayerRecorderInfo(nUserUID, nOffset, nWaiBaoOffset );
+		auto ptr = std::make_shared<IPlayerRecorder>(pPlayer->getUserUID(),pPlayer->getSingleOffset());
+		pCurRecorder->addPlayerRecorderInfo(ptr);
 	}
 	return true;
 }

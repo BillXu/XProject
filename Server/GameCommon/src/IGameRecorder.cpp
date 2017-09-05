@@ -24,20 +24,15 @@ uint32_t ISingleRoundRecorder::getReplayID()
 	return m_nReplayID;
 }
 
-bool ISingleRoundRecorder::addPlayerRecorderInfo(uint32_t nUserUID, int32_t nOffset, int32_t nWaitBaoOffset )
+bool ISingleRoundRecorder::addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorder> ptrPlayerRecorderInfo )
 {
-	auto iter = m_vPlayerRecorderInfo.find(nUserUID);
+	auto iter = m_vPlayerRecorderInfo.find(ptrPlayerRecorderInfo->getUserUID());
 	if (iter != m_vPlayerRecorderInfo.end())
 	{
-		LOGFMTE("already have this player recorder uid = %u , offset = %d , waibao = %d",nUserUID,nOffset,nWaitBaoOffset );
+		LOGFMTE("already have this player recorder uid = %u , offset = %d ", ptrPlayerRecorderInfo->getUserUID(), ptrPlayerRecorderInfo->getOffset() );
 		return false;
 	}
-
-	stPlayerRecorder stInfo;
-	stInfo.nOffset = nOffset;
-	stInfo.nWaiBaoOffset = nWaitBaoOffset;
-	stInfo.nUserUID = nUserUID;
-	m_vPlayerRecorderInfo[stInfo.nUserUID] = stInfo;
+	m_vPlayerRecorderInfo[ptrPlayerRecorderInfo->getUserUID()] = ptrPlayerRecorderInfo;
 	return true;
 }
 
@@ -51,31 +46,24 @@ void ISingleRoundRecorder::toJson(Json::Value& js)
 	for (auto& ref : m_vPlayerRecorderInfo)
 	{
 		Json::Value jsPlayer ;
-		jsPlayer["uid"] = ref.second.nUserUID;
-		jsPlayer["offset"] = ref.second.nOffset;
-		if (ref.second.nWaiBaoOffset != 0)
-		{
-			jsPlayer["waiBao"] = ref.second.nWaiBaoOffset;
-		}
+		ref.second->toJson(jsPlayer);
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
 	js["players"] = jsPlayers;
 }
 
-bool ISingleRoundRecorder::calculatePlayerTotalOffset(std::map<uint32_t, stPlayerRecorder>& vPlayers)
+bool ISingleRoundRecorder::calculatePlayerTotalOffset(std::map<uint32_t, int32_t>& vPlayerOffset)
 {
 	for (auto& ref : m_vPlayerRecorderInfo)
 	{
-		auto iter = vPlayers.find(ref.first);
-		if (iter == vPlayers.end())
+		auto iter = vPlayerOffset.find(ref.first);
+		if (iter == vPlayerOffset.end())
 		{
-			vPlayers.insert(vPlayers.begin(), ref );
+			vPlayerOffset[ref.first] = ref.second->getOffset();
 		}
 		else
 		{
-			auto& pRef = iter->second;
-			pRef.nOffset += ref.second.nOffset;
-			pRef.nWaiBaoOffset += ref.second.nWaiBaoOffset;
+			iter->second += ref.second->getOffset();
 		}
 	}
 
@@ -170,19 +158,20 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB,getSieralNum(), eAsync_DB_Add, jssql );
 
 	// do save player recorder ;
-	std::map<uint32_t, ISingleRoundRecorder::stPlayerRecorder> vPlayerRecorder;
+	std::map<uint32_t, int32_t> vPlayerOffset;
 	for (auto& ref : m_vAllRoundRecorders)
 	{
-		ref.second->calculatePlayerTotalOffset(vPlayerRecorder);
+		ref.second->calculatePlayerTotalOffset(vPlayerOffset);
 	}
 
 	// do save 
-	for ( auto& ref : vPlayerRecorder )
+	for ( auto& ref : vPlayerOffset)
 	{
-		auto& refPlayer = ref.second;
+		auto nUserUID = ref.first;
+		auto nOffset = ref.second;
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,waibao,time,roomType ) values (%u,%u,%u,%d,%d,now(),'%u');", refPlayer.nUserUID,m_nSieralNum, m_nRoomID, refPlayer.nOffset, refPlayer.nWaiBaoOffset, m_nRoomType);
+		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,time,roomType ) values (%u,%u,%u,%d,now(),'%u');", nUserUID,m_nSieralNum, m_nRoomID, nOffset, m_nRoomType);
 		jssql["sql"] = pBuffer;
 		pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSieralNum(), eAsync_DB_Add, jssql);
 	}

@@ -102,5 +102,8 @@
     <ClInclude Include="src\NiuNiu\NNRoomStateLRBDistributeFristCard.h">
       <Filter>src\NiuNiu\state\LookCardRobotBanker</Filter>
     </ClInclude>
+    <ClInclude Include="src\NiuNiu\NiuNiuPlayerRecorder.h">
+      <Filter>src\NiuNiu</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

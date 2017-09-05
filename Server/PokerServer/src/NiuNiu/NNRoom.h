@@ -49,6 +49,8 @@ public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 protected:
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );
+	bool addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)override;
+	uint16_t getBankerIdx() { return m_nBankerIdx; }
 private:
 	eResultType m_eResultType;
 	eDecideBankerType m_eDecideBankerType;
