@@ -3,14 +3,17 @@
 #include "MJDefine.h"
 #include <algorithm>  
 #include <set>
+#include "CommonDefine.h"
 class MJPlayerCard
 	:public IMJPlayerCard
 {
 public:
 	struct stInvokeActInfo
 	{
-		uint8_t nCard;
-		uint8_t nInvokerIdx;
+		uint8_t nTargetCard = 0 ;
+		VEC_CARD vWithCard;
+		uint8_t nInvokerIdx = 0 ;
+		eMJActType eAct = eMJAct_Max ;
 	};
 	typedef std::vector<stInvokeActInfo> VEC_INVOKE_ACT_INFO;
 public:
@@ -26,6 +29,7 @@ public:
 	bool canEatCard(uint8_t nCard) override;
 	bool canAnGangWithCard(uint8_t nCard)override;
 	bool canBuGangWithCard(uint8_t nCard)override;
+	void onVisitPlayerCardInfo(Json::Value& js, bool isSelf)override;
 	bool getHoldCardThatCanAnGang(VEC_CARD& vGangCards)override;
 	bool getHoldCardThatCanBuGang(VEC_CARD& vGangCards)override;
 
@@ -67,16 +71,11 @@ protected:
 public:
 	void debugCardInfo();
 protected:
-	uint8_t m_nHuPaiInvokerIdx;
+	uint16_t m_nDianPaoIdx;
 	VEC_CARD m_vCards[eCT_Max];
 	VEC_CARD m_vChuedCard;
 
-	VEC_INVOKE_ACT_INFO m_vPenged;
-	VEC_INVOKE_ACT_INFO m_vDirectGanged;
-	VEC_INVOKE_ACT_INFO m_vBuGang;
-
-	VEC_CARD m_vAnGanged;
-	VEC_CARD m_vEated;
+	VEC_INVOKE_ACT_INFO m_vMingCardInfo;
 
 	uint8_t m_nNesetFetchedCard;
 	uint8_t m_nJIang;

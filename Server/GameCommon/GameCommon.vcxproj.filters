@@ -56,6 +56,9 @@
     <ClCompile Include="src\IPrivateRoom.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\IMJPoker.cpp">
+      <Filter>src\MJBase</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\IGameRecorder.h">
@@ -159,6 +162,9 @@
     </ClInclude>
     <ClInclude Include="src\FanxingChecker.h">
       <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJPoker.h">
+      <Filter>src\MJBase</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

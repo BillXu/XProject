@@ -12,7 +12,7 @@
 #ifdef _DEBUG
 #define TIME_HEAT_BEAT 30  // heat beat time ;
 #else
-#define TIME_HEAT_BEAT 3  // heat beat time ;
+#define TIME_HEAT_BEAT 4  // heat beat time ;
 #endif // _DEBUG
 
 #define GOLDEN_PEER_CARD 3

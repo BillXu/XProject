@@ -76,7 +76,7 @@ bool IPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 	}
 	if (m_pRoom->onPlayerEnter(pEnterRoomPlayer))
 	{
-		sendRoomInfo(pEnterRoomPlayer->nSessionID);
+		
 	}
 	return true;
 }
@@ -195,9 +195,10 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	case MSG_APPLY_DISMISS_VIP_ROOM:
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
-		if (pp == nullptr)
+		if (pp == nullptr && getRoomPlayerCnt() == 0 )
 		{
 			LOGFMTE("pp is null why , you apply dismiss , but , you are not sit in room, session id = %u", nSessionID);
+			doRoomGameOver(true);
 			return true;
 		}
 
@@ -274,7 +275,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			break;
 		}
 
-		if ( m_vPlayerAgreeDismissRoom.size() == m_pRoom->getSeatCnt() )
+		if ( m_vPlayerAgreeDismissRoom.size() == getRoomPlayerCnt() )
 		{
 			m_tWaitReplyDismissTimer.canncel();
 			m_tWaitReplyDismissTimer.reset();
@@ -515,6 +516,21 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 GameRoom* IPrivateRoom::getCoreRoom()
 {
 	return m_pRoom;
+}
+
+uint16_t IPrivateRoom::getRoomPlayerCnt()
+{
+	uint16_t nCnt = 0;
+	auto nSeatCnt = getCoreRoom()->getSeatCnt();
+	for ( auto nPlayerIdx = 0; nPlayerIdx < nSeatCnt; ++nPlayerIdx)
+	{
+		auto p = getCoreRoom()->getPlayerByIdx(nPlayerIdx);
+		if (p)
+		{
+			++nCnt;
+		}
+	}
+	return nCnt;
 }
 
 bool IPrivateRoom::isRoomStarted()

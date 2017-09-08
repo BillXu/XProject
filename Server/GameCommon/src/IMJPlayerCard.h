@@ -1,6 +1,7 @@
 #pragma once 
 #include "NativeTypes.h"
 #include <vector>
+#include "json\json.h"
 class IMJPlayerCard
 {
 public:
@@ -12,6 +13,7 @@ public:
 	virtual void addDistributeCard( uint8_t nCardNum ) = 0 ;
 	virtual bool onGangCardBeRobot(uint8_t nCard ) = 0;
 	virtual bool onCardBeGangPengEat( uint8_t nCard ) = 0 ;
+	virtual void onVisitPlayerCardInfo(Json::Value& js, bool isSelf) = 0;
 
 	virtual bool isHaveCard(uint8_t nCard) = 0 ;
 	virtual bool canMingGangWithCard(uint8_t nCard) = 0 ;

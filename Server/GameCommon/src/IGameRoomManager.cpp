@@ -179,7 +179,11 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 					break;
 				}
 
-				pRoom->onPlayerEnter(&tInfo);
+				if (pRoom->onPlayerEnter(&tInfo))
+				{
+					pRoom->sendRoomInfo(tInfo.nSessionID);
+				}
+				
 			} while (0);
 
 			Json::Value jsRet;

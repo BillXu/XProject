@@ -5,7 +5,7 @@ CServerNetwork::CServerNetwork()
 {
 	m_pNetPeer = NULL;
 	m_vAllDelegates.clear() ;
-
+	m_isNative = true;
 	//zsummer::log4z::ILog4zManager::GetInstance()->Config("server.cfg");
 	//zsummer::log4z::ILog4zManager::GetInstance()->Start();
 }
@@ -23,6 +23,7 @@ bool CServerNetwork::StartupNetwork( unsigned short nPort , int nMaxInComming , 
 		ShutDown();
 	}
 
+	m_isNative = isNative;
 	if (isNative)
 	{
 		m_pNetPeer = new CServerNetworkImp();
@@ -134,8 +135,18 @@ bool CServerNetwork::OnPeerDisconnected(CServerNetworkDelegate* pDelegate, Packe
 
 bool CServerNetwork::OnLogicMessage(CServerNetworkDelegate* pDeleate, Packet* pPacket)
 {
-	unsigned char cSys = *((unsigned char*)pPacket->_orgdata);
-	if ((unsigned char)-1 != cSys) // normal logic msg // heat beat flag ;
+	bool isHeatBet = false;
+	if ( false == m_isNative ) // websocket ;  
+	{
+		isHeatBet = ( (size_t)2 >= pPacket->_len ) && ( pPacket->_orgdata[0] == 'H' );
+	}
+	else
+	{
+		unsigned char cSys = *((unsigned char*)pPacket->_orgdata);
+		isHeatBet = (unsigned char)-1 == cSys;
+	}
+	
+	if ( !isHeatBet ) // normal logic msg // heat beat flag ;
 	{
 		return pDeleate->OnMessage(pPacket);
 	}

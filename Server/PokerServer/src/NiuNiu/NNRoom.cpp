@@ -210,15 +210,17 @@ bool NNRoom::canStartGame()
 	for (uint16_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
 	{
 		auto p = getPlayerByIdx(nIdx);
-		//if ( p && (p->haveState(eRoomPeer_Ready) == false))
-		//{
-		//	return false;
-		//}
-
-		if ( p && p->haveState(eRoomPeer_Ready ))
+		if ( nullptr == p )
 		{
-			++nReadyCnt;
+			continue;
 		}
+
+		if ( p->haveState(eRoomPeer_Ready) == false )
+		{
+			return false;
+		}
+
+		++nReadyCnt;
 	}
 	return nReadyCnt >= 2;
 }
@@ -535,8 +537,90 @@ bool NNRoom::isAllPlayerRobotedBanker()
 	return true;
 }
 
-int16_t NNRoom::getBeiShuByCardType(uint16_t nType, uint16_t nPoint)
+int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 {
+	if ( m_eResultType == eResult_NiuNiu4)
+	{
+		if (nType == CNiuNiuPeerCard::Niu_None)
+		{
+			return 1;
+		}
+
+		if (nType == CNiuNiuPeerCard::Niu_Single)
+		{
+			if (nPoint >= 1 && nPoint <= 6)
+			{
+				return 1;
+			}
+
+			if (nPoint <= 8)
+			{
+				return 2;
+			}
+
+			if (nPoint == 9)
+			{
+				return 3;
+			}
+		}
+		else if (CNiuNiuPeerCard::Niu_Niu == nType)
+		{
+			return 4;
+		}
+		else if (CNiuNiuPeerCard::Niu_FiveFlower == nType)
+		{
+			return 5;
+		}
+		else if (CNiuNiuPeerCard::Niu_Boom == nType)
+		{
+			return 6;
+		}
+		else if (CNiuNiuPeerCard::Niu_FiveSmall == nType)
+		{
+			return 8;
+		}
+		LOGFMTE( "niu 4 result type : unknown : %u , p = %u",nType,nPoint );
+		return 1;
+	}
+	else if (eReulst_NiuNiu3 == m_eResultType)
+	{
+		if (nType == CNiuNiuPeerCard::Niu_None)
+		{
+			return 1;
+		}
+
+		if (nType == CNiuNiuPeerCard::Niu_Single)
+		{
+			if (nPoint >= 1 && nPoint <= 7)
+			{
+				return 1;
+			}
+
+			if (nPoint <= 9)
+			{
+				return 2;
+			}
+		}
+		else if (CNiuNiuPeerCard::Niu_Niu == nType)
+		{
+			return 3;
+		}
+		else if (CNiuNiuPeerCard::Niu_FiveFlower == nType)
+		{
+			return 5;
+		}
+		else if (CNiuNiuPeerCard::Niu_Boom == nType)
+		{
+			return 6;
+		}
+		else if (CNiuNiuPeerCard::Niu_FiveSmall == nType)
+		{
+			return 8;
+		}
+		LOGFMTE("niu 3 result type : unknown : %u , p = %u", nType, nPoint);
+		return 1;
+	}
+	LOGFMTE( "unknow result = %u , room id = %u",m_eResultType,getRoomID() );
 	return 1;
 }
 

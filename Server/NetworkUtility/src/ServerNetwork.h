@@ -38,4 +38,5 @@ protected:
 protected:
 	IServerNetworkImp* m_pNetPeer ;
 	LIST_DELEGATE m_vAllDelegates ;
+	bool m_isNative;
 };

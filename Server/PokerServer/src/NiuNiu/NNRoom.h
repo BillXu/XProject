@@ -10,6 +10,7 @@ public:
 	{
 		eReulst_NiuNiu3,
 		eResult_NiuNiu5,
+		eResult_NiuNiu4 = eResult_NiuNiu5,
 		eResult_NiuNiu10,
 		eResult_Max,
 	};

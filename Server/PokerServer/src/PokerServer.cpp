@@ -1,7 +1,5 @@
 #include "PokerServer.h"
 #include "MessageDefine.h"
-#include <ctime>
-#include "log4z.h"
 #include "RoomManager.h"
 bool PokerServerApp::init(Json::Value& jsSvrCfg)
 {

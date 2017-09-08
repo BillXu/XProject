@@ -27,17 +27,26 @@ public:
 			((NNRoom*)getRoom())->onPlayerReady(nIdx);
 			LOGFMTD( "auto set ready room id = %u , uid = %u",getRoom()->getRoomID(),ptrPlayer->getUserUID() );
 		}
-	}
 
-	void update(float fDeta)override
-	{
-		IGameRoomState::update(fDeta);
-		auto pRoom = getRoom();
-		if (pRoom->canStartGame())
+		if (getRoom()->canStartGame())
 		{
-			pRoom->goToState(eRoomState_StartGame);
+			getRoom()->goToState(eRoomState_StartGame);
+		}
+		else
+		{
+			setStateDuringTime(eTime_WaitPlayerReady);
 		}
 	}
+
+	//void update(float fDeta)override
+	//{
+	//	IGameRoomState::update(fDeta);
+	//	auto pRoom = getRoom();
+	//	if (pRoom->canStartGame())
+	//	{
+	//		pRoom->goToState(eRoomState_StartGame);
+	//	}
+	//}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
 	{
