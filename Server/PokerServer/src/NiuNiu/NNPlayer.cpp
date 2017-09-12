@@ -33,6 +33,7 @@ uint16_t NNPlayer::getRobotBankerTimes()
 void NNPlayer::doCaculatedNiu()
 {
 	m_isCaculatedNiu = true;
+	setState(eRoomPeer_Looked);
 }
 
 bool NNPlayer::isCaculatedNiu()

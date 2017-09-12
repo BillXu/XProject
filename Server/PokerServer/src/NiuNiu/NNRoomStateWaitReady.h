@@ -38,15 +38,15 @@ public:
 		}
 	}
 
-	//void update(float fDeta)override
-	//{
-	//	IGameRoomState::update(fDeta);
-	//	auto pRoom = getRoom();
-	//	if (pRoom->canStartGame())
-	//	{
-	//		pRoom->goToState(eRoomState_StartGame);
-	//	}
-	//}
+	void update(float fDeta)override
+	{
+		IGameRoomState::update(fDeta);
+		auto pRoom = getRoom();
+		if (pRoom->canStartGame())
+		{
+			pRoom->goToState(eRoomState_StartGame);
+		}
+	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
 	{

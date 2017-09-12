@@ -36,20 +36,39 @@ bool ISingleRoundRecorder::addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorde
 	return true;
 }
 
-void ISingleRoundRecorder::toJson(Json::Value& js)
+void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecorder, CAsyncRequestQuene* pSyncQuene )
 {
-	js["replayID"] = m_nReplayID;
-	js["roundIdx"] = m_nRoundIdx;
-	js["time"] = m_nFinishTime;
+	if (m_vPlayerRecorderInfo.empty())
+	{
+		LOGFMTE( "room sieral = %u , round = %u do not have player , so do not save .",pOwnRoomRecorder->getSieralNum(),m_nRoundIdx );
+		return;
+	}
 
 	Json::Value jsPlayers;
 	for (auto& ref : m_vPlayerRecorderInfo)
 	{
-		Json::Value jsPlayer ;
+		Json::Value jsPlayer;
 		ref.second->toJson(jsPlayer);
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
-	js["players"] = jsPlayers;
+
+	// to string 
+	std::string strPlayers;
+	if (jsPlayers.isNull() == false)
+	{
+		Json::StyledWriter jswrite;
+		strPlayers = jswrite.write(jsPlayers);
+	}
+
+
+	// do save sql  room round recorder 
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, sizeof(pBuffer), "insert into room_record_per_round ( sieralNum,roundIdx,replayID,time,resultDetail ) values (%u,%u,%u,from_unixtime( %u ),",pOwnRoomRecorder->getSieralNum(),m_nRoundIdx,m_nReplayID,m_nFinishTime );
+	std::ostringstream ss;
+	ss << pBuffer << " '" << jsPlayers << "' ) ;";
+	jssql["sql"] = ss.str();
+	pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, pOwnRoomRecorder->getSieralNum(), eAsync_DB_Add, jssql);
 }
 
 bool ISingleRoundRecorder::calculatePlayerTotalOffset(std::map<uint32_t, int32_t>& vPlayerOffset)
@@ -132,28 +151,12 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 		strOpts = jswrite.write(m_jsOpts);
 	}
 
-	// get player rounds ;
-	Json::Value jsRounds;
-	for (auto& ref : m_vAllRoundRecorders)
-	{
-		Json::Value jsRound;
-		ref.second->toJson(jsRound);
-		jsRounds[jsRounds.size()] = jsRound;
-	}
-
-	std::string strRounds;
-	if (jsRounds.isNull() == false)
-	{
-		Json::StyledWriter jswrite;
-		strRounds = jswrite.write(jsRounds);
-	}
-
 	// do save sql  room recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roomrecorder ( sieralNum,roomID,createUID,time,roomType,opts,roundResults ) values (%u,%u,%u,now(),'%u',", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nRoomType );
+	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,time,roomType,opts ) values (%u,%u,%u,now(),'%u',", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nRoomType );
 	std::ostringstream ss;
-	ss << pBuffer << "'" << strOpts << "','" << strRounds << "' ) ;";
+	ss << pBuffer << "'" << strOpts << "' ) ;";
 	jssql["sql"] = ss.str();
 	pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB,getSieralNum(), eAsync_DB_Add, jssql );
 
@@ -174,6 +177,13 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,time,roomType ) values (%u,%u,%u,%d,now(),'%u');", nUserUID,m_nSieralNum, m_nRoomID, nOffset, m_nRoomType);
 		jssql["sql"] = pBuffer;
 		pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSieralNum(), eAsync_DB_Add, jssql);
+	}
+
+	// do save round info ;
+	Json::Value jsRounds;
+	for (auto& ref : m_vAllRoundRecorders)
+	{
+		ref.second->doSaveRoomRecorder(this, pSyncQuene);
 	}
 }
 

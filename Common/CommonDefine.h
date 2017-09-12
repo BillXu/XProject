@@ -42,6 +42,7 @@ enum eGameType
 {
 	eGame_None,
 	eGame_NiuNiu,
+	eGame_TestMJ,
 	eGame_Max,
 };
 

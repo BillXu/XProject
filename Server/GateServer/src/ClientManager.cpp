@@ -106,11 +106,23 @@ bool CGateClientMgr::onMsg(stMsg* pMsg, size_t nMsgLen, CONNECT_ID nNetID)
 	{
 		stMsgReconnect* pRet = (stMsgReconnect*)pMsg;
 		auto pBeConnectGate = getGateClientBySessionID(pRet->nSessionID);
-		bool bReconnectOk = pBeConnectGate != NULL && pBeConnectGate->getBindUID() > 0;
+		bool bReconnectOk = pBeConnectGate != NULL && pBeConnectGate->getBindUID() > 0 && pBeConnectGate->isWaitingReconnect();
 		stGateClient* pCurGate = getGateClientByNetWorkID(nNetID);
-		if (pCurGate == nullptr)
+		if (pCurGate == nullptr || pCurGate->isVerifyed() == false )
 		{
 			LOGFMTE("do reconnect why cur player is nullptr ?");
+			bReconnectOk = false;
+		}
+
+		if ( pBeConnectGate->isWaitingReconnect() == false )
+		{
+			LOGFMTE( "beConnect is not waiting for reconnect " );
+			bReconnectOk = false;
+		}
+
+		if ( pBeConnectGate == pCurGate )
+		{
+			LOGFMTE( "can not connect self session id = %u",pRet->nSessionID );
 			bReconnectOk = false;
 		}
 
@@ -371,7 +383,7 @@ void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWait
 			msgRet.nCurState = 1;
 			msgRet.nTargetID = pGateClient->getBindUID();
 			CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pGateClient->getSessionID());
-
+			CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(pGateClient->getNetworkID());
 			pGateClient->startWaitReconnect();
 			return;
 		}

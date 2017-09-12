@@ -21,6 +21,7 @@ public:
 };
 
 class CAsyncRequestQuene;
+class IGameRoomRecorder;
 class ISingleRoundRecorder
 {
 public:
@@ -30,7 +31,7 @@ public:
 	uint32_t getFinishTime();
 	uint32_t getReplayID();
 	bool addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorder> ptrPlayerRecorderInfo );
-	void toJson(Json::Value& js );
+	void doSaveRoomRecorder(IGameRoomRecorder* pOwnRoomRecorder ,CAsyncRequestQuene* pSyncQuene);
 	bool calculatePlayerTotalOffset(std::map<uint32_t, int32_t>& vPlayersOffset );
 protected:
 	std::map<uint32_t, std::shared_ptr<IPlayerRecorder>> m_vPlayerRecorderInfo;

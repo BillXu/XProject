@@ -43,6 +43,7 @@ public:
 	virtual void onPlayerLouPeng(uint8_t nIdx, uint32_t nLouCard );
 	virtual bool isHaveLouHu() { return true; };
 	virtual bool isHaveLouPeng() { return false; }
+	void sendRoomInfo(uint32_t nSessionID)override;
 protected:
 	uint8_t m_nBankerIdx;
 	FanxingChecker* m_pFanxingChecker;

@@ -800,6 +800,12 @@ void IMJRoom::onPlayerLouPeng(uint8_t nIdx, uint32_t nLouCard)
 	p->getPlayerCard()->addLouPengedCard(nLouCard);
 }
 
+void IMJRoom::sendRoomInfo(uint32_t nSessionID)
+{
+	GameRoom::sendRoomInfo(nSessionID);
+	// send hold card
+}
+
 
 
 

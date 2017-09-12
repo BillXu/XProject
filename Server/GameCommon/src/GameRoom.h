@@ -44,7 +44,7 @@ public:
 	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0 )final;
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )override;
-	void sendRoomInfo(uint32_t nSessionID)final;
+	void sendRoomInfo(uint32_t nSessionID)override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)final;
 	IGameRoomManager* getRoomMgr();

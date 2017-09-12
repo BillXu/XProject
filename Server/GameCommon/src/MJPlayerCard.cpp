@@ -906,3 +906,16 @@ uint8_t MJPlayerCard::getJiang()
 	}
 	return nJiang;
 }
+
+void MJPlayerCard::debugCardInfo()
+{
+	return;
+	LOGFMTD("card Info: \n");
+	VEC_CARD vHold;
+	getHoldCard(vHold);
+	for (uint8_t nCard : vHold )
+	{
+		LOGFMTD("cardNumber : %u\n", nCard);
+	}
+	LOGFMTD("card info end \n\n");
+}

@@ -28,7 +28,7 @@ public:
 		assert((m_vWaitHuIdx.empty() == false || m_vWaitPengGangIdx.empty() == false) && "invalid argument");
 
 		// wait truastee;
-		std::vector<uint8_t> vWaitTruste;
+		std::vector<uint16_t> vWaitTruste;
 		vWaitTruste = m_vWaitHuIdx;
 		vWaitTruste.insert(vWaitTruste.begin(),m_vWaitPengGangIdx.begin(),m_vWaitPengGangIdx.end());
 		if (m_isNeedWaitEat)
@@ -229,7 +229,7 @@ public:
 				m_vEatWithInfo.clear();
 				m_vEatWithInfo.push_back(jsE[0u].asUInt());
 				m_vEatWithInfo.push_back(jsE[1u].asUInt());
-				if ( !pMJCard->canEatCard(m_nCard, m_vEatWithInfo[0], m_vEatWithInfo[1]))
+				if ( !pMJCard->canEatCard(m_nCard))
 				{
 					LOGFMTE("why you can not eat ? svr bug ");
 					nRet = 2;
@@ -358,10 +358,10 @@ protected:
 
 	uint16_t m_ePengGangAct;
 
-	std::vector<uint8_t> m_vWaitHuIdx;
+	std::vector<uint16_t> m_vWaitHuIdx;
 	std::vector<uint8_t> m_vDoHuIdx;
 
-	std::vector<uint8_t> m_vWaitPengGangIdx;
+	std::vector<uint16_t> m_vWaitPengGangIdx;
 	std::vector<uint8_t> m_vDoPengGangIdx;
 
 	std::vector<uint8_t> m_vEatWithInfo;
