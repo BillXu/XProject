@@ -261,7 +261,7 @@ bool CHttpModule::handleAddRoomCard(http::server::connection_ptr ptr)
 	}
 
 	uint32_t nUID = 0, nAgentID = 0 ;
-	uint32_t nAddCard;
+	int32_t nAddCard;
 	uint32_t nAddCardNo;
 	if (jsRoot["playerUID"].isNull() || jsRoot["playerUID"].isUInt() == false )
 	{

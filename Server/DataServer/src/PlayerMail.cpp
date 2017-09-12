@@ -79,7 +79,7 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 	{
 		if (getPlayer()->getBaseData()->isPlayerReady())
 		{
-			auto nDiamondCnt = pMail->jsDetail["cardOffset"].asUInt();
+			auto nDiamondCnt = pMail->jsDetail["cardOffset"].asInt();
 			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt, true);
 		}
 		else

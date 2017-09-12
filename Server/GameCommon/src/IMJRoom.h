@@ -13,8 +13,8 @@ public:
 public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
 	void onStartGame() override;
-	void onGameEnd() override;
-	void onGameDidEnd() override;
+	//void onGameEnd() override;
+	//void onGameDidEnd() override;
 	bool canStartGame() override;
 
 	uint8_t getBankerIdx();
