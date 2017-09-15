@@ -97,7 +97,7 @@ bool IGameRoomManager::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort 
 		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
 		if ( prealMsg["roomState"].isNull() )
 		{
-			LOGFMTE("room state not be asign in IPrivateRoom  onMsg , why ?");
+			LOGFMTE("room state not be asign in IPrivateRoom  onMsg , why ?"); 
 		}
 		LOGFMTW("room id = %u can not process msg = %u ,from id = %u , state = %u",nTargetID,nMsgType,nSenderID, prealMsg["roomState"].asUInt() );
 		return false;

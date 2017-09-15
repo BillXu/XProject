@@ -6,7 +6,7 @@
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include <time.h>
-#define TIME_WAIT_REPLY_DISMISS 90
+#define TIME_WAIT_REPLY_DISMISS 180
 #define TIME_AUTO_DISMISS (60*60*1)
 IPrivateRoom::~IPrivateRoom()
 {
