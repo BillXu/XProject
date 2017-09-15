@@ -62,12 +62,13 @@ bool CCenterServerApp:: Init()
 
 	for ( uint16_t ndx = ID_MSG_PORT_NONE ; ndx < ID_MSG_PORT_MAX ; ++ndx )
 	{
-		m_vTargetServers[ndx].init((eMsgPort)ndx,1) ;
-		LOGFMTE("temp set max svr cnt = 1");
+		auto nSvrCnt = ( ndx == ID_MSG_PORT_GATE ? 2 : 1 );
+		m_vTargetServers[ndx].init((eMsgPort)ndx, nSvrCnt) ;
+		LOGFMTE("temp set max svr cnt = %u",nSvrCnt );
 	}
 
 	m_tWaitSvrSetup.setIsAutoRepeat(false);
-	m_tWaitSvrSetup.setInterval(60 * 5);
+	m_tWaitSvrSetup.setInterval(60 * 3);
 	m_tWaitSvrSetup.setCallBack([this](CTimer* p, float fDelta) 
 	{  
 		for ( auto& ref : m_vTargetServers)

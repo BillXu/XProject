@@ -592,6 +592,17 @@ bool GameRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)
 		LOGFMTE("inform player session id  refreshed , but player is null room id = %u , uid = %u", getRoomID(), nPlayerID);
 		return false;
 	}
+
+	if ( pPlayer->isOnline() == false )
+	{
+		// send msg update net state ;
+		Json::Value jsNetState;
+		jsNetState["idx"] = pPlayer->getIdx();
+		jsNetState["uid"] = pPlayer->getUserUID();
+		jsNetState["state"] = eNetState::eNet_Online;
+		sendRoomMsg(jsNetState, MSG_ROOM_REFRESH_NET_STATE);
+	}
+
 	pPlayer->setNewSessionID(nSessinID);
 	return true;
 }
@@ -739,6 +750,8 @@ void GameRoom::goToState(uint32_t nStateID, Json::Value* jsValue)
 void GameRoom::setInitState(IGameRoomState* pTargetState)
 {
 	m_pCurState = pTargetState;
+	Json::Value jsNull;
+	m_pCurState->enterState(this, jsNull);
 }
 
 bool GameRoom::addRoomState(IGameRoomState* pTargetState)

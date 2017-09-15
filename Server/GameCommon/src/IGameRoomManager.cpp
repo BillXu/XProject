@@ -230,6 +230,10 @@ uint32_t IGameRoomManager::generateRoomID()
 		uint32_t nSecondID = rand() % 100;
 		nRoomID = nFirstID * nBase + nSecondID * ( nBase / 100 ) + nLastID;
 
+		// conditon svr idx ;
+		auto nIdx = nRoomID % getSvrApp()->getCurSvrMaxCnt();
+		nRoomID = nRoomID - nIdx + getSvrApp()->getCurSvrIdx();
+
 		++nTryTimes;
 		if ( nTryTimes > 1 )
 		{

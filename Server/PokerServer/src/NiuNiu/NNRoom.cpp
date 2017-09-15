@@ -25,8 +25,6 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 	IGameRoomState* pState = new NNRoomStateWaitReady();
 	addRoomState(pState);
 	setInitState(pState);
-	Json::Value jsNull;
-	pState->enterState(this,jsNull);
 	pState = new NNRoomStateGameEnd();
 	addRoomState(pState);
 	pState = new NNRoomStateCaculateNiu();

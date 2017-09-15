@@ -42,6 +42,7 @@ void CHttpModule::init(IServerApp* svrApp)
 	registerHttpHandle("/playerInfo.yh", std::bind(&CHttpModule::handleGetPlayerInfo, this, std::placeholders::_1));
 	registerHttpHandle("/addRoomCard.yh", std::bind(&CHttpModule::handleAddRoomCard, this, std::placeholders::_1));
 	registerHttpHandle("/AnyLogin.yh", std::bind(&CHttpModule::handleAnySdkLogin, this, std::placeholders::_1));
+	registerHttpHandle("cmd.yh", std::bind(&CHttpModule::handleHttpCmd, this, std::placeholders::_1));
 }
 
 void CHttpModule::update(float fDeta)
@@ -345,4 +346,71 @@ bool CHttpModule::handleAnySdkLogin(http::server::connection_ptr ptr)
 	});
 	pTaskPool->postTask(pTask);
 	return true;
+}
+
+bool CHttpModule::handleHttpCmd(http::server::connection_ptr ptr)
+{
+	auto req = ptr->getReqPtr();
+	auto res = ptr->getReplyPtr();
+	LOGFMTD("reciveget http cmd info req = %s", req->reqContent.c_str());
+
+	Json::Reader jsReader;
+	Json::Value jsRoot;
+	auto bRet = jsReader.parse(req->reqContent, jsRoot);
+	if (!bRet)
+	{
+		LOGFMTE("parse http cmd argument error");
+		return false;
+	}
+
+	uint32_t nTargetID = 0, nCmd = 0;
+	if ( jsRoot["cmd"].isNull() || jsRoot["cmd"].isUInt() == false )
+	{
+		LOGFMTE( "cmd key is null" );
+		return false;
+	}
+
+	if ( jsRoot["targetID"].isNull() || jsRoot["targetID"].isUInt() == false)
+	{
+		LOGFMTE("cmd targetID key is null");
+		return false;
+	}
+
+	nTargetID = jsRoot["cmd"].asUInt();
+	nCmd = jsRoot["targetID"].asUInt();
+	auto nTargetPort = getSvrPortByCmd(nCmd);
+	if ( ID_MSG_PORT_MAX == nTargetPort )
+	{
+		LOGFMTE( "can not find target port for cmd = %u",nCmd );
+		return false;
+	}
+	// do async request 
+	auto jsReqArg = jsRoot["arg"];
+	auto async = getSvrApp()->getAsynReqQueue();
+	async->pushAsyncRequest( nTargetPort, nTargetID, nCmd, jsReqArg, [ptr, nCmd](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+	{
+		if ( isTimeOut )
+		{
+			auto res = ptr->getReplyPtr();
+			std::string str = "req timeOut";
+			res->setContent( str, "text/json");
+			ptr->doReply();
+			return;
+		}
+
+		// build msg to send ;
+		Json::Value jsRespone = retContent;
+		jsRespone["cmd"] = nCmd;
+		Json::StyledWriter jswrite;
+		auto str = jswrite.write(jsRespone);
+		auto res = ptr->getReplyPtr();
+		res->setContent(str, "text/json");
+		ptr->doReply();
+	});
+	LOGFMTD("do recieved http cmd = %u", nCmd );
+}
+
+uint16_t CHttpModule::getSvrPortByCmd(uint16_t nCmd)
+{
+	return ID_MSG_PORT_MAX;
 }

@@ -136,6 +136,7 @@ bool CLogSvrApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSer
 
 		// send back ;
 		stMsgAsyncRequestRet msgBack;
+		msgBack.nRet = 0;
 		msgBack.cSysIdentifer = (eMsgPort)nSenderPort;
 		msgBack.nReqSerailID = pReq->nRequestUID;
 		msgBack.nTargetID = nSenderID;

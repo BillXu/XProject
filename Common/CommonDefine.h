@@ -9,11 +9,7 @@
 #define MAX_LEN_SPEAK_WORDS 200  
 #define MAX_MSG_BUFFER_LEN 59640
 
-#ifdef _DEBUG
-#define TIME_HEAT_BEAT 30  // heat beat time ;
-#else
-#define TIME_HEAT_BEAT 4  // heat beat time ;
-#endif // _DEBUG
+#define TIME_HEAT_BEAT 3  // heat beat time ;
 
 #define GOLDEN_PEER_CARD 3
 #define MAX_ROOM_PEER 5

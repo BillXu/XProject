@@ -136,6 +136,7 @@ bool CDBServerApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqS
 
 		// send back ;
 		stMsgAsyncRequestRet msgBack;
+		msgBack.nRet = 0;
 		msgBack.cSysIdentifer = (eMsgPort)nSenderPort;
 		msgBack.nReqSerailID = pReq->nRequestUID;
 		msgBack.nTargetID = nSenderID;

@@ -42,7 +42,7 @@ void SeverInfo::onVerifiedSvr()
 void SeverInfo::onReciveHeatBeat()
 {
 	m_isRecievedHeatBeat = true;
-	LOGFMTD("onReciveHeatBeat ip = %s", getIP());
+	//LOGFMTD("onReciveHeatBeat ip = %s", getIP());
 }
 
 // server group

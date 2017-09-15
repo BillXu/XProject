@@ -5,7 +5,7 @@
 #include "ISeverApp.h"
 #include "log4z.h"
 #include "catch_dump_file.h"
-#define  TIME_CHECK_REQ_STATE 20
+#define  TIME_CHECK_REQ_STATE 30
 void CAsyncRequestQuene::init( IServerApp* svrApp )
 {
 	IGlobalModule::init(svrApp) ;
@@ -66,7 +66,7 @@ bool CAsyncRequestQuene::onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t
 		if ( pReq->lpCallBack )
 		{
 			//pReq->lpCallBack(pReq->nReqType, jsResultContent, pReq->jsUserData);
-			auto bRet = tempFunc(pReq, jsResultContent, pReq->jsUserData,false );
+			auto bRet = tempFunc(pReq, jsResultContent, pReq->jsUserData, pRet->nRet == 2 );
 			if (!bRet)
 			{
 				LOGFMTE("do have a exption for this request type = %u",pReq->nReqType );
@@ -221,7 +221,7 @@ void CAsyncRequestQuene::timerCheckReqState(CTimer* pTimer, float fTick )
 	for ( auto pairReq : m_mapRunningRequest )
 	{
 		auto pReq = pairReq.second ;
-		if (pReq->nSendTimes > 10 )
+		if (pReq->nSendTimes > 5 )
 		{
 			// tell callBack , not process ;
 			if (pReq->lpCallBack)
