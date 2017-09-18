@@ -61,7 +61,11 @@ void CServerNetworkImp::handleAccept( const asio::error_code& error, session_ptr
 		pack->_connectID = session->getConnectID() ;
 		pack->_len = str.size();
 		memset(pack->_orgdata,0,sizeof(pack->_orgdata));
-		memcpy_s(pack->_orgdata, sizeof(pack->_orgdata), str.c_str(), pack->_len);
+
+		ConnectInfo* pCInfo = (ConnectInfo*)pack->_orgdata;
+		auto nBufferSize = sizeof(pCInfo->strAddress) - 1;
+		memcpy_s(pCInfo->strAddress, nBufferSize, str.c_str(), (nBufferSize > str.size() ? str.size() : nBufferSize));
+		pCInfo->nPort = session->socket().remote_endpoint().port();
 		addPacket(pack);
   
 	}  

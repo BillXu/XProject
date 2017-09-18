@@ -152,6 +152,12 @@ void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl, bool isServe
 
 void H5ServerNetworkImp::on_open(websocketpp::connection_hdl hdl)
 {
+	if ( nullptr == m_pNetServer.get_con_from_hdl(hdl) )
+	{
+		LOGFMTE("new connect connection , get cano get data info");
+		return;
+	}
+
 	m_SessionMutex.lock();
 	auto netID= ++m_nCurMaxNetID;
 	if (m_vActiveSessions.find(netID) != m_vActiveSessions.end())
@@ -163,15 +169,27 @@ void H5ServerNetworkImp::on_open(websocketpp::connection_hdl hdl)
 	}
 	m_vActiveSessions[netID] = hdl;
 	m_SessionMutex.unlock();
-	std::string str = m_pNetServer.get_con_from_hdl(hdl)->get_host();// session->socket().remote_endpoint().address().to_string();
-	LOGFMTD("a peer connected ip = %s id = %u", str.c_str(), netID );
+
+	auto pRpoint = m_pNetServer.get_con_from_hdl(hdl)->get_socket().remote_endpoint();
+	std::string str = pRpoint.address().to_string();
+	auto nPos = str.find_last_of(':');
+	if (nPos != std::string::npos)
+	{
+		str = str.substr(nPos + 1, str.size() - nPos);
+	}
+	LOGFMTD("a peer connected ip = %s , port = %u id = %u", str.c_str(),pRpoint.port() ,netID);
+	
 	Packet* pack = new Packet;
 	pack->_brocast = false;
 	pack->_packetType = _PACKET_TYPE_CONNECTED;
 	pack->_connectID = netID;
 	pack->_len = str.size();
 	memset(pack->_orgdata, 0, sizeof(pack->_orgdata));
-	memcpy_s(pack->_orgdata, sizeof(pack->_orgdata), str.c_str(), pack->_len);
+
+	ConnectInfo* pCInfo = (ConnectInfo*)pack->_orgdata;
+	auto nBufferSize = sizeof(pCInfo->strAddress) - 1;
+	memcpy_s(pCInfo->strAddress, nBufferSize, str.c_str(), (nBufferSize > str.size() ? str.size() : nBufferSize ) );
+	pCInfo->nPort = pRpoint.port();
 	addPacket(pack);
 }
 

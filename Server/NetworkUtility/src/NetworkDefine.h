@@ -22,6 +22,6 @@ struct Packet
 
 struct ConnectInfo
 {
-	unsigned char strAddress[16];
+	unsigned char strAddress[30];
 	unsigned short nPort ;
 };
