@@ -17,6 +17,12 @@
     <Filter Include="src\NiuNiu\state\LookCardRobotBanker">
       <UniqueIdentifier>{bedb30af-9f5f-4c09-a123-588c8d80b953}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\BiJi">
+      <UniqueIdentifier>{54796eff-9105-4f68-aa79-eb4eb3fd14d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\BiJi\state">
+      <UniqueIdentifier>{3a1a36f6-dd50-4fd9-9442-a217d8a1ac0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -42,6 +48,18 @@
     </ClCompile>
     <ClCompile Include="src\CardPoker.cpp">
       <Filter>src\Card</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BiJi\BJPlayerCard.cpp">
+      <Filter>src\BiJi</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BiJi\BJPlayer.cpp">
+      <Filter>src\BiJi</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BiJi\BJRoom.cpp">
+      <Filter>src\BiJi</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BiJi\BJPrivateRoom.cpp">
+      <Filter>src\BiJi</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +122,30 @@
     </ClInclude>
     <ClInclude Include="src\NiuNiu\NiuNiuPlayerRecorder.h">
       <Filter>src\NiuNiu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJPlayerCard.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJPlayer.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJRoom.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJPrivateRoom.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJRoomStateStartGame.h">
+      <Filter>src\BiJi\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJRoomStateWaitPlayerReady.h">
+      <Filter>src\BiJi\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJRoomStateMakeGroupCard.h">
+      <Filter>src\BiJi\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJRoomStateGameEnd.h">
+      <Filter>src\BiJi\state</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

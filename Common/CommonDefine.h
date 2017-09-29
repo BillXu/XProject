@@ -38,6 +38,7 @@ enum eGameType
 {
 	eGame_None,
 	eGame_NiuNiu,
+	eGame_BiJi,
 	eGame_TestMJ,
 	eGame_Max,
 };
@@ -67,6 +68,9 @@ enum eRoomState
 	eRoomState_WaitPlayerChu, // µÈ´ýÍæ¼Ò³öÅÆ { idx : 2 }
 	eRoomState_MJ_Common_Max = 80, 
 
+	// bj specail 
+	eRoomState_BJ_Make_Group,
+	eRoomState_BJ_Max = 100,
 	// above is new ;
 	eRoomState_None,
 	eRoomState_WaitOpen,
@@ -224,7 +228,7 @@ enum eRoomPeerState
 	eRoomPeer_GiveUp = ((1 << 4)|eRoomPeer_StayThisRound),
 	eRoomPeer_CanAct = ((1 << 5)|eRoomPeer_WaitCaculate),
 	eRoomPeer_WaitNextGame = ((1 << 6)|eRoomPeer_SitDown ),
-	eRoomPeer_WithdrawingCoin = (1 << 8),  // when invoke drawing coin , must be sitdown , but when staup up , maybe in drawingCoin state 
+	eRoomPeer_DoMakedCardGroup = (1 << 8) | eRoomPeer_CanAct,  // when invoke drawing coin , must be sitdown , but when staup up , maybe in drawingCoin state 
 	eRoomPeer_LackOfCoin = (1<<9)|eRoomPeer_SitDown,
 	eRoomPeer_WillLeave = (1<<10)|eRoomPeer_StandUp ,
 	eRoomPeer_Looked =  (1<<13)|eRoomPeer_CanAct ,

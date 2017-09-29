@@ -189,6 +189,21 @@ enum eMsgType
 	MSG_REQ_ROOM_ITEM_INFO,
 	// client : { roomID : 23 }
 	// svr : { state : 2 ,isOpen : 0 , roomID: 23, opts: {} , players: [23,234,23 ..] }
+	MSG_POKER_BJ_BEGIN = 800,
+	
+	MSG_ROOM_BJ_START_GAME,
+	// svr : { vSelfCard : [23,23,23,2,23] }
+
+	MSG_PLAYER_MAKED_GROUP,
+	// client : { vCards : [23,23,23,23,23] }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 you are not in this room ,2 cards not fit , already maked card ;
+
+	MSG_ROOM_BJ_MAKE_GROUP_CARD,
+	// svr : { idx : 0 }
+
+	MSG_ROOM_BJ_GAME_END,
+	//svr : { players : [ { idx : 23 ,vGuoInfo : [ { type : 23 , offset : 2 , cards : [23,23,21] }, ..... ]  } , .....    ] } 
 
 	MSG_POKER_GAME_MSG_MAX = 1000,
 	

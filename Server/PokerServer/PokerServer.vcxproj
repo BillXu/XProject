@@ -88,6 +88,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\BiJi\BJPlayer.h" />
+    <ClInclude Include="src\BiJi\BJPlayerCard.h" />
+    <ClInclude Include="src\BiJi\BJPrivateRoom.h" />
+    <ClInclude Include="src\BiJi\BJRoom.h" />
+    <ClInclude Include="src\BiJi\BJRoomStateGameEnd.h" />
+    <ClInclude Include="src\BiJi\BJRoomStateMakeGroupCard.h" />
+    <ClInclude Include="src\BiJi\BJRoomStateStartGame.h" />
+    <ClInclude Include="src\BiJi\BJRoomStateWaitPlayerReady.h" />
     <ClInclude Include="src\CardPoker.h" />
     <ClInclude Include="src\IPeerCard.h" />
     <ClInclude Include="src\NiuNiu\NiuNiuPeerCard.h" />
@@ -110,6 +118,10 @@
     <ClInclude Include="src\RoomManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\BiJi\BJPlayer.cpp" />
+    <ClCompile Include="src\BiJi\BJPlayerCard.cpp" />
+    <ClCompile Include="src\BiJi\BJPrivateRoom.cpp" />
+    <ClCompile Include="src\BiJi\BJRoom.cpp" />
     <ClCompile Include="src\CardPoker.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\NiuNiu\NiuNiuPeerCard.cpp" />
