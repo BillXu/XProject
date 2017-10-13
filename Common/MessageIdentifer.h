@@ -5,16 +5,14 @@ enum eMsgPort
 	ID_MSG_PORT_CLIENT = ID_MSG_PORT_NONE,
 	ID_MSG_PORT_GATE,
 	ID_MSG_PORT_CENTER,
-	ID_MSG_PORT_LOGIN,
 	ID_MSG_PORT_VERIFY,
 	ID_MSG_PORT_RECORDER_DB,
 	ID_MSG_PORT_DATA,
 	ID_MSG_PORT_DB,
 	ID_MSG_PORT_MJ,
-	ID_MSG_PORT_POKER,
+	ID_MSG_PORT_BI_JI,
 	ID_MSG_PORT_NIU_NIU,
 	ID_MSG_PORT_GOLDEN,
-	ID_MSG_PORT_LOG,
 	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_MAX,
 };
@@ -83,7 +81,9 @@ enum eMsgType
 	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error ;
 	MSG_ROOM_REQ_ROOM_LIST, // send to data svr ;
 	// client : null 
-	// svr : { ret : 0 , roomIDS : [23,23,453,32], stayInRoomID : 0  }
+	// svr : { ret : 0 , rooms : [{id : 234, port : 23 }, ... ], stayInRoom : { id : 0 , port : 23 }  }
+	// if player is not in any room , "stayInRoom" will be null , svr do not send this key 
+
 	MSG_ENTER_ROOM,
 	// client : { roomID : 23, uid : 23 }
 	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error, 7 arg not allow enter ;

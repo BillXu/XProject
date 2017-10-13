@@ -29,7 +29,7 @@ public:
 				LOGFMTE("you are not in this room how to set ready ? session id = %u", nSessionID );
 				return true;
 			}
-			((IMJRoom*)getRoom())->onPlayerSetReady(pPlayer->getIdx());
+			((IMJRoom*)getRoom())->onPlayerSetReady((uint8_t)pPlayer->getIdx());
 			if (getRoom()->canStartGame())
 			{
 				getRoom()->goToState(eRoomState_StartGame);

@@ -5,7 +5,7 @@
 #include "IMJPlayer.h"
 #include "IMJPlayerCard.h"
 #include <cassert>
-#include "MJCard.h"
+#include "IMJPoker.h"
 class MJRoomStateWaitPlayerChu
 	:public IGameRoomState
 {

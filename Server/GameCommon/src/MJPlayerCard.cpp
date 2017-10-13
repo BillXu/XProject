@@ -392,7 +392,7 @@ bool MJPlayerCard::onPeng(uint8_t nCard, uint16_t nInvokerIdx )
 	// add peng info 
 	VEC_INVOKE_ACT_INFO::value_type tPeng;
 	tPeng.nTargetCard = nCard;
-	tPeng.nInvokerIdx = nInvokerIdx;
+	tPeng.nInvokerIdx = (uint8_t)nInvokerIdx;
 	tPeng.eAct = eMJAct_Peng;
 	m_vMingCardInfo.push_back(tPeng);
 	//debugCardInfo();
@@ -419,7 +419,7 @@ bool MJPlayerCard::onDirectGang(uint8_t nCard, uint8_t nGangGetCard, uint16_t nI
 	// sign ming gang info 
 	VEC_INVOKE_ACT_INFO::value_type tMingGang;
 	tMingGang.nTargetCard = nCard;
-	tMingGang.nInvokerIdx = nInvokerIdx;
+	tMingGang.nInvokerIdx = (uint8_t)nInvokerIdx;
 	tMingGang.eAct = eMJAct_MingGang;
 	m_vMingCardInfo.push_back(tMingGang);
 	
@@ -863,7 +863,7 @@ bool MJPlayerCard::getNormalCanHuCards(std::set<uint8_t>& vCanHus)
 		VEC_CARD& vCards = m_vCards[nType];
 		if (vCards.size() % 3 != 0)
 		{
-			vNotShunKeZiType.push_back(nType);
+			vNotShunKeZiType.push_back((uint8_t)nType);
 			continue;
 		}
 
@@ -979,7 +979,7 @@ bool MJPlayerCard::getCanHuCards(std::set<uint8_t>& vCanHus)
 
 		uint8_t n7Ting = 0;
 		std::sort(vCards.begin(),vCards.end());
-		for (uint8_t nIdx = 0; ( nIdx + 1 ) < vCards.size(); )
+		for (uint8_t nIdx = 0; ( nIdx + 1u ) < vCards.size(); )
 		{
 			if (vCards[nIdx] != vCards[nIdx + 1])
 			{

@@ -58,10 +58,10 @@ enum eAsyncReq
 	eAsync_Recived_Verify_Result, // inform data svr player, { ret : 0 , targetID : 2345 , channel : ePaychannel , shopItemID : 23 } // result : null ;
 	eAsync_AgentGetPlayerInfo, // { targetUID : 2345, agentID : 234 } , // ret { ret : 0 , isOnline : 0 , name : "hello name" , leftCardCnt : 2345  }  // ret : 1 , means success , 0 means can not find player ;
 	eAsync_AgentAddRoomCard, // { targetUID : 234523, agentID : 234, addCard : 2345 , addCardNo  : 2345 }  // ret ; always success ; 
-	eAsync_Request_EnterRoomInfo, //{ targetUID : 23, roomID : 23, sessionID : 23 } , result : { ret : 0 ,uid : 2 , coin : 23 , diamond : 23,stayRoomID : 23  } ; // ret : 0 success , 1 already in other room , 2 session id error ;
+	eAsync_Request_EnterRoomInfo, //{ targetUID : 23, roomID : 23, sessionID : 23, port : 23 } , result : { ret : 0 ,uid : 2 , coin : 23 , diamond : 23,stayRoomID : 23  } ; // ret : 0 success , 1 already in other room , 2 session id error ;
 	eAsync_Inform_Player_NetState, // { roomID : 23 , uid : 23 ,state : eNetState  } // result : null ; resut : { ret : 0 } ret : 0 ok , 1 can not find room id ;  
 	eAsync_Inform_Player_NewSessionID, // { roomID : 23 , uid : 23 , newSessionID : 23 } // result : { ret : 0 } ret : 0 ok , 1 can not find room id ; 
-	eAsync_Inform_Player_LeavedRoom, // { targetUID : 23 , roomID : 23 }
+	eAsync_Inform_Player_LeavedRoom, // { targetUID : 23 , roomID : 23, port : 23 }
 	eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23, reason : 0 }  // reason : 0 play in room , 1 create room  ;
 	eAsync_GiveBackDiamond, // { targetUID : 2345 , diamond : 23,roomID : 23,reason : 0  } // reason : 0 play in room , 1 create room  ;
 	eAsync_InformGate_PlayerLogout, //{ "sessionID" : 234 }

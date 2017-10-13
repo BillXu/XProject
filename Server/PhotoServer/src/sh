@@ -1,2 +1,0 @@
-g++ PhotoMgr.cpp mutex.cpp main.c ../httpd/lib/libmicrohttpd.a -I ./ -o main -lrt -lm
-

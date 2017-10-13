@@ -121,6 +121,7 @@ bool IPrivateRoom::doDeleteRoom()
 	Json::Value jsReqInfo;
 	jsReqInfo["targetUID"] = m_nOwnerUID;
 	jsReqInfo["roomID"] = getRoomID();
+	jsReqInfo["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
 	return m_pRoom->doDeleteRoom();

@@ -119,7 +119,8 @@ public:
 			break;
 			case eMJAct_Hu:
 			{
-				if (!pMJCard->isHoldCardCanHu())
+				uint8_t nJiang = 0;
+				if (!pMJCard->isHoldCardCanHu(nJiang))
 				{
 					nRet = 3;
 				}

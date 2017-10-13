@@ -118,6 +118,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 		jsReq["targetUID"] = nUserID;
 		jsReq["roomID"] = nRoomID;
 		jsReq["sessionID"] = nSenderID;
+		jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
 		auto pAsync = getSvrApp()->getAsynReqQueue();
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync,nRoomID,nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
@@ -197,6 +198,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 					Json::Value jsReqLeave;
 					jsReqLeave["targetUID"] = nUserID;
 					jsReqLeave["roomID"] = nRoomID;
+					jsReqLeave["port"] = getSvrApp()->getLocalSvrMsgPortType();
 					pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
 				}
 				return ;
@@ -413,6 +415,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			Json::Value jsInformCreatRoom;
 			jsInformCreatRoom["targetUID"] = nUserID;
 			jsInformCreatRoom["roomID"] = nRoomID;
+			jsInformCreatRoom["port"] = pAsync->getSvrApp()->getLocalSvrMsgPortType();
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_CreatedRoom, jsInformCreatRoom );
 			 
 			// consume diamond 

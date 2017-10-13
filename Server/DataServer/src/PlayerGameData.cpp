@@ -7,6 +7,7 @@
 #include "AsyncRequestQuene.h"
 #include "PlayerManager.h"
 #include "ISeverApp.h"
+#include <algorithm>
 #define MAX_WHITE_LIST_CNT 50
 CPlayerGameData::~CPlayerGameData()
 {
@@ -26,22 +27,24 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 	case eAsync_Inform_Player_LeavedRoom:
 	{
 		auto roomID = jsReqContent["roomID"].asUInt();
-		if (getStayInRoomID() == roomID)
+		auto nport = (eMsgPort)(jsReqContent["port"].asUInt());
+		if (getStayInRoom().nRoomID == roomID && nport == getStayInRoom().nSvrPort )
 		{
-			setStayInRoomID(0);
+			setStayInRoom(stRoomEntry(0,ID_MSG_PORT_MAX));
 			break;
 		}
-		LOGFMTE("uid = %u , not in room id = %u , how to leave ? real room id = %u",getPlayer()->getUserUID(),roomID, getStayInRoomID() );
+		LOGFMTE("uid = %u , not in room id = %u , how to leave ? real room id = %u , port = %u , port2 = %u",getPlayer()->getUserUID(),roomID, getStayInRoom().nRoomID , nport, getStayInRoom().nSvrPort );
 	}
 	break;
 	case eAsync_Request_EnterRoomInfo:
 	{
 		auto nRoomID = jsReqContent["roomID"].asUInt();
 		auto nSessionID = jsReqContent["sessionID"].asUInt();
-		if (0 != getStayInRoomID() && nRoomID != getStayInRoomID())
+		auto nPort = (eMsgPort)(jsReqContent["port"].asUInt());
+		if ( getStayInRoom().isEmpty() == false && ( nRoomID != getStayInRoom().nRoomID || nPort != getStayInRoom().nSvrPort ))
 		{
 			jsResult["ret"] = 1;
-			LOGFMTW("uid = %u already room id= %u ,can not enter room id = %u",getPlayer()->getUserUID(),getStayInRoomID(),nRoomID );
+			LOGFMTW("uid = %u already room id= %u ,can not enter room id = %u , port = %u , portS = %u",getPlayer()->getUserUID(), getStayInRoom().nRoomID,nRoomID,nPort,getStayInRoom().nSvrPort );
 			break;
 		}
 
@@ -56,10 +59,10 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		jsResult["uid"] = getPlayer()->getUserUID();
 		jsResult["coin"] = getPlayer()->getBaseData()->getCoin();
 		jsResult["diamond"] = getPlayer()->getBaseData()->getDiamoned();
-		jsResult["stayRoomID"] = getStayInRoomID();
+		jsResult["stayRoomID"] = getStayInRoom().nRoomID;
 
 		// do stay in this room ;
-		setStayInRoomID(nRoomID);
+		setStayInRoom(stRoomEntry(nRoomID,nPort));
 	}
 	break;
 	case eAsync_Request_CreateRoomInfo:
@@ -80,14 +83,16 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 	case eAsync_Inform_CreatedRoom:
 	{
 		auto nRoomID = jsReqContent["roomID"].asUInt();
-		m_vCreatedRooms.push_back(nRoomID);
+		auto nPort = (eMsgPort)(jsReqContent["port"].asUInt());
+		m_vCreatedRooms.push_back(stRoomEntry(nRoomID,nPort));
 		LOGFMTD("player uid = %u create Room id = %u , add to room list",getPlayer()->getUserUID(),nRoomID );
 	}
 	break;
 	case eAsync_Inform_RoomDeleted:
 	{
 		auto nRoomID = jsReqContent["roomID"].asUInt();
-		auto iter = std::find(m_vCreatedRooms.begin(),m_vCreatedRooms.end(),nRoomID );
+		auto nPort = (eMsgPort)(jsReqContent["port"].asUInt());
+		auto iter = std::find_if(m_vCreatedRooms.begin(), m_vCreatedRooms.end(), [nRoomID, nPort](stRoomEntry& ref) { return ref.nRoomID == nRoomID && nPort == ref.nSvrPort; });
 		if (iter != m_vCreatedRooms.end())
 		{
 			m_vCreatedRooms.erase(iter);
@@ -109,14 +114,14 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 	return true;
 }
 
-void CPlayerGameData::setStayInRoomID(uint32_t nRoomID)
+void CPlayerGameData::setStayInRoom( stRoomEntry tRoom )
 {
-	m_nStayRoomID = nRoomID;
+	m_tStayRoom = tRoom;
 }
 
-uint32_t CPlayerGameData::getStayInRoomID()
+const CPlayerGameData::stRoomEntry& CPlayerGameData::getStayInRoom()
 {
-	return m_nStayRoomID;
+	return m_tStayRoom;
 }
 
 void CPlayerGameData::onPlayerDisconnect()
@@ -141,58 +146,64 @@ void CPlayerGameData::onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t 
 {
 	IPlayerComponent::onPlayerOtherDeviceLogin(nOldSessionID,nNewSessionID );
 
-	if (getStayInRoomID() == 0)
+	auto& refStayInRoom = getStayInRoom();
+	if (refStayInRoom.isEmpty() )
 	{
 		return;
 	}
 
 	auto pAsync = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	Json::Value jsReq;
-	jsReq["roomID"] = getStayInRoomID();
+	jsReq["roomID"] = refStayInRoom.nRoomID;
 	jsReq["uid"] = getPlayer()->getUserUID();
 	jsReq["newSessionID"] = nNewSessionID;
-	pAsync->pushAsyncRequest(getGamePortByRoomID(getStayInRoomID()), getStayInRoomID(), eAsync_Inform_Player_NewSessionID, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+	pAsync->pushAsyncRequest( refStayInRoom.nSvrPort, refStayInRoom.nRoomID, eAsync_Inform_Player_NewSessionID, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 	{
 		if (isTimeOut)
 		{
-			LOGFMTE("inform player new session id  ,target svr crashed ,time out  room id = %u , uid = %u", getStayInRoomID(), getPlayer()->getUserUID());
-			setStayInRoomID(0);
+			LOGFMTE("inform player new session id  ,target svr crashed ,time out  room id = %u , uid = %u", getStayInRoom().nRoomID, getPlayer()->getUserUID());
+			setStayInRoom(stRoomEntry(0,ID_MSG_PORT_MAX));
 			return;
 		}
 
 		if (retContent["ret"].asUInt() != 0)
 		{
-			setStayInRoomID(0);
-			LOGFMTE("inform player new session id  ,can not find room id = %u , uid = %u", getStayInRoomID(), getPlayer()->getUserUID());
+			LOGFMTE("inform player new session id  ,can not find room id = %u , uid = %u", getStayInRoom().nRoomID, getPlayer()->getUserUID());
+			setStayInRoom(stRoomEntry(0, ID_MSG_PORT_MAX));
 			return;
 		}
 		LOGFMTD( "inform new state to game svr! uid = %u ",getPlayer()->getUserUID() );
 	});
 }
 
-uint16_t CPlayerGameData::getGamePortByRoomID(uint32_t nRoomID)
-{
-	return ID_MSG_PORT_POKER;
-}
 
 bool CPlayerGameData::canRemovePlayer()
 {
-	return 0 == getStayInRoomID() && m_vCreatedRooms.empty();
+	return getStayInRoom().isEmpty() && m_vCreatedRooms.empty();
 }
 
 bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)
 {
 	if ( MSG_ROOM_REQ_ROOM_LIST == nmsgType )
 	{
-		Json::Value jsRoomIDs;
+		Json::Value jsRooms;
 		for (auto& ref : m_vCreatedRooms)
 		{
-			jsRoomIDs[jsRoomIDs.size()] = ref;
+			Json::Value jsRoomEntry;
+			jsRoomEntry["id"] = ref.nRoomID;
+			jsRoomEntry["port"] = ref.nSvrPort;
+			jsRooms[jsRooms.size()] = jsRoomEntry;
 		}
 		Json::Value jsMsg;
 		jsMsg["ret"] = 0;
-		jsMsg["stayInRoomID"] = m_nStayRoomID;
-		jsMsg["roomIDS"] = jsRoomIDs;
+		jsMsg["rooms"] = jsRooms;
+		if ( getStayInRoom().isEmpty() == false )
+		{
+			Json::Value jsRoomEntry;
+			jsRoomEntry["id"] = getStayInRoom().nRoomID;
+			jsRoomEntry["port"] = getStayInRoom().nSvrPort;
+			jsMsg["stayInRoom"] = jsRoomEntry;
+		}
 		sendMsg(jsMsg, nmsgType);
 		return true;
 	}
@@ -338,29 +349,29 @@ bool CPlayerGameData::isUserIDInWhiteList( uint32_t nUserUID )
 
 void CPlayerGameData::informNetState(uint8_t nStateFlag)
 {
-	if ( getStayInRoomID() == 0 )
+	if ( getStayInRoom().isEmpty() )
 	{
 		return;
 	}
 
 	auto pAsync = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	Json::Value jsReq;
-	jsReq["roomID"] = getStayInRoomID();
+	jsReq["roomID"] = getStayInRoom().nRoomID;
 	jsReq["uid"] = getPlayer()->getUserUID();
 	jsReq["state"] = nStateFlag;
-	pAsync->pushAsyncRequest(getGamePortByRoomID(getStayInRoomID()), getStayInRoomID(), eAsync_Inform_Player_NetState, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+	pAsync->pushAsyncRequest(getStayInRoom().nSvrPort, getStayInRoom().nRoomID, eAsync_Inform_Player_NetState, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 	{
 		if (isTimeOut)
 		{
-			LOGFMTE("inform player net stae ,target svr crashed ,time out  room id = %u , uid = %u", getStayInRoomID(), getPlayer()->getUserUID());
-			setStayInRoomID(0);
+			LOGFMTE("inform player net stae ,target svr crashed ,time out  room id = %u , uid = %u", getStayInRoom().nRoomID, getPlayer()->getUserUID());
+			setStayInRoom(stRoomEntry(0,ID_MSG_PORT_MAX));
 			return;
 		}
 
 		if (retContent["ret"].asUInt() != 0)
 		{
-			setStayInRoomID(0);
-			LOGFMTE("inform player net stae ,can not find room id = %u , uid = %u", getStayInRoomID(), getPlayer()->getUserUID());
+			LOGFMTE("inform player net stae ,can not find room id = %u , uid = %u", getStayInRoom().nRoomID, getPlayer()->getUserUID());
+			setStayInRoom(stRoomEntry(0, ID_MSG_PORT_MAX));
 			return;
 		}
 		LOGFMTD("inform new state to game svr! uid = %u new", getPlayer()->getUserUID());

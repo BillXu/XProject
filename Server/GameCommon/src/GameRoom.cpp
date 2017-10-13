@@ -357,6 +357,7 @@ bool GameRoom::doPlayerLeaveRoom(uint32_t nUserUID)
 	Json::Value jsReqLeave;
 	jsReqLeave["targetUID"] = nUserUID;
 	jsReqLeave["roomID"] = getRoomID();
+	jsReqLeave["port"] = getRoomMgr()->getSvrApp()->getLocalSvrMsgPortType();
 	auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
 	return true;
@@ -455,6 +456,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 		jsReq["targetUID"] = pStand->nUserUID;
 		jsReq["roomID"] = getRoomID();
 		jsReq["sessionID"] = nSessionID;
+		jsReq["port"] = getRoomMgr()->getSvrApp()->getLocalSvrMsgPortType();
 		auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pStand->nUserUID, eAsync_Request_EnterRoomInfo, jsReq, [nSessionID,this, nIdx](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 		{
