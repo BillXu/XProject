@@ -38,9 +38,6 @@
     <ClCompile Include="src\IGameRoomManager.cpp">
       <Filter>src\Game</Filter>
     </ClCompile>
-    <ClCompile Include="src\MJCard.cpp">
-      <Filter>src\MJBase</Filter>
-    </ClCompile>
     <ClCompile Include="src\IMJRoom.cpp">
       <Filter>src\MJBase</Filter>
     </ClCompile>
@@ -71,9 +68,6 @@
       <Filter>src\Game</Filter>
     </ClInclude>
     <ClInclude Include="src\MJDefine.h">
-      <Filter>src\MJBase</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MJCard.h">
       <Filter>src\MJBase</Filter>
     </ClInclude>
     <ClInclude Include="src\IMJRoom.h">

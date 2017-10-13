@@ -98,117 +98,29 @@ void CCard::LogCardInfo()
 }
 
 // Poker
-CPoker::CPoker()
+void CNiuNiuPoker::init( Json::Value& jsOpts )
 {
-	m_vCards = NULL ;
-	m_nCurIdx = 0 ;
-	m_nCardCount = 0 ;
-}
-
-CPoker::~CPoker()
-{
-	if (m_vCards == NULL )
+	uint8_t nCardCnt = 52;
+	if (jsOpts["baiDian"].isNull() == false && jsOpts["baiDian"].asUInt() == 1)
 	{
-
+		nCardCnt = 54;
+		LOGFMTD("create bai bian niu niu ");
 	}
-	else
-	{
-		delete [] m_vCards ;
-	}
-} 
 
-
-void CPoker::init()
-{
-	SetupCardCount(52);
-	for ( int i = 1 ; i <= 52 ; ++i )
+	for ( int i = 1 ; i <= nCardCnt; ++i )
 	{
-		AddCard(i) ;
+		addCardToPoker(i) ;
 	}
 	shuffle() ;
 }
 
-void CPoker::pushCardToFron(uint8_t nCard)
-{
-	LOGFMTE( "not implement this method  CPoker::pushCardToFron" );
-}
-
-uint8_t CPoker::distributeOneCard()
-{
-	if ( m_nCardCount <= m_nCurIdx )
-	{
-		shuffle();
-	}
-	return m_vCards[m_nCurIdx++] ;
-}
-
-unsigned char CPoker::getCardNum( unsigned char nIdx )
-{
-	if ( m_nCardCount <= nIdx )
-	{
-		return 0 ;
-	}
-	return m_vCards[nIdx] ;
-}
-
-void CPoker::shuffle()
-{
-	// ---
-	int n = 0 ;
-	for ( int i = 0 ; i < m_nCardCount ; ++i )
-	{
-		n = rand() % m_nCardCount  ;
-		if ( n == i )
-		{
-			continue;
-		}
-		m_vCards[i] = m_vCards[n] + m_vCards[i] ;
-		m_vCards[n] = m_vCards[i] - m_vCards[n] ;
-		m_vCards[i] = m_vCards[i] - m_vCards[n] ;
- 	}
-	m_nCurIdx = 0 ;
-	//LogCardInfo();
-}
-
-void CPoker::AddCard(unsigned char nCard )   // invoke when init
-{
-	if ( nCard < 0 || nCard > 54 )
-	{
-#ifdef SERVER
-		LOGFMTE("unlegal card composite number = %d", nCard ) ;
-#endif
-		return ;
-	}
-	
-	if ( m_nCurIdx >= m_nCardCount )
-	{
-#ifdef SERVER
-		LOGFMTE("Poker room space is full , can not add more card ") ;
-#endif
-	}
-	m_vCards[m_nCurIdx] = nCard ;
-	++m_nCurIdx ;
-}
-
-void CPoker::AddCard(CCard* pcard)   // invoke when init
-{
-	AddCard(pcard->GetCardCompositeNum()) ;
-}
-
-void CPoker::SetupCardCount(unsigned short nCount )
-{
-	m_vCards = new unsigned char [nCount] ;
-	m_nCurIdx = 0 ;
-	m_nCardCount = nCount ;
-}
-
-void CPoker::LogCardInfo()
+void CNiuNiuPoker::LogCardInfo()
 {
 #ifdef SERVER
 	LOGFMTD("œ¥≈∆Ω·π˚»Áœ¬£∫   ");
 #endif
 	CCard stCard(2);
-	for ( int i = 0 ; i < m_nCardCount ; ++i )
+	for ( int i = 0 ; i < m_vCards.size() ; ++i )
 	{
 		stCard.RsetCardByCompositeNum(m_vCards[i]) ;
 		stCard.LogCardInfo() ;

@@ -8,6 +8,16 @@ void NNPlayer::onGameWillStart()
 	m_nRobotBankerTimes = 0;
 }
 
+void NNPlayer::onGameDidEnd()
+{
+	m_nLastOffset = getSingleOffset();
+	IGamePlayer::onGameDidEnd();
+	if ( getRobotBankerFailedTimes() >= 3 )
+	{
+		clearRobotBankerFailedTimes();
+	}
+}
+
 uint16_t NNPlayer::doBet(uint16_t nBetTimes)
 {
 	m_nBetTimes = nBetTimes;

@@ -147,5 +147,14 @@
     <ClInclude Include="src\BiJi\BJRoomStateGameEnd.h">
       <Filter>src\BiJi\state</Filter>
     </ClInclude>
+    <ClInclude Include="src\BiJi\BJCardTypeChecker.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJDefine.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BiJi\BJXiPaiChecker.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

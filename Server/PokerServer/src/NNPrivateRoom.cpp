@@ -10,6 +10,7 @@ bool NNPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_
 	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
 	m_isForbitEnterRoomWhenStarted = vJsOpts["forbidJoin"].asUInt() == 1;
 	m_isEnableWhiteList = vJsOpts["enableWhiteList"].asUInt() == 1;
+	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
 	return true;
 }
 
@@ -113,4 +114,24 @@ bool NNPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 		return true;
 	}
 	return IPrivateRoom::onMsg(prealMsg,nMsgType,eSenderPort,nSessionID );
+}
+
+bool NNPrivateRoom::canStartGame(IGameRoom* pRoom)
+{
+	if ( m_isOpen == false && m_nAutoOpenCnt > 0)
+	{
+		uint8_t nCnt = 0;
+		auto pNRoom = ((NNRoom*)pRoom);
+		for (uint8_t nIdx = 0; nIdx < pNRoom->getSeatCnt(); ++nIdx)
+		{
+			if (pNRoom->getPlayerByIdx(nIdx))
+			{
+				++nCnt;
+			}
+		}
+
+		m_isOpen = nCnt >= m_nAutoOpenCnt;
+	}
+
+	return IPrivateRoom::canStartGame(pRoom);
 }

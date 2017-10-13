@@ -2,6 +2,7 @@
 #include "GameRoom.h"
 #include "IPoker.h"
 #include "CardPoker.h"
+#include "BJDefine.h"
 class BJRoom
 	:public GameRoom
 {
@@ -19,10 +20,15 @@ public:
 	void onPlayerReady(uint16_t nIdx);
 
 	bool isAllPlayerMakedGroupCard();
-	uint8_t onPlayerDoMakeCardGroup( uint8_t nIdx,std::vector<uint8_t>& vGroupCards );
+	uint8_t onPlayerDoMakeCardGroup( uint8_t nIdx,std::vector<uint16_t>& vGroupCards );
 	bool onPlayerAutoMakeCardGroupAllPlayerOk();
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
+protected:
+	uint8_t getRoomRate();
+	uint8_t getXiPaiRate();
+	bool isEnableSanQing();
+	bool isEnableShunQingDaTou();
 protected:
 	bool addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)override;
 private:

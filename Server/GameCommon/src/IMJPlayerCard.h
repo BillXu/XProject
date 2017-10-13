@@ -21,11 +21,12 @@ public:
 	virtual bool canBuGangWithCard(uint8_t nCard) = 0;
 	virtual bool canPengWithCard(uint8_t nCard) = 0;
 	virtual bool canEatCard(uint8_t nCard) = 0 ;
-	virtual bool canHuWitCard( uint8_t nCard ) = 0;
-	virtual bool isTingPai( uint8_t& nTingCardType ) = 0 ;
-	virtual bool getHoldCardThatCanAnGang( VEC_CARD& vGangCards ) = 0 ;
+	virtual bool getHoldCardThatCanAnGang(VEC_CARD& vGangCards) = 0;
 	virtual bool getHoldCardThatCanBuGang(VEC_CARD& vGangCards) = 0;
-	virtual bool isHoldCardCanHu() = 0 ;
+
+	virtual bool canHuWitCard( uint8_t nCard ) = 0;
+	virtual bool isTingPai() = 0 ;
+	virtual bool isHoldCardCanHu( uint8_t& nJiang ) = 0;
 
 	virtual void onMoCard(uint8_t nMoCard) = 0;
 	virtual bool onPeng( uint8_t nCard, uint16_t nInvokerIdx ) = 0 ;

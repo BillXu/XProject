@@ -20,7 +20,7 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 	m_nBankerIdx = -1;
 	m_nBottomTimes = 1;
 	m_eDecideBankerType = (eDecideBankerType)vJsOpts["bankType"].asUInt();
-	m_eResultType = (eResultType)vJsOpts["resultType"].asUInt();
+	m_eResultType = eResult_Max; // (eResultType)vJsOpts["resultType"].asUInt();
 	
 	IGameRoomState* pState = new NNRoomStateWaitReady();
 	addRoomState(pState);
@@ -61,7 +61,9 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 
 IGamePlayer* NNRoom::createGamePlayer()
 {
-	return new NNPlayer();
+	auto p = new NNPlayer();
+	p->getPlayerCard()->setOpts(m_jsOpts["wuHua"].asUInt() == 1 , m_jsOpts["zhaDan"].asUInt() == 1, m_jsOpts["wuXiao"].asUInt() == 1, m_jsOpts["shunKan"].asUInt() == 1, m_jsOpts["fengKuang"].asUInt() == 1 );
+	return p;
 }
 
 void NNRoom::packRoomInfo(Json::Value& jsRoomInfo)
@@ -248,12 +250,27 @@ uint8_t NNRoom::doProduceNewBanker()
 {
 	switch (m_eDecideBankerType)
 	{
+	case eDecideBank_Rand:
+	{
+		m_nBankerIdx = rand() % getSeatCnt();
+		for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
+		{
+			auto nReal = nIdx % getSeatCnt();
+			auto p = getPlayerByIdx(nReal);
+			if (p)
+			{
+				m_nBankerIdx = nReal;
+				break;
+			}
+		}
+	}
+	break;
 	case eDecideBank_NiuNiu:
 	{
 		if ((uint16_t)-1 == m_nBankerIdx)
 		{
 			m_nBankerIdx = rand() % getSeatCnt();
-			for (uint8_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
+			for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
 			{
 				auto nReal = nIdx % getSeatCnt();
 				auto p = getPlayerByIdx(nReal);
@@ -282,7 +299,7 @@ uint8_t NNRoom::doProduceNewBanker()
 			++m_nBankerIdx ;
 		}
 		
-		for ( uint8_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx )
+		for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx )
 		{
 			auto nReal = nIdx % getSeatCnt();
 			auto p = getPlayerByIdx(nReal);
@@ -332,6 +349,24 @@ uint8_t NNRoom::doProduceNewBanker()
 			break;
 		}
 		m_nBankerIdx = vBankerCandinates[rand()%vBankerCandinates.size()];
+
+		// decide robot banker failed
+		for (auto nIdx = 0; nIdx < nSeatCnt && nBiggistRobotTimes > 0 ; ++nIdx )
+		{
+			auto pPlayer = (NNPlayer*)getPlayerByIdx(nIdx);
+			if (pPlayer == nullptr || (false == pPlayer->haveState(eRoomPeer_CanAct)))
+			{
+				continue;
+			}
+
+			auto nRobotTimes = pPlayer->getRobotBankerTimes();
+			if ( nRobotTimes != nBiggistRobotTimes || nIdx == m_nBankerIdx )  // must biggest times robot banker , and failed ;
+			{
+				continue;
+			}
+
+			pPlayer->onRobotBankerFailed();
+		}
 	}
 	break;
 	default:
@@ -343,12 +378,26 @@ uint8_t NNRoom::doProduceNewBanker()
 	Json::Value jsMsg;
 	jsMsg["bankerIdx"] = m_nBankerIdx;
 	sendRoomMsg(jsMsg, MSG_ROOM_PRODUCED_BANKER);
-	return m_nBankerIdx;
+	return (uint8_t)m_nBankerIdx;
 }
 
 void NNRoom::doStartBet()
 {
-	Json::Value js;
+	Json::Value js, jsPlayers;
+	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+	{
+		auto p = (NNPlayer*)getPlayerByIdx(nIdx);
+		if ( p == nullptr || p->haveState(eRoomPeer_CanAct) == false)
+		{
+			continue;
+		}
+
+		Json::Value jsPlayer;
+		jsPlayer["lastOffset"] = p->getLastOffset();
+		jsPlayer["canTuiZhuang"] = p->getRobotBankerFailedTimes() >= 3 ? 1 : 0;
+		jsPlayers[jsPlayers.size()] = jsPlayer;
+	}
+	js["players"] = jsPlayers;
 	sendRoomMsg(js, MSG_ROOM_START_BET );
 }
 
@@ -537,6 +586,50 @@ bool NNRoom::isAllPlayerRobotedBanker()
 
 int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 {
+	switch (nType)
+	{
+	case CNiuNiuPeerCard::Niu_Single:
+	{
+		if (nPoint == 7 || 8 == nPoint) { return 2; }
+		if (nPoint == 9) { return 3; }
+		return 1;
+	}
+	break;
+	case CNiuNiuPeerCard::Niu_Niu:
+	{
+		return 4;
+	};
+	break;
+	case CNiuNiuPeerCard::Niu_ShunZiNiu:
+	case CNiuNiuPeerCard::Niu_TongHuaNiu:
+	case CNiuNiuPeerCard::Niu_Hulu:
+	case CNiuNiuPeerCard::Niu_FiveFlower:
+	{
+		return 5;
+	}
+	break;
+	case CNiuNiuPeerCard::Niu_Boom:
+	{
+		return 6;
+	}
+	break;
+	case CNiuNiuPeerCard::Niu_FiveSmall:
+	{
+		return 8;
+	}
+	break;
+	case CNiuNiuPeerCard::Niu_TongHuaShun:
+	{
+		return 10;
+	}
+	break;
+	default:
+		//LOGFMTE( "should come here , roomid = %u , type = %u , npoint = %u",getRoomID(),nType,nPoint );
+		return 1;
+	}
+
+	// old code below ;
+	// return ;
 	if ( m_eResultType == eResult_NiuNiu4)
 	{
 		if (nType == CNiuNiuPeerCard::Niu_None)
@@ -688,4 +781,19 @@ bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPor
 		return true;
 	}
 	return false;
+}
+
+bool NNRoom::isEnableTuiZhu()
+{
+	return m_jsOpts["tuiZhu"].isNull() == false && m_jsOpts["tuiZhu"].asUInt() == 1;
+}
+
+bool NNRoom::isEnableTuiZhuang()
+{
+	if (m_eDecideBankerType != eDecideBank_LookCardThenRobot)
+	{
+		return true;
+	}
+
+	return m_jsOpts["tuiZhuang"].isNull() == false && m_jsOpts["tuiZhuang"].asUInt() == 1;
 }

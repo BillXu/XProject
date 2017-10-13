@@ -42,7 +42,15 @@ void BJRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, u
 	{
 		auto p = (BJPlayer*)pPlayer;
 		Json::Value jsHoldCards;
-		p->getPlayerCard()->holdCardToJson(jsHoldCards);
+		if ( p->haveState(eRoomPeer_DoMakedCardGroup))
+		{
+			p->getPlayerCard()->groupCardToJson(jsHoldCards);
+		}
+		else if ( p->haveState(eRoomPeer_CanAct) )
+		{
+			p->getPlayerCard()->holdCardToJson(jsHoldCards);
+		}
+		
 		jsPlayerInfo["holdCards"] = jsHoldCards;
 	}
 }
@@ -100,7 +108,7 @@ void BJRoom::onGameEnd()
 	for (uint8_t nIdx = 0; nIdx < nSeatCnt; ++nIdx)
 	{
 		auto p = getPlayerByIdx(nIdx);
-		if ( p && p->haveState(eRoomPeer_DoMakedCardGroup))
+		if ( p && p->haveState(eRoomPeer_StayThisRound) )
 		{
 			vActivePlayers.push_back((BJPlayer*)p);
 		}
@@ -116,7 +124,19 @@ void BJRoom::onGameEnd()
 		
 		std::sort(vActivePlayers.begin(), vActivePlayers.end(), []( BJPlayer* pLeft , BJPlayer* pRight )
 		{
-			return pLeft->getPlayerCard()->getWeight() < pRight->getPlayerCard()->getWeight();
+			auto nLeft = pLeft->getPlayerCard()->getWeight();
+			auto nRight = pRight->getPlayerCard()->getWeight();
+			if (pLeft->haveState(eRoomPeer_GiveUp))
+			{
+				nLeft = 0;
+			}
+
+			if (pRight->haveState(eRoomPeer_GiveUp))
+			{
+				nRight = 0;
+			}
+
+			return nLeft < nRight;
 		});
 
 		// caculate fen shu ;
@@ -124,22 +144,75 @@ void BJRoom::onGameEnd()
 		for ( int32_t nLoserPos = 0; nLoserPos < nWinerPos; ++nLoserPos)
 		{
 			int32_t nWin = nWinerPos - nLoserPos;
+			if (vActivePlayers[nLoserPos]->haveState(eRoomPeer_GiveUp))
+			{
+				nWin = vActivePlayers.size() - 1;
+			}
+
+			nWin *= getRoomRate();
 			vActivePlayers[nWinerPos]->addOffsetPerGuo(nGuoIdx, nWin);
 			vActivePlayers[nLoserPos]->addOffsetPerGuo(nGuoIdx, nWin * -1 );
 		}
 	}
+
+	// caculate xi pai 
+	for ( uint8_t nCheckIdx = 0; nCheckIdx < vActivePlayers.size(); ++nCheckIdx )
+	{
+		auto eXiPai = vActivePlayers[nCheckIdx]->getPlayerCard()->getXiPaiType(isEnableSanQing(),isEnableShunQingDaTou() );
+		if (eXiPai == eXiPai_Max)
+		{
+			continue;
+		}
+
+		int32_t nWinPerLose = (vActivePlayers.size() - 1) * getXiPaiRate() * getRoomRate();
+		uint32_t nTotalWin = 0;
+		// caculate xiPai 
+		for (uint8_t nIdx = 0; nIdx < vActivePlayers.size(); ++nIdx)
+		{
+			if (nCheckIdx == nIdx || vActivePlayers[nIdx]->haveState(eRoomPeer_GiveUp) )
+			{
+				continue;
+			}
+			nTotalWin += nWinPerLose;
+			vActivePlayers[nIdx]->addXiPaiOffset(nWinPerLose * -1 );
+		}
+
+		vActivePlayers[nCheckIdx]->addXiPaiOffset((int32_t)nTotalWin);
+	}
+
+	// caculate tong guan ;
+	if ( vActivePlayers.back()->isTongGuan() )
+	{
+		int32_t nWinPerLose = (vActivePlayers.size() - 1) * getRoomRate();
+		uint32_t nTotalWin = 0;
+		// caculate xiPai 
+		for (uint8_t nIdx = 0; nIdx < vActivePlayers.size() - 1 ; ++nIdx)
+		{
+			if ( vActivePlayers[nIdx]->haveState(eRoomPeer_GiveUp) )
+			{
+				continue;
+			}
+			nTotalWin += nWinPerLose;
+			vActivePlayers[nIdx]->addTongGuanOffset(nWinPerLose * -1);
+		}
+		vActivePlayers.back()->addTongGuanOffset(nTotalWin);
+	}
+
 	// send game result msg ; 
 	Json::Value jsArrayPlayers;
 	for (auto& p : vActivePlayers)
 	{
 		Json::Value jsPlayerResult;
 		jsPlayerResult["idx"] = p->getIdx();
-		//jsPlayerResult["offset"] = p->getSingleOffset();
+		jsPlayerResult["offset"] = p->getSingleOffset();
+		jsPlayerResult["xiPaiOffset"] = p->getXiPaiOffset();
+		jsPlayerResult["xiPaiType"] = p->getPlayerCard()->getXiPaiType(isEnableSanQing(),isEnableShunQingDaTou());
+		jsPlayerResult["tongGuanOffse"] = p->getTongGuanOffset();
 
 		Json::Value jsGuoArrays;
 		for (uint8_t nIdx = 0; nIdx < 3; ++nIdx)
 		{
-			std::vector<uint8_t> vGuoCards;
+			std::vector<uint16_t> vGuoCards;
 			uint8_t nCardType = 0;
 			p->getPlayerCard()->getGroupInfo(nIdx, nCardType, vGuoCards);
 
@@ -232,7 +305,7 @@ bool BJRoom::isAllPlayerMakedGroupCard()
 	return true;
 }
 
-uint8_t BJRoom::onPlayerDoMakeCardGroup(uint8_t nIdx, std::vector<uint8_t>& vGroupCards)
+uint8_t BJRoom::onPlayerDoMakeCardGroup(uint8_t nIdx, std::vector<uint16_t>& vGroupCards)
 {
 	auto pPlayer = (BJPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer)
@@ -265,7 +338,8 @@ bool BJRoom::onPlayerAutoMakeCardGroupAllPlayerOk()
 		{
 			continue;
 		}
-		std::vector<uint8_t> vDefault;
+		LOGFMTE("we do not support auto make group room id = %u, uid = %u",getRoomID(),p->getUserUID() );
+		std::vector<uint16_t> vDefault;
 		onPlayerDoMakeCardGroup(nIdx,vDefault);
 	}
 	return true;

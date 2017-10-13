@@ -12,8 +12,6 @@ bool BJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_
 	return true;
 }
 
- 
-
 GameRoom* BJPrivateRoom::doCreatRealRoom()
 {
 	return new BJRoom();

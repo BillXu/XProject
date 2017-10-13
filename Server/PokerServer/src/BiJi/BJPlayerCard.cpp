@@ -1,143 +1,50 @@
 #include "BJPlayerCard.h"
 #include "log4z.h"
 #include <algorithm>
+#include "BJCardTypeChecker.h"
+#include "BJXiPaiChecker.h"
 // stGround card 
 void BJPlayerCard::stGroupCard::reset()
 {
-	m_eCardType = ePeerCard_None;
-	m_pPairCardNum = 0;
+	m_eCardType = CardType_None;
+	m_nWeight = 0;
+	m_vCard.clear();
 }
 
-void BJPlayerCard::stGroupCard::setCard(uint8_t nA, uint8_t nB, uint8_t nC)
+void BJPlayerCard::stGroupCard::setCard( std::vector<uint16_t>& vCompsitCard )
 {
-	m_vCard[0].RsetCardByCompositeNum(nA);
-	m_vCard[1].RsetCardByCompositeNum(nB);
-	m_vCard[2].RsetCardByCompositeNum(nC);
-	arrangeCard();
+	m_vCard.clear();
+	m_vCard.assign(vCompsitCard.begin(),vCompsitCard.end());
+	if (m_vCard.size() != 3)
+	{
+		LOGFMTE( "card size is not 3 , why ? big error " );
+		return;
+	}
+
+	// get real caculate card ;
+	std::vector<uint8_t> vec;
+	for (auto& ref : m_vCard)
+	{
+		uint16_t nValue = ref & 0xff;
+		vec.push_back((uint8_t)nValue);
+	}
+
+	auto bRet = BJCardTypeChecker::getInstance()->checkCardType(vec, m_nWeight, m_eCardType);
+	if ( bRet == false )
+	{
+		LOGFMTE( "why check card type return error ? must check it !!!" );
+	}
+	return;
 }
 
-int8_t BJPlayerCard::stGroupCard::PKPeerCard(stGroupCard* pPeerCard)  // 1 win , 0 same , -1 failed 
+uint16_t BJPlayerCard::stGroupCard::getCardByIdx( uint8_t nIdx )
 {
-	auto nSelf = getWeight();
-	auto nT = pPeerCard->getWeight();
-
-	if ( nSelf != nT )
-	{
-		return nSelf > nT ? 1 : -1;
-	 }
-
-	LOGFMTE( "why two card is the same ?  A = %u , %u , %u , B = %u , %u, %u",
-		m_vCard[0].GetCardCompositeNum(), m_vCard[1].GetCardCompositeNum(), m_vCard[2].GetCardCompositeNum()
-		,pPeerCard->m_vCard[0].GetCardCompositeNum(), pPeerCard->m_vCard[1].GetCardCompositeNum(), pPeerCard->m_vCard[2].GetCardCompositeNum());
-	return 1;
-}
-
-uint32_t BJPlayerCard::stGroupCard::getWeight()
-{
-	uint32_t nWeight = 0;
-	uint8_t nPairFace = 0;
-	uint8_t nBigSingle = 0;
-
-	bool isShunZi = (GetType() == ePeerCard_Sequence || ePeerCard_SameColorSequence == GetType());
-	if (isShunZi) // 123 smallest shun zi ;
-	{
-		if (m_vCard[0].GetCardFaceNum() == 2 && m_vCard[1].GetCardFaceNum() == 3 && m_vCard[2].GetCardFaceNum() == 1)
-		{
-			decltype(m_vCard) temp = { m_vCard[2],m_vCard[0],m_vCard[1] };
-			m_vCard.swap(temp);
-		}
-	}
-	else
-	{
-		if ( ePeerCard_Pair == GetType() )
-		{
-			if ( m_vCard[0].GetCardFaceNum() == m_vCard[1].GetCardFaceNum())
-			{
-				nPairFace = m_vCard[0].GetCardFaceNum();
-				nBigSingle = m_vCard[2].GetCardCompositeNum();
-			}
-			else
-			{
-				nBigSingle = m_vCard[0].GetCardCompositeNum();
-				nPairFace = m_vCard[1].GetCardFaceNum();
-			}
-		}
-	}
-
-	if ( nBigSingle == 0 )
-	{
-		nBigSingle = m_vCard.back().GetCardCompositeNum();
-	}
-
-	nWeight = ( GetType() << 12 ) | ( nPairFace << 8 ) | nBigSingle;
-	return nWeight;
-}
-
-void BJPlayerCard::stGroupCard::arrangeCard()
-{
-	for (uint8_t nIdx = 0; nIdx < PEER_CARD_COUNT - 1; ++nIdx)
-	{
-		uint8_t nPosNum = m_vCard[nIdx].GetCardFaceNum(true);
-		for (uint8_t nSIdx = nIdx + 1; nSIdx < PEER_CARD_COUNT; ++nSIdx)
-		{
-			uint8_t nSNum = m_vCard[nSIdx].GetCardFaceNum(true);
-			if (nSNum < nPosNum) // switch ;
-			{
-				nPosNum = nSNum;
-				CCard& pCard = m_vCard[nSIdx];
-				m_vCard[nSIdx] = m_vCard[nIdx];
-				m_vCard[nIdx] = pCard;
-			}
-		}
-	}
-
-	int iNum[PEER_CARD_COUNT] = { 0 };
-	for (int i = 0; i < PEER_CARD_COUNT; ++i)
-	{
-		iNum[i] = m_vCard[i].GetCardFaceNum(true);
-	}
-
-	// decide type ;
-	if (m_vCard[0].GetCardFaceNum() == m_vCard[1].GetCardFaceNum() && m_vCard[1].GetCardFaceNum() == m_vCard[2].GetCardFaceNum())
-	{
-		m_eCardType = ePeerCard_Bomb;
-	}
-	else if (m_vCard[0].GetType() == m_vCard[1].GetType() && m_vCard[1].GetType() == m_vCard[2].GetType())
-	{
-		m_eCardType = ePeerCard_SameColor;
-		if (iNum[0] + 1 == iNum[1] && iNum[1] + 1 == iNum[2])
-		{
-			m_eCardType = ePeerCard_SameColorSequence;
-		}
-
-		if (iNum[0] == 2 && iNum[1] == 3 && 14 == iNum[2])
-		{
-			m_eCardType = ePeerCard_SameColorSequence;
-		}
-	}
-	else if ((iNum[0] + 1 == iNum[1] && iNum[1] + 1 == iNum[2]) || (iNum[0] == 2 && iNum[1] == 3 && 14 == iNum[2]))
-	{
-		m_eCardType = ePeerCard_Sequence;
-	}
-	else if (iNum[0] == iNum[1] || iNum[2] == iNum[1])
-	{
-		m_eCardType = ePeerCard_Pair;
-		m_pPairCardNum = iNum[1];
-	}
-	else
-	{
-		m_eCardType = ePeerCard_None;
-	}
-}
-
-uint8_t BJPlayerCard::stGroupCard::getCardByIdx( uint8_t nIdx )
-{
-	if ( nIdx >= PEER_CARD_COUNT )
+	if ( nIdx >= PEER_CARD_COUNT || m_vCard.size() <= nIdx )
 	{
 		LOGFMTE( "get card from group but invalid nidx = %u",nIdx );
 		return 0;
 	}
-	return m_vCard[nIdx].GetCardCompositeNum();
+	return m_vCard[nIdx];
 }
 
 // player card 
@@ -151,6 +58,10 @@ void BJPlayerCard::reset()
 {
 	m_vHoldCards.clear();
 	m_nCurGroupIdx = 0;
+	for (auto& ref : m_vGroups)
+	{
+		ref.reset();
+	}
 }
 
 void BJPlayerCard::addCompositCardNum(uint8_t nCardCompositNum)
@@ -184,10 +95,10 @@ IPeerCard* BJPlayerCard::swap(IPeerCard* pTarget)
 
 uint8_t BJPlayerCard::getCardByIdx(uint8_t nidx)
 {
-	return m_vGroups[getCurGroupIdx()].getCardByIdx(nidx);
+	return m_vHoldCards[nidx];
 }
 
-bool BJPlayerCard::getGroupInfo( uint8_t nGroupIdx, uint8_t& nGroupType, std::vector<uint8_t>& vGroupCards)
+bool BJPlayerCard::getGroupInfo( uint8_t nGroupIdx, uint8_t& nGroupType, std::vector<uint16_t>& vGroupCards)
 {
 	if (nGroupIdx >= MAX_GROUP_CNT)
 	{
@@ -196,7 +107,7 @@ bool BJPlayerCard::getGroupInfo( uint8_t nGroupIdx, uint8_t& nGroupType, std::ve
 	}
 
 	auto& pGInfo = m_vGroups[nGroupIdx];
-	nGroupType = pGInfo.GetType();
+	nGroupType = pGInfo.getType();
 	for ( uint8_t nIdx = 0; nIdx < PEER_CARD_COUNT; ++nIdx )
 	{
 		vGroupCards.push_back(pGInfo.getCardByIdx(nIdx));
@@ -220,11 +131,12 @@ uint8_t BJPlayerCard::getCurGroupIdx()
 	return m_nCurGroupIdx;
 }
 
-bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards)
+bool BJPlayerCard::setCardsGroup(std::vector<uint16_t>& vGroupedCards)
 {
 	if (vGroupedCards.empty())
 	{
 		// auto make group ;
+		LOGFMTE( "grouped cards , should not empty" );
 		return true;
 	}
 
@@ -235,24 +147,40 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards)
 	}
 
 	// check group cards is valid 
-	auto vTemp = vGroupedCards;
+	std::vector<uint8_t> vTemp;
+	for (auto ref : vGroupedCards)
+	{
+		uint8_t nValue = (uint8_t)( ref & 0xff );
+		if ( ref & 0xff00)
+		{
+			nValue = (uint8_t)((ref & 0xff00) >> 8 );
+		}
+		vTemp.push_back(nValue);
+	}
 	std::sort(vTemp.begin(),vTemp.end());
 	std::sort(m_vHoldCards.begin(), m_vHoldCards.end());
 	for ( uint8_t nIdx = 0; nIdx < vTemp.size(); ++nIdx )
 	{
 		if ( vTemp[nIdx] != m_vHoldCards[nIdx] )
 		{
+			LOGFMTE( "recived client card is not the same as server , client fake" );
 			return false;
 		}
 	}
 
-	m_vHoldCards.clear();
-	m_vHoldCards = vGroupedCards;
-
 	// fill group 
+	auto groupIter = vGroupedCards.begin();
 	for ( uint8_t nGIdx = 0; nGIdx < m_vGroups.size(); ++nGIdx )
 	{
-		m_vGroups[nGIdx].setCard(m_vHoldCards[3 * nGIdx], m_vHoldCards[3 * nGIdx] + 1, m_vHoldCards[3 * nGIdx] + 2 );
+		std::vector<uint16_t> vTemp;
+		vTemp.push_back(*groupIter);
+		++groupIter;
+		vTemp.push_back(*groupIter);
+		++groupIter;
+		vTemp.push_back(*groupIter);
+		++groupIter;
+
+		m_vGroups[nGIdx].setCard(vTemp);
 	}
 	return true;
 }
@@ -264,4 +192,41 @@ bool BJPlayerCard::holdCardToJson(Json::Value& vHoldCards)
 		vHoldCards[vHoldCards.size()] = ref;
 	}
 	return true;
+}
+
+bool BJPlayerCard::groupCardToJson(Json::Value& vHoldCards)
+{
+	for (auto& ref : m_vGroups)
+	{
+		vHoldCards[vHoldCards.size()] = ref.getCardByIdx(0);
+		vHoldCards[vHoldCards.size()] = ref.getCardByIdx(1);
+		vHoldCards[vHoldCards.size()] = ref.getCardByIdx(2);
+	}
+	return true;
+}
+
+void BJPlayerCard::getHoldCards(std::vector<uint8_t>& vHoldCards)
+{
+	vHoldCards.assign(m_vHoldCards.begin(),m_vHoldCards.end());
+}
+
+BJPlayerCard::stGroupCard& BJPlayerCard::getGroupByIdx(uint8_t nGroupIdx)
+{
+	if (nGroupIdx >= 3)
+	{
+		LOGFMTE( "invalid groupidx = %u, must fix it",nGroupIdx );
+		nGroupIdx = 0;
+	}
+	return m_vGroups[nGroupIdx];
+}
+
+eXiPaiType BJPlayerCard::getXiPaiType(bool isEnableSanQing, bool isEnableShunQingDaTou)
+{
+	eXiPaiType temp;
+	auto bRet = BJXiPaiChecker::getInstance()->checkXiPai(this, temp, isEnableSanQing, isEnableShunQingDaTou);
+	if (bRet)
+	{
+		temp = eXiPai_Max;
+	}
+	return temp;
 }

@@ -10,7 +10,9 @@ public:
 	uint8_t getInitRound(uint8_t nLevel)override;
 	void doSendRoomGameOverInfoToClient(bool isDismissed)override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
+	bool canStartGame(IGameRoom* pRoom)override;
 protected:
 	bool m_isForbitEnterRoomWhenStarted;
 	bool m_isEnableWhiteList;
+	uint8_t m_nAutoOpenCnt;
 };

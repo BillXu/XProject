@@ -87,7 +87,6 @@
     <ClCompile Include="src\IGameRoomManager.cpp" />
     <ClCompile Include="src\IMJPoker.cpp" />
     <ClCompile Include="src\IMJRoom.cpp" />
-    <ClCompile Include="src\MJCard.cpp" />
     <ClCompile Include="src\IMJPlayer.cpp" />
     <ClCompile Include="src\MJPlayerCard.cpp" />
     <ClCompile Include="src\IPrivateRoom.cpp" />
@@ -112,7 +111,6 @@
     <ClInclude Include="src\IPoker.h" />
     <ClInclude Include="src\IMJRoom.h" />
     <ClInclude Include="src\IGameRoomState.h" />
-    <ClInclude Include="src\MJCard.h" />
     <ClInclude Include="src\MJDefine.h" />
     <ClInclude Include="src\MJGameReplay.h" />
     <ClInclude Include="src\IMJPlayer.h" />

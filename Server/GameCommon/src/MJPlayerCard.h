@@ -17,6 +17,8 @@ public:
 	};
 	typedef std::vector<stInvokeActInfo> VEC_INVOKE_ACT_INFO;
 public:
+	virtual uint8_t getBaiDaCard() { return 0;  }  // means no bai Da ;
+	virtual bool isEanble7Pair() { return true; }
 	void onDoHu(uint16_t nInvokerIdx, uint8_t nHuCard, bool isInvokerHaveGangFlag)override;
 	void reset() override;
 	void addDistributeCard(uint8_t nCardNum) final;
@@ -33,9 +35,9 @@ public:
 	bool getHoldCardThatCanAnGang(VEC_CARD& vGangCards)override;
 	bool getHoldCardThatCanBuGang(VEC_CARD& vGangCards)override;
 
-	bool canHuWitCard(uint8_t nCard) override;
-	bool isHoldCardCanHu() override;
-	bool isTingPai(uint8_t& nTingCardType) override;
+	bool canHuWitCard( uint8_t nCard ) override;
+	bool isHoldCardCanHu( uint8_t& nJiang ) override;
+	bool isTingPai() override;
 
 	void onMoCard(uint8_t nMoCard) final;
 	bool onPeng(uint8_t nCard, uint16_t nInvokerIdx ) final;
@@ -56,17 +58,15 @@ public:
 
 	uint32_t getNewestFetchedCard()final;
 	void addLouPengedCard( uint8_t nLouPengedCard )final;
-	bool getCanHuCards(std::set<uint8_t>& vCanHus );
+	bool getCanHuCards(std::set<uint8_t>& vCanHus ); // can not used , when have bai dan lei xing ;
 	uint8_t getJiang();
 protected:
 	void addHoldCard( uint8_t nCard );
 	void removeHoldCard(uint8_t nCard);
-	bool is7PairTing( uint8_t& nJiang );
-	bool isNormalTing(); // must not be override 
-	bool canHoldCard7PairHu();
-	bool isHoldCardCanHuNormal( uint8_t& Jiang );  // must not be override 
-	bool getNormalCanHuCards( std::set<uint8_t>& vCanHus );  // must not be override 
-	bool isAllShunziOrKeZi( VEC_CARD vCards );
+	bool canHoldCard7PairHu(uint8_t& nJiang, uint8_t nBaiDaCnt );
+	bool isHoldCardCanHuNormal( uint8_t& nJiang , uint8_t nBaiDaCnt );  // must not be override 
+	bool getNormalCanHuCards( std::set<uint8_t>& vCanHus );  // must not be override , can not used , when have bai da 
+	bool isAllShunziOrKeZi(VEC_CARD vCards, uint8_t& nBaiDaCnt );
 	virtual bool isCardTypeMustKeZi(uint8_t nCardType);
 public:
 	void debugCardInfo();

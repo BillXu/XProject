@@ -19,6 +19,8 @@ CPlayerBaseData::CPlayerBaseData(CPlayer* player )
 	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
+	m_nTmpCoin = 0;
+	m_nTmpDiamond = 0;
 }
 
 CPlayerBaseData::~CPlayerBaseData()
@@ -33,6 +35,8 @@ void CPlayerBaseData::init()
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
 	m_bMoneyDataDirty = false;
+	m_nTmpCoin = 0;
+	m_nTmpDiamond = 0;
 }
 
 void CPlayerBaseData::reset()
@@ -40,6 +44,8 @@ void CPlayerBaseData::reset()
 	m_bMoneyDataDirty = false;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
+	m_nTmpCoin = 0;
+	m_nTmpDiamond = 0;
 	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
 }
 
@@ -79,6 +85,10 @@ void CPlayerBaseData::onPlayerLogined()
 		m_stBaseData.nDiamoned = jsRow["diamond"].asUInt();
 		m_stBaseData.nSex = jsRow["sex"].asUInt();
 
+		modifyMoney(m_nTmpCoin);
+		modifyMoney(m_nTmpDiamond,true);
+		m_nTmpCoin = 0;
+		m_nTmpDiamond = 0;
 		sendBaseDataToClient();
 	}
 	);
@@ -141,6 +151,11 @@ void CPlayerBaseData::sendBaseDataToClient()
 
 void CPlayerBaseData::timerSave()
 {
+	if ( m_isReadingDB == true )
+	{
+		return;
+	}
+
 	saveMoney();
 	// check player info ;
 	if ( m_bPlayerInfoDirty )
@@ -177,13 +192,18 @@ void CPlayerBaseData::saveMoney()
 
 bool CPlayerBaseData::modifyMoney( int32_t nOffset, bool bDiamond )
 {
+	if ( m_isReadingDB )
+	{
+		return true;
+	}
+
 	uint32_t& nRefMoney = bDiamond ? m_stBaseData.nDiamoned : m_stBaseData.nCoin;
 	if ( nOffset < 0 )
 	{
 		if ((uint32_t)(nOffset * -1) > nRefMoney)
 		{
 			LOGFMTE("uid = %u money is too few , can not decrease coin = %u , diamond = %u , offset = %d", getPlayer()->getUserUID(), getCoin(), getDiamoned(), nOffset);
-			return false;
+			nOffset = (-1 * (int32_t)nRefMoney);
 		}
 	}
 

@@ -6,7 +6,7 @@
 #include "IMJPlayerCard.h"
 #include "IPoker.h"
 #include "IGameRoomManager.h"
-#include "MJCard.h"
+#include "IMJPoker.h"
 #include "MJReplayFrameType.h"
 
 bool IMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
@@ -251,7 +251,8 @@ void IMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass)
 	}
 
 	// check hu .
-	if ( pMJCard->isHoldCardCanHu())
+	uint8_t nJiang = 0;
+	if ( pMJCard->isHoldCardCanHu(nJiang))
 	{
 		Json::Value jsAct;
 		jsAct["act"] = eMJAct_Hu;

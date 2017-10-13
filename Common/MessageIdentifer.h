@@ -159,7 +159,8 @@ enum eMsgType
 	// svr : { bankerIdx : 0 } 
 
 	MSG_ROOM_START_BET,
-	// svr : null ;
+	// svr : { players : [ { lastOffset : 0 , canTuiZhuang : 1 }, .... ] } ;
+
 	MSG_PLAYER_DO_BET,
 	// client : { betTimes : 2 }
 	// svr : { ret: 0 } , ret : 0 success , 1 invalid arguments , 2 you are not in room , 3 already beted, 4 state error  ;
@@ -195,7 +196,7 @@ enum eMsgType
 	// svr : { vSelfCard : [23,23,23,2,23] }
 
 	MSG_PLAYER_MAKED_GROUP,
-	// client : { vCards : [23,23,23,23,23] }
+	// client : { vCards : [23,23,23,23,23] } // 单张牌 uint16_t , 两个8位，前一个8位表示赖子牌，后面的8位表示癞子表示牌。如果没有癞子信息，前一个8位都是0 ；
 	// svr : { ret : 0 }
 	// ret : 0 success , 1 you are not in this room ,2 cards not fit , already maked card ;
 
@@ -203,7 +204,9 @@ enum eMsgType
 	// svr : { idx : 0 }
 
 	MSG_ROOM_BJ_GAME_END,
-	//svr : { players : [ { idx : 23 ,vGuoInfo : [ { type : 23 , offset : 2 , cards : [23,23,21] }, ..... ]  } , .....    ] } 
+	//svr : { players : [ { idx : 23 ,offset : 23 ,xiPaiOffset : 2 , xiPaiType : 0 , tongGuanOffse : 23 ,vGuoInfo : [ { type : 23 , offset : 2 , cards : [23,23,21] }, ..... ]  } , .....    ] } 
+    // 单张牌 uint16_t , 两个8位，前一个8位表示赖子牌，后面的8位表示癞子表示牌。如果没有癞子信息，前一个8位都是0 ；
+	// offset 表示玩家最终的输赢,eXiPaiType 定义了喜牌枚举，如果没有就是eXiPai_Max
 
 	MSG_POKER_GAME_MSG_MAX = 1000,
 	

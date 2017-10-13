@@ -39,7 +39,7 @@ public:
 		}
 
 		// parse cards ;
-		std::vector<uint8_t> vGroupCards;
+		std::vector<uint16_t> vGroupCards;
 		for (uint8_t nIdx = 0; nIdx < jsCards.size(); ++nIdx)
 		{
 			vGroupCards.push_back( jsCards[nIdx].asUInt() );

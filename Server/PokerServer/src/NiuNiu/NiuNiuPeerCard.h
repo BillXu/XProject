@@ -27,13 +27,18 @@ public:
 		Niu_None,
 		Niu_Single,
 		Niu_Niu,
+		Niu_ShunZiNiu , ///
+		Niu_TongHuaNiu,///
+		Niu_Hulu,///
         Niu_FiveFlower,
-		Niu_Boom,
 		Niu_FiveSmall,
+		Niu_Boom,
+		Niu_TongHuaShun, ///
 		Niu_Max,
 	};
 public:
     CNiuNiuPeerCard();
+	void setOpts( bool isEnableFiveFlower, bool isEnableBoom, bool isEnableFiveSmall, bool isEnableShunKan, bool isEnableCrazy );
 	void addCompositCardNum( uint8_t nCardCompositNum ) override ;
 	const char*  getNameString() override;
 	uint32_t getWeight() override;
@@ -82,17 +87,25 @@ public:
 		*pT = tTemp ;
 		return this ;
 	}
+	
 protected:
 	bool isCaculated();
 	void caculateCards();
-	bool checkNiu(CardGroup& ref );
-	bool checkFiveSmall();
-	bool checkFiveFlower();
-	bool checkBoom();
+	void caculateCards( NiuNiuType& type , uint8_t& nPoint , uint32_t& nWeight, uint8_t& nGroupIdx, std::vector<CCard>& vHoldCards );
+	bool checkNiu(std::vector<CCard>& vHoldCards,CardGroup& ref );
+	bool checkFiveSmall(std::vector<CCard>& vHoldCards);
+	bool checkFiveFlower(std::vector<CCard>& vHoldCards);
+	bool checkBoom(std::vector<CCard>& vHoldCards);
+	bool checkTongHuaShun(std::vector<CCard>& vHoldCards);
+	bool checkHuLu(std::vector<CCard>& vHoldCards);
+	bool checkTongHuaNiu(std::vector<CCard>& vHoldCards);
+	bool checkShunZiNiu(std::vector<CCard>& vHoldCards);
+	bool isHaveJoker();
+	void caculateNiuNiuCards( NiuNiuType& type, uint8_t& nPoint, uint32_t& nWeight, uint8_t& nGroupIdx, std::vector<CCard> vHoldCards );
 protected:
 	static CardGroup s_CardGroup[10] ;
 protected:
-	CCard m_vHoldCards[NIUNIU_HOLD_CARD_COUNT] ;	
+	std::vector<CCard> m_vHoldCards ;
 	uint8_t m_nAddIdx ;
 	uint8_t m_nBiggestCardIdx ;
 
@@ -100,4 +113,10 @@ protected:
 	uint8_t m_nPoint ;
 	uint8_t m_nGroupIdx ;
 	uint32_t m_nWeight ;
+
+	bool m_isEnableFiveFlower;
+	bool m_isEnableBoom;
+	bool m_isEnableFiveSmall;
+	bool m_isEnableShunKan;
+	bool m_isEnableCrazy;
 };

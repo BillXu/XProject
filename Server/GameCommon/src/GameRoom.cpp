@@ -17,7 +17,7 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_vPlayers.resize(nSeatCnt);
 	m_jsOpts = vJsOpts;
 	m_vStandPlayers.clear();
-	getPoker()->init();
+	getPoker()->init(vJsOpts);
 
 	m_ptrCurRoundRecorder = nullptr;
 	m_ptrRoomRecorder = createRoomRecorder();

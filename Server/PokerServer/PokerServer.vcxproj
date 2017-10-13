@@ -88,6 +88,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\BiJi\BJCardTypeChecker.h" />
+    <ClInclude Include="src\BiJi\BJDefine.h" />
     <ClInclude Include="src\BiJi\BJPlayer.h" />
     <ClInclude Include="src\BiJi\BJPlayerCard.h" />
     <ClInclude Include="src\BiJi\BJPrivateRoom.h" />
@@ -96,6 +98,7 @@
     <ClInclude Include="src\BiJi\BJRoomStateMakeGroupCard.h" />
     <ClInclude Include="src\BiJi\BJRoomStateStartGame.h" />
     <ClInclude Include="src\BiJi\BJRoomStateWaitPlayerReady.h" />
+    <ClInclude Include="src\BiJi\BJXiPaiChecker.h" />
     <ClInclude Include="src\CardPoker.h" />
     <ClInclude Include="src\IPeerCard.h" />
     <ClInclude Include="src\NiuNiu\NiuNiuPeerCard.h" />

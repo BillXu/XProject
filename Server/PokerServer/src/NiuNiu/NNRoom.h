@@ -20,6 +20,7 @@ public:
 		eDecideBank_NiuNiu,
 		eDecideBank_OneByOne,
 		eDecideBank_LookCardThenRobot,
+		eDecideBank_Rand,
 		eDecideBank_Max,
 	};
 
@@ -48,6 +49,8 @@ public:
 	uint8_t onPlayerRobotBanker( uint16_t nIdx, uint8_t nRobotTimes );
 	bool isAllPlayerRobotedBanker();
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
+	bool isEnableTuiZhu();
+	bool isEnableTuiZhuang();
 protected:
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );
 	bool addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)override;
@@ -60,5 +63,5 @@ private:
 
 	uint16_t m_nLastNiuNiuIdx;
 
-	CPoker m_tPoker;
+	CNiuNiuPoker m_tPoker;
 };

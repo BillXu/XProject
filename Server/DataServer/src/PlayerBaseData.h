@@ -34,4 +34,7 @@ private:
 	bool m_bMoneyDataDirty;
 	bool m_bPlayerInfoDirty;
 	bool m_isReadingDB;
+
+	int32_t m_nTmpCoin;
+	int32_t m_nTmpDiamond;
 };
