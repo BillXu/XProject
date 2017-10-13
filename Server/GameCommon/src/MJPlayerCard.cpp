@@ -1,5 +1,5 @@
 #include "MJPlayerCard.h"
-#include "MJCard.h"
+#include "IMJPoker.h"
 #include "log4z.h"
 // mj player card ;
 void MJPlayerCard::reset()
@@ -21,7 +21,8 @@ void MJPlayerCard::onDoHu(uint16_t nInvokerIdx, uint8_t nHuCard, bool isInvokerH
 {
 	m_nDianPaoIdx = nInvokerIdx;
 	onMoCard(nHuCard);
-	if (!isHoldCardCanHu())
+	uint8_t nJiang = 0;
+	if (!isHoldCardCanHu(nJiang))
 	{
 		LOGFMTE( "you can not hu , why do hu ?" );
 	}
@@ -156,7 +157,7 @@ bool MJPlayerCard::canEatCard(uint8_t nCard )
 	return false;
 }
 
-bool MJPlayerCard::canHuWitCard(uint8_t nCard)
+bool MJPlayerCard::canHuWitCard( uint8_t nCard )
 {
 	auto eType = card_Type(nCard);
 	if (eType >= eCT_Max)
@@ -166,7 +167,8 @@ bool MJPlayerCard::canHuWitCard(uint8_t nCard)
 	}
 
 	addHoldCard(nCard);
-	bool bSelfHu = isHoldCardCanHu();
+	uint8_t nJiang = 0;
+	bool bSelfHu = isHoldCardCanHu(nJiang);
 	removeHoldCard(nCard);
 	//debugCardInfo();
 	return bSelfHu;
@@ -202,16 +204,43 @@ bool MJPlayerCard::canBuGangWithCard(uint8_t nCard)
 	return m_vMingCardInfo.end() != std::find_if(m_vMingCardInfo.begin(), m_vMingCardInfo.end(), [nCard](VEC_INVOKE_ACT_INFO::value_type& ref) { return ref.nTargetCard == nCard && ref.eAct == eMJAct_Peng; });
 }
 
-bool MJPlayerCard::isTingPai( uint8_t& nTingCardType )
+bool MJPlayerCard::isTingPai()
 {
-	uint8_t nJiang = 0;
-	if ( is7PairTing(nJiang) )
+	uint8_t nBaiDaCnt = 0;
+	if (getBaiDaCard() > 0) // enabled bai Da card ;
 	{
-		nTingCardType = card_Type(nJiang);
-		return true;
+		VEC_CARD vHolds;
+		getHoldCard(vHolds);
+		nBaiDaCnt = std::count(vHolds.begin(), vHolds.end(), getBaiDaCard());
 	}
 
-	return isNormalTing();
+	// remove bai da card from hold 
+	auto nBaiCard = getBaiDaCard();
+	while (nBaiCard > 0 && isHaveCard(nBaiCard))
+	{
+		removeHoldCard(nBaiCard);
+	}
+
+	// check ting , means 13 cards + one bai da ;
+	++nBaiDaCnt; // check ting bai da jia yi ;
+	bool isTing = false;
+	uint8_t nJiang = 0;
+	if (isEanble7Pair())
+	{
+		isTing = canHoldCard7PairHu(nJiang, nBaiDaCnt);
+	}
+
+	if (!isTing)
+	{
+		isTing = isHoldCardCanHuNormal(nJiang, nBaiDaCnt);
+	}
+	--nBaiDaCnt; // after check ting  ; 
+	// add back baiDa to hold 
+	while (nBaiDaCnt--)
+	{
+		addHoldCard(nBaiCard);
+	}
+	return isTing;
 }
 
 bool MJPlayerCard::getHoldCardThatCanAnGang(VEC_CARD& vGangCards)
@@ -293,15 +322,41 @@ bool MJPlayerCard::getHoldCardThatCanBuGang(VEC_CARD& vGangCards)
 	return !vGangCards.empty();
 }
 
-bool MJPlayerCard::isHoldCardCanHu()
+bool MJPlayerCard::isHoldCardCanHu( uint8_t& nJiang )
 {
-	if (canHoldCard7PairHu())
+	uint8_t nBaiDaCnt = 0;
+	if ( getBaiDaCard() > 0 ) // enabled bai Da card ;
 	{
-		return true;
+		VEC_CARD vHolds;
+		getHoldCard(vHolds);
+		nBaiDaCnt = std::count(vHolds.begin(), vHolds.end(), getBaiDaCard());
 	}
 
-	uint8_t nJiang = 0;
-	return isHoldCardCanHuNormal(nJiang);
+	// remove bai da card from hold 
+	auto nBaiCard = getBaiDaCard();
+	while ( nBaiCard > 0 && isHaveCard(nBaiCard) )
+	{
+		removeHoldCard(nBaiCard);
+	}
+
+	// check hu
+	bool isHu = false;
+	if ( isEanble7Pair() )
+	{
+		isHu = canHoldCard7PairHu(nJiang,nBaiDaCnt);
+	}
+
+	if ( !isHu )
+	{
+		isHu = isHoldCardCanHuNormal(nJiang, nBaiDaCnt);
+	}
+	 
+	// add back baiDa to hold 
+	while (nBaiDaCnt--)
+	{
+		addHoldCard(nBaiCard);
+	}
+	return isHu;
 }
 
 void MJPlayerCard::onMoCard(uint8_t nMoCard)
@@ -628,81 +683,99 @@ void MJPlayerCard::removeHoldCard(uint8_t nCard)
 	return;
 }
 
-bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& Jiang )
+bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 {
-	uint8_t nJiangType = eCT_Max;
-	for (uint8_t nType = eCT_None; nType < eCT_Max; ++nType)
+	// check all hold card is hun , ignore jiang ;
+	auto pCheckHoldCardAllShun = [this](uint8_t nBaiDaCnt)
 	{
-		auto& vCards = m_vCards[nType];
-		if ( vCards.size() % 3 == 2 && eCT_Max == nJiangType )
+		for (uint8_t nType = eCT_None; nType < eCT_Max; ++nType)
 		{
-			nJiangType = nType;
-			continue;
+			if (!isAllShunziOrKeZi(m_vCards[nType], nBaiDaCnt))
+			{
+				return false;
+			}
 		}
+		return true;
+	};
+ 
+	// when baiDa not Be Jiang  
+	// find maybe jiang 
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
 
-		if ( vCards.size() % 3 != 0 )
-		{
-			return false;
-		}
-
-		if ( isAllShunziOrKeZi(vCards) == false )
-		{
-			return false;
-		}
-	}
-
-	if ( eCT_Max == nJiangType )
+	std::set<uint8_t> vMayBeJiang;
+	for (uint8_t nIdx = 0; (nIdx + 1) < vHoldCards.size(); )
 	{
-		LOGFMTE("why this hold card do not have jiang ? xiang gang ? ");
-		return false;
-	}
-
-	// find jiang ;
-	auto vCheck = m_vCards[nJiangType];
-	std::set<uint8_t> vJiang;
-	for ( uint8_t nIdx = 0; (nIdx + 1) < vCheck.size();  )
-	{
-		if (vCheck[nIdx] == vCheck[nIdx + 1])
+		if (vHoldCards[nIdx] == vHoldCards[nIdx + 1])
 		{
-			vJiang.insert(vCheck[nIdx]);
+			vMayBeJiang.insert(vHoldCards[nIdx]);
 			nIdx += 2;
 			continue;
 		}
 		++nIdx;
 	}
 
-	if ( vJiang.empty() )
+	for ( auto& ref : vMayBeJiang )
 	{
-		return false;
-	}
+		// remove jiang ;
+		removeHoldCard(ref);
+		removeHoldCard(ref);
+		// check all card type is shun, without jiang ;
+		bool bOk = pCheckHoldCardAllShun(nBaiDaCnt);
+		// add back jiang 
+		addHoldCard(ref);
+		addHoldCard(ref);
 
-	for (auto ref : vJiang)
-	{
-		vCheck.clear();
-		vCheck = m_vCards[nJiangType];
-		
-		auto iter = std::find(vCheck.begin(),vCheck.end(),ref);
-		vCheck.erase(iter);
-		std::find(vCheck.begin(), vCheck.end(), ref);
-		vCheck.erase(iter);
-		
-		if (isAllShunziOrKeZi(vCheck))
+		if (bOk)  // ok this jiang can hu , so need not go on try other jiang 
 		{
-			Jiang = ref;
+			nJiang = ref;
 			return true;
 		}
 	}
+
+	// 2 baiDa as jiang 
+	if ( nBaiDaCnt >= 2 ) 
+	{
+		if (pCheckHoldCardAllShun(nBaiDaCnt - 2 ))
+		{
+			nJiang = 0; // zero means baiDa as jiang ;
+			return true;
+		}
+	}
+
+	// one baiDa as Jiang 
+	if ( nBaiDaCnt >= 1 ) 
+	{
+		vMayBeJiang.clear();
+		vMayBeJiang.insert(vHoldCards.begin(),vHoldCards.end());  // erase duplicate cards ;
+		for (auto& ref : vMayBeJiang)
+		{
+			// remove jiang ;
+			removeHoldCard(ref);
+			// check all card type is shun, without jiang ;
+			bool bOk = pCheckHoldCardAllShun( nBaiDaCnt - 1 );
+			// add back jiang 
+			addHoldCard(ref);
+
+			if (bOk)  // ok this jiang can hu , so need not go on try other jiang 
+			{
+				nJiang = ref;
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 
-bool MJPlayerCard::isAllShunziOrKeZi( VEC_CARD vCards )
+bool MJPlayerCard::isAllShunziOrKeZi( VEC_CARD vCards, uint8_t& nBaiDaCnt )
 {
 	if ( vCards.empty() )
 	{
 		return true;
 	}
 
-	if ( vCards.size() % 3 != 0 )
+	if (  ( vCards.size() % 3 != 0 ) && ( 3 - vCards.size() % 3  > nBaiDaCnt ) )
 	{
 		return false;
 	}
@@ -725,6 +798,21 @@ bool MJPlayerCard::isAllShunziOrKeZi( VEC_CARD vCards )
 
 		if ( isMustKeZi )
 		{
+			if ( vCards[nIdx] == vCards[nIdx + 1] && nBaiDaCnt >= 1)
+			{
+				vCards[nIdx] = vCards[nIdx + 1] = 0;
+				nBaiDaCnt -= 1;
+				nIdx += 2;
+				continue;
+			}
+
+			if ( nBaiDaCnt >= 2 )
+			{
+				vCards[nIdx] = 0;
+				nBaiDaCnt -= 2;
+				++nIdx;
+				continue;
+			}
 			return false;
 		}
 
@@ -738,48 +826,37 @@ bool MJPlayerCard::isAllShunziOrKeZi( VEC_CARD vCards )
 			++nIdx;
 			continue;
 		}
-		return false;
-	}
-
-	return true;
-}
-
-bool MJPlayerCard::is7PairTing( uint8_t& nJiang )
-{
-	VEC_CARD vHold;
-	getHoldCard(vHold);
-	if (vHold.size() != 13)
-	{
-		return false;
-	}
-	std::sort(vHold.begin(),vHold.end());
-	nJiang = 0;
-	for (size_t nIdx = 0; (nIdx + 1) < vHold.size();  )
-	{
-		if ( vHold[nIdx] != vHold[nIdx + 1] )
+		else if ( iterSecond == vCards.end() && iterThired == vCards.end())
 		{
-			if ( nJiang == 0 )
+			if ( nBaiDaCnt >= 2 )
 			{
-				nJiang = vHold[nIdx];
+				vCards[nIdx] = 0;
+				nBaiDaCnt -= 2;
 				++nIdx;
 				continue;
 			}
-			nJiang = 0;
-			return false;
 		}
-		nIdx += 2;
+		else if ( iterSecond == vCards.end() || iterThired == vCards.end())
+		{
+			if ( nBaiDaCnt >= 1 )
+			{
+				vCards[nIdx] = 0;
+				nBaiDaCnt -= 1;
+				auto iterNotNull = iterSecond != vCards.end() ? iterSecond : iterThired;
+				(*iterNotNull) = 0;
+				++nIdx;
+				continue;
+			}
+		}
+		return false;
 	}
-	return true;
-}
 
-bool MJPlayerCard::isNormalTing()
-{
-	std::set<uint8_t> vCanHus;
-	return getNormalCanHuCards(vCanHus);
+	return true;
 }
 
 bool MJPlayerCard::getNormalCanHuCards(std::set<uint8_t>& vCanHus)
 {
+	uint8_t nBaiDaCnt = 0;
 	std::vector<uint8_t> vNotShunKeZiType;
 	for (uint16_t nType = eCT_None; nType < eCT_Max; ++nType)
 	{
@@ -790,7 +867,7 @@ bool MJPlayerCard::getNormalCanHuCards(std::set<uint8_t>& vCanHus)
 			continue;
 		}
 
-		if (vCards.size() % 3 == 0 && (false == isAllShunziOrKeZi(vCards)))
+		if (vCards.size() % 3 == 0 && (false == isAllShunziOrKeZi(vCards, nBaiDaCnt)))
 		{
 			return false;
 		}
@@ -843,7 +920,7 @@ bool MJPlayerCard::getNormalCanHuCards(std::set<uint8_t>& vCanHus)
 		while (nCnt--)
 		{
 			addHoldCard(nCard);
-			auto isHu = isHoldCardCanHuNormal(nJiang);
+			auto isHu = isHoldCardCanHuNormal(nJiang,nBaiDaCnt);
 			removeHoldCard(nCard);
 			if (isHu)
 			{
@@ -856,23 +933,32 @@ bool MJPlayerCard::getNormalCanHuCards(std::set<uint8_t>& vCanHus)
 	return vCanHus.empty() == false;
 }
 
-bool MJPlayerCard::canHoldCard7PairHu()
+bool MJPlayerCard::canHoldCard7PairHu( uint8_t& nJiang, uint8_t nBaiDaCnt )
 {
 	VEC_CARD vHold;
 	getHoldCard(vHold);
-	if (vHold.size() != 14)
+	if ( (vHold.size() + nBaiDaCnt ) != 14 )
 	{
 		return false;
 	}
 	std::sort(vHold.begin(), vHold.end());
-	for (size_t nIdx = 0; (nIdx + 1) < vHold.size(); nIdx += 2)
+	for (size_t nIdx = 0; (nIdx + 1) < vHold.size(); )
 	{
-		if (vHold[nIdx] != vHold[nIdx + 1])
+		if ( vHold[nIdx] != vHold[nIdx + 1] )
 		{
+			if (nBaiDaCnt >= 1)
+			{
+				++nIdx;
+				--nBaiDaCnt;
+				continue;
+			}
 			return false;
 		}
+		nIdx += 2;
 	}
-	return false;
+
+	nJiang = getNewestFetchedCard();
+	return true;
 }
 
 void MJPlayerCard::addLouPengedCard(uint8_t nLouPengedCard)
@@ -882,28 +968,44 @@ void MJPlayerCard::addLouPengedCard(uint8_t nLouPengedCard)
 
 bool MJPlayerCard::getCanHuCards(std::set<uint8_t>& vCanHus)
 {
-	uint8_t nJiang = 0;
-	if (is7PairTing(nJiang))
+	if ( this->isEanble7Pair() ) // check 7 pair can hu 
 	{
-		vCanHus.insert(nJiang);
-		return true;
+		VEC_CARD vCards;
+		getHoldCard(vCards);
+		if ( vCards.size() != 14 )
+		{
+			return getNormalCanHuCards(vCanHus);
+		}
+
+		uint8_t n7Ting = 0;
+		std::sort(vCards.begin(),vCards.end());
+		for (uint8_t nIdx = 0; ( nIdx + 1 ) < vCards.size(); )
+		{
+			if (vCards[nIdx] != vCards[nIdx + 1])
+			{
+				if ( n7Ting == 0 )
+				{
+					n7Ting = vCards[nIdx];
+					++nIdx; 
+					continue;
+				}
+				return getNormalCanHuCards(vCanHus);
+			}
+			nIdx += 2;
+		}
+		
+		if (n7Ting)
+		{
+			vCanHus.insert(n7Ting);
+		}
 	}
 	return getNormalCanHuCards(vCanHus);
 }
 
 uint8_t MJPlayerCard::getJiang()
 {
-	if (canHoldCard7PairHu())
-	{
-		return getNewestFetchedCard();
-	}
-
 	uint8_t nJiang = 0;
-	if ( !isHoldCardCanHuNormal(nJiang) )
-	{
-		LOGFMTE( "hold card is not hu , can not find jiang " );
-		return 0;
-	}
+	isHoldCardCanHu(nJiang);
 	return nJiang;
 }
 

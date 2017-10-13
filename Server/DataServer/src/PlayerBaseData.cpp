@@ -194,6 +194,8 @@ bool CPlayerBaseData::modifyMoney( int32_t nOffset, bool bDiamond )
 {
 	if ( m_isReadingDB )
 	{
+		int32_t& nRefTmp = bDiamond ? m_nTmpDiamond : m_nTmpCoin;
+		nRefTmp += nOffset;
 		return true;
 	}
 
