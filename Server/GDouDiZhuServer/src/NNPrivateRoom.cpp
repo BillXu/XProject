@@ -131,13 +131,6 @@ bool NNPrivateRoom::canStartGame(IGameRoom* pRoom)
 		}
 
 		m_isOpen = nCnt >= m_nAutoOpenCnt;
-		if (m_isOpen)
-		{
-			m_isOpen = true;
-			Json::Value js;
-			sendRoomMsg(js, MSG_ROOM_DO_OPEN);
-			LOGFMTI(" room id = %u auto set open", getRoomID());
-		}
 	}
 
 	return IPrivateRoom::canStartGame(pRoom);

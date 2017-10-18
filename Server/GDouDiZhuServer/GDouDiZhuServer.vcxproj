@@ -11,11 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B3A5F4ED-2980-4BC2-A4A9-FF748C19C4C1}</ProjectGuid>
+    <ProjectGuid>{0C36CA6A-517A-455D-BC59-0269B1083615}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>MaJiangServer</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>GBiJiServer</ProjectName>
+    <ProjectName>GDouDiZhuServer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -89,31 +89,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\BiJi\BJCardTypeChecker.h" />
-    <ClInclude Include="src\BiJi\BJDefine.h" />
-    <ClInclude Include="src\BiJi\BJPlayer.h" />
-    <ClInclude Include="src\BiJi\BJPlayerCard.h" />
-    <ClInclude Include="src\BiJi\BJPrivateRoom.h" />
-    <ClInclude Include="src\BiJi\BJRoom.h" />
-    <ClInclude Include="src\BiJi\BJRoomStateGameEnd.h" />
-    <ClInclude Include="src\BiJi\BJRoomStateMakeGroupCard.h" />
-    <ClInclude Include="src\BiJi\BJRoomStateStartGame.h" />
-    <ClInclude Include="src\BiJi\BJRoomStateWaitPlayerReady.h" />
-    <ClInclude Include="src\BiJi\BJXiPaiChecker.h" />
-    <ClInclude Include="src\BJPoker.h" />
+    <ClInclude Include="src\CardPoker.h" />
+    <ClInclude Include="src\DDZPlayer.h" />
+    <ClInclude Include="src\DDZPlayerCard.h" />
+    <ClInclude Include="src\DDZRoom.h" />
+    <ClInclude Include="src\DouDiZhuCardTypeChecker.h" />
+    <ClInclude Include="src\DouDiZhuDefine.h" />
     <ClInclude Include="src\IPeerCard.h" />
-    <ClInclude Include="src\BJServer.h" />
-    <ClInclude Include="src\BJRoomManager.h" />
+    <ClInclude Include="src\NiuNiu\NiuNiuPeerCard.h" />
+    <ClInclude Include="src\NiuNiu\NiuNiuPlayerRecorder.h" />
+    <ClInclude Include="src\NiuNiu\NNPlayer.h" />
+    <ClInclude Include="src\NiuNiu\NNRoom.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomPlayerCaculateNiu.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateBet.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateDecideBanker.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateDistributeCard.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateGameEnd.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateLRBDistributeFinalCard.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateLRBDistributeFristCard.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateLRBRobotBanker.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateLRBStartGame.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateStartGame.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateWaitReady.h" />
+    <ClInclude Include="src\PokerServer.h" />
+    <ClInclude Include="src\NNPrivateRoom.h" />
+    <ClInclude Include="src\RoomManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\BiJi\BJPlayer.cpp" />
-    <ClCompile Include="src\BiJi\BJPlayerCard.cpp" />
-    <ClCompile Include="src\BiJi\BJPrivateRoom.cpp" />
-    <ClCompile Include="src\BiJi\BJRoom.cpp" />
-    <ClCompile Include="src\BJPoker.cpp" />
+    <ClCompile Include="src\CardPoker.cpp" />
+    <ClCompile Include="src\DDZPlayer.cpp" />
+    <ClCompile Include="src\DDZPlayerCard.cpp" />
+    <ClCompile Include="src\DDZRoom.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\BJServer.cpp" />
-    <ClCompile Include="src\BJRoomManager.cpp" />
+    <ClCompile Include="src\NiuNiu\NiuNiuPeerCard.cpp" />
+    <ClCompile Include="src\NiuNiu\NNPlayer.cpp" />
+    <ClCompile Include="src\NiuNiu\NNRoom.cpp" />
+    <ClCompile Include="src\PokerServer.cpp" />
+    <ClCompile Include="src\NNPrivateRoom.cpp" />
+    <ClCompile Include="src\RoomManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

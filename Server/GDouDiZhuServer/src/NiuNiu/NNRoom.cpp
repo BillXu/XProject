@@ -88,6 +88,11 @@ void NNRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,ui
 		return;
 	}
 
+	if (nVisitorSessionID == pPlayer->getSessionID())
+	{
+		jsPlayerInfo["lastOffset"] = ((NNPlayer*)pPlayer)->getLastOffset();
+		jsPlayerInfo["canTuiZhuang"] = ((NNPlayer*)pPlayer)->getRobotBankerFailedTimes() >= 3;
+	}
 	jsPlayerInfo["betTimes"] = ((NNPlayer*)pPlayer)->getBetTimes();
 	bool isSendHoldCard = false;
 	auto nCurState = getCurState()->getStateID();
@@ -393,6 +398,7 @@ void NNRoom::doStartBet()
 		}
 
 		Json::Value jsPlayer;
+		jsPlayer["idx"] = p->getIdx();
 		jsPlayer["lastOffset"] = p->getLastOffset();
 		jsPlayer["canTuiZhuang"] = p->getRobotBankerFailedTimes() >= 3 ? 1 : 0;
 		jsPlayers[jsPlayers.size()] = jsPlayer;
@@ -416,7 +422,7 @@ uint8_t NNRoom::onPlayerDoBet( uint16_t nIdx, uint8_t nBetTimes )
 		return 3;
 	}
 
-	nBetTimes = (uint8_t)p->doBet(nBetTimes);
+	nBetTimes = p->doBet(nBetTimes);
 
 	Json::Value jsRoomBet;
 	jsRoomBet["idx"] = nIdx;
@@ -732,7 +738,7 @@ bool NNRoom::addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)
 	{
 		auto pNiu = (NNPlayer*)pPlayer;
 		auto ptr = std::make_shared<NiuNiuPlayerRecorder>(pPlayer->getUserUID(), pPlayer->getSingleOffset());
-		ptr->nBetTimes = (uint8_t)pNiu->getBetTimes();
+		ptr->nBetTimes = pNiu->getBetTimes();
 		if (pNiu->getIdx() == getBankerIdx())
 		{
 			ptr->nBetTimes = 0;

@@ -47,7 +47,17 @@ void CCard::RsetCardByCompositeNum( unsigned char nCompositeNum )
 
 unsigned char CCard::GetCardCompositeNum()
 {
-	return ( m_eType * 13 + m_nCardFaceNum );
+	if (eCard_Joker == m_eType)
+	{
+		return 53;
+	}
+
+	if (eCard_BigJoker == m_eType)
+	{
+		return 54;
+	}
+
+	return (m_eType * 13 + m_nCardFaceNum);
 }
 
 CCard& CCard::SetCard(eCardType etype, unsigned char nFaceNum )

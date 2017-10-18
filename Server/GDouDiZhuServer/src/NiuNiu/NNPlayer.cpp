@@ -20,7 +20,7 @@ void NNPlayer::onGameDidEnd()
 
 uint16_t NNPlayer::doBet(uint16_t nBetTimes)
 {
-	m_nBetTimes = (uint8_t)nBetTimes;
+	m_nBetTimes = nBetTimes;
 	return m_nBetTimes;
 }
 
@@ -31,7 +31,7 @@ uint16_t NNPlayer::getBetTimes()
 
 uint16_t NNPlayer::doRobotBanker(uint16_t nRobotTimes)
 {
-	m_nRobotBankerTimes = (uint8_t)nRobotTimes;
+	m_nRobotBankerTimes = nRobotTimes;
 	return nRobotTimes;
 }
 

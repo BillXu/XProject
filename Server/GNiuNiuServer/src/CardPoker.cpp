@@ -47,6 +47,16 @@ void CCard::RsetCardByCompositeNum( unsigned char nCompositeNum )
 
 unsigned char CCard::GetCardCompositeNum()
 {
+	if (eCard_Joker == m_eType)
+	{
+		return 53;
+	}
+
+	if ( eCard_BigJoker == m_eType)
+	{
+		return 54;
+	}
+
 	return ( m_eType * 13 + m_nCardFaceNum );
 }
 
@@ -54,7 +64,7 @@ CCard& CCard::SetCard(eCardType etype, unsigned char nFaceNum )
 {
 	if ( etype < eCard_None || etype >= eCard_Max )
 	{
-        #ifdef SERVER
+#ifdef SERVER
 		LOGFMTE("unknown card type =%d", etype ) ;
 #endif
 		return *this;
@@ -62,7 +72,7 @@ CCard& CCard::SetCard(eCardType etype, unsigned char nFaceNum )
 
 	if ( nFaceNum <=0 ||nFaceNum >54 )
 	{
-        #ifdef SERVER
+#ifdef SERVER
 		LOGFMTE("unlegal face number = %d",nFaceNum ) ;
 #endif
 	}

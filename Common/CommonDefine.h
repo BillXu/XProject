@@ -39,6 +39,8 @@ enum eGameType
 	eGame_None,
 	eGame_NiuNiu,
 	eGame_BiJi,
+	eGame_CYDouDiZhu,
+	eGame_JJDouDiZhu,
 	eGame_TestMJ,
 	eGame_Max,
 };

@@ -94,6 +94,7 @@ bool CClientNetworkImp::connectToServer(const char* pIP, unsigned short nPort )
 	tcp::resolver resolver(m_ioservice);
 	tcp::resolver::query query(pIP, std::to_string(nPort));
 	tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+	
 	asio::async_connect(m_ptrSession->socket(), endpoint_iterator, [this](const asio::error_code& ec,tcp::resolver::iterator i) {
 		bool bSucce = !ec;
 		Packet* pack = new Packet;

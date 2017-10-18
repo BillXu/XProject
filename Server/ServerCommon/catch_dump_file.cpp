@@ -121,6 +121,10 @@ namespace CatchDumpFile
 
 	BOOL CDumpCatch::PreventSetUnhandledExceptionFilter()
 	{
+#ifdef _DEBUG
+		return true;
+#endif // _DEBUG
+
 		HMODULE hKernel32 = LoadLibrary(L"kernel32.dll");
 		if (hKernel32 ==   NULL)
 		{
