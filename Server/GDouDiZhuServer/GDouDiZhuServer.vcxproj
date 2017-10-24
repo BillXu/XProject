@@ -93,26 +93,15 @@
     <ClInclude Include="src\DDZPlayer.h" />
     <ClInclude Include="src\DDZPlayerCard.h" />
     <ClInclude Include="src\DDZRoom.h" />
+    <ClInclude Include="src\DDZRoomStateGameEnd.h" />
+    <ClInclude Include="src\DDZRoomStateRobotBanker.h" />
+    <ClInclude Include="src\DDZRoomStateStartGame.h" />
+    <ClInclude Include="src\DDZRoomStatePlayerChu.h" />
+    <ClInclude Include="src\DDZRoomStateWaitReady.h" />
     <ClInclude Include="src\DouDiZhuCardTypeChecker.h" />
     <ClInclude Include="src\DouDiZhuDefine.h" />
     <ClInclude Include="src\IPeerCard.h" />
-    <ClInclude Include="src\NiuNiu\NiuNiuPeerCard.h" />
-    <ClInclude Include="src\NiuNiu\NiuNiuPlayerRecorder.h" />
-    <ClInclude Include="src\NiuNiu\NNPlayer.h" />
-    <ClInclude Include="src\NiuNiu\NNRoom.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomPlayerCaculateNiu.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateBet.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateDecideBanker.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateDistributeCard.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateGameEnd.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateLRBDistributeFinalCard.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateLRBDistributeFristCard.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateLRBRobotBanker.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateLRBStartGame.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateStartGame.h" />
-    <ClInclude Include="src\NiuNiu\NNRoomStateWaitReady.h" />
     <ClInclude Include="src\PokerServer.h" />
-    <ClInclude Include="src\NNPrivateRoom.h" />
     <ClInclude Include="src\RoomManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -121,11 +110,7 @@
     <ClCompile Include="src\DDZPlayerCard.cpp" />
     <ClCompile Include="src\DDZRoom.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\NiuNiu\NiuNiuPeerCard.cpp" />
-    <ClCompile Include="src\NiuNiu\NNPlayer.cpp" />
-    <ClCompile Include="src\NiuNiu\NNRoom.cpp" />
     <ClCompile Include="src\PokerServer.cpp" />
-    <ClCompile Include="src\NNPrivateRoom.cpp" />
     <ClCompile Include="src\RoomManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

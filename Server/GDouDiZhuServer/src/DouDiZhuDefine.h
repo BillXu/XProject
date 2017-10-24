@@ -1,9 +1,6 @@
 #pragma once
 enum DDZ_Type
 {
-	DDZ_Rokect,
-	DDZ_Bomb,
-	DDZ_Common,
 	DDZ_Single,
 	DDZ_Pair,
 	DDZ_3Pices,
@@ -13,5 +10,8 @@ enum DDZ_Type
 	DDZ_3PicesSeqence,
 	DDZ_AircraftWithWings,
 	DDZ_4Follow2,
+	DDZ_Common,
+	DDZ_Bomb,
+	DDZ_Rokect,
 	DDZ_Max,
 };

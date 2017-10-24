@@ -155,7 +155,7 @@ void NNRoom::onGameEnd()
 
 	std::sort(vPlayerCardAsc.begin(), vPlayerCardAsc.end(), sortPlayerByCard);
 	// do caculate ;
-	auto pBanker = getPlayerByIdx(m_nBankerIdx);
+	auto pBanker = (NNPlayer*)getPlayerByIdx(m_nBankerIdx);
 	if (!pBanker)
 	{
 		LOGFMTE( "why banker is null ? bug idx = %u , room id = %u",m_nBankerIdx,getRoomID() );
@@ -171,6 +171,10 @@ void NNRoom::onGameEnd()
 				continue;
 			}
 			auto pPlayerCard = ref->getPlayerCard();
+			if ( isBankerWin )
+			{
+				pPlayerCard = pBanker->getPlayerCard();
+			}
 			auto nBeishu = getBeiShuByCardType(pPlayerCard->getType(),pPlayerCard->getPoint() );
 			nBeishu = nBeishu * max(m_nBottomTimes , 1 ) * max(ref->getBetTimes(), 1);
 			pBanker->addSingleOffset(nBeishu * ( isBankerWin ? 1 : -1 ) );

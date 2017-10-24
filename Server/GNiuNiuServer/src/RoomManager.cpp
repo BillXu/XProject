@@ -12,6 +12,10 @@ IGameRoom* RoomManager::createRoom(uint8_t nGameType)
 
 uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, bool isAA)
 {
+#ifdef _DEBUG
+	return 0;
+#endif // _DEBUG
+
 	if (nLevel >= 3)
 	{
 		LOGFMTE( "invalid room level for game = %u , level = %u",nGameType,nLevel );

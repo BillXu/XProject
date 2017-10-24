@@ -211,6 +211,41 @@ enum eMsgType
 
 	MSG_POKER_GAME_MSG_MAX = 1000,
 	
+	// dou di zhu 
+	MSG_DDZ_ROOM_WAIT_ROBOT_DZ,
+	// svr: { idx : 2 }
+
+	MSG_DDZ_PLAYER_ROBOT_DZ,
+	// client: { times : 0 }
+	// svr: { ret : 0 }
+	// times ; 0 means do not robot , 1 means one times ;
+	// ret : 0 success , 1 you are not in room , 2 argument error , 3 you are not cur act player 4 times must big than previous player 
+
+ 	MSG_DDZ_ROOM_ROBOT_DZ,  // some player roboted dz ;
+	// svr : { times : 0 , idx } 
+
+	MSG_DDZ_ROOM_PRODUCED_DZ,
+	// svr: { dzIdx : 2 , times : 2 , cards : [23,23,23] }
+
+	MSG_DDZ_ROOM_WAIT_CHU,
+	// svr: { idx : 0 }
+
+	MSG_DDZ_PLAYER_SHOW_CARDS,
+	// client : null ;
+	// svr : { ret : 0  }
+	// 0 success , 1 you aret not banker , 2 already show cards , 3 only can shou cards before chu pai , 4 other code ;
+
+	MSG_DDZ_ROOM_SHOW_CARDS,
+	// svr : { idx : 2 , cards: [ 23,23,2,23] }
+
+	MSG_DDZ_PLAYER_CHU,
+	// client: { cards: [23,23,2] , type : 23 }
+	// svr : { ret : 0 } // 0 success , 1 you don't have card , 2 you can not chu card , weight invalid , 3 you are not in room , 4 argument error, 5 you are not current act player; 
+	MSG_DDZ_ROOM_CHU,
+	// svr: { cards : [ 23,22,23], type : 23, idx : 2 }
+	MSG_DDZ_ROOM_RESULT,
+	// svr : { bombCnt : 2 , isChunTian : 0 , isMingPai : 1 , bottom : 2 , players : [ { idx : 2 , offset : -2}, ..... ]  } 
+	
 	// mj specail msg ;
 	MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD,  // 有人出了一张牌，等待需要这张牌的玩家 操作，可以 碰，杠，胡
 	// svr : { invokerIdx : 2,cardNum : 32 , acts : [type0, type 1 , ..] }  ;

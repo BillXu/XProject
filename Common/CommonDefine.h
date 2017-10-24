@@ -73,6 +73,9 @@ enum eRoomState
 	// bj specail 
 	eRoomState_BJ_Make_Group,
 	eRoomState_BJ_Max = 100,
+	// dou di zhu specail 
+	eRoomState_DDZ_Chu,
+
 	// above is new ;
 	eRoomState_None,
 	eRoomState_WaitOpen,

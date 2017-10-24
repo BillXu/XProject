@@ -63,5 +63,5 @@ private:
 
 	uint16_t m_nLastNiuNiuIdx;
 
-	CNiuNiuPoker m_tPoker;
+	CDouDiZhuPoker m_tPoker;
 };

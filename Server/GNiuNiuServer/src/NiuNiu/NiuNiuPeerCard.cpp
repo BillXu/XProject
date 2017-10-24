@@ -10,6 +10,7 @@ CNiuNiuPeerCard::CNiuNiuPeerCard(){
 	m_isEnableFiveSmall = true ;
 	m_isEnableShunKan = false;
 	m_isEnableCrazy = false ;
+	m_nBiggestCardIdx = 0;
 
 	m_vHoldCards.resize(NIUNIU_HOLD_CARD_COUNT);
 }
@@ -183,21 +184,33 @@ void CNiuNiuPeerCard::caculateCards(NiuNiuType& type, uint8_t& nPoint, uint32_t&
 		type = Niu_TongHuaShun;
 		nPoint = 10;
 	}
+	else if (checkFiveSmall(vHoldCards))
+	{
+		type = Niu_FiveSmall;
+		nPoint = 10;
+	}
 	else if (checkBoom(vHoldCards))
 	{
 		type = Niu_Boom;
 		nPoint = 10;
-	}
-	else if (checkFiveSmall(vHoldCards))
-	{
-		type = Niu_FiveSmall ;
-		nPoint = 10 ;
 	}
     else if ( checkFiveFlower(vHoldCards))
     {
 		type = Niu_FiveFlower;
 		nPoint = 10 ;
     }
+	else if (checkHuLu(vHoldCards))
+	{
+		type = Niu_Hulu;
+	}
+	else if (checkTongHuaNiu(vHoldCards))
+	{
+		type = Niu_TongHuaNiu;
+	}
+	else if (checkShunZiNiu(vHoldCards))
+	{
+		type = Niu_ShunZiNiu;
+	}
 	else
 	{
 		for ( uint8_t nIdx = 0 ; nIdx < 10 ; ++nIdx )
@@ -226,39 +239,26 @@ void CNiuNiuPeerCard::caculateCards(NiuNiuType& type, uint8_t& nPoint, uint32_t&
 		} 
 	}
 
-	if ( Niu_Niu == type)
-	{
-		do
-		{
-			if ( checkHuLu(vHoldCards) )
-			{
-				type = Niu_Hulu;
-				break;
-			}
-
-			if (checkTongHuaNiu(vHoldCards))
-			{
-				type = Niu_TongHuaNiu;
-				break;
-			}
-
-			if (checkShunZiNiu(vHoldCards))
-			{
-				type = Niu_ShunZiNiu;
-				break;
-			}
-
-		} while ( 0 );
-	}
-
 	nWeight = 0 ;
 	uint8_t nType = type;
 	uint8_t nBigFaceNum = 0 ;
 	uint8_t nCardType = 0;
-	if (isHaveJoker() == false)  // when same type , not have joker , should big than ,that have joker ;
+	if (isHaveJoker() == false)  // when same type , not have joker , should big than that have joker ;
 	{
 		nBigFaceNum = vHoldCards[m_nBiggestCardIdx].GetCardFaceNum();
 		nCardType = vHoldCards[m_nBiggestCardIdx].GetType();
+	}
+	else
+	{
+		// get joker type ;
+		for (auto& ref : m_vHoldCards)
+		{
+			if (CCard::eCard_BigJoker == ref.GetType() || CCard::eCard_Joker == ref.GetType())
+			{
+				nCardType = ref.GetType();
+				break;
+			}
+		}
 	}
 	nWeight = (nType << 24) | ( nPoint << 16 ) | (nBigFaceNum << 8) | nCardType  ;
 }
@@ -385,6 +385,11 @@ bool CNiuNiuPeerCard::checkBoom(std::vector<CCard>& vHoldCards)
 bool CNiuNiuPeerCard::checkTongHuaShun(std::vector<CCard>& vHoldCards)
 {
 	if (m_isEnableCrazy == false)
+	{
+		return false;
+	}
+
+	if ( checkTongHuaNiu(vHoldCards) == false)
 	{
 		return false;
 	}

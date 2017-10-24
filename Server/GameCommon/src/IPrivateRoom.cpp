@@ -196,10 +196,13 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	case MSG_APPLY_DISMISS_VIP_ROOM:
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
-		if (pp == nullptr && getRoomPlayerCnt() == 0 )
+		if (pp == nullptr )
 		{
 			LOGFMTE("pp is null why , you apply dismiss , but , you are not sit in room, session id = %u", nSessionID);
-			doRoomGameOver(true);
+			if (getRoomPlayerCnt() == 0)
+			{
+				doRoomGameOver(true);
+			}
 			return true;
 		}
 
@@ -486,11 +489,11 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	if ( isRoomStarted() )
 	{
 		// if we need invoker oom game end ;
-		auto nCurState = m_pRoom->getCurState()->getStateID();
-		if (eRoomSate_WaitReady != nCurState && eRoomState_GameEnd != nCurState && isDismissed )
-		{
-			m_pRoom->onGameEnd();
-		}
+		//auto nCurState = m_pRoom->getCurState()->getStateID();
+		//if (eRoomSate_WaitReady != nCurState && eRoomState_GameEnd != nCurState && isDismissed )
+		//{
+		//	m_pRoom->onGameEnd();
+		//}
 
 		// prepare game over bills 
 		doSendRoomGameOverInfoToClient(isDismissed);
