@@ -51,6 +51,7 @@ public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	bool isEnableTuiZhu();
 	bool isEnableTuiZhuang();
+	void onTimeOutPlayerAutoBet();
 protected:
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );
 	bool addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)override;

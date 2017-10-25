@@ -53,6 +53,8 @@ public:
 
 	void onStateTimeUp()
 	{
+		auto pRoom = (NNRoom*)getRoom();
+		pRoom->onTimeOutPlayerAutoBet();
 		Json::Value jsValue;
 		getRoom()->goToState(eRoomState_DistributeCard, &jsValue);
 	}

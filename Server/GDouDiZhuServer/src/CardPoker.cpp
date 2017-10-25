@@ -9,13 +9,13 @@ void CDouDiZhuPoker::init( Json::Value& jsOpts )
 	{
 		for (uint8_t nValue = 1; nValue <= 13; ++nValue)
 		{
-			addCardToPoker(makeCard(nType,nValue));
+			addCardToPoker(DDZ_MAKE_CARD(nType,nValue));
 		}
 	}
 
 	// add wang ;
-	addCardToPoker(makeCard(ePoker_Joker,15));
-	addCardToPoker(makeCard(ePoker_Joker, 16));
+	addCardToPoker(DDZ_MAKE_CARD(ePoker_Joker,15));
+	addCardToPoker(DDZ_MAKE_CARD(ePoker_Joker, 16));
 
 	shuffle() ;
 }

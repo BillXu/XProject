@@ -196,21 +196,17 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	case MSG_APPLY_DISMISS_VIP_ROOM:
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
-		if (pp == nullptr )
+		auto nApplyUID = prealMsg["uid"].asUInt();
+		if ( pp )
 		{
-			LOGFMTE("pp is null why , you apply dismiss , but , you are not sit in room, session id = %u", nSessionID);
-			if (getRoomPlayerCnt() == 0)
-			{
-				doRoomGameOver(true);
-			}
-			return true;
+			nApplyUID = pp->getUserUID();
 		}
 
 		if ( isRoomStarted() == false )
 		{
-			if ( pp->getUserUID() != m_nOwnerUID )
+			if ( nApplyUID != m_nOwnerUID )
 			{
-				LOGFMTE( "client shoud not send this msg , room id = %u not start , you are not room owner, so you can not dismiss player id = %u, you can leave",getRoomID(),pp->getUserUID() );
+				LOGFMTE( "client shoud not send this msg , room id = %u not start , you are not room owner, so you can not dismiss player id = %u, you can leave",getRoomID(), nApplyUID );
 				return true;
 			}
 			
@@ -218,18 +214,28 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			return true;
 		}
 
-		m_vPlayerAgreeDismissRoom[pp->getUserUID()] = 1;
+		if ( nullptr == pp && nApplyUID != m_nOwnerUID )
+		{
+			LOGFMTE("you are not in room , and you are not owner  uid = %u",nApplyUID );
+			return true;
+		}
+
+		if ( pp )
+		{
+			m_vPlayerAgreeDismissRoom[nApplyUID] = 1;
+		}
+		
 		if (m_bWaitDismissReply)
 		{
-			LOGFMTE("client should not send this msg ,already waiting reply %u why you go on apply ?", pp->getUserUID() );
+			LOGFMTE("client should not send this msg ,already waiting reply %u why you go on apply ?", nApplyUID);
 			return false;
 		}
 		m_bWaitDismissReply = true;
 		m_tInvokerTime = time(nullptr);
-		m_nApplyDismissUID = pp->getUserUID();
+		m_nApplyDismissUID = nApplyUID;
 
 		Json::Value jsMsg;
-		jsMsg["applyerIdx"] = pp->getIdx();
+		jsMsg["applyerIdx"] = pp == nullptr ? -1 : pp->getIdx();
 		sendRoomMsg(jsMsg, MSG_ROOM_APPLY_DISMISS_VIP_ROOM );
 
 		// start wait timer ;

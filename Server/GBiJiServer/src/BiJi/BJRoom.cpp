@@ -207,12 +207,12 @@ void BJRoom::onGameEnd()
 		jsPlayerResult["offset"] = p->getSingleOffset();
 		jsPlayerResult["xiPaiOffset"] = p->getXiPaiOffset();
 		jsPlayerResult["xiPaiType"] = p->getPlayerCard()->getXiPaiType(isEnableSanQing(),isEnableShunQingDaTou());
-		jsPlayerResult["tongGuanOffse"] = p->getTongGuanOffset();
+		jsPlayerResult["tongGuanOffset"] = p->getTongGuanOffset();
 
 		Json::Value jsGuoArrays;
 		for (uint8_t nIdx = 0; nIdx < 3; ++nIdx)
 		{
-			std::vector<uint16_t> vGuoCards;
+			std::vector<uint8_t> vGuoCards;
 			uint8_t nCardType = 0;
 			p->getPlayerCard()->getGroupInfo(nIdx, nCardType, vGuoCards);
 
@@ -305,7 +305,7 @@ bool BJRoom::isAllPlayerMakedGroupCard()
 	return true;
 }
 
-uint8_t BJRoom::onPlayerDoMakeCardGroup(uint8_t nIdx, std::vector<uint16_t>& vGroupCards)
+uint8_t BJRoom::onPlayerDoMakeCardGroup(uint8_t nIdx, std::vector<uint8_t>& vGroupCards)
 {
 	auto pPlayer = (BJPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer)
@@ -339,7 +339,7 @@ bool BJRoom::onPlayerAutoMakeCardGroupAllPlayerOk()
 			continue;
 		}
 		LOGFMTE("we do not support auto make group room id = %u, uid = %u",getRoomID(),p->getUserUID() );
-		std::vector<uint16_t> vDefault;
+		std::vector<uint8_t> vDefault;
 		onPlayerDoMakeCardGroup(nIdx,vDefault);
 	}
 	return true;

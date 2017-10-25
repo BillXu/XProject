@@ -807,3 +807,20 @@ bool NNRoom::isEnableTuiZhuang()
 
 	return m_jsOpts["tuiZhuang"].isNull() == false && m_jsOpts["tuiZhuang"].asUInt() == 1;
 }
+
+void NNRoom::onTimeOutPlayerAutoBet()
+{
+	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+	{
+		auto pPlayer = (NNPlayer*)getPlayerByIdx(nIdx);
+		if ( getBankerIdx() == nIdx || nullptr == pPlayer || pPlayer->haveState(eRoomPeer_CanAct) != false)
+		{
+			continue;
+		}
+
+		if ( pPlayer->getBetTimes() == 0)
+		{
+			onPlayerDoBet(nIdx, 1);
+		}
+	}
+}

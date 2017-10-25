@@ -11,7 +11,7 @@ void BJPlayerCard::stGroupCard::reset()
 	m_vCard.clear();
 }
 
-void BJPlayerCard::stGroupCard::setCard( std::vector<uint16_t>& vCompsitCard )
+void BJPlayerCard::stGroupCard::setCard( std::vector<uint8_t>& vCompsitCard )
 {
 	m_vCard.clear();
 	m_vCard.assign(vCompsitCard.begin(),vCompsitCard.end());
@@ -21,15 +21,7 @@ void BJPlayerCard::stGroupCard::setCard( std::vector<uint16_t>& vCompsitCard )
 		return;
 	}
 
-	// get real caculate card ;
-	std::vector<uint8_t> vec;
-	for (auto& ref : m_vCard)
-	{
-		uint16_t nValue = ref & 0xff;
-		vec.push_back((uint8_t)nValue);
-	}
-
-	auto bRet = BJCardTypeChecker::getInstance()->checkCardType(vec, m_nWeight, m_eCardType);
+	auto bRet = BJCardTypeChecker::getInstance()->checkCardType(vCompsitCard, m_nWeight, m_eCardType);
 	if ( bRet == false )
 	{
 		LOGFMTE( "why check card type return error ? must check it !!!" );
@@ -37,7 +29,7 @@ void BJPlayerCard::stGroupCard::setCard( std::vector<uint16_t>& vCompsitCard )
 	return;
 }
 
-uint16_t BJPlayerCard::stGroupCard::getCardByIdx( uint8_t nIdx )
+uint8_t BJPlayerCard::stGroupCard::getCardByIdx( uint8_t nIdx )
 {
 	if ( nIdx >= PEER_CARD_COUNT || m_vCard.size() <= nIdx )
 	{
@@ -98,7 +90,7 @@ uint8_t BJPlayerCard::getCardByIdx(uint8_t nidx)
 	return m_vHoldCards[nidx];
 }
 
-bool BJPlayerCard::getGroupInfo( uint8_t nGroupIdx, uint8_t& nGroupType, std::vector<uint16_t>& vGroupCards)
+bool BJPlayerCard::getGroupInfo( uint8_t nGroupIdx, uint8_t& nGroupType, std::vector<uint8_t>& vGroupCards)
 {
 	if (nGroupIdx >= MAX_GROUP_CNT)
 	{
@@ -131,7 +123,7 @@ uint8_t BJPlayerCard::getCurGroupIdx()
 	return m_nCurGroupIdx;
 }
 
-bool BJPlayerCard::setCardsGroup(std::vector<uint16_t>& vGroupedCards)
+bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards)
 {
 	if (vGroupedCards.empty())
 	{
@@ -146,16 +138,7 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint16_t>& vGroupedCards)
 	}
 
 	// check group cards is valid 
-	std::vector<uint8_t> vTemp;
-	for (auto ref : vGroupedCards)
-	{
-		uint8_t nValue = (uint8_t)( ref & 0xff );
-		if ( ref & 0xff00)
-		{
-			nValue = (uint8_t)((ref & 0xff00) >> 8 );
-		}
-		vTemp.push_back(nValue);
-	}
+	std::vector<uint8_t> vTemp = vGroupedCards;
 	std::sort(vTemp.begin(),vTemp.end());
 	std::sort(m_vHoldCards.begin(), m_vHoldCards.end());
 	for ( uint8_t nIdx = 0; nIdx < vTemp.size(); ++nIdx )
@@ -171,7 +154,7 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint16_t>& vGroupedCards)
 	auto groupIter = vGroupedCards.begin();
 	for ( uint8_t nGIdx = 0; nGIdx < m_vGroups.size(); ++nGIdx )
 	{
-		std::vector<uint16_t> vTemp;
+		std::vector<uint8_t> vTemp;
 		vTemp.push_back(*groupIter);
 		++groupIter;
 		vTemp.push_back(*groupIter);
@@ -184,7 +167,7 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint16_t>& vGroupedCards)
 	return true;
 }
 
-void BJPlayerCard::autoChoseGroup(std::vector<uint16_t>& vGroupedCards)
+void BJPlayerCard::autoChoseGroup(std::vector<uint8_t>& vGroupedCards)
 {
 
 }

@@ -20,7 +20,7 @@ public:
 	void onPlayerReady(uint16_t nIdx);
 
 	bool isAllPlayerMakedGroupCard();
-	uint8_t onPlayerDoMakeCardGroup( uint8_t nIdx,std::vector<uint16_t>& vGroupCards );
+	uint8_t onPlayerDoMakeCardGroup( uint8_t nIdx,std::vector<uint8_t>& vGroupCards );
 	bool onPlayerAutoMakeCardGroupAllPlayerOk();
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;

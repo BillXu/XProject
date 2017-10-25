@@ -125,6 +125,7 @@
     <ClInclude Include="src\MJRoomStateWaitPlayerAct.h" />
     <ClInclude Include="src\MJRoomStateWaitPlayerChu.h" />
     <ClInclude Include="src\MJRoomStateWaitReady.h" />
+    <ClInclude Include="src\PokerDefine.h" />
     <ClInclude Include="src\stEnterRoomData.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

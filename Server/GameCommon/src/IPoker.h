@@ -63,6 +63,21 @@ public:
 		return m_vCards[m_nCurIdx++];
 	}
 
+	static uint8_t makeCard( uint8_t nPartA, uint8_t nPartB )
+	{
+		uint8_t nCard = ( (nPartA << 4) | nPartB );
+		return nCard;
+	}
+
+	static uint8_t parsePartA(uint8_t nCardNum)
+	{
+		return (nCardNum & 0xf0) >> 4;
+	}
+
+	static uint8_t parsePartB(uint8_t nCardNum)
+	{
+		return (nCardNum & 0x0f);
+	}
 protected:
 	virtual void addCardToPoker( uint8_t nCard ) // only can invoker in , init method ;
 	{

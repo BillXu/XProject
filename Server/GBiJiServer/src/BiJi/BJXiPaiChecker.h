@@ -19,11 +19,10 @@ public:
 		std::vector<uint8_t> vHoldCards;
 		pPlayerCard->getHoldCards(vHoldCards);
 	 
-		CCard tTemp;
 		for (auto& ref : vHoldCards)
 		{
-			tTemp.RsetCardByCompositeNum(ref);
-			if ( CCard::eCard_Club != tTemp.GetType() && CCard::eCard_Sword != tTemp.GetType() && CCard::eCard_BigJoker != tTemp.GetType() && CCard::eCard_Joker != tTemp.GetType() )
+			auto nType = BJ_PARSE_TYPE(ref);
+			if ( ePoker_Club != nType && ePoker_Sword != nType && ePoker_Joker != nType  )
 			{
 				return false;
 			}
@@ -43,11 +42,10 @@ public:
 		std::vector<uint8_t> vHoldCards;
 		pPlayerCard->getHoldCards(vHoldCards);
 
-		CCard tTemp;
 		for (auto& ref : vHoldCards)
 		{
-			tTemp.RsetCardByCompositeNum((uint8_t)(ref & 0xff));
-			if (CCard::eCard_Heart != tTemp.GetType() && CCard::eCard_Diamond != tTemp.GetType() && CCard::eCard_BigJoker != tTemp.GetType() && CCard::eCard_Joker != tTemp.GetType() )
+			auto nType = BJ_PARSE_TYPE(ref);
+			if (ePoker_Diamond != nType && ePoker_Heart != nType && ePoker_Joker != nType )
 			{
 				return false;
 			}
@@ -64,63 +62,65 @@ class IXiPaiQuanShun
 public:
 	bool isThisXiPaiType(BJPlayerCard* pPlayerCard, eXiPaiType& eType)override
 	{
-		std::vector<uint8_t> vHoldCards;
-		pPlayerCard->getHoldCards(vHoldCards);
+		std::vector<uint8_t> vHoldCardsValue , vHoldUnSort;
+		pPlayerCard->getHoldCards(vHoldUnSort);
 
-		CCard tTemp;
-		for (auto& ref : vHoldCards)
+		uint8_t nJokerCnt = 0;
+		for (auto& ref : vHoldUnSort)
 		{
-			tTemp.RsetCardByCompositeNum(ref);
-			ref = tTemp.GetCardFaceNum(true);
-		}
-
-		std::sort(vHoldCards.begin(),vHoldCards.end());
-
-		bool bOk = true;
-		for ( uint8_t nIdx = 0; ( nIdx + 1u ) < vHoldCards.size(); ++nIdx)
-		{
-			if ( vHoldCards[nIdx] + 1 != vHoldCards[nIdx + 1])
+			if (ePoker_Joker == BJ_PARSE_TYPE(ref))  // ignore joker, joker can be any card 
 			{
-				bOk = false;
-				break;
+				++nJokerCnt;
+				continue;
 			}
+
+			auto nValue = BJ_PARSE_VALUE(ref);
+			if (1 == nValue)
+			{
+				nValue = 14;
+			}
+			vHoldCardsValue.push_back(nValue);
 		}
 
-		if ( bOk )
+		auto pCheckHoldCardShun = []( std::vector<uint8_t> vHoldCards, uint8_t nJokerCnt )
+		{
+			std::sort(vHoldCards.begin(), vHoldCards.end());
+			for (uint8_t nIdx = 0; (nIdx + 1u) < vHoldCards.size(); ++nIdx)
+			{
+				auto nElapNeedJokeCnt = vHoldCards[nIdx + 1] - (vHoldCards[nIdx] + 1);  // need how many joker can make all sequene
+				if (nElapNeedJokeCnt > nJokerCnt)
+				{
+					return false;
+				}
+				nJokerCnt -= nElapNeedJokeCnt;
+			}
+			return true;
+		};
+
+		if (pCheckHoldCardShun(vHoldCardsValue,nJokerCnt) )
 		{
 			eType = eXiPai_QuanShun;
 			return true;
 		}
 
 		// maybe last A , can be 1 ;
-		if ( vHoldCards.front() == 2 && vHoldCards.back() == 14 && vHoldCards[vHoldCards.size() - 2 ] == 9 )
+		auto iter = std::find(vHoldCardsValue.begin(),vHoldCardsValue.end(),14 );
+		if ( iter == vHoldCardsValue.end() )
 		{
-			vHoldCards[vHoldCards.size() - 1] = 1;
+			return false;
 		}
 		else
 		{
-			return false;
+			*iter = 1;
 		}
 
-		std::sort(vHoldCards.begin(), vHoldCards.end());
-
-		bOk = true;
-		for (uint8_t nIdx = 0; (nIdx + 1u) < vHoldCards.size(); ++nIdx)
+		if (pCheckHoldCardShun(vHoldCardsValue, nJokerCnt))
 		{
-			if (vHoldCards[nIdx] + 1 != vHoldCards[nIdx + 1])
-			{
-				bOk = false;
-				break;
-			}
+			eType = eXiPai_QuanShun;
+			return true;
 		}
 
-		if (bOk == false)
-		{
-			return false;
-		}
-
-		eType = eXiPai_QuanShun;
-		return true;
+		return false;
 	}
 };
 
@@ -210,23 +210,24 @@ public:
 		pPlayerCard->getHoldCards(vHoldCards);
 
 		// hold card conver to face value
-		CCard tTemp;
 		for (auto& ref : vHoldCards)
 		{
-			tTemp.RsetCardByCompositeNum(ref);
-			if (tTemp.GetType() == CCard::eCard_BigJoker || CCard::eCard_Joker == tTemp.GetType())  // ignore joker , joker can not be 4 zhang ;
+			if ( ePoker_Joker == BJ_PARSE_TYPE(ref) )  // ignore joker , joker can not be 4 zhang ;
 			{
 				continue;
 			}
-			ref = tTemp.GetCardFaceNum(true);
+			ref = BJ_PARSE_VALUE(ref);
+			if (ref == 1)
+			{
+				ref = 14;
+			}
 		}
 
 		// check tiao 4 zhang 
 		uint8_t n4ZhangCnt = 0;
 		for (auto& nTiao : vSanTiaoCards)
 		{
-			tTemp.RsetCardByCompositeNum((uint8_t)(nTiao & 0xff));  // card value from group , may have bai da , so must & operation ;then get face value 
-			if (std::count(vHoldCards.begin(), vHoldCards.end(), tTemp.GetCardFaceNum()) >= 4)
+			if (std::count(vHoldCards.begin(), vHoldCards.end(), BJ_PARSE_VALUE(nTiao) ) >= 4)
 			{
 				++n4ZhangCnt;
 			}

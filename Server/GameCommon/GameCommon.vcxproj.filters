@@ -27,6 +27,9 @@
     <Filter Include="src\MJBase\Fanxing">
       <UniqueIdentifier>{00b8a0f1-e6ee-4242-9eb6-8f54c90c516d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\PokerBase">
+      <UniqueIdentifier>{0f1bc2ec-7f30-4a9c-af0c-8a4967ebadf6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -159,6 +162,9 @@
     </ClInclude>
     <ClInclude Include="src\IMJPoker.h">
       <Filter>src\MJBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PokerDefine.h">
+      <Filter>src\PokerBase</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
