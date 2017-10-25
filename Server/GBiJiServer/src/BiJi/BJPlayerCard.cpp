@@ -136,8 +136,7 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint16_t>& vGroupedCards)
 	if (vGroupedCards.empty())
 	{
 		// auto make group ;
-		LOGFMTE( "grouped cards , should not empty" );
-		return true;
+		autoChoseGroup(vGroupedCards);
 	}
 
 	if ( vGroupedCards.size() != m_vHoldCards.size() || vGroupedCards.size() != 9 )
@@ -183,6 +182,11 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint16_t>& vGroupedCards)
 		m_vGroups[nGIdx].setCard(vTemp);
 	}
 	return true;
+}
+
+void BJPlayerCard::autoChoseGroup(std::vector<uint16_t>& vGroupedCards)
+{
+
 }
 
 bool BJPlayerCard::holdCardToJson(Json::Value& vHoldCards)

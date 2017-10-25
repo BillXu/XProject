@@ -517,6 +517,7 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	// delete self
 	m_pRoomMgr->deleteRoom(getRoomID());
 }
+
 GameRoom* IPrivateRoom::getCoreRoom()
 {
 	return m_pRoom;

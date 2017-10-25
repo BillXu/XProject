@@ -43,6 +43,8 @@ public:
 	stGroupCard& getGroupByIdx(uint8_t nGroupIdx );
 	eXiPaiType getXiPaiType( bool isEnableSanQing, bool isEnableShunQingDaTou );
 protected:
+	void autoChoseGroup(std::vector<uint16_t>& vGroupedCards);
+protected:
 	std::vector<uint8_t> m_vHoldCards;
 	std::vector<stGroupCard> m_vGroups;
 	uint8_t m_nCurGroupIdx;
