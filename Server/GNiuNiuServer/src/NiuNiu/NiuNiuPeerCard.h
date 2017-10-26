@@ -68,13 +68,19 @@ public:
 		return *this ;
 	}
 
-	uint8_t getCardByIdx(uint8_t nidx ) override
+	uint8_t getHoldCards( std::vector<uint8_t>& vHoldCards )
 	{
-		if ( nidx < NIUNIU_HOLD_CARD_COUNT )
+		vHoldCards.clear();
+		if ( 0 == m_nAddIdx )
 		{
-			return m_vHoldCards[nidx].GetCardCompositeNum() ;
+			return 0;
 		}
-		return 0 ;
+
+		for (auto & ref : m_vHoldCards)
+		{
+			vHoldCards.push_back(ref.GetCardCompositeNum());
+		}
+		return m_vHoldCards.size();
 	}
 
 	IPeerCard* swap(IPeerCard* pTarget)override

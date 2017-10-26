@@ -380,8 +380,3 @@ bool BJRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPor
 	}
 	return false;
 }
-
-bool BJRoom::addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)
-{
-	return true;
-}

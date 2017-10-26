@@ -29,8 +29,6 @@ protected:
 	uint8_t getXiPaiRate() { return 1; }
 	bool isEnableSanQing() { return true; }
 	bool isEnableShunQingDaTou() { return false; }
-protected:
-	bool addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)override;
 private:
 	CBJPoker m_tPoker;
 };

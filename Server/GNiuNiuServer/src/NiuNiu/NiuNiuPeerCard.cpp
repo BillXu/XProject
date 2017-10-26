@@ -142,16 +142,15 @@ CNiuNiuPeerCard::NiuNiuType CNiuNiuPeerCard::getType()
 
 void CNiuNiuPeerCard::toJson(Json::Value& js)
 {
-	auto nCnt = getHoldCardCnt();
-	for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
+	std::vector<uint8_t> vHolds;
+	if ( getHoldCards(vHolds) == 0 )
 	{
-		auto nCard = getCardByIdx(nIdx);
-		if (nCard == 0)
-		{
-			LOGFMTE("error invalid card idx = %u ", nIdx);
-			break;
-		}
-		js[js.size()] = nCard;
+		return;
+	}
+
+	for (auto& ref : vHolds)
+	{
+		js[js.size()] = ref;
 	}
 }
 

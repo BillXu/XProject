@@ -54,7 +54,7 @@ public:
 	void onTimeOutPlayerAutoBet();
 protected:
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );
-	bool addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)override;
+	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint16_t getBankerIdx() { return m_nBankerIdx; }
 private:
 	eResultType m_eResultType;

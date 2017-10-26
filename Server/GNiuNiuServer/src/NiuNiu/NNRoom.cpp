@@ -725,36 +725,9 @@ int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 	return 1;
 }
 
-bool NNRoom::addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)
+std::shared_ptr<IPlayerRecorder> NNRoom::createPlayerRecorderPtr()
 {
-	if (pPlayer == nullptr || pPlayer->haveState( eRoomPeer_StayThisRound) == false )
-	{
-		LOGFMTE("player is null how to add recorder room id = %u", getRoomID());
-		return false;
-	}
-
-	auto pCurRecorder = getCurRoundRecorder();
-	if (pCurRecorder == nullptr)
-	{
-		LOGFMTE("why this room id = %u single recorder is null ?  can not add uid = %u offset = %d", getRoomID(), pPlayer->getUserUID(), pPlayer->getSingleOffset());
-	}
-	else
-	{
-		auto pNiu = (NNPlayer*)pPlayer;
-		auto ptr = std::make_shared<NiuNiuPlayerRecorder>(pPlayer->getUserUID(), pPlayer->getSingleOffset());
-		ptr->nBetTimes = pNiu->getBetTimes();
-		if (pNiu->getIdx() == getBankerIdx())
-		{
-			ptr->nBetTimes = 0;
-		}
-		auto pCards = pNiu->getPlayerCard();
-		for (uint8_t nIdx = 0; nIdx < NIUNIU_HOLD_CARD_COUNT; ++nIdx)
-		{
-			ptr->vCards[nIdx] = pCards->getCardByIdx(nIdx);
-		}
-		pCurRecorder->addPlayerRecorderInfo(ptr);
-	}
-	return true;
+	return std::make_shared<NiuNiuPlayerRecorder>();
 }
 
 bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)

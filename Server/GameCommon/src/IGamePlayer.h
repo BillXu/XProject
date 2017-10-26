@@ -3,6 +3,9 @@
 #include "json\json.h"
 #include "stEnterRoomData.h"
 #include "CommonDefine.h"
+#include <memory>
+#include "IGameRecorder.h"
+class IPlayerRecorder;
 class IGamePlayer
 {
 public:
@@ -91,6 +94,11 @@ public:
 	uint16_t getIdx() { return m_nIdx; }
 	bool isOnline() { return m_isOnline; }
 	void setIsOnline(bool isOnline) { m_isOnline = isOnline; }
+	virtual bool recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrder)
+	{
+		ptrPlayerReocrder->setRecorder(getUserUID(), getSingleOffset());
+		return true;
+	}
 private:
 	bool m_isOnline = true;
 	uint32_t m_nSessionID;

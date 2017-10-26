@@ -19,6 +19,7 @@ public:
 	void onRobotBankerFailed() { ++m_nRobotBankerFailTimes; }
 	void clearRobotBankerFailedTimes() { m_nRobotBankerFailTimes = 0; }
 	uint8_t getRobotBankerFailedTimes() { return m_nRobotBankerFailTimes; }
+	bool recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrder)override;
 protected:
 	CNiuNiuPeerCard m_tPeerCard;
 	bool m_isCaculatedNiu;

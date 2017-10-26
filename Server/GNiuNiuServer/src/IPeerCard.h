@@ -17,7 +17,6 @@ public:
 	virtual  const char* getNameString() = 0 ;
 	virtual  uint32_t getWeight() = 0 ;
 	virtual IPeerCard* swap(IPeerCard* pTarget) = 0;
-	virtual uint8_t getCardByIdx(uint8_t nidx ) = 0 ;
 	virtual PK_RESULT pk( IPeerCard* pTarget )
 	{
 		assert(pTarget && "pk target is null" );

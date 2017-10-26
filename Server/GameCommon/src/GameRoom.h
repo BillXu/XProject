@@ -65,7 +65,7 @@ protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();
 	stStandPlayer* getStandPlayerByUID( uint32_t nUserID );
-	virtual bool addPlayerOneRoundOffsetToRecorder( IGamePlayer* pPlayer );  // signe player single round offset 
+	virtual std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr();
 	bool addReplayFrame( uint32_t nFrameType , Json::Value& jsFrameArg );
 private:
 	std::shared_ptr<IGameRoomRecorder> getRoomRecorder();

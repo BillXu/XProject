@@ -1,4 +1,5 @@
 #include "NNPlayer.h"
+#include "NiuNiu\NiuNiuPlayerRecorder.h"
 void NNPlayer::onGameWillStart()
 {
 	IGamePlayer::onGameWillStart();
@@ -54,4 +55,21 @@ bool NNPlayer::isCaculatedNiu()
 CNiuNiuPeerCard* NNPlayer::getPlayerCard()
 {
 	return &m_tPeerCard;
+}
+
+bool NNPlayer::recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrder)
+{
+	IGamePlayer::recorderVisitor(ptrPlayerReocrder);
+
+	auto p = (NiuNiuPlayerRecorder*)ptrPlayerReocrder.get();
+	p->setBetTimes(getBetTimes());
+
+	std::vector<uint8_t> vHoldCards;
+	if (getPlayerCard()->getHoldCards(vHoldCards) == 0)
+	{
+		return false;
+	}
+
+	p->setHoldCards(vHoldCards);
+	return true;
 }

@@ -214,7 +214,14 @@ void GameRoom::onGameEnd()
 			{
 				continue;
 			}
-			addPlayerOneRoundOffsetToRecorder(ref);
+
+			auto pPlayerRecorder = createPlayerRecorderPtr();
+			if (false == ref->recorderVisitor(pPlayerRecorder))
+			{
+				LOGFMTE( "player recorder visitor error can not save , room id = %u, uid = %u",getRoomID(),ref->getUserUID());
+				continue;
+			}
+			getCurRoundRecorder()->addPlayerRecorderInfo(pPlayerRecorder);
 		}
 		getRoomRecorder()->addSingleRoundRecorder(getCurRoundRecorder());
 	}
@@ -795,30 +802,9 @@ GameRoom::stStandPlayer* GameRoom::getStandPlayerByUID(uint32_t nUserID)
 	return iter->second;
 }
 
-bool GameRoom::addPlayerOneRoundOffsetToRecorder( IGamePlayer* pPlayer )
+std::shared_ptr<IPlayerRecorder> GameRoom::createPlayerRecorderPtr()
 {
-	if ( ( nullptr == getDelegate() ) || ( false == getDelegate()->isEnableRecorder() ) )
-	{
-		return false;
-	}
-
-	if (pPlayer == nullptr)
-	{
-		LOGFMTE( "player is null how to add recorder room id = %u" ,getRoomID() );
-		return false;
-	}
-
-	auto pCurRecorder = getCurRoundRecorder();
-	if (pCurRecorder == nullptr)
-	{
-		LOGFMTE("why this room id = %u single recorder is null ?  can not add uid = %u offset = %d", getRoomID(),pPlayer->getUserUID(),pPlayer->getSingleOffset() );
-	}
-	else
-	{
-		auto ptr = std::make_shared<IPlayerRecorder>(pPlayer->getUserUID(),pPlayer->getSingleOffset());
-		pCurRecorder->addPlayerRecorderInfo(ptr);
-	}
-	return true;
+	return std::make_shared<IPlayerRecorder>();
 }
 
 bool GameRoom::addReplayFrame(uint32_t nFrameType, Json::Value& jsFrameArg)

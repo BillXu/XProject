@@ -2,20 +2,22 @@
 #include "NativeTypes.h"
 #include "json/json.h"
 #include <memory>
+#include "ServerCommon.h"
 // one round player recorder info ;
 class IPlayerRecorder
 {
 public:
-	IPlayerRecorder( uint32_t nUserUID , int32_t nOffset ) 
-	{
-		this->nUserUID = nUserUID; 
-		this->nOffset = nOffset;
-	}
+	IPlayerRecorder() { nUserUID = 0; nOffset = 0; }
 	virtual ~IPlayerRecorder(){}
-	virtual bool toJson(Json::Value& js) { js["uid"] = getUserUID(); js["offset"] = getOffset(); return true; }
+	virtual bool toJson(Json::Value& js) { Assert(nUserUID > 0 , "why player recorder uid = 0 ?" ); js["uid"] = getUserUID(); js["offset"] = getOffset(); return true; }
 	uint32_t getUserUID() { return nUserUID; }
 	int32_t getOffset() { return nOffset; }
-public:
+	void setRecorder( uint32_t nUserUID , int32_t nOffset )
+	{
+		this->nUserUID = nUserUID;
+		this->nOffset = nOffset;
+	}
+private:
 	uint32_t nUserUID;
 	int32_t nOffset;
 };

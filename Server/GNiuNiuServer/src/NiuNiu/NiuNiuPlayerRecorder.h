@@ -5,20 +5,35 @@ class NiuNiuPlayerRecorder
 	:public IPlayerRecorder
 {
 public:
-	NiuNiuPlayerRecorder(uint32_t nUserUID, int32_t nOffset) : IPlayerRecorder(nUserUID,nOffset){}
+	NiuNiuPlayerRecorder()
+	{
+		nBetTimes = 0;
+		vHoldCards.clear();
+	}
+
 	bool toJson(Json::Value& js)override
 	{
 		IPlayerRecorder::toJson(js);
 		js["base"] = nBetTimes;
 		Json::Value jsCards;
-		for (auto& ref : vCards)
+		for (auto& ref : vHoldCards)
 		{
 			jsCards[jsCards.size()] = ref;
 		}
 		js["cards"] = jsCards;
 		return true;
 	}
-public:
+	
+	void setBetTimes(uint8_t nBetTimes)
+	{
+		this->nBetTimes = nBetTimes;
+	}
+
+	void setHoldCards( std::vector<uint8_t>& vHoldCards )
+	{
+		this->vHoldCards = vHoldCards;
+	}
+protected:
 	uint8_t nBetTimes;  // zero means banker ;
-	uint32_t vCards[NIUNIU_HOLD_CARD_COUNT];
+	std::vector<uint8_t> vHoldCards;
 };
