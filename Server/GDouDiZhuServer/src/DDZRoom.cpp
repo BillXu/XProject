@@ -83,11 +83,6 @@ bool DDZRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPo
 	return false;
 }
 
-bool DDZRoom::addPlayerOneRoundOffsetToRecorder(IGamePlayer* pPlayer)
-{
-
-}
-
 uint8_t DDZRoom::getFirstRobotBankerIdx()
 {
 	return m_nFirstRobotBankerIdx = (++m_nFirstRobotBankerIdx) % getSeatCnt();

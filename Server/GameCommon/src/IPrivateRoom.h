@@ -42,7 +42,7 @@ public:
 	bool canStartGame(IGameRoom* pRoom)override;
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool isEnableRecorder()final { return true; }
-	bool isEnableReplay()final { return true; }
+	bool isEnableReplay()override { return true; }
 
 	void doRoomGameOver(bool isDismissed);
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
