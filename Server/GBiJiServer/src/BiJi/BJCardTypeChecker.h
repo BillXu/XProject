@@ -158,7 +158,7 @@ public:
 		}
 		if (!isShun)
 		{
-			return true;
+			return false;
 		}
 
 		// make weight ;

@@ -196,7 +196,7 @@ void BJPlayerCard::autoChoseGroup(std::vector<uint8_t>& vGroupedCards)
 			vLeftHold.erase(iter);
 		}
 
-	} while ( vLeftHold.size() < 3 );
+	} while ( vLeftHold.size() >= 3 );
 }
 
 bool BJPlayerCard::findMaxCards( std::vector<uint8_t>& vLeftWaitCheck, std::vector<uint8_t>& vCheckCards, std::vector<uint8_t>& vCurMax, uint32_t& nCurMaxWeight)
