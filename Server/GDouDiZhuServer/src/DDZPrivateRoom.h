@@ -1,6 +1,6 @@
 #pragma once
 #include "IPrivateRoom.h"
-class BJPrivateRoom
+class DDZPrivateRoom
 	:public IPrivateRoom
 {
 public:

@@ -1,16 +1,16 @@
-#include "RoomManager.h"
-#include "NNPrivateRoom.h"
-IGameRoom* RoomManager::createRoom(uint8_t nGameType)
+#include "DDZRoomManager.h"
+#include "DDZPrivateRoom.h"
+IGameRoom* DDZRoomManager::createRoom(uint8_t nGameType)
 {
 	if ( eGame_CYDouDiZhu == nGameType )
 	{
-		return new NNPrivateRoom();
+		return new DDZPrivateRoom();
 	}
 	LOGFMTE("unknown game type = %u , can not create private room", nGameType );
 	return nullptr;
 }
 
-uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, bool isAA)
+uint8_t DDZRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, bool isAA)
 {
 	if (nLevel >= 3)
 	{

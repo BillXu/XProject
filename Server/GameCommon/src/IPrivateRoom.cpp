@@ -37,6 +37,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_isAA = vJsOpts["isAA"].asUInt() == 1;
 	m_nOwnerUID = vJsOpts["uid"].asUInt();
 	m_nRoundLevel = vJsOpts["level"].asUInt();
+	m_isEnableWhiteList = vJsOpts["enableWhiteList"].isNull() == false && vJsOpts["enableWhiteList"].asUInt() == 1;
 	m_nLeftRounds = getInitRound(m_nRoundLevel);
 
 	m_isOneRoundNormalEnd = false;
@@ -146,8 +147,63 @@ void IPrivateRoom::update(float fDelta)
 	}
 }
 
+bool IPrivateRoom::onProcessWhiteListSitDown(Json::Value& prealMsg, uint32_t nSessionID)
+{
+	auto p = getCoreRoom()->getStandPlayerBySessionID(nSessionID);
+	if ( nullptr == p || p->nUserUID == m_nOwnerUID || getCoreRoom()->isRoomFull()) // room owner skip white list check ;
+	{
+		return false;
+	}
+
+	// do check white list 
+	Json::Value js;
+	js["listOwner"] = m_nOwnerUID;
+	js["checkUID"] = p->nUserUID;
+	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	auto pRoomMgr = m_pRoomMgr;
+	auto nRoomID = getRoomID();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Check_WhiteList, js, [nSessionID, pRoomMgr, nRoomID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+	{
+		if (isTimeOut)
+		{
+			LOGFMTE("room id = %u session id = %u check white list timeout", nRoomID, nSessionID);
+			jsUserData["ret"] = 7;
+			pRoomMgr->sendMsg(jsUserData, MSG_PLAYER_SIT_DOWN, nRoomID, nSessionID, ID_MSG_PORT_CLIENT);
+			return;
+		}
+
+		auto nRet = retContent["ret"].asUInt();
+		if (nRet)
+		{
+			jsUserData["ret"] = 7;
+			pRoomMgr->sendMsg(jsUserData, MSG_PLAYER_SIT_DOWN, nRoomID, nSessionID, ID_MSG_PORT_CLIENT);
+			return;
+		}
+
+		auto pRoom = (IPrivateRoom*)pRoomMgr->getRoomByID(nRoomID);
+		if (pRoom == nullptr)
+		{
+			LOGFMTE("after check white list , room is null id = %u", nRoomID);
+			jsUserData["ret"] = 6;
+			pRoomMgr->sendMsg(jsUserData, MSG_PLAYER_SIT_DOWN, nRoomID, nSessionID, ID_MSG_PORT_CLIENT);
+			return;
+		}
+		// do go normal sitdown ;  only jin hua niu niu process here , mj can not do like this ;
+		pRoom->getCoreRoom()->onMsg(jsUserData, MSG_PLAYER_SIT_DOWN, ID_MSG_PORT_CLIENT, nSessionID);
+	}, prealMsg, p->nUserUID);
+	return true;
+}
+
 bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )
 {
+	if (nMsgType == MSG_PLAYER_SIT_DOWN && m_isEnableWhiteList )
+	{
+		if ( onProcessWhiteListSitDown(prealMsg, nSessionID) )
+		{
+			return true;
+		}
+	}
+
 	switch (nMsgType)
 	{
 	case MSG_REQUEST_ROOM_INFO:

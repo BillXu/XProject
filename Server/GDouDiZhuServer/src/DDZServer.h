@@ -1,9 +1,9 @@
 #pragma once
 #include "ISeverApp.h"
 #include "Singleton.h"
-class PokerServerApp
+class DDZServerApp
 	:public IServerApp
-	,public CSingleton<PokerServerApp>
+	,public CSingleton<DDZServerApp>
 {
 public:
 	enum eModule
@@ -13,7 +13,7 @@ public:
 		eMod_Max,
 	};
 public:
-	PokerServerApp(){}
+	DDZServerApp(){}
 	bool init(Json::Value& jsSvrCfg)override;
 	uint16_t getLocalSvrMsgPortType() override ;
 	IGlobalModule* createModule(uint16_t eModuleType)override;

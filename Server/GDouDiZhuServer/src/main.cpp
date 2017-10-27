@@ -1,8 +1,8 @@
-#include "PokerServer.h"
+#include "DDZServer.h"
 #include "Application.h"
 int main()
 {
-	CApplication theAplication(PokerServerApp::getInstance());
+	CApplication theAplication(DDZServerApp::getInstance());
 	theAplication.startApp();
 	return 0;
 }

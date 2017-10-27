@@ -19,12 +19,6 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\PokerServer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RoomManager.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\CardPoker.cpp">
       <Filter>src\Card</Filter>
     </ClCompile>
@@ -37,14 +31,17 @@
     <ClCompile Include="src\DDZPlayerCard.cpp">
       <Filter>src\DouDiZhu</Filter>
     </ClCompile>
+    <ClCompile Include="src\DDZRoomManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DDZPrivateRoom.cpp">
+      <Filter>src\DouDiZhu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DDZServer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\PokerServer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RoomManager.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\CardPoker.h">
       <Filter>src\Card</Filter>
     </ClInclude>
@@ -80,6 +77,15 @@
     </ClInclude>
     <ClInclude Include="src\DDZRoomStatePlayerChu.h">
       <Filter>src\DouDiZhu\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDZRoomManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDZPrivateRoom.h">
+      <Filter>src\DouDiZhu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDZServer.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

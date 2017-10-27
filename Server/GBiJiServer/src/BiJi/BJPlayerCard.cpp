@@ -272,13 +272,67 @@ BJPlayerCard::stGroupCard& BJPlayerCard::getGroupByIdx(uint8_t nGroupIdx)
 	return m_vGroups[nGroupIdx];
 }
 
-eXiPaiType BJPlayerCard::getXiPaiType(bool isEnableSanQing, bool isEnableShunQingDaTou)
+uint8_t BJPlayerCard::getXiPaiType(bool isEnableSanQing, bool isEnableShunQingDaTou, std::vector<eXiPaiType>& vXiType )
 {
-	eXiPaiType temp;
-	auto bRet = BJXiPaiChecker::getInstance()->checkXiPai(this, temp, isEnableSanQing, isEnableShunQingDaTou);
-	if (bRet)
+	auto bRet = BJXiPaiChecker::getInstance()->checkXiPai(this, vXiType, isEnableSanQing, isEnableShunQingDaTou);
+	if (!bRet)
 	{
-		temp = eXiPai_Max;
+		vXiType.clear();
+		return 0;
 	}
-	return temp;
+	
+	// remove duplicate ; shun qing types
+	auto iter = std::find(vXiType.begin(),vXiType.end(),eXiPai_QuanShunQing );
+	if ( iter != vXiType.end() )
+	{
+		auto iterShuang = std::find(vXiType.begin(), vXiType.end(), eXiPai_ShuangShunQing );
+		if ( iterShuang != vXiType.end() )
+		{
+			vXiType.erase(iterShuang);
+		}
+
+		auto iterShunQing = std::find(vXiType.begin(), vXiType.end(), eXiPai_ShunQingDaTou );
+		if (iterShunQing != vXiType.end())
+		{
+			vXiType.erase(iterShunQing);
+		}
+	}
+
+	iter = std::find(vXiType.begin(), vXiType.end(), eXiPai_ShuangShunQing );
+	if (iter != vXiType.end())
+	{
+		auto iterShunQing = std::find(vXiType.begin(), vXiType.end(), eXiPai_ShunQingDaTou);
+		if (iterShunQing != vXiType.end())
+		{
+			vXiType.erase(iterShunQing);
+		}
+	}
+
+	// san tiao type
+	iter = std::find(vXiType.begin(), vXiType.end(), eXiPai_QuanSanTiao );
+	if (iter != vXiType.end())
+	{
+		auto iterShunQing = std::find(vXiType.begin(), vXiType.end(), eXiPai_ShuangSanTiao);
+		if (iterShunQing != vXiType.end())
+		{
+			vXiType.erase(iterShunQing);
+		}
+	}
+
+	// caculate rate 
+	uint8_t nBeiShu = 0;
+	auto iter3QuanS = std::find(vXiType.begin(), vXiType.end(), eXiPai_QuanShunQing);
+	auto iter3QuanST = std::find(vXiType.begin(), vXiType.end(), eXiPai_QuanSanTiao);
+	if ( iter3QuanS != vXiType.end() || iter3QuanST != vXiType.end())
+	{
+		nBeiShu = 2;
+	}
+
+	auto iterShuangSiZhang = std::find(vXiType.begin(), vXiType.end(), eXiPai_ShuangSiZhang );
+	if (iterShuangSiZhang != vXiType.end())
+	{
+		nBeiShu += 1;
+	}
+	nBeiShu += vXiType.size();
+	return nBeiShu;
 }

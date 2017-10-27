@@ -26,7 +26,6 @@ public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 protected:
 	uint8_t getRoomRate() { return 1; }
-	uint8_t getXiPaiRate() { return 1; }
 	bool isEnableSanQing() { return true; }
 	bool isEnableShunQingDaTou() { return false; }
 private:

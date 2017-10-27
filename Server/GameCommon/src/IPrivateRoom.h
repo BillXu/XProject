@@ -52,11 +52,14 @@ public:
 	uint16_t getRoomPlayerCnt();
 protected:
 	bool isRoomStarted();
+	bool onProcessWhiteListSitDown(Json::Value& prealMsg,uint32_t nSessionID );
 protected:
 	IGameRoomManager* m_pRoomMgr;
 	uint32_t m_nOwnerUID;
 	bool m_isForFree;
 	bool m_isAA;
+	bool m_isEnableWhiteList;
+
 	bool m_isOpen; 
 
 	uint8_t m_nRoundLevel; // round level , comsume card and init round deponeded on this level ;

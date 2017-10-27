@@ -158,13 +158,14 @@ void BJRoom::onGameEnd()
 	// caculate xi pai 
 	for ( uint8_t nCheckIdx = 0; nCheckIdx < vActivePlayers.size(); ++nCheckIdx )
 	{
-		auto eXiPai = vActivePlayers[nCheckIdx]->getPlayerCard()->getXiPaiType(isEnableSanQing(),isEnableShunQingDaTou() );
-		if (eXiPai == eXiPai_Max)
+		std::vector<eXiPaiType> vXiType;
+		auto nXiPaiRate = vActivePlayers[nCheckIdx]->getPlayerCard()->getXiPaiType(isEnableSanQing(),isEnableShunQingDaTou() ,vXiType );
+		if ( 0 == nXiPaiRate )
 		{
 			continue;
 		}
 
-		int32_t nWinPerLose = (vActivePlayers.size() - 1) * getXiPaiRate() * getRoomRate();
+		int32_t nWinPerLose = (vActivePlayers.size() - 1) * nXiPaiRate * getRoomRate();
 		uint32_t nTotalWin = 0;
 		// caculate xiPai 
 		for (uint8_t nIdx = 0; nIdx < vActivePlayers.size(); ++nIdx)
@@ -206,7 +207,18 @@ void BJRoom::onGameEnd()
 		jsPlayerResult["idx"] = p->getIdx();
 		jsPlayerResult["offset"] = p->getSingleOffset();
 		jsPlayerResult["xiPaiOffset"] = p->getXiPaiOffset();
-		jsPlayerResult["xiPaiType"] = p->getPlayerCard()->getXiPaiType(isEnableSanQing(),isEnableShunQingDaTou());
+		std::vector<eXiPaiType> vXiType;
+		if ( 0 != p->getPlayerCard()->getXiPaiType(isEnableSanQing(), isEnableShunQingDaTou(), vXiType))
+		{
+			Json::Value jsXiPais;
+			for (auto& ref : vXiType)
+			{
+				jsXiPais[jsXiPais.size()] = ref;
+			}
+
+			jsPlayerResult["xiPaiTypes"] = jsXiPais;
+		}
+		
 		jsPlayerResult["tongGuanOffset"] = p->getTongGuanOffset();
 
 		Json::Value jsGuoArrays;

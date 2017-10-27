@@ -41,7 +41,7 @@ public:
 	// xi pai used 
 	void getHoldCards( std::vector<uint8_t>& vHoldCards );
 	stGroupCard& getGroupByIdx(uint8_t nGroupIdx );
-	eXiPaiType getXiPaiType( bool isEnableSanQing, bool isEnableShunQingDaTou );
+	uint8_t getXiPaiType( bool isEnableSanQing, bool isEnableShunQingDaTou , std::vector<eXiPaiType>& vXiType );
 protected:
 	void autoChoseGroup(std::vector<uint8_t>& vGroupedCards);
 	bool findMaxCards(std::vector<uint8_t>& vLeftWaitCheck, std::vector<uint8_t>& vCheckCards, std::vector<uint8_t>& vCurMax, uint32_t& nCurMaxWeight);

@@ -373,13 +373,14 @@ public:
 		m_vXiPaiTypes.clear();
 	}
 public:
-	bool checkXiPai( BJPlayerCard* pPlayerCard, eXiPaiType& eType, bool isEnableSanQing , bool isEnableShunQingDaTou )
+	bool checkXiPai( BJPlayerCard* pPlayerCard, std::vector<eXiPaiType>& vType, bool isEnableSanQing , bool isEnableShunQingDaTou )
 	{
+		eXiPaiType eType;
 		for (auto& ref : m_vXiPaiTypes)
 		{
 			if (ref->isThisXiPaiType(pPlayerCard,eType))
 			{
-				return true;
+				vType.push_back(eType);
 			}
 		}
 
@@ -388,7 +389,7 @@ public:
 			IXiPaiSanQing tTemp;
 			if ( tTemp.isThisXiPaiType(pPlayerCard, eType))
 			{
-				return true;
+				vType.push_back(eType);
 			}
 		}
 
@@ -397,10 +398,10 @@ public:
 			IXiPaiShunQingDaTou tTemp;
 			if (tTemp.isThisXiPaiType(pPlayerCard, eType))
 			{
-				return true;
+				vType.push_back(eType);
 			}
 		}
-		return false;
+		return vType.empty() == false;
 	}
 protected:
 	std::vector<IXiPaiType*> m_vXiPaiTypes;

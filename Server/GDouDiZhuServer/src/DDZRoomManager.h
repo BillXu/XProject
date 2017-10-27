@@ -1,6 +1,6 @@
 #pragma once
 #include "IGameRoomManager.h"
-class RoomManager
+class DDZRoomManager
 	:public IGameRoomManager
 {
 public:

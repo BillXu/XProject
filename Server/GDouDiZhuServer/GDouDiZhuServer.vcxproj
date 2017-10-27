@@ -92,6 +92,7 @@
     <ClInclude Include="src\CardPoker.h" />
     <ClInclude Include="src\DDZPlayer.h" />
     <ClInclude Include="src\DDZPlayerCard.h" />
+    <ClInclude Include="src\DDZPrivateRoom.h" />
     <ClInclude Include="src\DDZRoom.h" />
     <ClInclude Include="src\DDZRoomStateGameEnd.h" />
     <ClInclude Include="src\DDZRoomStateRobotBanker.h" />
@@ -101,17 +102,18 @@
     <ClInclude Include="src\DouDiZhuCardTypeChecker.h" />
     <ClInclude Include="src\DouDiZhuDefine.h" />
     <ClInclude Include="src\IPeerCard.h" />
-    <ClInclude Include="src\PokerServer.h" />
-    <ClInclude Include="src\RoomManager.h" />
+    <ClInclude Include="src\DDZServer.h" />
+    <ClInclude Include="src\DDZRoomManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CardPoker.cpp" />
     <ClCompile Include="src\DDZPlayer.cpp" />
     <ClCompile Include="src\DDZPlayerCard.cpp" />
+    <ClCompile Include="src\DDZPrivateRoom.cpp" />
     <ClCompile Include="src\DDZRoom.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\PokerServer.cpp" />
-    <ClCompile Include="src\RoomManager.cpp" />
+    <ClCompile Include="src\DDZServer.cpp" />
+    <ClCompile Include="src\DDZRoomManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
