@@ -387,12 +387,14 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			auto nLevel = jsUserData["level"].asUInt();
 			auto isAA = jsUserData["isAA"].asUInt() == 1 ;
 			auto isForFree = jsUserData["isFree"].asUInt() == 1;
-
+#ifndef _DEBUG
 			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
 			{
 				nRet = 2;
 				break;
 			}
+#endif // _DEBUG
+
 			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel,isAA);
 			if ( nDiamond < nDiamondNeed )
 			{

@@ -91,8 +91,9 @@ enum eMsgType
 	MSG_ROOM_CHANGE_STATE,
 	// svr : { lastState : 23 , newState : 23 }
 	MSG_ROOM_INFO, 
-	// svr: { state : 2 , roomID: 23, opts: {} , players:[ { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23, state : 23 ...}, ... ] , etc }
+	// svr: { state : 2 , stateInfo : {} , roomID: 23, opts: {} , leftCircle : 2 ,isOpen : 1 , isWaitingDismiss : 0 ,applyDismissUID : 234, agreeIdxs : [2,3,1] ，leftWaitTime : 234, etc }
 	// detail info , deponed on sepcail game ;
+
 	MSG_ROOM_SIT_DOWN,   // tell all players , some one sit down ;
 	// svr : { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ... }  // the same as MSG_ROOM_INFO players item ;
 	MSG_PLAYER_SIT_DOWN,
@@ -113,8 +114,8 @@ enum eMsgType
 	// svr: { ret : 0 } // 0 success , 1 you are not owner , 2 you are not in room ;
 	MSG_ROOM_DO_OPEN,
 	// svr : null ;
-	MSG_VIP_ROOM_INFO_EXT, // VIP 房间的额外信息；
-	// svr : { leftCircle : 2 ,isOpen : 1 , isWaitingDismiss : 0 ,applyDismissUID : 234, agreeIdxs : [2,3,1] ，leftWaitTime ： 234 }
+	MSG_ROOM_PLAYER_INFO,  // 房间内玩家的玩家信息，是一个数组,这个消息可能会收到多次
+	// svr : {  players:[ { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23, state : 23 ...}, ... ]  }
 
 	MSG_APPLY_DISMISS_VIP_ROOM, // 申请解散vip 房间
 	// client : { dstRoomID : 234 } 

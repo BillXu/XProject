@@ -33,6 +33,8 @@ public:
 	uint8_t getDiamondNeed(uint8_t nLevel, bool isAA);
 	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
 
+	void packRoomInfo(Json::Value& jsRoomInfo)override;
+	void sendRoomPlayersInfo(uint32_t nSessionID)override;
 	void sendRoomInfo(uint32_t nSessionID)override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) final;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)final;

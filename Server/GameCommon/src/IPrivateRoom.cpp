@@ -361,31 +361,32 @@ uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, bool isAA )
 	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, isAA);
 }
 
-void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
+void IPrivateRoom::sendRoomPlayersInfo(uint32_t nSessionID)
+{
+	if (getCoreRoom())
+	{
+		getCoreRoom()->sendRoomPlayersInfo(nSessionID);
+	}
+}
+
+void IPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
 	if (m_pRoom)
 	{
-		m_pRoom->sendRoomInfo(nSessionID);
-	}
-	else
-	{
-		LOGFMTE("private room core is null , can not send detail info");
-		return;
+		m_pRoom->packRoomInfo(jsRoomInfo);
 	}
 
-	LOGFMTD("send vip room info ext to player session id = %u", nSessionID);
-	Json::Value jsMsg;
-	jsMsg["leftCircle"] = m_nLeftRounds;
-	jsMsg["isOpen"] = m_isOpen ? 1 : 0;
+	jsRoomInfo["leftCircle"] = m_nLeftRounds;
+	jsRoomInfo["isOpen"] = m_isOpen ? 1 : 0;
 	// is waiting vote dismiss room ;
-	jsMsg["isWaitingDismiss"] = m_bWaitDismissReply ? 1 : 0;
+	jsRoomInfo["isWaitingDismiss"] = m_bWaitDismissReply ? 1 : 0;
 	int32_t nLeftSec = 0;
 	if (m_bWaitDismissReply)
 	{
-		jsMsg["applyDismissUID"] = m_nApplyDismissUID;
+		jsRoomInfo["applyDismissUID"] = m_nApplyDismissUID;
 		// find argee idxs ;
 		Json::Value jsArgee;
-		for (auto& ref : m_vPlayerAgreeDismissRoom )
+		for (auto& ref : m_vPlayerAgreeDismissRoom)
 		{
 			auto p = m_pRoom->getPlayerByUID(ref.first);
 			if (!p)
@@ -396,7 +397,7 @@ void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 			jsArgee[jsArgee.size()] = p->getIdx();
 		}
 
-		jsMsg["agreeIdxs"] = jsArgee;
+		jsRoomInfo["agreeIdxs"] = jsArgee;
 
 		// caclulate wait time ;
 		auto nEsT = time(nullptr) - m_tInvokerTime;
@@ -408,11 +409,20 @@ void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 		{
 			nLeftSec = TIME_WAIT_REPLY_DISMISS - nEsT;
 		}
+		jsRoomInfo["leftWaitTime"] = nLeftSec;
 	}
 
-	jsMsg["leftWaitTime"] = nLeftSec;
+}
 
-	sendMsgToPlayer(jsMsg, MSG_VIP_ROOM_INFO_EXT, nSessionID);
+void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
+{
+	// send room info ;
+	Json::Value jsMsg;
+	packRoomInfo(jsMsg);
+	sendMsgToPlayer(jsMsg, MSG_ROOM_INFO, nSessionID);
+
+	// send players info ;
+	sendRoomPlayersInfo(nSessionID);
 }
 
 bool IPrivateRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)

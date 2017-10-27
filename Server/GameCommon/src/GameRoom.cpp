@@ -619,27 +619,44 @@ bool GameRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)
 void GameRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
 	jsRoomInfo["opts"] = m_jsOpts;
-	jsRoomInfo["state"] = getCurState()->getStateID();
-	jsRoomInfo["stateTime"] = getCurState()->getStateDuring();
 	jsRoomInfo["roomID"] = getRoomID();
+
+	Json::Value jsStateInfo;
+	getCurState()->roomInfoVisitor(jsStateInfo);
+	jsRoomInfo["stateInfo"] = jsStateInfo;
+	jsRoomInfo["state"] = getCurState()->getStateID();
+}
+
+void GameRoom::sendRoomPlayersInfo(uint32_t nSessionID)
+{
+	Json::Value jsArraPlayers;
+	for (auto& ref : m_vPlayers)
+	{
+		if (ref)
+		{
+			Json::Value jsPlayer;
+			visitPlayerInfo(ref, jsPlayer, nSessionID);
+			jsArraPlayers[jsArraPlayers.size()] = jsPlayer;
+		}
+	}
+
+	if ( jsArraPlayers.size() == 0 )
+	{
+		return;
+	}
+	Json::Value jsPlayersInfo;
+	jsPlayersInfo["players"] = jsArraPlayers;
+	sendMsgToPlayer(jsPlayersInfo, MSG_ROOM_PLAYER_INFO, nSessionID);
 }
 
 void GameRoom::sendRoomInfo(uint32_t nSessionID)
 {
 	Json::Value jsRoomInfo;
 	packRoomInfo(jsRoomInfo);
-	Json::Value jsArraPlayers;
-	for (auto& ref : m_vPlayers)
-	{
-		if ( ref )
-		{
-			Json::Value jsPlayer;
-			visitPlayerInfo(ref, jsPlayer,nSessionID );
-			jsArraPlayers[jsArraPlayers.size()] = jsPlayer;
-		}
-	}
-	jsRoomInfo["players"] = jsArraPlayers;
 	sendMsgToPlayer(jsRoomInfo, MSG_ROOM_INFO, nSessionID);
+
+	// send players 
+	sendRoomPlayersInfo(nSessionID);
 }
 
 IGameRoomManager* GameRoom::getRoomMgr()

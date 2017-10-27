@@ -24,6 +24,8 @@ public:
 	virtual void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID) = 0;
 	virtual bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort,uint32_t nSessionID ) = 0;
 	virtual void sendRoomInfo(uint32_t nSessionID) = 0;
+	virtual void sendRoomPlayersInfo( uint32_t nSessionID ) = 0 ;
 	virtual bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState ) = 0;
 	virtual bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID ) = 0;
+	virtual void packRoomInfo( Json::Value& jsRoomInfo ) = 0;
 };

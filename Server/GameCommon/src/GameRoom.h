@@ -31,7 +31,8 @@ public:
 	virtual bool canStartGame();
 	virtual void onGameDidEnd();
 	virtual void onGameEnd();
-	virtual void packRoomInfo(Json::Value& jsRoomInfo) ;
+	void sendRoomPlayersInfo(uint32_t nSessionID)override;
+	void packRoomInfo(Json::Value& jsRoomInfo)override ;
 	virtual void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID );
 	virtual bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer,uint16_t nIdx );
 	virtual bool doPlayerStandUp(uint32_t nUserUID);
