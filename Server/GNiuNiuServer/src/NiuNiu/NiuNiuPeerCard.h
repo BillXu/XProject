@@ -76,11 +76,11 @@ public:
 			return 0;
 		}
 
-		for (auto & ref : m_vHoldCards)
+		for (auto nIdx = 0; nIdx < getHoldCardCnt(); ++nIdx)
 		{
-			vHoldCards.push_back(ref.GetCardCompositeNum());
+			vHoldCards.push_back(m_vHoldCards[nIdx].GetCardCompositeNum());
 		}
-		return m_vHoldCards.size();
+		return vHoldCards.size();
 	}
 
 	IPeerCard* swap(IPeerCard* pTarget)override

@@ -169,7 +169,72 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards)
 
 void BJPlayerCard::autoChoseGroup(std::vector<uint8_t>& vGroupedCards)
 {
+	std::vector<uint8_t> vLeftHold = m_vHoldCards;
 
+	std::vector<uint8_t> vMax;
+	std::vector<uint8_t> vCheck;
+	uint32_t nTmpWeight = 0;
+	
+	do
+	{
+		vCheck.clear();
+		vMax.clear();
+		nTmpWeight = 0;
+
+		findMaxCards(vLeftHold, vCheck, vMax, nTmpWeight);
+		if (vMax.size() == 0)
+		{
+			LOGFMTE("why can not find max group ?");
+			vGroupedCards = m_vHoldCards;
+			return;
+		}
+
+		vGroupedCards.insert(vGroupedCards.end(), vMax.begin(), vMax.end());
+		for (auto& ref : vMax)
+		{
+			auto iter = std::find(vLeftHold.begin(), vLeftHold.end(),ref);
+			vLeftHold.erase(iter);
+		}
+
+	} while ( vLeftHold.size() < 3 );
+}
+
+bool BJPlayerCard::findMaxCards( std::vector<uint8_t>& vLeftWaitCheck, std::vector<uint8_t>& vCheckCards, std::vector<uint8_t>& vCurMax, uint32_t& nCurMaxWeight)
+{
+	if ( vCheckCards.size() == 3 )
+	{
+		uint32_t nWeightTmp = 0;
+		eBJCardType type;
+		BJCardTypeChecker::getInstance()->checkCardType(vCheckCards, nWeightTmp, type );
+		if (nWeightTmp > nCurMaxWeight)
+		{
+			nCurMaxWeight = nWeightTmp;
+			vCurMax = vCheckCards;
+		}
+		return true;
+	}
+
+	for ( uint8_t nIdx = 0; nIdx < vLeftWaitCheck.size(); ++nIdx)
+	{
+		vCheckCards.push_back(vLeftWaitCheck[nIdx]);
+		std::vector<uint8_t> vLeft;
+		for (uint8_t nLeft = nIdx + 1; nLeft < vLeftWaitCheck.size(); ++nLeft)
+		{
+			vLeft.push_back(vLeftWaitCheck[nLeft]);
+		}
+
+		uint32_t nWeitTemp = 0 ;
+		std::vector<uint8_t> vTmp;
+		findMaxCards(vLeft,vCheckCards,vTmp, nWeitTemp);
+		if ( nWeitTemp > nCurMaxWeight )
+		{
+			nCurMaxWeight = nWeitTemp;
+			vCurMax = vTmp;
+		}
+		vCheckCards.pop_back();
+	}
+
+	return true;
 }
 
 bool BJPlayerCard::holdCardToJson(Json::Value& vHoldCards)
