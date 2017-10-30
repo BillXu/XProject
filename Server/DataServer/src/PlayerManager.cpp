@@ -3,7 +3,7 @@
 #include "log4z.h"
 #include "Player.h"
 #include "CommonDefine.h"
-#include "GameServerApp.h"
+#include "DataServerApp.h"
 #include <assert.h>
 #include "EventCenter.h"
 #include "PlayerBaseData.h"
@@ -777,7 +777,7 @@ bool CPlayerManager::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uin
 {
 	if ( IGlobalModule::onOtherSvrShutDown(nSvrPort, nSvrIdx, nSvrMaxCnt) )
 	{
-		return true;
+		return false;
 	}
 
 	if ( ID_MSG_PORT_GATE == nSvrPort )
@@ -790,7 +790,7 @@ bool CPlayerManager::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uin
 
 		for (auto& ref : m_vAllActivePlayers)
 		{
-			if ( ref.second->getSessionID() % nSvrMaxCnt == nSvrIdx)
+			if ( ref.second->getSessionID() % nSvrMaxCnt == nSvrIdx )
 			{
 #ifdef _DEBUG
 				LOGFMTW("gate crash player uid = %u delay remove",ref.second->getUserUID());
@@ -800,6 +800,14 @@ bool CPlayerManager::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uin
 			}
 		}
 		return true;
+	}
+
+	for ( auto& ref : m_vAllActivePlayers )
+	{
+		if (ref.second)
+		{
+			ref.second->onOtherSvrShutDown(nSvrPort, nSvrIdx, nSvrMaxCnt);
+		}
 	}
 	return false;
 }

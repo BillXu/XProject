@@ -27,6 +27,7 @@ public:
 	void onPlayerOtherDeviceLogin( uint32_t nNewSessionID , const char* pNewIP );
 	void onPlayerDisconnect();  // should offline 
 	void delayRemove();
+	bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt);
 	bool onMsg( stMsg* pMessage , eMsgPort eSenderPort, uint32_t nSenderID );
 	bool onMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID );
 	void sendMsgToClient( stMsg* pBuffer, uint16_t nLen  );
@@ -44,6 +45,7 @@ public:
 	CPlayerManager* getPlayerMgr() { return m_pPlayerMgr; }
 	bool isPlayerReady();
 	bool canRemovePlayer();
+	static void saveDiamondRecorder( uint32_t nUserUID, uint8_t nReason, int32_t nOffset , uint32_t nFinal, Json::Value& jsDetail );
 protected:
 	void saveLoginInfo();
 protected:

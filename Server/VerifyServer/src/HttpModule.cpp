@@ -408,6 +408,7 @@ bool CHttpModule::handleHttpCmd(http::server::connection_ptr ptr)
 		ptr->doReply();
 	});
 	LOGFMTD("do recieved http cmd = %u", nCmd );
+	return true;
 }
 
 uint16_t CHttpModule::getSvrPortByCmd(uint16_t nCmd)

@@ -30,6 +30,7 @@ public:
 	bool canRemovePlayer()override;
 	bool onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)override;
 	void onPlayerLogined()override;
+	bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)override;
 	void timerSave()override;
 	bool isUserIDInWhiteList( uint32_t nUserUID );
 protected:

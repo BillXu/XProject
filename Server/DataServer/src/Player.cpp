@@ -9,6 +9,7 @@
 #include "PlayerGameData.h"
 #include "AsyncRequestQuene.h"
 #include "ISeverApp.h"
+#include "DataServerApp.h"
 #define TIME_DELAY_DELETE 2*60
 CPlayer::CPlayer()
 {
@@ -171,6 +172,20 @@ void CPlayer::onPlayerDisconnect()
 	{
 		delayRemove();
 	}
+}
+
+bool CPlayer::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)
+{
+	// inform components;
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			p->onOtherSvrShutDown(nSvrPort,nSvrIdx,nSvrMaxCnt);
+		}
+	}
+	return false;
 }
 
 void CPlayer::delayRemove()
@@ -336,5 +351,29 @@ bool CPlayer::canRemovePlayer()
 		}
 	}
 	return true;
+}
+
+void CPlayer::saveDiamondRecorder( uint32_t nUserUID, uint8_t nReason, int32_t nOffset, uint32_t nFinal, Json::Value& jsDetail)
+{
+	// do save sql  room recorder 
+	std::string strDetail = "";
+	if (jsDetail.isNull() == false)
+	{
+		Json::StyledWriter jswrite;
+		strDetail = jswrite.write(jsDetail);
+	}
+
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, sizeof(pBuffer), "insert into diamondrecorder ( userUID,reason,offset,final,time,detail ) values (%u,%u,%d,%u,now(),", nUserUID, nReason, nOffset, nFinal );
+	
+	std::ostringstream ss;
+	ss << pBuffer << "'" << strDetail << "' ) ;";
+	jssql["sql"] = ss.str();
+
+	auto pSyncQuene = DataServerApp::getInstance()->getAsynReqQueue();
+	pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, nUserUID, eAsync_DB_Add, jssql);
+
+	return;
 }
 

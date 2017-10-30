@@ -309,6 +309,42 @@ void CPlayerGameData::onPlayerLogined()
 	},getPlayer()->getUserUID());
 }
 
+bool CPlayerGameData::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)
+{
+	if (nSvrMaxCnt == 0)
+	{
+		LOGFMTE( "why svrMax cnt is 0 ? why shutdown ?  port = %u",nSvrPort );
+		return true;
+	}
+	// check stayinRoom 
+	if (getStayInRoom().isEmpty() == false && nSvrPort == getStayInRoom().nSvrPort && (getStayInRoom().nRoomID % nSvrMaxCnt) == nSvrIdx)
+	{
+		m_tStayRoom.clear();
+	}
+
+	// check create room ;
+	for ( auto& ref : m_vCreatedRooms )
+	{
+		if (ref.nSvrPort == nSvrPort && (ref.nRoomID % nSvrMaxCnt) == nSvrIdx)
+		{
+			ref.clear();
+		}
+	}
+
+	// remove empty 
+	do
+	{
+		auto iter = std::find_if(m_vCreatedRooms.begin(), m_vCreatedRooms.end(), [](stRoomEntry& ref) { return ref.isEmpty(); });
+		if (iter == m_vCreatedRooms.end())
+		{
+			break;
+		}
+		m_vCreatedRooms.erase(iter);
+	} while (1);
+	
+	return false;
+}
+
 void CPlayerGameData::timerSave()
 {
 	if ( false == m_isWhiteListDirty )

@@ -28,9 +28,6 @@
     <ClInclude Include="..\DataServer\src\main.h">
       <Filter>src\App</Filter>
     </ClInclude>
-    <ClInclude Include="..\DataServer\src\GameServerApp.h">
-      <Filter>src\App</Filter>
-    </ClInclude>
     <ClInclude Include="..\DataServer\src\EventCenter.h">
       <Filter>src\App</Filter>
     </ClInclude>
@@ -61,6 +58,9 @@
     <ClInclude Include="..\DataServer\src\MailModule.h">
       <Filter>src\App</Filter>
     </ClInclude>
+    <ClInclude Include="..\DataServer\src\DataServerApp.h">
+      <Filter>src\App</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ConfigManager.cpp">
@@ -70,9 +70,6 @@
       <Filter>Common\Config</Filter>
     </ClCompile>
     <ClCompile Include="..\DataServer\src\main.cpp">
-      <Filter>src\App</Filter>
-    </ClCompile>
-    <ClCompile Include="..\DataServer\src\GameServerApp.cpp">
       <Filter>src\App</Filter>
     </ClCompile>
     <ClCompile Include="..\DataServer\src\EventCenter.cpp">
@@ -100,6 +97,9 @@
       <Filter>src\App</Filter>
     </ClCompile>
     <ClCompile Include="..\DataServer\src\MailModule.cpp">
+      <Filter>src\App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\DataServerApp.cpp">
       <Filter>src\App</Filter>
     </ClCompile>
   </ItemGroup>

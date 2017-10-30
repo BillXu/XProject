@@ -140,7 +140,7 @@
 //	return 0 ;
 //}
 
-#include "GameServerApp.h"
+#include "DataServerApp.h"
 #include "Application.h"
 int main()
 {

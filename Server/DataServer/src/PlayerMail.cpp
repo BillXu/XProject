@@ -4,7 +4,7 @@
 #include "Player.h"
 #include <time.h>
 #include "PlayerBaseData.h"
-#include "GameServerApp.h"
+#include "DataServerApp.h"
 #include "PlayerEvent.h"
 #include "AutoBuffer.h"
 #include <cassert>

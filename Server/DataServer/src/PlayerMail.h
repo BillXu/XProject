@@ -29,5 +29,5 @@ protected:
 	void doProcessMailAfterReadDB();
 	void updateMailsStateToDB( std::vector<uint32_t>& vMailIDs, eMailState eNewState );
 protected:
-	std::map<uint32_t,stMail*> m_vMails;
+	std::map<uint32_t,stMail*> m_vMails; // map default sort by key  ascendt , so erlier mail process first ; 
 };

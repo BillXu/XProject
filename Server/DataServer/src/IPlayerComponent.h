@@ -37,6 +37,7 @@ public:
 	virtual void timerSave(){};
 	virtual bool canRemovePlayer() { return true; }
 	virtual bool isPlayerReady() { return true; }
+	virtual bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt) { return false; };
 protected:
 	CPlayer* m_pPlayer ;
 	ePlayerComponentType m_eType ;	

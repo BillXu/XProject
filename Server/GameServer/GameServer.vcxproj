@@ -93,7 +93,7 @@
     <ClInclude Include="..\..\Common\ShopConfg.h" />
     <ClInclude Include="..\DataServer\src\EventCenter.h" />
     <ClInclude Include="..\DataServer\src\Events.h" />
-    <ClInclude Include="..\DataServer\src\GameServerApp.h" />
+    <ClInclude Include="..\DataServer\src\DataServerApp.h" />
     <ClInclude Include="..\DataServer\src\IPlayerComponent.h" />
     <ClInclude Include="..\DataServer\src\MailModule.h" />
     <ClInclude Include="..\DataServer\src\main.h" />
@@ -108,7 +108,7 @@
     <ClCompile Include="..\..\Common\ConfigManager.cpp" />
     <ClCompile Include="..\..\Common\ShopConfg.cpp" />
     <ClCompile Include="..\DataServer\src\EventCenter.cpp" />
-    <ClCompile Include="..\DataServer\src\GameServerApp.cpp" />
+    <ClCompile Include="..\DataServer\src\DataServerApp.cpp" />
     <ClCompile Include="..\DataServer\src\IPlayerComponent.cpp" />
     <ClCompile Include="..\DataServer\src\MailModule.cpp" />
     <ClCompile Include="..\DataServer\src\main.cpp" />

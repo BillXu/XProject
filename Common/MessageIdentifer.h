@@ -64,7 +64,7 @@ enum eMsgType
 	MSG_SHOP_BUY_ITEM,
 	// client : { shopItemID : 23 , channel : ePayChannel, transcationID : "20 len" }
 	// svr : { ret : 0 , shopItemID : 23 }
-	// ret : 0 success , 1 can not find shop item , 2 can not find player , 3 transcationID lenght is not 20 ,4 pay channel error ,5 platform verify error;
+	// ret : 0 success , 1 can not find shop item , 2 can not find player , 3 transcationID lenght is not 20 ,4 pay channel error ,5 platform verify error , 6 time out;
 
 	MSG_ASYNC_REQUEST_RESULT,  // temp put here
 	// in room msg ;

@@ -1,6 +1,6 @@
 #include "ShopModule.h"
 #include "PlayerManager.h"
-#include "GameServerApp.h"
+#include "DataServerApp.h"
 #include "Player.h"
 #include <sstream>
 #include <ctime>
@@ -151,55 +151,48 @@ bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSend
 		auto pAsyncQue = getSvrApp()->getAsynReqQueue();
 		pAsyncQue->pushAsyncRequest(ID_MSG_PORT_VERIFY, nTargetID, eAsync_Verify_Transcation, jsReq, [this, nTargetID, nShopItemID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
 		{
-			auto pItem = getShopItem(nShopItemID);
-			bool isDelayGivedDiamond = false;
-
-			if (isTimeOut)
-			{
-				Json::Value jsBack;
-				jsBack["ret"] = 0u;
-				jsBack["shopItemID"] = nShopItemID;
-				if (retContent["ret"].asUInt() != 0)
-				{
-					jsBack["ret"] = 5;
-					sendMsg(jsBack, MSG_SHOP_BUY_ITEM, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);
-					LOGFMTE("request timeout shopitem id = %d buy item, uid = %d", nShopItemID, nTargetID);
-					return ;
-				}
-			}
-			// respone to current player 
+			uint32_t nDiamond = 0;
+			uint8_t nRet = 0;
 			do
 			{
-				Json::Value jsBack;
-				jsBack["ret"] = 0u;
-				jsBack["shopItemID"] = nShopItemID;
-				if ( retContent["ret"].asUInt() != 0)
+				if (isTimeOut)
 				{
-					jsBack["ret"] = 5;
-					sendMsg(jsBack, MSG_SHOP_BUY_ITEM, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);
-					LOGFMTE("shopitem id = %d buy item, uid = %d", nShopItemID, nTargetID);
+					nRet = 6;
+					break;
+				}
+				nRet = retContent["ret"].asUInt();
+				// respone to current player 
+				if ( nRet )
+				{
+					nRet = 5;
 					break;
 				}
 
-				// to add shop item to player 
-				auto pPlayer = ((DataServerApp*)getSvrApp())->getPlayerMgr()->getPlayerByUserUID(nTargetID);
-				if (nullptr == pPlayer)
+				auto pItem = getShopItem(nShopItemID);
+				if (pItem == nullptr)
 				{
-					LOGFMTE("can not give coin to player player is nullptr = %u,shopitem id = %u", nTargetID, nShopItemID);
-					isDelayGivedDiamond = true;
+					nRet = 7;
 					break;
 				}
-				pPlayer->getBaseData()->modifyMoney(pItem->nDiamondCnt, true);
-				sendMsg(jsBack, MSG_SHOP_BUY_ITEM, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);
+				nDiamond = pItem->nDiamondCnt;
 				LOGFMTI("shopitem id = %d buy ok, uid = %d", nShopItemID, nTargetID);
-			} while (0);
+			} while ( 0 );
+
+			auto pPlayer = ((DataServerApp*)getSvrApp())->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+			if (pPlayer)
+			{
+				Json::Value jsBack;
+				jsBack["ret"] = nRet;
+				jsBack["shopItemID"] = nShopItemID;
+				pPlayer->sendMsgToClient(jsBack, MSG_SHOP_BUY_ITEM);
+			}
 
 			// do send mail ;
 			auto pMail = ((DataServerApp*)getSvrApp())->getMailModule();
 			Json::Value jsMailDetail;
-			jsMailDetail["ret"] = retContent["ret"].asUInt() ;
-			jsMailDetail["diamondCnt"] = pItem->nDiamondCnt;
-			pMail->postMail(nTargetID, eMail_AppleStore_Pay, jsMailDetail, isDelayGivedDiamond ? eMailState_WaitSysAct : eMailState_SysProcessed);
+			jsMailDetail["ret"] = nRet;
+			jsMailDetail["diamondCnt"] = nDiamond;
+			pMail->postMail(nTargetID, eMail_AppleStore_Pay, jsMailDetail, eMailState_WaitSysAct );
 		} );
 
 		LOGFMTD("shopitem id = %d request verify, uid = %d", prealMsg["shopItemID"].asUInt(), nTargetID);
@@ -219,41 +212,44 @@ bool ShopModule::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqC
 		auto nRet = jsReqContent["ret"].asUInt();
 		auto nTargetID = jsReqContent["targetID"].asUInt();
 
-		auto pItem = getShopItem(nShopItemID);
-		bool isDelayGivedDiamond = false;
+		uint32_t nDiamond = 0;
 		do
 		{
-			auto nChannel = jsReqContent["channel"].asUInt();
+			if ( nRet )
+			{
+				break;
+			}
+
+			auto pItem = getShopItem(nShopItemID);
+			if (nullptr == pItem)
+			{
+				LOGFMTE("shopitem id = %d recived verify result buy ok, uid = %d item is null", nShopItemID, nTargetID);
+				nRet = 7;
+				break;
+			}
+			nDiamond = pItem->nDiamondCnt;
+			LOGFMTI("shopitem id = %d recived verify result buy ok, uid = %d", nShopItemID, nTargetID);
+		} while ( 0 );
+
+		auto pPlayer = ((DataServerApp*)getSvrApp())->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+		if ( pPlayer )
+		{
 			Json::Value jsBack;
 			jsBack["ret"] = 0u;
 			jsBack["shopItemID"] = nShopItemID;
 			if (nRet != 0)
 			{
 				jsBack["ret"] = 5;
-				sendMsg(jsBack, MSG_SHOP_BUY_ITEM, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);
-				LOGFMTE("shopitem id = %d  recived verify result buy item, uid = %d", nShopItemID, nTargetID);
-				break;
 			}
-
-			// to add shop item to player 
-			auto pPlayer = ((DataServerApp*)getSvrApp())->getPlayerMgr()->getPlayerByUserUID(nTargetID);
-			if (nullptr == pPlayer)
-			{
-				LOGFMTE("can not give coin to player player is nullptr = %u,shopitem id = %u", nTargetID, nShopItemID);
-				isDelayGivedDiamond = true;
-				break;
-			}
-			pPlayer->getBaseData()->modifyMoney(pItem->nDiamondCnt, true);
-			sendMsg(jsBack, MSG_SHOP_BUY_ITEM, nTargetID, nTargetID, ID_MSG_PORT_CLIENT);
-			LOGFMTI("shopitem id = %d recived verify result buy ok, uid = %d", nShopItemID, nTargetID);
-		} while ( 0 );
-
+			pPlayer->sendMsgToClient(jsBack, MSG_SHOP_BUY_ITEM);
+		}
+		
 		// do send mail ;
 		auto pMail = ((DataServerApp*)getSvrApp())->getMailModule();
 		Json::Value jsMailDetail;
 		jsMailDetail["ret"] = nRet ;
-		jsMailDetail["diamondCnt"] = pItem->nDiamondCnt;
-		pMail->postMail(nTargetID, eMail_Wechat_Pay, jsMailDetail, isDelayGivedDiamond ? eMailState_WaitSysAct : eMailState_SysProcessed );
+		jsMailDetail["diamondCnt"] = nDiamond;
+		pMail->postMail(nTargetID, eMail_Wechat_Pay, jsMailDetail, eMailState_WaitSysAct);
 	}
 	return false;
 }

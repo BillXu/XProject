@@ -38,6 +38,15 @@ enum  eLogType
 	eLog_Max,
 };
 
+enum eLogDiamond
+{
+	eLogDiamond_Shop_AppStore,
+	eLogDiamond_Shop_Wechat,
+	eLogDiamond_Agent,
+	eLogDiamond_Room,
+	eLogDiamond_Max,
+};
+
 
 enum eAsyncReq 
 {
