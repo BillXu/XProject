@@ -2,10 +2,11 @@
 #include "AsyncRequestQuene.h"
 #include "log4z.h"
 #include "PlayerManager.h"
-#include "GameServerApp.h"
+#include "DataServerApp.h"
 #include "PlayerMail.h"
 #include "Player.h"
 #include <ctime>
+#include "PlayerBaseData.h"
 void MailModule::init(IServerApp* svrApp)
 {
 	IGlobalModule::init(svrApp);
@@ -59,7 +60,7 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 	auto nNewMailID = generateMailID();
 	
 	// inform player ;
-	if (pPlayer)
+	if ( pPlayer && pPlayer->isPlayerReady() )
 	{
 		auto pPlayerMail = (CPlayerMailComponent*)pPlayer->getComponent(ePlayerComponent_Mail);
 		pPlayerMail->onRecievedMail(nNewMailID, emailType, jsMailDetail, nState, (uint32_t)time(nullptr));
@@ -78,4 +79,34 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 	auto s = ssSql.str();
 	jssql["sql"] = ssSql.str();
 	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nTargetID, eAsync_DB_Add, jssql);	
+
+	// save diamond log
+	if ( eMail_Agent_AddCard == emailType || eMail_Consume_Diamond == emailType || eMail_GiveBack_Diamond == emailType || ( (eMail_Wechat_Pay == emailType || eMail_AppleStore_Pay == emailType) && jsMailDetail["ret"].asUInt() == 0 ) )
+	{
+		int32_t nOffset = 0;
+		uint8_t nLogDiamond = eLogDiamond_Max;
+		if (eMail_Consume_Diamond == emailType || eMail_GiveBack_Diamond == emailType)
+		{
+			nOffset = jsMailDetail["diamond"].asInt() * (eMail_Consume_Diamond == emailType ? -1 : 1 );
+			nLogDiamond = eLogDiamond_Room;
+		}
+		else if (eMail_Agent_AddCard == emailType)
+		{
+			nOffset = jsMailDetail["cardOffset"].asInt();
+			nLogDiamond = eLogDiamond_Agent;
+		}
+		else if ( eMail_Wechat_Pay == emailType || eMail_AppleStore_Pay == emailType)
+		{
+			nOffset = jsMailDetail["diamondCnt"].asInt();
+			nLogDiamond = eMail_Wechat_Pay == emailType ? eLogDiamond_Shop_Wechat : eLogDiamond_Shop_AppStore;
+		}
+
+		uint32_t nFinal = 0;
+		if (pPlayer)
+		{
+			nFinal = pPlayer->getBaseData()->getDiamoned();
+		}
+
+		CPlayer::saveDiamondRecorder(nTargetID, nLogDiamond, nOffset, nFinal, jsMailDetail);
+	}
 }
