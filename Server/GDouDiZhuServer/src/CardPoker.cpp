@@ -14,8 +14,8 @@ void CDouDiZhuPoker::init( Json::Value& jsOpts )
 	}
 
 	// add wang ;
-	addCardToPoker(DDZ_MAKE_CARD(ePoker_Joker,15));
-	addCardToPoker(DDZ_MAKE_CARD(ePoker_Joker, 16));
+	addCardToPoker(DDZ_MAKE_CARD(ePoker_Joker,14));
+	addCardToPoker(DDZ_MAKE_CARD(ePoker_Joker, 15));
 
 	shuffle() ;
 }

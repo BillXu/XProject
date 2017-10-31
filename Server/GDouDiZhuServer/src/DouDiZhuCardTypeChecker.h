@@ -20,7 +20,7 @@ public:
 			return false;
 		}
 
-		if ( POKER_PARSE_TYPE(vCards.front()) != ePoker_Joker || ePoker_Joker != POKER_PARSE_TYPE(vCards.back()) )
+		if ( DDZ_PARSE_TYPE(vCards.front()) != ePoker_Joker || ePoker_Joker != DDZ_PARSE_TYPE(vCards.back()) )
 		{
 			return false;
 		}
@@ -43,12 +43,12 @@ public:
 		}
 		
 		std::sort(vCards.begin(),vCards.end());
-		if (POKER_PARSE_VALUE(vCards.front()) != POKER_PARSE_VALUE(vCards.back()))
+		if (DDZ_PARSE_VALUE(vCards.front()) != DDZ_PARSE_VALUE(vCards.back()))
 		{
 			return false;
 		}
 
-		nWeight = POKER_PARSE_VALUE(vCards.front());
+		nWeight = DDZ_PARSE_VALUE(vCards.front());
 		eType = DDZ_Bomb;
 		return true;
 	}
@@ -65,8 +65,8 @@ public:
 			return false;
 		}
 		eType = DDZ_Single;
-		nWeight = POKER_PARSE_VALUE(vCards.front());
-		if (POKER_PARSE_TYPE(vCards.front()) == ePoker_Joker)
+		nWeight = DDZ_PARSE_VALUE(vCards.front());
+		if (DDZ_PARSE_TYPE(vCards.front()) == ePoker_Joker)
 		{
 			nWeight = 100 + nWeight;  
 		}
@@ -89,13 +89,13 @@ public:
 			return false;
 		}
 
-		if (POKER_PARSE_VALUE(vCards.front()) != POKER_PARSE_VALUE(vCards.back()))
+		if (DDZ_PARSE_VALUE(vCards.front()) != DDZ_PARSE_VALUE(vCards.back()))
 		{
 			return false;
 		}
 
 		eType = DDZ_Pair;
-		nWeight = POKER_PARSE_VALUE(vCards.front());
+		nWeight = DDZ_PARSE_VALUE(vCards.front());
 		return true;
 	}
 };
@@ -112,13 +112,13 @@ public:
 		}
 
 		std::sort(vCards.begin(),vCards.end());
-		if (POKER_PARSE_VALUE(vCards.front()) != POKER_PARSE_VALUE(vCards.back()))
+		if (DDZ_PARSE_VALUE(vCards.front()) != DDZ_PARSE_VALUE(vCards.back()))
 		{
 			return false;
 		}
 
 		eType = DDZ_3Pices;
-		nWeight = POKER_PARSE_VALUE(vCards.front());
+		nWeight = DDZ_PARSE_VALUE(vCards.front());
 		return true;
 	}
 };
@@ -135,22 +135,22 @@ public:
 		}
 
 		std::sort(vCards.begin(),vCards.end());
-		if ( POKER_PARSE_VALUE(vCards[0u]) == POKER_PARSE_VALUE(vCards[2u]) )
+		if (DDZ_PARSE_VALUE(vCards[0u]) == DDZ_PARSE_VALUE(vCards[2u]) )
 		{
-			if ( vCards.size() == 5 && POKER_PARSE_VALUE(vCards[3u]) != POKER_PARSE_VALUE(vCards[4u]) )
+			if ( vCards.size() == 5 && DDZ_PARSE_VALUE(vCards[3u]) != DDZ_PARSE_VALUE(vCards[4u]) )
 			{
 				return false;
 			}
-			nWeight = POKER_PARSE_VALUE(vCards[0u]);
+			nWeight = DDZ_PARSE_VALUE(vCards[0u]);
 		}
-		else if (POKER_PARSE_VALUE(vCards[vCards.size() - 1 ]) == POKER_PARSE_VALUE(vCards[vCards.size() - 3u]) )
+		else if (DDZ_PARSE_VALUE(vCards[vCards.size() - 1 ]) == DDZ_PARSE_VALUE(vCards[vCards.size() - 3u]) )
 		{
-			if (vCards.size() == 5 && POKER_PARSE_VALUE(vCards[0]) != POKER_PARSE_VALUE(vCards[1]))
+			if (vCards.size() == 5 && DDZ_PARSE_VALUE(vCards[0]) != DDZ_PARSE_VALUE(vCards[1]))
 			{
 				return false;
 			}
 
-			nWeight = POKER_PARSE_VALUE(vCards[vCards.size() - 1]);
+			nWeight = DDZ_PARSE_VALUE(vCards[vCards.size() - 1]);
 		}
 		else
 		{
@@ -173,21 +173,21 @@ public:
 		}
 
 		std::sort(vCards.begin(), vCards.end());
-		bool isFirstA = POKER_PARSE_VALUE(vCards[0]) == 1 ;
+		bool isFirstA = DDZ_PARSE_VALUE(vCards[0]) == 1 ;
 		for ( uint8_t nIdx = isFirstA ? 1 : 0 ; (nIdx + 1u) < vCards.size(); ++nIdx )
 		{
-			if ( 2 == POKER_PARSE_VALUE(vCards[nIdx]) || ePoker_Joker == POKER_PARSE_TYPE(vCards[nIdx]) || (POKER_PARSE_VALUE(vCards[nIdx]) + 1) != POKER_PARSE_VALUE(vCards[nIdx + 1]))
+			if ( 2 == DDZ_PARSE_VALUE(vCards[nIdx]) || ePoker_Joker == DDZ_PARSE_TYPE(vCards[nIdx]) || (DDZ_PARSE_VALUE(vCards[nIdx]) + 1) != DDZ_PARSE_VALUE(vCards[nIdx + 1]))
 			{
 				return false;
 			}
 		}
 
-		if (isFirstA && POKER_PARSE_VALUE(vCards.back()) != 13)
+		if (isFirstA && DDZ_PARSE_VALUE(vCards.back()) != 13)
 		{
 			return false;
 		}
 
-		nWeight = isFirstA ? POKER_PARSE_VALUE(vCards[1u]) : POKER_PARSE_VALUE(vCards[0u]);
+		nWeight = isFirstA ? DDZ_PARSE_VALUE(vCards[1u]) : DDZ_PARSE_VALUE(vCards[0u]);
 		eType = DDZ_SingleSequence;
 		return true;
 	}
@@ -207,12 +207,12 @@ public:
 		std::vector<uint8_t> vTemp;
 		for (auto& ref : vCards)
 		{
-			if (POKER_PARSE_TYPE(ref) == ePoker_Joker)
+			if (DDZ_PARSE_TYPE(ref) == ePoker_Joker)
 			{
 				return false;
 			}
 
-			auto tValue = POKER_PARSE_VALUE(ref);
+			auto tValue = DDZ_PARSE_VALUE(ref);
 			if (2 == tValue)
 			{
 				return false;
@@ -254,12 +254,12 @@ public:
 		std::vector<uint8_t> vTemp;
 		for (auto& ref : vCards)
 		{
-			if (POKER_PARSE_TYPE(ref) == ePoker_Joker)
+			if (DDZ_PARSE_TYPE(ref) == ePoker_Joker)
 			{
 				return false;
 			}
 
-			auto tValue = POKER_PARSE_VALUE(ref);
+			auto tValue = DDZ_PARSE_VALUE(ref);
 			if (2 == tValue)
 			{
 				return false;
@@ -297,7 +297,7 @@ public:
 		std::vector<uint8_t> v3,vOther;
 		for ( uint8_t nIdx = 0; nIdx < vCards.size(); )
 		{
-			if ( (nIdx + 2) < vCards.size() && POKER_PARSE_VALUE(vCards[nIdx]) == POKER_PARSE_VALUE(vCards[nIdx + 2]))
+			if ( (nIdx + 2) < vCards.size() && DDZ_PARSE_VALUE(vCards[nIdx]) == DDZ_PARSE_VALUE(vCards[nIdx + 2]))
 			{
 				v3.push_back(vCards[nIdx]);
 				v3.push_back(vCards[nIdx]);
@@ -306,7 +306,7 @@ public:
 			}
 			else
 			{
-				vOther.push_back(POKER_PARSE_VALUE(vCards[nIdx]));
+				vOther.push_back(DDZ_PARSE_VALUE(vCards[nIdx]));
 				++nIdx;
 			}
 		}
@@ -359,14 +359,14 @@ public:
 		std::vector<uint8_t> vOther;
 		for (uint8_t nIdx = 0; nIdx < vCards.size(); )
 		{
-			if ((nIdx + 3) < vCards.size() && POKER_PARSE_VALUE(vCards[nIdx]) == POKER_PARSE_VALUE(vCards[nIdx + 3]))
+			if ((nIdx + 3) < vCards.size() && DDZ_PARSE_VALUE(vCards[nIdx]) == DDZ_PARSE_VALUE(vCards[nIdx + 3]))
 			{
-				n4CardValue = POKER_PARSE_VALUE(vCards[nIdx]);
+				n4CardValue = DDZ_PARSE_VALUE(vCards[nIdx]);
 				nIdx += 4;
 			}
 			else
 			{
-				vOther.push_back(POKER_PARSE_VALUE(vCards[nIdx]));
+				vOther.push_back(DDZ_PARSE_VALUE(vCards[nIdx]));
 				++nIdx;
 			}
 		}

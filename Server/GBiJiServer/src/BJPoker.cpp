@@ -16,8 +16,8 @@ void CBJPoker::init( Json::Value& jsOpts )
 	// add wang ;
 	if (jsOpts["isJoker"].isNull() == false && jsOpts["isJoker"].asUInt() == 1)
 	{
+		addCardToPoker(BJ_MAKE_CARD(ePoker_Joker, 14));
 		addCardToPoker(BJ_MAKE_CARD(ePoker_Joker, 15));
-		addCardToPoker(BJ_MAKE_CARD(ePoker_Joker, 16));
 	}
 
 	shuffle();
