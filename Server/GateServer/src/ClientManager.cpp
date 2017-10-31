@@ -263,6 +263,8 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 		jsRet["nSessionID"] = pGate->getSessionID();
 		jsRet["nTargetID"] = pGate->getSessionID();
 		sendMsgToClient(jsRet, nmsgType, pGate->getNetworkID() );
+
+		LOGFMTD( "a player do verify ip = %s , netID = %u",pGate->getIP(),nNetID );
 	}
 	break;
 	case MSG_RECONNECT:
@@ -289,13 +291,12 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 			pBeConnectGate->reset();
 			addToResever(pBeConnectGate);
 
-			LOGFMTI("MSG¡¡reconnected ! session id = %d", nSessionID );
+			LOGFMTI("MSG¡¡reconnected, tell data svr ! session id = %d", nSessionID );
 			stMsgClientConnectStateChanged msgRet;
 			msgRet.nCurState = 0;
 			msgRet.nTargetID = pCurGate->getBindUID();
 			sprintf_s(msgRet.cIP, sizeof(msgRet.cIP), "%s", pCurGate->getIP());
 			CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pCurGate->getSessionID());
-			LOGFMTD("tell data svr reconnected ok");
 		}
 
 		// send msg to client ;
@@ -399,7 +400,9 @@ void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWait
 	}
 
 	// do close this connection ;
+#ifdef _DEBUG
 	LOGFMTD("client connection do disconnected netID = %u",pGateClient->getNetworkID() );
+#endif 
 	CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(pGateClient->getNetworkID());
 	removeActiveClientGate(pGateClient);
 	addToResever(pGateClient);
@@ -423,11 +426,11 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 	if ( IpInfo )
 	{
 		strIP = (char*)IpInfo->strAddress;
-		LOGFMTD("a peer connected ip = %s ,port = %d netID = %u",IpInfo->strAddress,IpInfo->nPort,nNewPeer ) ;
+		//LOGFMTD("a peer connected ip = %s ,port = %d netID = %u",IpInfo->strAddress,IpInfo->nPort,nNewPeer ) ;
 	}
 	else
 	{
-		LOGFMTD("a peer connected ip = NULL" ) ;
+		//LOGFMTD("a peer connected ip = NULL" ) ;
 	}
 	
 	auto pGate = getReserverGateClient();
@@ -447,7 +450,7 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 		// send msg to tell client svr is full ;
 		stMsgGateSvrFull stFull;
 		sendMsgToClient(&stFull,sizeof(stFull),pGate->getNetworkID());
-		LOGFMTE("gate is full , please try other gate , cnt = %u",m_vSessionGateClient.size());
+		//LOGFMTE("gate is full , please try other gate , cnt = %u",m_vSessionGateClient.size());
 	}
 }
 
@@ -460,8 +463,7 @@ void CGateClientMgr::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectIn
 		LOGFMTW("gate peer is nullptr , why you get disconnect again ? ");
 		return;
 	}
-
-	LOGFMTD("one gate peer disconnected");
+	//LOGFMTD("one gate peer disconnected");
 	onGateCloseCallBack(pDstClient,pDstClient->getBindUID() > 0 );
 }
 

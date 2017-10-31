@@ -434,13 +434,6 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 				break;
 			}
 
-			pPlayer = getPlayerByIdx(nIdx);
-			if (pPlayer)
-			{
-				nRet = 1;
-				break;
-			}
-
 			pStand = getStandPlayerBySessionID(nSessionID);
 			if (!pStand)
 			{
@@ -448,6 +441,26 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 				break;
 			}
 
+			if ( nIdx > getSeatCnt() ) // find empty pos
+			{
+				auto nCheckIdx = rand() % getSeatCnt();
+				for ( ; nCheckIdx < getSeatCnt() * 2; ++nCheckIdx)
+				{
+					nIdx = nCheckIdx % getSeatCnt();
+					auto p = getPlayerByIdx(nIdx);
+					if ( !p )
+					{
+						break;
+					}
+				}
+			}
+
+			pPlayer = getPlayerByIdx(nIdx);
+			if (pPlayer)
+			{
+				nRet = 1;
+				break;
+			}
 		} while (0);
 
 		if (nRet)
@@ -475,7 +488,6 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
 				return;
 			}
-
 			auto nRet = retContent["ret"].asUInt();
 			if ( 1 == nRet )
 			{
@@ -490,6 +502,15 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 			{
 				Json::Value jsRet;
 				jsRet["ret"] = 5;
+				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+				return;
+			}
+
+			auto pPlayer = getPlayerByIdx(nIdx);
+			if (pPlayer)
+			{
+				Json::Value jsRet;
+				jsRet["ret"] = 1;
 				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
 				return;
 			}

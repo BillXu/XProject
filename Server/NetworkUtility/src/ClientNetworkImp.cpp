@@ -107,7 +107,9 @@ bool CClientNetworkImp::connectToServer(const char* pIP, unsigned short nPort )
 		}
 		else
 		{
+#ifdef _DEBUG
 			printf("connected Failed\n");
+#endif // _DEBUG
 		}
 		m_nState = bSucce ? eState_Connected : eState_ConnectedFailed;
 		addPacket(pack);

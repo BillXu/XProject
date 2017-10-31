@@ -12,8 +12,9 @@ H5ServerNetworkImp::~H5ServerNetworkImp()
 
 bool H5ServerNetworkImp::init(uint16_t nPort)
 {
-	m_pNetServer.set_access_channels(websocketpp::log::alevel::all);
-	m_pNetServer.clear_access_channels(websocketpp::log::alevel::frame_payload);
+	m_pNetServer.clear_access_channels(websocketpp::log::alevel::all);
+	m_pNetServer.clear_error_channels(websocketpp::log::alevel::all);
+	//m_pNetServer.clear_access_channels(websocketpp::log::alevel::frame_payload);
 
 	// Initialize Asio
 	m_pNetServer.init_asio();
@@ -43,7 +44,9 @@ bool H5ServerNetworkImp::sendMsg(uint32_t nConnectID, const char* pData, size_t 
 		auto iter = m_vActiveSessions.find(nConnectID);
 		if (iter == m_vActiveSessions.end())
 		{
+#ifdef _DEBUG
 			LOGFMTE("send msg to netID = %u , target is null", nConnectID);
+#endif // _DEBUG
 			return false;
 		}
 
@@ -52,7 +55,7 @@ bool H5ServerNetworkImp::sendMsg(uint32_t nConnectID, const char* pData, size_t 
 	}
 	catch ( websocketpp::exception& ec )
 	{
-		std::string str(pData,nLen);
+		std::string str(pData, nLen);
 		LOGFMTE("send msg error : %s , --what : %s ; conetn : %s", ec.m_msg.c_str(), ec.what(), str.c_str());
 	}
 
@@ -83,7 +86,10 @@ bool H5ServerNetworkImp::getFirstPacket(Packet** ppPacket)
 
 void H5ServerNetworkImp::closePeerConnection(uint32_t nConnectID)
 {
+#ifdef _DEBUG
 	LOGFMTD("post close id = %u", nConnectID);
+#endif // _DEBUG
+	
 	//auto p = std::bind(&H5ServerNetworkImp::close_handler, this, nConnectID);
 	//	m_ptrStrand->wrap([this, ptrSession](const asio::error_code& error) { handleAccept(error, ptrSession); })
 	m_pNetServer.get_io_service().post([this,nConnectID]() 
@@ -91,7 +97,9 @@ void H5ServerNetworkImp::closePeerConnection(uint32_t nConnectID)
 		auto piter = m_vActiveSessions.find(nConnectID);
 		if ( piter == m_vActiveSessions.end())
 		{
-			LOGFMTE("why nconnect id = %u is null ?",nConnectID );
+#ifdef _DEBUG
+			LOGFMTE("why nconnect id = %u is null ?", nConnectID);
+#endif // _DEBUG
 			return;
 		}
 		on_close(piter->second,true );
@@ -108,7 +116,9 @@ void H5ServerNetworkImp::addPacket(Packet* pPacket)
 void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl, bool isServerClose )
 {
 	auto nConnectID = 0;
+#ifdef _DEBUG
 	LOGFMTD("begin close connectID = %u", nConnectID);
+#endif // _DEBUG
 	{
 		std::lock_guard<std::mutex> tLock(m_SessionMutex);
 		auto iter = m_vActiveSessions.begin();
@@ -124,13 +134,18 @@ void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl, bool isServe
 		}
 		if ( nConnectID == 0 )
 		{
+#ifdef _DEBUG
 			LOGFMTD("can not find  close connectID = %u", nConnectID);
+#endif // _DEBUG
 			return;
 		}
 		
 	}
 
-	LOGFMTD( "do close net id = %u",nConnectID );
+#ifdef _DEBUG
+	LOGFMTD("do close net id = %u", nConnectID);
+#endif // _DEBUG
+	
 	if ( isServerClose == false ) //  always post this disconnect notice 
 	{
 		Packet* pack = new Packet();
@@ -140,12 +155,17 @@ void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl, bool isServe
 		pack->_len = 0;
 		memset(pack->_orgdata, 0, sizeof(pack->_orgdata));
 		addPacket(pack);
+#ifdef _DEBUG
 		LOGFMTD("client invoker after closeSession end id = %u", nConnectID);
+#endif // _DEBUG
+		
 	}
 	else
 	{
 		m_pNetServer.close(hdl, websocketpp::close::status::normal, "invalid");
+#ifdef _DEBUG
 		LOGFMTD("svr do client after closeSession end id = %u", nConnectID);
+#endif // _DEBUG
 	}
 	
 }
@@ -154,7 +174,9 @@ void H5ServerNetworkImp::on_open(websocketpp::connection_hdl hdl)
 {
 	if ( nullptr == m_pNetServer.get_con_from_hdl(hdl) )
 	{
+#ifdef _DEBUG
 		LOGFMTE("new connect connection , get cano get data info");
+#endif // _DEBUG
 		return;
 	}
 
@@ -162,7 +184,9 @@ void H5ServerNetworkImp::on_open(websocketpp::connection_hdl hdl)
 	auto netID= ++m_nCurMaxNetID;
 	if (m_vActiveSessions.find(netID) != m_vActiveSessions.end())
 	{
-		LOGFMTE("why have double netid = %u",netID);
+#ifdef _DEBUG
+		LOGFMTE("why have double netid = %u", netID);
+#endif // _DEBUG
 		m_SessionMutex.unlock();
 		assert(0 && "duplicate net id " );
 		return;
@@ -177,8 +201,10 @@ void H5ServerNetworkImp::on_open(websocketpp::connection_hdl hdl)
 	{
 		str = str.substr(nPos + 1, str.size() - nPos);
 	}
-	LOGFMTD("a peer connected ip = %s , port = %u id = %u", str.c_str(),pRpoint.port() ,netID);
 	
+#ifdef _DEBUG
+	LOGFMTD("a peer connected ip = %s , port = %u id = %u", str.c_str(), pRpoint.port(), netID);
+#endif // _DEBUG
 	Packet* pack = new Packet;
 	pack->_brocast = false;
 	pack->_packetType = _PACKET_TYPE_CONNECTED;
@@ -198,7 +224,9 @@ void H5ServerNetworkImp::on_message(websocketpp::connection_hdl hdl, message_ptr
 	auto& pData = msg->get_payload();
 	if ( pData.size()> _MSG_BUF_LEN)
 	{
+#ifdef _DEBUG
 		LOGFMTE("too big buffer from connect id = %u", (uint32_t)hdl.lock().get());
+#endif // _DEBUG
 		return;
 	}
 	Packet* pack = new Packet;
@@ -210,7 +238,9 @@ void H5ServerNetworkImp::on_message(websocketpp::connection_hdl hdl, message_ptr
 	{
 		delete pack;
 		pack = nullptr;
+#ifdef _DEBUG
 		LOGFMTE("too big recve size = %u", pData.size());
+#endif // _DEBUG
 		return;
 	}
 	memcpy_s(pack->_orgdata, sizeof(pack->_orgdata), pData.c_str(), pack->_len);

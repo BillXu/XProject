@@ -40,7 +40,7 @@ void stGateClient::init(unsigned int nSessionID, CONNECT_ID nNetWorkID, const ch
 	m_tCheckVerify.setInterval(15.0);
 #endif // DEBUG
 
-	m_tCheckVerify.setCallBack([this](CTimer* p, float f) { if (false == isVerifyed()) { if (m_lpfCloseCallBack) { LOGFMTE("this gate is not verify , close it ip = %s",getIP()); m_lpfCloseCallBack(this,false); } } });
+	m_tCheckVerify.setCallBack([this](CTimer* p, float f) { if (false == isVerifyed()) { if (m_lpfCloseCallBack) { /*LOGFMTE("this gate is not verify , close it ip = %s",getIP());*/ m_lpfCloseCallBack(this,false); } } });
 	m_tCheckVerify.start();
 
 	// check heat beat 
@@ -183,9 +183,9 @@ void stGateClient::delayClose( float fDelay )
 	{
 		return;
 	}
-	LOGFMTD("start wait delay close");
+	//LOGFMTD("start wait delay close");
 	m_tDelayClose.setIsAutoRepeat(false);
 	m_tDelayClose.setInterval(fDelay);
-	m_tDelayClose.setCallBack([this](CTimer* p, float f) {   if (m_lpfCloseCallBack) { LOGFMTD("delay close client , close it ip = %s", getIP()); m_lpfCloseCallBack(this, false); } } );
+	m_tDelayClose.setCallBack([this](CTimer* p, float f) {   if (m_lpfCloseCallBack) { /*LOGFMTD("delay close client , close it ip = %s", getIP());*/ m_lpfCloseCallBack(this, false); } } );
 	m_tDelayClose.start();
 }

@@ -24,7 +24,7 @@ public:
 	void beReconnected();
 	void reset();
 	bool isWaitingReconnect() { return m_isWaitingReconnect; }
-	void delayClose( float fDelay = 0.6f );
+	void delayClose( float fDelay = 0.0001f );
 protected:
 	pfnGateClientCallBack m_lpfCloseCallBack;
 	pfnGateClientCallBack m_lpfSendHeatBeatCallBack;

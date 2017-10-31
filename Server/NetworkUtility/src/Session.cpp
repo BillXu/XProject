@@ -111,10 +111,14 @@ void CSession::start()
 
 void CSession::closeSession()
 {
-	std::cout << "serssion close close" << std::endl ;
+#ifdef _DEBUG
+	std::cout << "serssion close close" << std::endl;
+#endif // _DEBUG
 	if (!m_socket.is_open())
 	{
+#ifdef _DEBUG
 		std::cout << "already closed so can not close again" << std::endl;
+#endif // _DEBUG
 		return;
 	}
 	asio::error_code ec;
