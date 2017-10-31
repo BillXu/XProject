@@ -307,7 +307,7 @@ public:
 		m_vCardTypes.clear();
 	}
 public:
-	bool checkCardType(std::vector<uint8_t>& vecCards, uint32_t& nWeight, eBJCardType& cardType)
+	bool checkCardType(std::vector<uint8_t> vecCards, uint32_t& nWeight, eBJCardType& cardType)
 	{
 		if (vecCards.size() != 3)
 		{
