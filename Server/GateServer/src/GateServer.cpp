@@ -93,6 +93,11 @@ bool CGateServer::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 		m_pGateManager->onPlayerLogout(nSessionID);
 		return true;
 	}
+	else if ( eAsync_HttpCmd_GetSvrInfo == nRequestType )
+	{
+		jsResult["sessionCnt"] = m_pGateManager->getClientCnt();
+		return true;
+	}
 	return false;
 }
 

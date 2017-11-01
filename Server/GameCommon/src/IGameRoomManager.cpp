@@ -69,6 +69,101 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		}
 	}
 	break;
+	case eAsync_HttpCmd_SetCreateRoomFee:
+	{
+		if (jsReqContent["isFree"].isNull() || jsReqContent["isFree"].isUInt() == false)
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+
+		m_isCreateRoomFree = jsReqContent["isFree"].asUInt() == 1;
+		jsResult["ret"] = 0;
+	}
+	break;
+	case eAsync_HttpCmd_SetCanCreateRoom:
+	{
+		if (jsReqContent["canCreateRoom"].isNull() || jsReqContent["canCreateRoom"].isUInt() == false)
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+
+		m_isCanCreateRoom = jsReqContent["canCreateRoom"].asUInt() == 1;
+		jsResult["ret"] = 0;
+	}
+	break;
+	case eAsync_HttpCmd_GetSvrInfo:
+	{
+		jsResult["ret"] = 0;
+		// can create room ;
+		jsResult["canCreateRoom"] = isCanCreateRoom() ? 1 : 0;
+		// is free ;
+		jsResult["isForFree"] = isCreateRoomFree() ? 1 : 0;
+		// room cnt ;
+		jsResult["roomCnt"] = m_vRooms.size();
+
+		uint32_t nPlayerCnt = 0;
+		uint32_t nActiveRoomCnt = 0;
+		// active Room ;
+		// playerCnt ;
+		for ( auto& ref : m_vRooms )
+		{
+			if ( ref.second->getPlayerCnt() > 2 )
+			{
+				++nActiveRoomCnt;
+			}
+			nPlayerCnt = ref.second->getPlayerCnt();
+		}
+		jsResult["playerCnt"] = nPlayerCnt;
+		jsResult["liveRoomCnt"] = nActiveRoomCnt;
+	}
+	break;
+	case eAsync_HttpCmd_DismissRoom:
+	{
+		if (jsReqContent["roomID"].isNull() || jsReqContent["roomID"].isInt() == false)
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		if ( nRoomID == 1 && isCanCreateRoom() )
+		{
+			jsResult["ret"] = 2;
+			break;
+		}
+
+		if (nRoomID != 1)
+		{
+			auto p = getRoomByID(nRoomID);
+			if (p == nullptr)
+			{
+				jsResult["ret"] = 3;
+				break;
+			}
+
+			// do dissmiss
+			Json::Value js;
+			js["uid"] = 0;
+			p->onMsg(js, MSG_APPLY_DISMISS_VIP_ROOM,ID_MSG_PORT_CLIENT,0 );
+			jsResult["ret"] = 0;
+			break;
+		}
+
+		// dismiss all 
+		for (auto& ref : m_vRooms)
+		{
+			if (ref.second)
+			{
+				Json::Value js;
+				js["uid"] = 0;
+				ref.second->onMsg(js, MSG_APPLY_DISMISS_VIP_ROOM, ID_MSG_PORT_CLIENT, 0);
+			}
+		}
+		jsResult["ret"] = 0;
+	}
+	break;
 	default:
 		return false ;
 	}
@@ -350,6 +445,14 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 
 void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSenderID )
 {
+	if (false == isCanCreateRoom())
+	{
+		LOGFMTE(" svr maintenance , can not create room ,please create later");
+		Json::Value jsRet;
+		jsRet["ret"] = 5;
+		sendMsg(jsRet, MSG_CREATE_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+		return;
+	}
 	// request create RoomID room info 
 	auto nUserID = prealMsg["uid"].asUInt();
 	Json::Value jsReq;
@@ -386,7 +489,6 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			auto nRoomType = jsUserData["gameType"].asUInt();
 			auto nLevel = jsUserData["level"].asUInt();
 			auto isAA = jsUserData["isAA"].asUInt() == 1 ;
-			auto isForFree = jsUserData["isFree"].asUInt() == 1;
 #ifndef _DEBUG
 			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
 			{
@@ -421,7 +523,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_CreatedRoom, jsInformCreatRoom );
 			 
 			// consume diamond 
-			if ( isAA == false && isForFree == false )
+			if ( isAA == false && nDiamondNeed > 0 )
 			{
 				//eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23, reason : 0 }  // reason : 0 play in room , 1 create room  ;
 				Json::Value jsConsumDiamond;
@@ -441,4 +543,14 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 		sendMsg(jsRet, MSG_CREATE_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
 		LOGFMTD("uid = %u create room ret = %u , room id = %u", nUserID,nRet,nRoomID );
 	},prealMsg,nUserID );
+}
+
+bool IGameRoomManager::isCreateRoomFree()
+{
+	return m_isCreateRoomFree;
+}
+
+bool IGameRoomManager::isCanCreateRoom()
+{
+	return m_isCanCreateRoom;
 }

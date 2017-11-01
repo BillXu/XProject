@@ -830,6 +830,21 @@ GameRoom::stStandPlayer* GameRoom::getStandPlayerBySessionID(uint32_t nSessinID)
 	return nullptr;
 }
 
+uint16_t GameRoom::getPlayerCnt()
+{
+	uint16_t nCnt = 0;
+	auto nSeatCnt = getSeatCnt();
+	for (auto nPlayerIdx = 0; nPlayerIdx < nSeatCnt; ++nPlayerIdx)
+	{
+		auto p = getPlayerByIdx(nPlayerIdx);
+		if (p)
+		{
+			++nCnt;
+		}
+	}
+	return nCnt;
+}
+
 GameRoom::stStandPlayer* GameRoom::getStandPlayerByUID(uint32_t nUserID)
 {
 	auto iter = m_vStandPlayers.find(nUserID);

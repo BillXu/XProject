@@ -26,6 +26,7 @@ public:
 	void closeAllClient();
 	void onGateCloseCallBack(stGateClient* pGateClient , bool isWaitReconnect );
 	void onPlayerLogout( uint32_t sessionID );
+	uint32_t getClientCnt() { return m_vSessionGateClient.size(); }
 protected:
 	void addClientGate(stGateClient* pGateClient );
 	void removeActiveClientGate(stGateClient* pGateClient );

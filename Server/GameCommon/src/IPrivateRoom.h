@@ -49,14 +49,14 @@ public:
 	void doRoomGameOver(bool isDismissed);
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
 	GameRoom* getCoreRoom();
-	uint16_t getRoomPlayerCnt();
+	uint16_t getPlayerCnt()override;
 protected:
 	bool isRoomStarted();
+	bool isOneRoundNormalEnd();
 	bool onProcessWhiteListSitDown(Json::Value& prealMsg,uint32_t nSessionID );
 protected:
 	IGameRoomManager* m_pRoomMgr;
 	uint32_t m_nOwnerUID;
-	bool m_isForFree;
 	bool m_isAA;
 	bool m_isEnableWhiteList;
 

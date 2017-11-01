@@ -33,7 +33,6 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 
 	// init member 
 	m_pRoomMgr = pRoomMgr;
-	m_isForFree = vJsOpts["isFree"].asUInt() == 1;
 	m_isAA = vJsOpts["isAA"].asUInt() == 1;
 	m_nOwnerUID = vJsOpts["uid"].asUInt();
 	m_nRoundLevel = vJsOpts["level"].asUInt();
@@ -89,7 +88,7 @@ uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 	//	return 7;
 	//}
 
-	if ( m_isAA && m_isForFree == false && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, m_isAA))
+	if ( m_isAA && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, m_isAA))
 	{
 		// diamond is not enough 
 		return 3;
@@ -253,6 +252,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
 		auto nApplyUID = prealMsg["uid"].asUInt();
+		bool isAdmin = nSessionID == 0 && nApplyUID == 0;
 		if ( pp )
 		{
 			nApplyUID = pp->getUserUID();
@@ -260,7 +260,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 
 		if ( isRoomStarted() == false )
 		{
-			if ( nApplyUID != m_nOwnerUID )
+			if ( nApplyUID != m_nOwnerUID && isAdmin == false )
 			{
 				LOGFMTE( "client shoud not send this msg , room id = %u not start , you are not room owner, so you can not dismiss player id = %u, you can leave",getRoomID(), nApplyUID );
 				return true;
@@ -270,7 +270,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			return true;
 		}
 
-		if ( nullptr == pp && nApplyUID != m_nOwnerUID )
+		if ( nullptr == pp && nApplyUID != m_nOwnerUID && false == isAdmin )
 		{
 			LOGFMTE("you are not in room , and you are not owner  uid = %u",nApplyUID );
 			return true;
@@ -341,7 +341,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			break;
 		}
 
-		if ( m_vPlayerAgreeDismissRoom.size() == getRoomPlayerCnt() )
+		if ( m_vPlayerAgreeDismissRoom.size() == getPlayerCnt() )
 		{
 			m_tWaitReplyDismissTimer.canncel();
 			m_tWaitReplyDismissTimer.reset();
@@ -520,7 +520,7 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	{
 		m_isOneRoundNormalEnd = true;
 		auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, m_isAA);
-		if ( m_isAA && m_isForFree == false )  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
+		if ( m_isAA && nNeedDiamond > 0 )  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
 		{
 			auto nCnt = m_pRoom->getSeatCnt();
 			for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
@@ -572,8 +572,8 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	}
 
 	// give back room card 
-	bool isAlreadyComsumedDiamond = ( m_isAA == false && m_isForFree == false );
-	if ( isDismissed && isAlreadyComsumedDiamond && m_isOneRoundNormalEnd == false )
+	bool isAlreadyComsumedDiamond = ( m_isAA == false && (getDiamondNeed(m_nRoundLevel, m_isAA) > 0 ) );
+	if ( isDismissed && isAlreadyComsumedDiamond && isOneRoundNormalEnd() == false )
 	{
 		Json::Value jsReq;
 		jsReq["targetUID"] = m_nOwnerUID;
@@ -595,22 +595,22 @@ GameRoom* IPrivateRoom::getCoreRoom()
 	return m_pRoom;
 }
 
-uint16_t IPrivateRoom::getRoomPlayerCnt()
+uint16_t IPrivateRoom::getPlayerCnt()
 {
-	uint16_t nCnt = 0;
-	auto nSeatCnt = getCoreRoom()->getSeatCnt();
-	for ( auto nPlayerIdx = 0; nPlayerIdx < nSeatCnt; ++nPlayerIdx)
+	if (getCoreRoom() == nullptr)
 	{
-		auto p = getCoreRoom()->getPlayerByIdx(nPlayerIdx);
-		if (p)
-		{
-			++nCnt;
-		}
+		return 0;
 	}
-	return nCnt;
+
+	return getCoreRoom()->getPlayerCnt();
 }
 
 bool IPrivateRoom::isRoomStarted()
 {
 	return m_nPrivateRoomState == eState_Started;
+}
+
+bool IPrivateRoom::isOneRoundNormalEnd()
+{
+	return m_isOneRoundNormalEnd;
 }

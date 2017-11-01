@@ -79,7 +79,7 @@ enum eMsgType
 
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 , gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 2 , opts : {  .... }  }
-	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error ;
+	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error,  5  server maintenance,create room later   ;
 	MSG_ROOM_REQ_ROOM_LIST, // send to data svr ;
 	// client : null 
 	// svr : { ret : 0 , rooms : [{id : 234, port : 23 }, ... ], stayInRoom : { id : 0 , port : 23 }  }

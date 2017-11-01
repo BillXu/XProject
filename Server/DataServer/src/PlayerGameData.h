@@ -33,6 +33,7 @@ public:
 	bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)override;
 	void timerSave()override;
 	bool isUserIDInWhiteList( uint32_t nUserUID );
+	void adminVisitInfo( Json::Value& jsInfo );
 protected:
 	void informNetState( uint8_t nStateFlag ); //  0 online , 1 wait reconnect , 2 offline .
 protected:

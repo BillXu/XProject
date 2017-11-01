@@ -80,7 +80,7 @@ public:
 		{
 			vHoldCards.push_back(m_vHoldCards[nIdx].GetCardCompositeNum());
 		}
-		return vHoldCards.size();
+		return (uint8_t)vHoldCards.size();
 	}
 
 	IPeerCard* swap(IPeerCard* pTarget)override

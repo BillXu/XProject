@@ -11,6 +11,7 @@
 #include "AsyncRequestQuene.h"
 #include <ctime>
 #include "MailModule.h"
+#include "PlayerGameData.h"
 void CPlayerBrifDataCacher::stPlayerDataPrifle::recivedData(Json::Value& jsData, IServerApp* pApp )
 {
 	if ( isContentData() )
@@ -497,49 +498,48 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
 	}
 	break;
-	//case eAsync_ComsumDiamond:
-	//	{
-	//		uint32_t nUID = jsReqContent["targetUID"].asUInt() ;
-	//		uint32_t nDiamond = jsReqContent["diamond"].asUInt();
-	//		auto pPlayer = getPlayerByUserUID(nUID);	
-	//		jsResult["diamond"] = nDiamond ;
-	//		if ( pPlayer == nullptr || pPlayer->getBaseData()->getAllDiamoned() < nDiamond )
-	//		{
-	//			jsResult["ret"] = 1 ;
-	//			LOGFMTW("palyer uid = %u , consum diamond error , cnt = %u",nUID,nDiamond );
-	//		}
-	//		else
-	//		{
-	//			pPlayer->getBaseData()->decressMoney(nDiamond,true ) ;
-	//			jsResult["ret"] = 0 ;
-	//			LOGFMTD("palyer uid = %u , consum diamond success , cnt = %u",nUID,nDiamond );
-	//		}
-	//	}
-	//	break;
-	//case eAsync_GiveBackDiamond:
-	//	{
-	//		uint32_t nUID = jsReqContent["targetUID"].asUInt() ;
-	//		uint32_t nDiamond = jsReqContent["diamond"].asUInt();
-	//		auto pPlayer = getPlayerByUserUID(nUID);	
-	//		if ( pPlayer == nullptr )
-	//		{
-	//			Json::Value jsContent;
-	//			jsContent["targetUID"] = nUID;
-	//			jsContent["addCard"] = nDiamond;
-	//			jsContent["addCardNo"] = nUID;
-	//			Json::StyledWriter jsWrite;
-	//			auto str = jsWrite.write(jsContent);
-	//			CPlayerMailComponent::PostMailToPlayer(eMailType::eMail_AddRoomCard, str.c_str(), str.size(), nUID);
-	//			LOGFMTE("uid = %u not online can not give back diamond = %u, via agent add card mail ",nUID,nDiamond);
-	//		}
-	//		else
-	//		{
-	//			pPlayer->getBaseData()->AddMoney(nDiamond,true);
-	//			LOGFMTD("give back diamond uid = %u , cnt = %u",nUID,nDiamond);
-	//		}
-	//	}
-	//	break ;
+	case eAsync_HttpCmd_GetSvrInfo:
+	{
+		// player cnt ;
+		jsResult["playerCnt"] = m_vAllActivePlayers.size();
+		// active player cnt ;
+		uint32_t nActCnt = 0;
+		for (auto& ref : m_vAllActivePlayers)
+		{
+			if (ref.second && ref.second->isState(CPlayer::ePlayerState_Online))
+			{
+				++nActCnt;
+			}
+		}
+		jsResult["activePlayerCnt"] = nActCnt;
+		break;
+	}
+	break;
+	case eAsync_HttpCmd_GetPlayerInfo:
+	{
+		if (jsReqContent["uid"].isNull() || jsReqContent["uid"].isUInt() == false)
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
 
+		auto nUserUID = jsReqContent["uid"].asUInt();
+		auto p = getPlayerByUserUID(nUserUID);
+		if (p == nullptr)
+		{
+			jsResult["ret"] = 2;
+			break;
+		}
+
+		jsResult["uid"] = nUserUID;
+		jsResult["name"] = p->getBaseData()->getPlayerName();
+		jsResult["icon"] = p->getBaseData()->getHeadIcon();
+		jsResult["diamond"] = p->getBaseData()->getDiamoned();
+		auto gd = (CPlayerGameData*)p->getComponent(ePlayerComponent_PlayerGameData);
+		gd->adminVisitInfo(jsResult);
+		jsResult["ret"] = 0;
+	}
+	break;
 	default:
 	{
 		if (jsReqContent["playerUID"].isNull() == false)

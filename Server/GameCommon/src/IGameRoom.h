@@ -28,4 +28,6 @@ public:
 	virtual bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState ) = 0;
 	virtual bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID ) = 0;
 	virtual void packRoomInfo( Json::Value& jsRoomInfo ) = 0;
+	virtual uint16_t getPlayerCnt() = 0;
+
 };

@@ -182,6 +182,26 @@ bool CPlayerGameData::canRemovePlayer()
 	return getStayInRoom().isEmpty() && m_vCreatedRooms.empty();
 }
 
+void CPlayerGameData::adminVisitInfo(Json::Value& jsInfo)
+{
+	Json::Value jsRooms;
+	for (auto& ref : m_vCreatedRooms)
+	{
+		Json::Value jsRoomEntry;
+		jsRoomEntry["id"] = ref.nRoomID;
+		jsRoomEntry["port"] = ref.nSvrPort;
+		jsRooms[jsRooms.size()] = jsRoomEntry;
+	}
+	jsInfo["rooms"] = jsRooms;
+	if (getStayInRoom().isEmpty() == false)
+	{
+		Json::Value jsRoomEntry;
+		jsRoomEntry["id"] = getStayInRoom().nRoomID;
+		jsRoomEntry["port"] = getStayInRoom().nSvrPort;
+		jsInfo["stayInRoom"] = jsRoomEntry;
+	}
+}
+
 bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)
 {
 	if ( MSG_ROOM_REQ_ROOM_LIST == nmsgType )

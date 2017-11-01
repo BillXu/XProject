@@ -18,12 +18,16 @@ public:
 	virtual IGameRoom* createRoom( uint8_t nGameType ) = 0;
 	void deleteRoom( uint32_t nRoomID );
 	void onConnectedSvr(bool isReconnected)override;
-	virtual uint8_t getDiamondNeed(uint8_t nGameType, uint8_t nLevel, bool isAA) = 0;
+	virtual uint8_t getDiamondNeed(uint8_t nGameType, uint8_t nLevel, bool isAA) = 0;  //warnning :  must condiser isCreateRoomFree ;
 protected:
+	bool isCreateRoomFree();
+	bool isCanCreateRoom();
 	void onPlayerCreateRoom( Json::Value& prealMsg,uint32_t nSenderID );
 protected:
 	std::map<uint32_t, IGameRoom*> m_vRooms;
 	std::vector<uint32_t> m_vWillDeleteRoom;
 	uint32_t m_nMaxSieralID = 0 ;
 	uint32_t m_nMaxReplayUID = 0 ;
+	bool m_isCreateRoomFree = false;
+	bool m_isCanCreateRoom = true;
 };

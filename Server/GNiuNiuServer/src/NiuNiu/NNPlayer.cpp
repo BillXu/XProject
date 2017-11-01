@@ -21,7 +21,7 @@ void NNPlayer::onGameDidEnd()
 
 uint16_t NNPlayer::doBet(uint16_t nBetTimes)
 {
-	m_nBetTimes = nBetTimes;
+	m_nBetTimes = (uint8_t)nBetTimes;
 	return m_nBetTimes;
 }
 
@@ -32,7 +32,7 @@ uint16_t NNPlayer::getBetTimes()
 
 uint16_t NNPlayer::doRobotBanker(uint16_t nRobotTimes)
 {
-	m_nRobotBankerTimes = nRobotTimes;
+	m_nRobotBankerTimes = (uint8_t)nRobotTimes;
 	return nRobotTimes;
 }
 
@@ -62,7 +62,7 @@ bool NNPlayer::recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrde
 	IGamePlayer::recorderVisitor(ptrPlayerReocrder);
 
 	auto p = (NiuNiuPlayerRecorder*)ptrPlayerReocrder.get();
-	p->setBetTimes(getBetTimes());
+	p->setBetTimes((uint8_t)getBetTimes());
 
 	std::vector<uint8_t> vHoldCards;
 	if (getPlayerCard()->getHoldCards(vHoldCards) == 0)

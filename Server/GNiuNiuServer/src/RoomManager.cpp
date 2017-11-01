@@ -12,6 +12,10 @@ IGameRoom* RoomManager::createRoom(uint8_t nGameType)
 
 uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, bool isAA)
 {
+	if (isCreateRoomFree())
+	{
+		return 0;
+	}
 #ifdef _DEBUG
 	return 0;
 #endif // _DEBUG

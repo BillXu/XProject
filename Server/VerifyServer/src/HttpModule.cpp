@@ -376,10 +376,16 @@ bool CHttpModule::handleHttpCmd(http::server::connection_ptr ptr)
 		return false;
 	}
 
+	if (jsRoot["port"].isNull() || jsRoot["port"].isUInt() == false)
+	{
+		LOGFMTE("cmd port key is null");
+		return false;
+	}
+
 	nTargetID = jsRoot["cmd"].asUInt();
 	nCmd = jsRoot["targetID"].asUInt();
-	auto nTargetPort = getSvrPortByCmd(nCmd);
-	if ( ID_MSG_PORT_MAX == nTargetPort )
+	auto nTargetPort = jsRoot["port"].asUInt();
+	if ( ID_MSG_PORT_MAX <= nTargetPort )
 	{
 		LOGFMTE( "can not find target port for cmd = %u",nCmd );
 		return false;
@@ -409,9 +415,4 @@ bool CHttpModule::handleHttpCmd(http::server::connection_ptr ptr)
 	});
 	LOGFMTD("do recieved http cmd = %u", nCmd );
 	return true;
-}
-
-uint16_t CHttpModule::getSvrPortByCmd(uint16_t nCmd)
-{
-	return ID_MSG_PORT_MAX;
 }

@@ -12,6 +12,11 @@ IGameRoom* DDZRoomManager::createRoom(uint8_t nGameType)
 
 uint8_t DDZRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, bool isAA)
 {
+	if (isCreateRoomFree())
+	{
+		return 0;
+	}
+
 	if (nLevel >= 3)
 	{
 		LOGFMTE( "invalid room level for game = %u , level = %u",nGameType,nLevel );

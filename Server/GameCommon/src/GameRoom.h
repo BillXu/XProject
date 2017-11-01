@@ -62,6 +62,7 @@ public:
 	void setInitState( IGameRoomState* pTargetState );
 	virtual IPoker* getPoker() = 0;
 	stStandPlayer* getStandPlayerBySessionID(uint32_t nSessinID);
+	uint16_t getPlayerCnt()override;
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();

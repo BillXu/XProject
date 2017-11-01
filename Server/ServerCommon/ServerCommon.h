@@ -79,21 +79,24 @@ enum eAsyncReq
 	eAsync_Inform_RoomDeleted, // { targetUID : 23 , roomID : 234  };
 	eAsync_Check_WhiteList, // { listOwner: 234 , checkUID : 2 } , result : { ret : 0  } // 0 in white list , 1 not in white list ;
 
+	eAsync_HttpCmd_SetCreateRoomFee,  // { isFree : 0 }  // result { ret : 0 , isFree : 0 }
+	eAsync_HttpCmd_SetCanCreateRoom, // { canCreateRoom : 0 } // result { ret : 0 , canCreateRoom : 0 }
+	eAsync_HttpCmd_GetSvrInfo, // result : { diffrent svr , diffrent key value } 
+	eAsync_HttpCmd_DismissRoom, // { roomID : 22334 }, // result : { ret : 0 , roomID } , // when roomID == 1 means dismiss all ; 
+	eAsync_HttpCmd_GetPlayerInfo, // { uid : 234 } , result :  { ret : 0 , uid : 2323, name: "abc" , diamond : 23 , createRooms : [ { port : 2 , roomID : 23 }, ...] , stayInRoom: { port : 1 , roomID : 23 } }
 
 
 
+	//// above is new 
+	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
+	//eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;
+	//eAsync_PostDlgNotice, // { dlgType : eNoticeType , targetUID : 2345 , arg : { ....strg } }
+	//eAsync_OnRoomDeleted, // { roomID : 234 }
 
-
-	// above is new 
-	eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
-	eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;
-	eAsync_PostDlgNotice, // { dlgType : eNoticeType , targetUID : 2345 , arg : { ....strg } }
-	eAsync_OnRoomDeleted, // { roomID : 234 }
-
-	eAsync_ReqRoomSerials, // {roomType : 2 }  // result :  { ret : 0 , serials : [{ serial : 0 , chatRoomID : 2345} , { serial : 0 , chatRoomID : 2345} ,{ serial : 0 , chatRoomID : 2345} ] }  // ret : 0 success , 1 svr is reading from db wait a moment ; 
+	//eAsync_ReqRoomSerials, // {roomType : 2 }  // result :  { ret : 0 , serials : [{ serial : 0 , chatRoomID : 2345} , { serial : 0 , chatRoomID : 2345} ,{ serial : 0 , chatRoomID : 2345} ] }  // ret : 0 success , 1 svr is reading from db wait a moment ; 
 	eAsync_Apns, // { apnsType : 0 , targets : [234,2345,23,4] , content : "hello this is" ,msgID : "fs" ,msgdesc : "shfsg" }  apnsType : 0 , group type . 1 , target persions ;
-	
-	eAsync_ApplyLeaveRoom, // {uid : 234 , roomID : 2345 , reason : 0 } reason : 0 , disconnect , 1 other peer login.  result : { ret : 0 , coin : 2345 } // ret : 0 leave direct, 1 delay leave room , 2 not in room , 3 not find room   ;
+	//
+	//eAsync_ApplyLeaveRoom, // {uid : 234 , roomID : 2345 , reason : 0 } reason : 0 , disconnect , 1 other peer login.  result : { ret : 0 , coin : 2345 } // ret : 0 leave direct, 1 delay leave room , 2 not in room , 3 not find room   ;
 	eAsync_Max,
 };
 
