@@ -65,18 +65,18 @@ public:
 
 	static uint8_t makeCard( uint8_t nPartA, uint8_t nPartB )
 	{
-		uint8_t nCard = ( (nPartA << 4) | nPartB );
+		uint8_t nCard = ( (nPartA << 3) | nPartB );
 		return nCard;
 	}
 
 	static uint8_t parsePartA(uint8_t nCardNum)
 	{
-		return (nCardNum & 0xf0) >> 4;
+		return (nCardNum & 0xf8) >> 3;
 	}
 
 	static uint8_t parsePartB(uint8_t nCardNum)
 	{
-		return (nCardNum & 0x0f);
+		return (nCardNum & 0x07);
 	}
 protected:
 	virtual void addCardToPoker( uint8_t nCard ) // only can invoker in , init method ;
