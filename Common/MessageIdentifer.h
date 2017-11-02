@@ -78,7 +78,8 @@ enum eMsgType
 	// svr:  { playerIdx : 2 , type : 1 , content : "biao qing or viceID" } 
 
 	MSG_CREATE_ROOM = 300,
-	// client: { uid : 234 , gameType : eGameType , seatCnt : 4 , isAA : 1 , level : 2 , opts : {  .... }  }
+	// client: { uid : 234 ,seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
+	// payType : 0 the room owner pay cards , 1 AA pay card type , 2 big winer pay cards 
 	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error,  5  server maintenance,create room later   ;
 	MSG_ROOM_REQ_ROOM_LIST, // send to data svr ;
 	// client : null 

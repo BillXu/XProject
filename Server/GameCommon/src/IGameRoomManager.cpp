@@ -488,7 +488,32 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 
 			auto nRoomType = jsUserData["gameType"].asUInt();
 			auto nLevel = jsUserData["level"].asUInt();
-			auto isAA = jsUserData["isAA"].asUInt() == 1 ;
+			uint8_t nPayType = ePayType_RoomOwner;
+			if (jsUserData["isAA"].isNull() == false)
+			{
+				if (jsUserData["isAA"].asUInt() == 1)
+				{
+					nPayType = 1;
+				}
+			}
+			else
+			{
+				if (jsUserData["payType"].isNull())
+				{
+					Assert(0, "no payType key");
+				}
+				else
+				{
+					nPayType = jsUserData["payType"].asUInt();
+					if ( nPayType > ePayType_Max )
+					{
+						Assert(0, "invalid pay type value ");
+						nPayType = ePayType_RoomOwner;
+					}
+				}
+
+			}
+			auto isRoomOwnerPay = (nPayType == ePayType_RoomOwner);
 #ifndef _DEBUG
 			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
 			{
@@ -497,7 +522,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			}
 #endif // _DEBUG
 
-			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel,isAA);
+			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel, (ePayRoomCardType)nPayType );
 			if ( nDiamond < nDiamondNeed )
 			{
 				nRet = 1;
@@ -523,7 +548,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_CreatedRoom, jsInformCreatRoom );
 			 
 			// consume diamond 
-			if ( isAA == false && nDiamondNeed > 0 )
+			if ( isRoomOwnerPay && nDiamondNeed > 0 )
 			{
 				//eAsync_Consume_Diamond, // { playerUID : 23 , diamond : 23 , roomID :23, reason : 0 }  // reason : 0 play in room , 1 create room  ;
 				Json::Value jsConsumDiamond;
