@@ -33,7 +33,32 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 
 	// init member 
 	m_pRoomMgr = pRoomMgr;
-	m_isAA = vJsOpts["isAA"].asUInt() == 1;
+	m_nPayType = ePayType_RoomOwner;
+	if (vJsOpts["isAA"].isNull() == false)
+	{
+		if (vJsOpts["isAA"].asUInt() == 1)
+		{
+			m_nPayType = ePayType_AA;
+		}
+	}
+	else
+	{
+		if ( vJsOpts["payType"].isNull())
+		{
+			Assert(0 , "no payType key" );
+		}
+		else
+		{
+			m_nPayType = (ePayRoomCardType)vJsOpts["payType"].asUInt();
+			if ( m_nPayType >= ePayType_Max )
+			{
+				Assert(0,"invalid pay type value ");
+				m_nPayType = ePayType_RoomOwner;
+			}
+		}
+
+	}
+	
 	m_nOwnerUID = vJsOpts["uid"].asUInt();
 	m_nRoundLevel = vJsOpts["level"].asUInt();
 	m_isEnableWhiteList = vJsOpts["enableWhiteList"].isNull() == false && vJsOpts["enableWhiteList"].asUInt() == 1;
@@ -88,10 +113,15 @@ uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 	//	return 7;
 	//}
 
-	if ( m_isAA && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, m_isAA))
+	if ( isAAPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, getPayType()))
 	{
 		// diamond is not enough 
 		return 3;
+	}
+
+	if ( isWinerPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, getPayType() ))
+	{
+		return false;
 	}
 
 	if ( m_pRoom )
@@ -407,14 +437,14 @@ void IPrivateRoom::sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uin
 	}
 }
 
-uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, bool isAA )
+uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType )
 {
 	if ( !m_pRoom)
 	{
 		LOGFMTE("room is null , can not return diamond need");
 		return -1;
 	}
-	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, isAA);
+	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, nPayType );
 }
 
 void IPrivateRoom::sendRoomPlayersInfo(uint32_t nSessionID)
@@ -519,8 +549,8 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	if ( m_isOneRoundNormalEnd == false )
 	{
 		m_isOneRoundNormalEnd = true;
-		auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, m_isAA);
-		if ( m_isAA && nNeedDiamond > 0 )  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
+		auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, getPayType() );
+		if ( isAAPay() && nNeedDiamond > 0 )  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
 		{
 			auto nCnt = m_pRoom->getSeatCnt();
 			for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
@@ -560,29 +590,28 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	// do close room ;
 	if ( isRoomStarted() )
 	{
-		// if we need invoker oom game end ;
-		//auto nCurState = m_pRoom->getCurState()->getStateID();
-		//if (eRoomSate_WaitReady != nCurState && eRoomState_GameEnd != nCurState && isDismissed )
-		//{
-		//	m_pRoom->onGameEnd();
-		//}
-
 		// prepare game over bills 
 		doSendRoomGameOverInfoToClient(isDismissed);
 	}
 
-	// give back room card 
-	bool isAlreadyComsumedDiamond = ( m_isAA == false && (getDiamondNeed(m_nRoundLevel, m_isAA) > 0 ) );
+	// give back room card to room owner ;
+	bool isAlreadyComsumedDiamond = ( isRoomOwnerPay() && (getDiamondNeed(m_nRoundLevel, getPayType() ) > 0 ) );
 	if ( isDismissed && isAlreadyComsumedDiamond && isOneRoundNormalEnd() == false )
 	{
 		Json::Value jsReq;
 		jsReq["targetUID"] = m_nOwnerUID;
-		jsReq["diamond"] = getDiamondNeed(m_nRoundLevel, m_isAA);
+		jsReq["diamond"] = getDiamondNeed(m_nRoundLevel, getPayType());
 		jsReq["roomID"] = getRoomID();
 		jsReq["reason"] = 1;
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_GiveBackDiamond, jsReq);
 		LOGFMTD( "room id = %u dissmiss give back uid = %u diamond = %u",getRoomID(),m_nOwnerUID,jsReq["diamond"].asUInt() );
+	}
+
+	// find big wineer and pay room card 
+	if ( isWinerPay() && isOneRoundNormalEnd() && getDiamondNeed(m_nRoundLevel, getPayType() ) > 0 )
+	{
+		doProcessWinerPayRoomCard();
 	}
 
 	m_nPrivateRoomState = eState_RoomOvered;
@@ -613,4 +642,59 @@ bool IPrivateRoom::isRoomStarted()
 bool IPrivateRoom::isOneRoundNormalEnd()
 {
 	return m_isOneRoundNormalEnd;
+}
+
+void IPrivateRoom::doProcessWinerPayRoomCard()
+{
+	if ( false == isWinerPay() || false == isOneRoundNormalEnd() || 0 == getDiamondNeed(m_nRoundLevel, getPayType()) )
+	{
+		return;
+	}
+
+	int32_t nMostWin = 0;
+	std::vector<uint32_t> vBigWinerUID;
+	for (uint16_t nIdx = 0; nIdx < getCoreRoom()->getSeatCnt(); ++nIdx)
+	{
+		auto p = getCoreRoom()->getPlayerByIdx(nIdx);
+		if (p == nullptr)
+		{
+			continue;
+		}
+
+		auto nWin = p->getChips();
+		if (nMostWin > nWin)
+		{
+			continue;
+		}
+
+		if (nMostWin < nWin)
+		{
+			nMostWin = nWin;
+			vBigWinerUID.clear(); 	
+		}
+		vBigWinerUID.push_back(p->getUserUID());
+	}
+
+	if (vBigWinerUID.empty())
+	{
+		LOGFMTE( "why no big winers ? big error" );
+		Assert(0,"why do not have big winerrs" );
+		return;
+	}
+
+	auto nDiamond = getDiamondNeed(m_nRoundLevel, getPayType());
+	uint32_t nDiamondPerBigWiner = ( nDiamond + ( vBigWinerUID.size() - 1 )) / vBigWinerUID.size();
+
+	// do comsume diamond 
+	Json::Value js;
+	js["diamond"] = nDiamondPerBigWiner;
+	js["roomID"] = getRoomID();
+	js["reason"] = 0;
+	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	for (auto& ref : vBigWinerUID)
+	{
+		js["playerUID"] = ref;
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref, eAsync_Consume_Diamond, js);
+	}
+	return;
 }

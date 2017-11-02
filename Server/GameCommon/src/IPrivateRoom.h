@@ -30,7 +30,7 @@ public:
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 
 	virtual GameRoom* doCreatRealRoom() = 0;
-	uint8_t getDiamondNeed(uint8_t nLevel, bool isAA);
+	uint8_t getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType );
 	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
 
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
@@ -54,10 +54,15 @@ protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();
 	bool onProcessWhiteListSitDown(Json::Value& prealMsg,uint32_t nSessionID );
+	bool isRoomOwnerPay() { return ePayType_RoomOwner == m_nPayType; }
+	bool isAAPay() { return ePayType_AA == m_nPayType;  }
+	bool isWinerPay() { return ePayType_Winer == m_nPayType; }
+	ePayRoomCardType getPayType() { return m_nPayType; }
+	void doProcessWinerPayRoomCard();
 protected:
 	IGameRoomManager* m_pRoomMgr;
 	uint32_t m_nOwnerUID;
-	bool m_isAA;
+	ePayRoomCardType m_nPayType;
 	bool m_isEnableWhiteList;
 
 	bool m_isOpen; 

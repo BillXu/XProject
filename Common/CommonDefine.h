@@ -33,6 +33,14 @@ enum ePayChannel
 	ePay_Max,
 };
 
+enum ePayRoomCardType
+{
+	ePayType_None,
+	ePayType_RoomOwner = ePayType_None,
+	ePayType_AA,
+	ePayType_Winer,
+	ePayType_Max,
+};
 
 enum eGameType
 {
