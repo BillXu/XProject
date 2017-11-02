@@ -17,6 +17,7 @@
 
 
 #define NIUNIU_HOLD_CARD_COUNT 5
+#define GOLDEN_HOLD_CARD_COUNT 3
 
 #define GOLDEN_PK_ROUND 2
 
