@@ -136,9 +136,8 @@ public:
 
 		// check card type invalid 
 		uint8_t nWeight = 0;
-		DDZ_Type nTempType = DDZ_Max;
-		auto isVlaid = DDZCardTypeChecker::getInstance()->checkCardType(vChuCarrds, nWeight, nTempType);
-		if (isVlaid == false || nType != nTempType)
+		auto isVlaid = DDZCardTypeChecker::getInstance()->isCardTypeValid(vChuCarrds, nType, nWeight );
+		if (isVlaid == false)
 		{
 			js["ret"] = 2;
 			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
@@ -171,8 +170,8 @@ public:
 		m_tCurMaxChuPai.nWeight = nWeight;
 		m_tCurMaxChuPai.vCards = vChuCarrds;
 		m_tCurMaxChuPai.nPlayerIdx = pPlayer->getIdx();
-		m_tCurMaxChuPai.tChuPaiType = nTempType;
-		if ( DDZ_Bomb == nTempType || DDZ_Rokect == nTempType )
+		m_tCurMaxChuPai.tChuPaiType = nType;
+		if ( DDZ_Bomb == nType || DDZ_Rokect == nType)
 		{
 			pRoom->increaseBombCount();
 		}

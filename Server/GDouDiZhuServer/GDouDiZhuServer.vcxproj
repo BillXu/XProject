@@ -90,6 +90,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\CardPoker.h" />
+    <ClInclude Include="src\DDZFindCardTypeForChu.h" />
     <ClInclude Include="src\DDZPlayer.h" />
     <ClInclude Include="src\DDZPlayerCard.h" />
     <ClInclude Include="src\DDZPrivateRoom.h" />

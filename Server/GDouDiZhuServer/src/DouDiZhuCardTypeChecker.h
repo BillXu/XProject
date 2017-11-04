@@ -7,6 +7,67 @@ class IDouDiZhuCardType
 {
 public:
 	virtual bool isThisType( std::vector<uint8_t>& vCards , uint8_t& nWeight, DDZ_Type& eType ) = 0;
+	static bool pickOutCardGroupsAndErase( std::vector<uint8_t>& vCards, uint8_t nCntPerGroup, std::vector<uint8_t>& vOut)
+	{
+		std::sort(vCards.begin(),vCards.end());
+		for ( uint8_t nIdx = 0; (nIdx + nCntPerGroup - 1) < vCards.size() && (vCards.size() - nIdx) >= nCntPerGroup; )
+		{
+			if ( DDZ_PARSE_VALUE(vCards[nIdx]) == DDZ_PARSE_VALUE(vCards[nIdx + nCntPerGroup - 1]))
+			{
+				auto nCnt = nCntPerGroup;
+				while (nCnt--)
+				{
+					vOut.push_back(vCards[nIdx++]);
+				}
+				continue;
+			}
+			++nIdx;
+		}
+		vCards.erase(vOut.begin(),vOut.end());
+		return vOut.empty() == false;
+	}
+
+	static bool pickOutShunGroups( std::vector<uint8_t> vCards, uint8_t nCntPerGroup,uint8_t nShunSize, std::vector<uint8_t>& vOut )
+	{
+		std::vector<uint8_t> vGrouped;
+		if ( pickOutCardGroupsAndErase(vCards, nCntPerGroup, vGrouped) == false )
+		{
+			return false;
+		}
+
+		// decrase order ;
+		std::sort(vGrouped.begin(), vGrouped.end(), [](uint8_t& left, uint8_t& right) { return left > right; });
+		// sort groups 
+		uint8_t nLastShunValue = 0;
+		for ( uint8_t nIdx = 0; (nIdx + nCntPerGroup - 1) < vGrouped.size(); nIdx += nCntPerGroup )
+		{
+			auto nValue = DDZ_PARSE_VALUE(vGrouped[nIdx]);
+
+			if ( nLastShunValue == nValue )
+			{
+				continue;
+			}
+
+			if ( nLastShunValue != 0 && ( nLastShunValue - 1 != nValue ) )
+			{
+				vOut.clear();
+			}
+			nLastShunValue = nValue;
+
+			for (uint8_t nAddIdx = 0; nAddIdx < nCntPerGroup; ++nAddIdx)
+			{
+				vOut.push_back(vGrouped[nIdx + nAddIdx]);
+			}
+
+			if ( vOut.size() == nShunSize * nCntPerGroup)
+			{
+				std::sort(vOut.begin(),vOut.end()); 
+				return true;
+			}
+		}
+		vOut.clear();
+		return false;
+	}
 };
 
 class IDouDiZhuRokect
@@ -66,14 +127,6 @@ public:
 		}
 		eType = DDZ_Single;
 		nWeight = DDZ_PARSE_VALUE(vCards.front());
-		if (DDZ_PARSE_TYPE(vCards.front()) == ePoker_Joker)
-		{
-			nWeight = 100 + nWeight;  
-		}
-		else if (nWeight <= 2)   // A , 2 
-		{
-			nWeight += 80;
-		}
 		return true;
 	}
 };
@@ -134,28 +187,22 @@ public:
 			return false;
 		}
 
-		std::sort(vCards.begin(),vCards.end());
-		if (DDZ_PARSE_VALUE(vCards[0u]) == DDZ_PARSE_VALUE(vCards[2u]) )
-		{
-			if ( vCards.size() == 5 && DDZ_PARSE_VALUE(vCards[3u]) != DDZ_PARSE_VALUE(vCards[4u]) )
-			{
-				return false;
-			}
-			nWeight = DDZ_PARSE_VALUE(vCards[0u]);
-		}
-		else if (DDZ_PARSE_VALUE(vCards[vCards.size() - 1 ]) == DDZ_PARSE_VALUE(vCards[vCards.size() - 3u]) )
-		{
-			if (vCards.size() == 5 && DDZ_PARSE_VALUE(vCards[0]) != DDZ_PARSE_VALUE(vCards[1]))
-			{
-				return false;
-			}
-
-			nWeight = DDZ_PARSE_VALUE(vCards[vCards.size() - 1]);
-		}
-		else
+		auto tmp = vCards;
+		decltype(tmp) vOut;
+		if (pickOutCardGroupsAndErase(tmp, 3, vOut) == false)
 		{
 			return false;
 		}
+
+		if (tmp.size() == 2) // must pair 
+		{
+			if (DDZ_PARSE_VALUE(tmp[0]) != DDZ_PARSE_VALUE(tmp[1]))
+			{
+				return false;
+			}
+		}
+		
+		nWeight = vOut.front();
 		eType = DDZ_3Follow1;
 		return true;
 	}
@@ -172,22 +219,17 @@ public:
 			return false;
 		}
 
-		std::sort(vCards.begin(), vCards.end());
-		bool isFirstA = DDZ_PARSE_VALUE(vCards[0]) == 1 ;
-		for ( uint8_t nIdx = isFirstA ? 1 : 0 ; (nIdx + 1u) < vCards.size(); ++nIdx )
-		{
-			if ( 2 == DDZ_PARSE_VALUE(vCards[nIdx]) || ePoker_Joker == DDZ_PARSE_TYPE(vCards[nIdx]) || (DDZ_PARSE_VALUE(vCards[nIdx]) + 1) != DDZ_PARSE_VALUE(vCards[nIdx + 1]))
-			{
-				return false;
-			}
-		}
-
-		if (isFirstA && DDZ_PARSE_VALUE(vCards.back()) != 13)
+		std::vector<uint8_t> vOutShun;
+		if (pickOutShunGroups(vCards, 1, vCards.size() , vOutShun) == false)
 		{
 			return false;
 		}
 
-		nWeight = isFirstA ? DDZ_PARSE_VALUE(vCards[1u]) : DDZ_PARSE_VALUE(vCards[0u]);
+		if (vOutShun.size() != vCards.size())
+		{
+			return false;
+		}
+		nWeight = vOutShun.front();
 		eType = DDZ_SingleSequence;
 		return true;
 	}
@@ -201,40 +243,21 @@ public:
 	{
 		if (vCards.size() < 6 || vCards.size() % 2 != 0)
 		{
-			return true;
+			return false;
 		}
 
-		std::vector<uint8_t> vTemp;
-		for (auto& ref : vCards)
+		std::vector<uint8_t> vOutShun;
+		if (pickOutShunGroups(vCards, 2, vCards.size() / 2, vOutShun) == false)
 		{
-			if (DDZ_PARSE_TYPE(ref) == ePoker_Joker)
-			{
-				return false;
-			}
-
-			auto tValue = DDZ_PARSE_VALUE(ref);
-			if (2 == tValue)
-			{
-				return false;
-			}
-
-			if ( 1 == tValue)
-			{
-				tValue = 14;
-			}
-
-			vTemp.push_back(tValue);
+			return false;
 		}
 
-		std::sort(vTemp.begin(),vTemp.end() );
-		for ( uint8_t nIdx = 0; (nIdx + 2) < vTemp.size(); nIdx += 2)
+		if (vOutShun.size() != vCards.size())
 		{
-			if (vTemp[nIdx] + 1 != vTemp[nIdx + 2])
-			{
-				return false;
-			}
+			return false;
 		}
-		nWeight = vTemp[0];
+
+		nWeight = vOutShun.front();
 		eType = DDZ_PairSequence;
 		return true;
 	}
@@ -248,40 +271,21 @@ public:
 	{
 		if (vCards.size() < 6 || vCards.size() % 3 != 0)
 		{
-			return true;
+			return false;
 		}
 
-		std::vector<uint8_t> vTemp;
-		for (auto& ref : vCards)
+		std::vector<uint8_t> vOutShun;
+		if (pickOutShunGroups(vCards, 3, vCards.size() / 3 , vOutShun) == false)
 		{
-			if (DDZ_PARSE_TYPE(ref) == ePoker_Joker)
-			{
-				return false;
-			}
-
-			auto tValue = DDZ_PARSE_VALUE(ref);
-			if (2 == tValue)
-			{
-				return false;
-			}
-
-			if (1 == tValue)
-			{
-				tValue = 14;
-			}
-
-			vTemp.push_back(tValue);
+			return false;
 		}
-
-		std::sort(vTemp.begin(), vTemp.end());
-		for (uint8_t nIdx = 0; (nIdx + 3) < vTemp.size(); nIdx += 3 )
+		
+		if ( vOutShun.size() != vCards.size() )
 		{
-			if (vTemp[nIdx] + 1 != vTemp[nIdx + 3])
-			{
-				return false;
-			}
+			return false;
 		}
-		nWeight = vTemp[0];
+
+		nWeight = vOutShun.front();
 		eType = DDZ_3PicesSeqence;
 		return true;
 	}
@@ -293,52 +297,61 @@ class IDouDiZhuAircraftWithWings
 public:
 	bool isThisType(std::vector<uint8_t>& vCards, uint8_t& nWeight, DDZ_Type& eType)override
 	{
-		std::sort(vCards.begin(), vCards.end());
-		std::vector<uint8_t> v3,vOther;
-		for ( uint8_t nIdx = 0; nIdx < vCards.size(); )
-		{
-			if ( (nIdx + 2) < vCards.size() && DDZ_PARSE_VALUE(vCards[nIdx]) == DDZ_PARSE_VALUE(vCards[nIdx + 2]))
-			{
-				v3.push_back(vCards[nIdx]);
-				v3.push_back(vCards[nIdx]);
-				v3.push_back(vCards[nIdx]);
-				nIdx += 3;
-			}
-			else
-			{
-				vOther.push_back(DDZ_PARSE_VALUE(vCards[nIdx]));
-				++nIdx;
-			}
-		}
-
-		IDouDiZhu3PicesSeqence t3Shun;
-		uint8_t nTempWeight;
-		DDZ_Type eT;
-		if (t3Shun.isThisType(v3, nTempWeight, eT) == false)
+		std::vector<uint8_t> vGroups;
+		auto vTmp = vCards;
+		if ( pickOutCardGroupsAndErase(vTmp, 3, vGroups) == false )
 		{
 			return false;
 		}
 
-		auto nShunCnt = v3.size() / 3;
-		if ( nShunCnt != vOther.size() && nShunCnt * 2 != vOther.size() )
+		if ( vGroups.size() < 2 )
 		{
 			return false;
 		}
 
-		if (nShunCnt * 2 == vOther.size()) // other must pair 
+		uint8_t nMaxGroupCnt = vGroups.size();
+		while ( nMaxGroupCnt >= 2 )
 		{
-			for (uint8_t nIdx = 0; (nIdx + 1) < vOther.size(); nIdx += 2)
+			// check card count order 
+			if ((nMaxGroupCnt * 3 + nMaxGroupCnt) != vCards.size() && vCards.size() != (nMaxGroupCnt * 3 + nMaxGroupCnt * 2))
 			{
-				if (vOther[nIdx] != vOther[nIdx + 1])
+				--nMaxGroupCnt;
+				continue;
+			}
+
+			std::vector<uint8_t> vOutShun;
+			if (pickOutShunGroups(vGroups, 3, nMaxGroupCnt, vOutShun) == false)
+			{
+				--nMaxGroupCnt;
+				continue;
+			}
+
+			// do find lian shun , erase hold ;
+			auto vFollow = vCards;
+			vFollow.erase(vOutShun.begin(),vOutShun.end());
+			bool isFollowPair = vCards.size() == (nMaxGroupCnt * 3 + nMaxGroupCnt * 2);
+			if ( isFollowPair )
+			{
+				std::vector<uint8_t> vPairs;
+				if (pickOutCardGroupsAndErase(vFollow, 2, vPairs) == false )
 				{
-					return false;
+					--nMaxGroupCnt;
+					continue;
+				}
+
+				if (vPairs.size() != 2 * nMaxGroupCnt)
+				{
+					--nMaxGroupCnt;
+					continue;
 				}
 			}
+			
+			// do 
+			nWeight = vOutShun.front();
+			eType = DDZ_AircraftWithWings;
+			return true;
 		}
-
-		nWeight = nTempWeight;
-		eType = DDZ_AircraftWithWings;
-		return true;
+		return false;
 	}
 };
 
@@ -353,35 +366,27 @@ public:
 			return false;
 		}
 
-		std::sort(vCards.begin(), vCards.end());
-		// not finish 
-		uint8_t n4CardValue = 0;
-		std::vector<uint8_t> vOther;
-		for (uint8_t nIdx = 0; nIdx < vCards.size(); )
-		{
-			if ((nIdx + 3) < vCards.size() && DDZ_PARSE_VALUE(vCards[nIdx]) == DDZ_PARSE_VALUE(vCards[nIdx + 3]))
-			{
-				n4CardValue = DDZ_PARSE_VALUE(vCards[nIdx]);
-				nIdx += 4;
-			}
-			else
-			{
-				vOther.push_back(DDZ_PARSE_VALUE(vCards[nIdx]));
-				++nIdx;
-			}
-		}
-
-		if (0 == n4CardValue)
+		std::vector<uint8_t> vGroups;
+		auto vTmp = vCards;
+		if (pickOutCardGroupsAndErase(vTmp, 4, vGroups) == false)
 		{
 			return false;
 		}
 
-		if ( vOther.size() == 4 && vOther.size() == 4 && (vOther[0] != vOther[1] || vOther[2] != vOther[3]) )
+		if ( vTmp.size() == 4 ) // must tow pair ;
 		{
-			return false;
-		}
+			decltype(vGroups) vPairs;
+			if (pickOutCardGroupsAndErase(vTmp, 2, vPairs ) == false)
+			{
+				return false;
+			}
 
-		nWeight = n4CardValue;
+			if (vPairs.size() != 4)
+			{
+				return false;
+			}
+		}
+		nWeight = vGroups.front();
 		eType = DDZ_4Follow2;
 		return true;
 	}
@@ -395,37 +400,37 @@ public:
 	DDZCardTypeChecker()
 	{
 		IDouDiZhuCardType* p = new IDouDiZhuRokect();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_Rokect] = p;
 
 		p = new IDouDiZhuBomb();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_Bomb] = p;
 
 		p = new IDouDiZhuSingle();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_Single] = p;
 
 		p = new IDouDiZhuPair();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_Pair] = p;
 
 		p = new IDouDiZhu3Pices();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_3Pices] = p;
 
 		p = new IDouDiZhu3Follow1();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_3Follow1] = p;
 
 		p = new IDouDiZhuSingleSequence();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_SingleSequence] = p;
 
 		p = new IDouDiZhuPairSequence();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_PairSequence] = p;
 
 		p = new IDouDiZhu3PicesSeqence();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_3PicesSeqence] = p;
 
 		p = new IDouDiZhuAircraftWithWings();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_AircraftWithWings] = p;
 
 		p = new IDouDiZhu4Follow2();
-		m_vCardTypes.push_back(p);
+		m_vCardTypes[DDZ_4Follow2] = p;
 	}
 
 public:
@@ -433,32 +438,27 @@ public:
 	{
 		for (auto& ref : m_vCardTypes)
 		{
-			delete ref;
-			ref = nullptr;
+			delete ref.second;
+			ref.second = nullptr;
 		}
 		m_vCardTypes.clear();
 	}
 public:
-	bool checkCardType(std::vector<uint8_t>& vecCards, uint8_t& nWeight, DDZ_Type & cardType)
+	bool isCardTypeValid(std::vector<uint8_t>& vecCards, DDZ_Type cardType, uint8_t& nWeight )
 	{
-		for (auto& ref : m_vCardTypes)
-		{
-			if (ref->isThisType(vecCards, nWeight, cardType))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	bool isCardTypeWeightValid(std::vector<uint8_t>& vecCards, uint8_t nWeight, DDZ_Type cardType )
-	{
-		uint8_t nWeightTemp = 0; DDZ_Type cardTypeTemp = DDZ_Max;
-		if (false == checkCardType(vecCards, nWeightTemp, cardTypeTemp))
+		auto iter = m_vCardTypes.find(cardType);
+		if (iter == m_vCardTypes.end())
 		{
 			return false;
 		}
-		return nWeightTemp == nWeight && cardType == cardTypeTemp;
+
+		DDZ_Type cardTypeTemp = DDZ_Max;
+		if ( false == iter->second->isThisType(vecCards, nWeight, cardTypeTemp))
+		{
+			return false;
+		}
+		return true;
 	}
 protected:
-	std::vector<IDouDiZhuCardType*> m_vCardTypes;
+	std::map<DDZ_Type,IDouDiZhuCardType*> m_vCardTypes;
 };

@@ -210,6 +210,12 @@ enum eMsgType
 	//svr : { players : [ { idx : 23 ,offset : 23 ,xiPaiOffset : 2 , xiPaiTypes : [2,23,23] , tongGuanOffset : 23 ,vGuoInfo : [ { type : 23 , offset : 2 , cards : [23,23,21] }, ..... ]  } , .....    ] } 
 	// offset 表示玩家最终的输赢,eXiPaiType 定义了喜牌枚举，如果没有就是eXiPai_Max
 
+	MSG_ROOM_BJ_GAME_OVER,
+	// svr : { dismissID : 23 , result: [ { uid : 23 , final : -23, win : 0 , lose : -2 , xiPai : -23  }, .... ]  }
+	// dismissID is null or 0 , means normal dismiss ;
+	// dismissID is 1 , means system dismiss room ;
+	// dismissID biger than 1 , means player dismiss room ;
+
 	MSG_POKER_GAME_MSG_MAX = 1000,
 	
 	// dou di zhu 

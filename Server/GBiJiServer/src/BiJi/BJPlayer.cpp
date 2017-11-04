@@ -22,7 +22,10 @@ void BJPlayer::addOffsetPerGuo(uint8_t nGuoIdx, int32_t nOffset)
 	}
 
 	addSingleOffset(nOffset);
-	m_vGuoOffset[nGuoIdx] = nOffset;
+	m_vGuoOffset[nGuoIdx] += nOffset;
+
+	auto& ref = nOffset > 0 ? m_nPartWin : m_nPartLose;
+	ref += nOffset;
 }
 
 int32_t BJPlayer::getOffsetPerGuo(uint8_t nGuoIdx)
@@ -39,6 +42,8 @@ void BJPlayer::addXiPaiOffset( int32_t nOffset )
 {
 	m_nXiPaiOffset += nOffset;
 	addSingleOffset(nOffset);
+
+	m_nPartXiQian += nOffset;
 }
 
 void BJPlayer::addTongGuanOffset( int32_t nOffset )
@@ -67,4 +72,19 @@ bool BJPlayer::isTongGuan()
 		}
 	}
 	return true;
+}
+
+int32_t BJPlayer::getPartWin()
+{
+	return m_nPartWin;
+}
+
+int32_t BJPlayer::getPartLose()
+{
+	return m_nPartLose;
+}
+
+int32_t BJPlayer::getPartXiPai()
+{
+	return m_nPartXiQian;
 }
