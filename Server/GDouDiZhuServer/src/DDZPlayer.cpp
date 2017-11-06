@@ -2,7 +2,6 @@
 void DDZPlayer::onGameWillStart()
 {
 	IGamePlayer::onGameWillStart();
-	m_isMingPai = false;
 	getPlayerCard()->reset();
 }
 
@@ -13,10 +12,27 @@ DDZPlayerCard* DDZPlayer::getPlayerCard()
 
 bool DDZPlayer::isMingPai()
 {
-	return m_isMingPai;
+	return haveState(eRoomPeer_ShowedHoldCard);
 }
 
 void DDZPlayer::doMingPai()
 {
-	m_isMingPai = true;
+	addState(eRoomPeer_ShowedHoldCard);
+}
+
+bool DDZPlayer::isTuoGuan()
+{
+	return haveState(eRoomPeer_SysAutoAct);
+}
+
+void DDZPlayer::setTuoGuanFlag(uint8_t isTuoGuan)
+{
+	if (isTuoGuan)
+	{
+		addState(eRoomPeer_SysAutoAct);
+	}
+	else
+	{
+		clearState(eRoomPeer_SysAutoAct);
+	}
 }

@@ -67,6 +67,16 @@ public:
 		return (m_nState & eState) == eState;
 	}
 
+	void addState( uint32_t eState )
+	{
+		m_nState |= eState;
+	}
+
+	void clearState( uint32_t eState )
+	{
+		m_nState &= (~eState);
+	}
+
 	uint32_t getState()
 	{
 		return m_nState;

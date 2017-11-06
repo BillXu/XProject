@@ -253,6 +253,16 @@ enum eMsgType
 	MSG_DDZ_ROOM_RESULT,
 	// svr : { bombCnt : 2 , isChunTian : 0 , isMingPai : 1 , bottom : 2 , players : [ { idx : 2 , offset : -2}, ..... ]  } 
 	
+	MSG_DDZ_PLAYER_UPDATE_TUO_GUAN, 
+	// client : { isTuoGuan : 0  }
+	// svr : { ret : 0 } ;   // 0 success , 1 the same , not change , 2 not in Room , 3 arg error;
+
+	MSG_DDZ_ROOM_UPDATE_TUO_GUAN,
+	// svr : { idx : 0 , isTuoGuan : 0 } 
+	MSG_DDZ_MAX = 1500,
+	
+		
+		
 	// mj specail msg ;
 	MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD,  // 有人出了一张牌，等待需要这张牌的玩家 操作，可以 碰，杠，胡
 	// svr : { invokerIdx : 2,cardNum : 32 , acts : [type0, type 1 , ..] }  ;

@@ -543,3 +543,149 @@ class DDZFind3Follow1
 public:
 
 };
+
+class DDZFindTuoGuanChuCard
+	:public CSingleton<DDZFindTuoGuanChuCard>
+{
+public:
+
+	~DDZFindTuoGuanChuCard()
+	{
+		for (auto& ref : m_vFindTypes)
+		{
+			delete ref.second;
+			ref.second = nullptr;
+		}
+		m_vFindTypes.clear();
+	}
+
+	DDZFindTuoGuanChuCard()
+	{
+		IDDZFindCardType* p = new DDZFindRoket();
+		m_vFindTypes[DDZ_Rokect] = p;
+
+		p = new DDZFindBomb();
+		m_vFindTypes[DDZ_Bomb] = p;
+
+		p = new DDZFind3PicesSeqence();
+		m_vFindTypes[DDZ_3PicesSeqence] = p;
+
+		p = new DDZFindPairSequence();
+		m_vFindTypes[DDZ_PairSequence] = p;
+
+		p = new DDZFindSingleSequence();
+		m_vFindTypes[DDZ_SingleSequence] = p;
+
+		p = new DDZFind3Pices();
+		m_vFindTypes[DDZ_3Pices] = p;
+
+		p = new DDZFindPair();
+		m_vFindTypes[DDZ_Pair] = p;
+
+		p = new DDZFindSingle();
+		m_vFindTypes[DDZ_Single] = p;
+
+		p = new DDZFindAircraftWithWings();
+		m_vFindTypes[DDZ_AircraftWithWings] = p;
+
+		p = new DDZFind4Follow2();
+		m_vFindTypes[DDZ_4Follow2] = p;
+
+		p = new DDZFind3Follow1();
+		m_vFindTypes[DDZ_3Follow1] = p;
+	}
+
+	bool findCardToChu(std::vector<uint8_t> vHoldCards, DDZ_Type nCurType , std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards )
+	{
+		if ( DDZ_Rokect == nCurType )
+		{
+			return false;
+		}
+
+		if ( DDZ_Max > nCurType )
+		{
+			auto p = m_vFindTypes.find(nCurType);
+			vResultCards.clear();
+			auto bRet = p->second->findCheckType(vHoldCards, vCmpCards, vResultCards);
+			if ( bRet )
+			{
+				return true;
+			}
+
+			if ( nCurType < DDZ_Common )
+			{
+				vResultCards.clear();
+				std::vector<uint8_t> vBom = { DDZ_MAKE_CARD(ePoker_Club,0),DDZ_MAKE_CARD(ePoker_Club,0) ,DDZ_MAKE_CARD(ePoker_Club,0) ,DDZ_MAKE_CARD(ePoker_Club,0) };
+				p = m_vFindTypes.find(DDZ_Bomb);
+				bRet = p->second->findCheckType(vHoldCards, vBom, vResultCards);
+				if (bRet)
+				{
+					nCurType = DDZ_Bomb;
+					return true;
+				}
+			}
+
+			// check rocket 
+			p = m_vFindTypes.find(DDZ_Rokect);
+			bRet = p->second->findCheckType(vHoldCards, vCmpCards, vResultCards);
+			if (bRet)
+			{
+				nCurType = DDZ_Rokect;
+				return true;
+			}
+
+			return false;
+		}
+
+		// self first chu ;
+		std::vector<uint8_t> v4Cards, v3Cards, v2Cards, vRocket;
+		// pick out rokect ,
+		std::vector<uint8_t> vBom = { DDZ_MAKE_CARD(ePoker_Club,0),DDZ_MAKE_CARD(ePoker_Club,0) };
+		m_vFindTypes[DDZ_Rokect]->findCheckType(vHoldCards, vBom, vRocket);
+		vHoldCards.erase(vRocket.begin(),vRocket.end());
+		// pick out 4 ,
+		IDDZFindCardType::pickOutGroupCardAndErase(vHoldCards, 0, 4, v4Cards);
+		// pick out 3 ,
+		IDDZFindCardType::pickOutGroupCardAndErase(vHoldCards, 0, 3, v3Cards);
+		// pick out 2,
+		IDDZFindCardType::pickOutGroupCardAndErase(vHoldCards, 0, 2, v2Cards);
+		if (vHoldCards.empty() == false)
+		{
+			vResultCards.push_back(vHoldCards[0]);
+			nCurType = DDZ_Single;
+			return true;
+		}
+
+		if (v2Cards.empty() == false)
+		{
+			vResultCards.insert(vResultCards.end(),v2Cards.begin(),v2Cards.begin() + 1 );
+			nCurType = DDZ_Pair;
+			return true;
+		}
+
+		if (v3Cards.empty() == false)
+		{
+			vResultCards.insert(vResultCards.end(), v3Cards.begin(), v3Cards.begin() + 2);
+			nCurType = DDZ_3Pices;
+			return true;
+		}
+
+		if (v4Cards.empty() == false)
+		{
+			vResultCards.insert(vResultCards.end(), v4Cards.begin(), v4Cards.begin() + 3);
+			nCurType = DDZ_Bomb;
+			return true;
+		}
+
+		if (vRocket.empty() == false)
+		{
+			vResultCards.insert(vResultCards.end(), vRocket.begin(), vRocket.end());
+			nCurType = DDZ_Rokect;
+			return true;
+		}
+		return false;
+	}
+
+protected:
+	std::map<DDZ_Type, IDDZFindCardType*> m_vFindTypes;
+};

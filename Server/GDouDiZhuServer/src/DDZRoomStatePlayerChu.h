@@ -5,6 +5,7 @@
 #include "DouDiZhuDefine.h"
 #include "DouDiZhuCardTypeChecker.h"
 #define TIME_DELAY_ENTER_GAME_OVER 0.5
+#define TIME_TUOGUAN_DELAY_ACT 2
 class DDZRoomStatePlayerChu
 	:public IGameRoomState
 {
@@ -38,6 +39,8 @@ public:
 		jsMsgBack["idx"] = m_nWaitChuPlayerIdx;
 		getRoom()->sendRoomMsg(jsMsgBack, MSG_DDZ_ROOM_WAIT_CHU);
 
+		// check tuoGuan 
+		checkTuoGuan();
 		setStateDuringTime(99999999);
 	}
 
@@ -50,6 +53,45 @@ public:
 
 		auto pRoom = (DDZRoom*)getRoom();
 		auto pPlayer = (DDZPlayer*)pRoom->getPlayerBySessionID(nSessionID);
+
+		if ( MSG_DDZ_PLAYER_UPDATE_TUO_GUAN != nMsgType )
+		{
+			uint8_t nRet = 0;
+			bool isTuoGuan = false;
+			do
+			{
+				if (pPlayer == nullptr)
+				{
+					nRet = 2;
+					break;
+				}
+
+				if (jsmsg["isTuoGuan"].isNull() || jsmsg["isTuoGuan"].isInt() == false)
+				{
+					nRet = 3;
+					break;
+				}
+				isTuoGuan = jsmsg["isTuoGuan"].asUInt() == 1;
+				bool isCurTuoGuan = pPlayer->isTuoGuan();
+				if (isTuoGuan == isCurTuoGuan)
+				{
+					nRet = 1;
+					break;
+				}
+				pPlayer->setTuoGuanFlag(isTuoGuan);
+			} while ( 0 );
+
+			if (nRet)
+			{
+				jsmsg["ret"] = nRet;
+				getRoom()->sendMsgToPlayer(jsmsg, nMsgType, nSessionID);
+				return true;
+			}
+
+			jsmsg["idx"] = pPlayer->getIdx();
+			getRoom()->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
+			return true;
+		}
 
 		if ( MSG_DDZ_PLAYER_SHOW_CARDS != nMsgType)
 		{
@@ -84,7 +126,7 @@ public:
 
 			if (nRet)
 			{
-				jsRet[""] = nRet;
+				jsRet["ret"] = nRet;
 				getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 				return true;
 			}
@@ -191,6 +233,12 @@ public:
 	}
 
 	uint8_t getCurIdx()override { return m_nWaitChuPlayerIdx; };
+
+	void roomInfoVisitor(Json::Value& js)override
+	{
+		IGameRoomState::roomInfoVisitor(js);
+		js["curActIdx"] = m_nWaitChuPlayerIdx;
+	}
 protected:
 	void infomNextPlayerAct()
 	{
@@ -208,6 +256,9 @@ protected:
 		Json::Value jsMsgBack;
 		jsMsgBack["idx"] = m_nWaitChuPlayerIdx;
 		getRoom()->sendRoomMsg(jsMsgBack, MSG_DDZ_ROOM_WAIT_CHU);
+
+		// check tuoGuan 
+		checkTuoGuan();
 	}
 
 	void delayEnterGameOverState()
@@ -222,6 +273,50 @@ protected:
 	}
 
 protected:
+	void checkTuoGuan()
+	{
+		auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx);
+		if (p && p->isTuoGuan())
+		{
+			m_tTuoGuanTimer.reset();
+			m_tTuoGuanTimer.setInterval(TIME_TUOGUAN_DELAY_ACT);
+			m_tTuoGuanTimer.setIsAutoRepeat(false);
+			m_tTuoGuanTimer.setCallBack([this, p](CTimer* t, float f)
+			{
+				if (p->isTuoGuan() == false || p->getIdx() != m_nWaitChuPlayerIdx)
+				{
+					return;
+				}
+
+				// do auto chu 
+				auto nCurType = m_tCurMaxChuPai.tChuPaiType;
+				if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
+				{
+					nCurType = DDZ_Max;
+				}
+
+				std::vector<uint8_t> vAutChuCards;
+				auto isChu = p->getPlayerCard()->getTuoGuanChuCards(nCurType, m_tCurMaxChuPai.vCards, vAutChuCards);
+				Json::Value jsAutoChu;
+				if (isChu)
+				{
+					Json::Value jsArray;
+					jsAutoChu["type"] = nCurType;
+					for (auto& ref : vAutChuCards)
+					{
+						jsArray[jsArray.size()] = ref;
+					}
+					jsAutoChu["cards"] = jsArray;
+				}
+				onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
+
+			});
+			m_tTuoGuanTimer.start();
+		}
+	}
+protected:
 	uint8_t m_nWaitChuPlayerIdx;
 	stChuPaiInfo m_tCurMaxChuPai;
+
+	CTimer m_tTuoGuanTimer;
 };

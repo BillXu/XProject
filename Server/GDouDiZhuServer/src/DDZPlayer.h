@@ -9,7 +9,8 @@ public:
 	DDZPlayerCard* getPlayerCard();
 	bool isMingPai();
 	void doMingPai();
+	bool isTuoGuan();
+	void setTuoGuanFlag( uint8_t isTuoGuan );
 protected:
 	DDZPlayerCard m_tPeerCard;
-	bool m_isMingPai;
 };

@@ -1,5 +1,10 @@
 #include "DDZRoom.h"
 #include "DDZPlayer.h"
+#include "DDZRoomStateWaitReady.h"
+#include "DDZRoomStatePlayerChu.h"
+#include "DDZRoomStateStartGame.h"
+#include "DDZRoomStateRobotBanker.h"
+#include "DDZRoomStateGameEnd.h"
 bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
@@ -8,6 +13,18 @@ bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoo
 	m_nBankerIdx = 0;
 	m_nBankerTimes = 0;
 	m_nBombCnt = 0;
+
+	IGameRoomState* pState = new DDZRoomStateWaitReady();
+	addRoomState(pState);
+	setInitState(pState);
+	pState = new DDZRoomStatePlayerChu();
+	addRoomState(pState);
+	pState = new DDZRoomStateStartGame();
+	addRoomState(pState);
+	pState = new DDZRoomStateRobotBanker();
+	addRoomState(pState);
+	pState = new DDZRoomStateGameEnd();
+	addRoomState(pState);
 	return true;
 }
 
