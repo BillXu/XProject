@@ -1,4 +1,5 @@
 #include "DDZPlayerCard.h"
+#include "DDZFindCardTypeForChu.h"
 void DDZPlayerCard::reset()
 {
 	m_vHoldCards.clear();
@@ -57,4 +58,9 @@ uint8_t DDZPlayerCard::getHoldCardCount()
 uint16_t DDZPlayerCard::getChuedCardTimes()
 {
 	return m_nChuedCardTimes;
+}
+
+bool DDZPlayerCard::getTuoGuanChuCards(DDZ_Type& nCurAndOutType, std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards)
+{
+	return DDZFindTuoGuanChuCard::getInstance()->findCardToChu(m_vHoldCards, nCurAndOutType, vCmpCards, vResultCards);
 }

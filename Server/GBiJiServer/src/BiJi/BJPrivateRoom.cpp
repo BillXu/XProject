@@ -5,6 +5,7 @@
 #include "IGameRoomManager.h"
 #include "AsyncRequestQuene.h"
 #include "../ServerCommon/ISeverApp.h"
+#include "BiJi\BJPlayer.h"
 bool BJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
@@ -20,6 +21,9 @@ GameRoom* BJPrivateRoom::doCreatRealRoom()
 uint8_t BJPrivateRoom::getInitRound(uint8_t nLevel)
 {
 	uint8_t vJun[] = { 10 , 20 , 30 };
+#ifdef _DEBUG
+	vJun[0] = 2;
+#endif // _DEBUG
 	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
 	{
 		LOGFMTE("invalid level type = %u", nLevel);
@@ -35,7 +39,7 @@ void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 	auto nCnt = getCoreRoom()->getSeatCnt();
 	for (uint16_t nIdx = 0; nIdx < nCnt; ++nIdx)
 	{
-		auto pPlayer = getCoreRoom()->getPlayerByIdx(nIdx);
+		auto pPlayer = (BJPlayer*)getCoreRoom()->getPlayerByIdx(nIdx);
 		if (pPlayer == nullptr)
 		{
 			continue;
@@ -43,11 +47,14 @@ void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		Json::Value jsPlayer;
 		jsPlayer["uid"] = pPlayer->getUserUID();
 		jsPlayer["final"] = pPlayer->getChips();
+		jsPlayer["lose"] = pPlayer->getPartLose();
+		jsPlayer["win"] = pPlayer->getPartWin();
+		jsPlayer["xiPai"] = pPlayer->getPartXiPai();
 		jsArrayPlayers[jsArrayPlayers.size()] = jsPlayer;
 	}
 
 	Json::Value jsMsg;
 	jsMsg["dismissID"] = m_nApplyDismissUID;
 	jsMsg["result"] = jsArrayPlayers;
-	sendRoomMsg(jsMsg, MSG_ROOM_GAME_OVER);
+	sendRoomMsg(jsMsg, MSG_ROOM_BJ_GAME_OVER);
 }

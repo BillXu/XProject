@@ -237,19 +237,19 @@ enum eRoomPeerState
 	// peer state for taxas poker peer
 	eRoomPeer_SitDown = 1,
 	eRoomPeer_StandUp = 1 << 1,
-	eRoomPeer_Ready =  (1<<12)|eRoomPeer_SitDown ,
-	eRoomPeer_StayThisRound = ((1 << 2)|eRoomPeer_SitDown) ,
-	eRoomPeer_WaitCaculate = ((1 << 7)|eRoomPeer_StayThisRound ),
-	eRoomPeer_AllIn = ((1 << 3)|eRoomPeer_WaitCaculate) ,
-	eRoomPeer_GiveUp = ((1 << 4)|eRoomPeer_StayThisRound),
-	eRoomPeer_CanAct = ((1 << 5)|eRoomPeer_WaitCaculate),
-	eRoomPeer_WaitNextGame = ((1 << 6)|eRoomPeer_SitDown ),
+	eRoomPeer_Ready = (1 << 12) | eRoomPeer_SitDown,
+	eRoomPeer_StayThisRound = ((1 << 2) | eRoomPeer_SitDown),
+	eRoomPeer_WaitCaculate = ((1 << 7) | eRoomPeer_StayThisRound),
+	eRoomPeer_AllIn = ((1 << 3) | eRoomPeer_WaitCaculate),
+	eRoomPeer_GiveUp = ((1 << 4) | eRoomPeer_StayThisRound),
+	eRoomPeer_CanAct = ((1 << 5) | eRoomPeer_WaitCaculate),
+	eRoomPeer_WaitNextGame = ((1 << 6) | eRoomPeer_SitDown),
 	eRoomPeer_DoMakedCardGroup = (1 << 8) | eRoomPeer_CanAct,
-	eRoomPeer_LackOfCoin = (1<<9)|eRoomPeer_SitDown,
-	eRoomPeer_WillLeave = (1<<10)|eRoomPeer_StandUp ,
-	eRoomPeer_Looked =  (1<<13)|eRoomPeer_CanAct ,
-	eRoomPeer_PK_Failed = (1<<14)|eRoomPeer_StayThisRound ,
-
+	eRoomPeer_WillLeave = (1 << 10) | eRoomPeer_StandUp,
+	eRoomPeer_Looked = (1 << 13) | eRoomPeer_CanAct,
+	eRoomPeer_PK_Failed = (1 << 14) | eRoomPeer_StayThisRound,
+	eRoomPeer_ShowedHoldCard = ( 1 << 16 ),
+	eRoomPeer_SysAutoAct = ( 1 << 18), // 托管状态
 	eRoomPeer_AlreadyHu = ((1 << 15) | eRoomPeer_CanAct),  //  已经胡牌的状态
 	eRoomPeer_DelayLeave = (1 << 17),  //  牌局结束后才离开
 	eRoomPeer_Max,
@@ -344,8 +344,6 @@ enum eMailState
 #define TIME_NIUNIU_GAME_RESULT_PER_PLAYER 1.0f  //0.8f
 #define TIME_NIUNIU_GAME_RESULT_EXT 8.0f
 
-// time for golden
-#define TIME_GOLDEN_DISTRIBUTE_CARD_PER_PLAYER 1.0f 
 
 
 

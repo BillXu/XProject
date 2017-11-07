@@ -7,7 +7,7 @@
 #include "AsyncRequestQuene.h"
 #include <time.h>
 #define TIME_WAIT_REPLY_DISMISS 180
-#define TIME_AUTO_DISMISS (60*60*1)
+#define TIME_AUTO_DISMISS (60*60*5)
 IPrivateRoom::~IPrivateRoom()
 {
 	delete m_pRoom;

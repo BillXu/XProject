@@ -87,5 +87,8 @@
     <ClInclude Include="src\DDZServer.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\DDZFindCardTypeForChu.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
