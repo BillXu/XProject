@@ -51,6 +51,7 @@ enum eGameType
 	eGame_CYDouDiZhu,
 	eGame_JJDouDiZhu,
 	eGame_TestMJ,
+	eGame_Golden,
 	eGame_Max,
 };
 

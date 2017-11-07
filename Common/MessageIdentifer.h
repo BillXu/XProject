@@ -405,6 +405,33 @@ enum eMsgType
 	// svr: {idx : 0,card : 0}
 	//card : 0是取消，其它的是包牌的card
 
+	MSG_ROOM_GOLDEN_GAME_END, //三张游戏结束消息
+	// svr: { bankerIdx : 2 , result : [ { uid : 23 , offset : 23, final : -23 }, .... ] }
+
+	MSG_ROOM_GOLDEN_GAME_WAIT_ACT, //三张发送玩家操作列表消息
+	// sur: { acts : { act ： 1 , info : 1 } , { act : 2 , info : 1 } ... }
+
+	MSG_ROOM_GOLDEN_GAME_PASS, //三张玩家弃牌
+	// sur : { ret : 0 }  0, 成功; 1, 玩家为空.
+
+	MSG_ROOM_GOLDEN_GAME_CALL, //三张玩家跟注
+	// sur : { ret : 0 , idx : 1 , coin : 10 , (mutiple : 1)//只有在加注时会发 }
+
+	MSG_ROOM_GOLDEN_GAME_CALL2END, //三张玩家更改一跟到底
+	// sur : { ret : 0, call2end : 1 }
+
+	MSG_ROOM_GOLDEN_GAME_LOOK_CARDS, //三张看牌
+	// sur : { ret : 0, (idx : 1)//群发用于其他玩家知晓, (cards : { 23 , 24, 25 })//用于发送给看牌的玩家知晓 } 当失败时只给要求看牌玩家发失败信息(只有ret)
+
+	MSG_ROOM_GOLDEN_GAME_PK, //三张比牌
+	// sur : { ret : 0, idx : 1, withIdx : 2, result : 1 }
+	// result : 1, 胜利; 0, 失败
+
+	MSG_ROOM_GOLDEN_GAME_END_PK, //三张最终PK
+	// sur : { participate : { 1 , 2, 3 } , lose : { 2 , 3 } }
+	// participate : 参与者
+	// lose : 输的人
+
 
 
 
