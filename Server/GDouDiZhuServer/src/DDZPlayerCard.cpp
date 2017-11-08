@@ -45,6 +45,15 @@ void DDZPlayerCard::holdCardToJson(Json::Value& jsHoldCard)
 	return;
 }
 
+void DDZPlayerCard::lastChuToJson(Json::Value& jsHoldCard)
+{
+	for (auto& ref : m_vLastChu )
+	{
+		jsHoldCard[jsHoldCard.size()] = ref;
+	}
+	return;
+}
+
 void DDZPlayerCard::clearLastChu()
 {
 	m_vLastChu.clear();
@@ -58,6 +67,11 @@ uint8_t DDZPlayerCard::getHoldCardCount()
 uint16_t DDZPlayerCard::getChuedCardTimes()
 {
 	return m_nChuedCardTimes;
+}
+
+bool DDZPlayerCard::isHaveCard(uint8_t nCard)
+{
+	return std::find(m_vHoldCards.begin(), m_vHoldCards.end(), nCard) != m_vHoldCards.end();
 }
 
 bool DDZPlayerCard::getTuoGuanChuCards(DDZ_Type& nCurAndOutType, std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards)

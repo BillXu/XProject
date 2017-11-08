@@ -9,10 +9,12 @@ public:
 	void addHoldCard(uint8_t nCard);
 	bool onChuCard(std::vector<uint8_t>& vCards );
 	void holdCardToJson( Json::Value& jsHoldCard );
+	void lastChuToJson(Json::Value& jsHoldCard);
 	bool getTuoGuanChuCards( DDZ_Type& nCurAndOutType, std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards );
 	void clearLastChu();
 	uint8_t getHoldCardCount();
 	uint16_t getChuedCardTimes();
+	bool isHaveCard( uint8_t nCard );
 protected:
 	std::vector<uint8_t> m_vHoldCards;
 	std::vector<uint8_t> m_vLastChu;

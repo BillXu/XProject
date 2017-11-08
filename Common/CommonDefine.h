@@ -83,6 +83,7 @@ enum eRoomState
 	eRoomState_BJ_Max = 100,
 	// dou di zhu specail 
 	eRoomState_DDZ_Chu,
+	eRoomState_JJ_DDZ_Ti_La_Chuai, 
 
 	// above is new ;
 	eRoomState_None,
@@ -249,6 +250,7 @@ enum eRoomPeerState
 	eRoomPeer_SysAutoAct = ( 1 << 18), // 托管状态
 	eRoomPeer_AlreadyHu = ((1 << 15) | eRoomPeer_CanAct),  //  已经胡牌的状态
 	eRoomPeer_DelayLeave = (1 << 17),  //  牌局结束后才离开
+	eRoomPeer_ChaoZhuang = (1 << 19),  //  超庄
 	eRoomPeer_Max,
 };
 

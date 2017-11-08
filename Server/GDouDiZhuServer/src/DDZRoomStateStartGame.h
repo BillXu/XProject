@@ -15,7 +15,7 @@ public:
 		setStateDuringTime(1);
 	}
 
-	void onStateTimeUp()
+	void onStateTimeUp()override 
 	{
 		getRoom()->goToState(eRoomState_RobotBanker);
 	}

@@ -56,7 +56,14 @@ public:
 		}
 
 		auto nRobotBankerTimes = jsmsg["times"].asUInt();
-		if (nRobotBankerTimes <= m_nCurMaxRobotTimes)
+		if (nRobotBankerTimes <= m_nCurMaxRobotTimes && nRobotBankerTimes != 0 )
+		{
+			js["ret"] = 4;
+			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
+			return true;
+		}
+
+		if ( nRobotBankerTimes == 0 && isPlayerMustRobBanker(pPlayer->getIdx()) )
 		{
 			js["ret"] = 4;
 			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
@@ -67,7 +74,10 @@ public:
 		jsmsg["idx"] = pPlayer->getIdx();
 		pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_ROBOT_DZ );
 
-		m_nCurMaxRobotTimes = nRobotBankerTimes;
+		if (nRobotBankerTimes != 0)
+		{
+			m_nCurMaxRobotTimes = nRobotBankerTimes;
+		}
 		m_vMapPlayerIdx_RobotTimes[pPlayer->getIdx()] = nRobotBankerTimes;
 		if ( 3 == nRobotBankerTimes || m_vMapPlayerIdx_RobotTimes.size() == getRoom()->getSeatCnt() )
 		{
@@ -98,6 +108,22 @@ public:
 		onMsg(jsmsg, MSG_PLAYER_ROBOT_BANKER,ID_MSG_PORT_CLIENT,p->getSessionID());
 		return;
 	}
+	void roomInfoVisitor(Json::Value& js)override
+	{
+		IGameRoomState::roomInfoVisitor(js);
+		js["curActIdx"] = m_nCurWaitPlayerIdx;
+		js["curMaxTimes"] = m_nCurMaxRobotTimes;
+
+		Json::Value jsAlreadyRobots;
+		for (auto& ref : m_vMapPlayerIdx_RobotTimes)
+		{
+			Json::Value jsItem;
+			jsItem["idx"] = ref.first;
+			jsItem["times"] = ref.second;
+			jsAlreadyRobots[jsAlreadyRobots.size()] = jsItem;
+		}
+		js["readyPlayers"] = jsAlreadyRobots;
+	}
 
 	uint8_t getCurIdx()override { return m_nCurWaitPlayerIdx; };
 protected:
@@ -119,6 +145,12 @@ protected:
 		auto pRoom = (DDZRoom*)getRoom();
 		if (0 == m_nCurMaxRobotTimes) // nobody robot Di Zhu  ;
 		{
+			if (isJingJiangDDZ())
+			{
+				getRoom()->goToState(eRoomState_StartGame);
+				return;
+			}
+
 			m_nCurMaxRobotTimes = 1;
 			m_nCurWaitPlayerIdx = pRoom->getFirstRobotBankerIdx();
 		}
@@ -158,7 +190,38 @@ protected:
 		jsMsg["cards"] = jsCards;
 		getRoom()->sendRoomMsg(jsMsg, MSG_DDZ_ROOM_PRODUCED_DZ);
 		// go to chu pai state ;
- 		getRoom()->goToState(eRoomState_DDZ_Chu);
+		getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu);
+	}
+
+	bool isPlayerMustRobBanker( uint8_t nIdx )
+	{
+		auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
+		if (!pPlayer)
+		{
+			return false;
+		}
+		auto pHoldCards = pPlayer->getPlayerCard();
+
+		// is have joker ?
+		if (pHoldCards->isHaveCard(DDZ_MAKE_CARD(ePoker_Joker, 18)) && pHoldCards->isHaveCard(DDZ_MAKE_CARD(ePoker_Joker, 19)))
+		{
+			return true;
+		}
+
+		// is have 4 coutn 2
+		for (uint8_t nType = ePoker_None; nType < ePoker_NoJoker; ++nType)
+		{
+			if ( false == pHoldCards->isHaveCard(DDZ_MAKE_CARD(nType, 16)))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool isJingJiangDDZ()
+	{
+		return eGame_JJDouDiZhu == getRoom()->getRoomType();
 	}
 protected:
 	std::map<uint8_t, uint8_t> m_vMapPlayerIdx_RobotTimes;

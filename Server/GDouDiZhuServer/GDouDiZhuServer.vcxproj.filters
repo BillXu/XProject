@@ -90,5 +90,8 @@
     <ClInclude Include="src\DDZFindCardTypeForChu.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\JJDDZRoomStateTuiLaChuai.h">
+      <Filter>src\DouDiZhu\state</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

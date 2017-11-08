@@ -23,8 +23,26 @@ public:
 			}
 			++nIdx;
 		}
-		vCards.erase(vOut.begin(),vOut.end());
+		vectorErase(vCards,vOut);
 		return vOut.empty() == false;
+	}
+
+	template < class T>
+	static bool vectorErase( std::vector<T>& vec , std::vector<T>& vecErase )
+	{
+		for (auto& ref : vecErase)
+		{
+			auto iter = std::find(vec.begin(),vec.end(),ref);
+			if (iter != vec.end())
+			{
+				vec.erase(iter);
+			}
+			else
+			{
+				LOGFMTE("why org do not have elememt");
+			}
+		}
+		return true;
 	}
 
 	static bool pickOutShunGroups( std::vector<uint8_t> vCards, uint8_t nCntPerGroup,uint8_t nShunSize, std::vector<uint8_t>& vOut )
@@ -328,7 +346,7 @@ public:
 
 			// do find lian shun , erase hold ;
 			auto vFollow = vCards;
-			vFollow.erase(vOutShun.begin(),vOutShun.end());
+			vectorErase(vFollow, vOutShun);
 			bool isFollowPair = vCards.size() == (nMaxGroupCnt * 3 + nMaxGroupCnt * 2);
 			if ( isFollowPair )
 			{
