@@ -788,7 +788,7 @@ void GameRoom::goToState(uint32_t nStateID, Json::Value* jsValue)
 	auto iter = m_vAllState.find(nStateID);
 	if (iter != m_vAllState.end())
 	{
-		return goToState(iter->second);
+		return goToState(iter->second,jsValue);
 	}
 	LOGFMTE( "room id = %u go to state , targetstate id = %u is null",getRoomID(),nStateID );
 	return;

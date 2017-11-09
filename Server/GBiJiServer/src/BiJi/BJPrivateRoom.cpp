@@ -21,9 +21,6 @@ GameRoom* BJPrivateRoom::doCreatRealRoom()
 uint8_t BJPrivateRoom::getInitRound(uint8_t nLevel)
 {
 	uint8_t vJun[] = { 10 , 20 , 30 };
-#ifdef _DEBUG
-	vJun[0] = 2;
-#endif // _DEBUG
 	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
 	{
 		LOGFMTE("invalid level type = %u", nLevel);
