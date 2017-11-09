@@ -189,9 +189,9 @@ public:
 		// check da xiao valid ;
 		if ( m_tCurMaxChuPai.isNull() == false && m_tCurMaxChuPai.nPlayerIdx != pPlayer->getIdx() )
 		{
-			bool isValid = m_tCurMaxChuPai.tChuPaiType == nType && nWeight >= m_tCurMaxChuPai.nWeight;
-			isVlaid = isValid || ( (nType > DDZ_Common) && ( nType > m_tCurMaxChuPai.tChuPaiType) );
-			if (!isValid)
+			isVlaid = m_tCurMaxChuPai.tChuPaiType == nType && nWeight >= m_tCurMaxChuPai.nWeight;
+			isVlaid = isVlaid || ( (nType > DDZ_Common) && ( nType > m_tCurMaxChuPai.tChuPaiType) );
+			if (!isVlaid)
 			{
 				js["ret"] = 2;
 				pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
