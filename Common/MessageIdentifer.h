@@ -421,6 +421,8 @@ enum eMsgType
 	// svr: {idx : 0,card : 0}
 	//card : 0是取消，其它的是包牌的card
 
+	MSG_ROOM_GOLDEN_BEGIN = 1700, //三张命令号开始标识
+
 	MSG_ROOM_GOLDEN_GAME_END, //三张游戏结束消息
 	// svr: { bankerIdx : 2 , result : [ { uid : 23 , offset : 23, final : -23 }, .... ] }
 
@@ -448,6 +450,7 @@ enum eMsgType
 	// participate : 参与者
 	// lose : 输的人
 
+	MSG_ROOM_GOLDEN_END = 1900, //三张命令号结束标识
 
 
 
