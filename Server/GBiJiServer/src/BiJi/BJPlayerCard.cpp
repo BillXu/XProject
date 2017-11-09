@@ -165,12 +165,7 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards)
 		m_vGroups[nGIdx].setCard(vTemp);
 	}
 
-	std::sort(m_vGroups.begin(), m_vGroups.end(), [](stGroupCard& a, stGroupCard& b) { return a.getWeight() < a.getWeight(); });
-	
-	for (auto& ref : m_vGroups)
-	{
-
-	}
+	std::sort(m_vGroups.begin(), m_vGroups.end(), [](stGroupCard& a, stGroupCard& b) { return a.getWeight() < b.getWeight(); });
 	return true;
 }
 

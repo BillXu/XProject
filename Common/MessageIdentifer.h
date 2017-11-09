@@ -78,7 +78,7 @@ enum eMsgType
 	// svr:  { playerIdx : 2 , type : 1 , content : "biao qing or viceID" } 
 
 	MSG_CREATE_ROOM = 300,
-	// client: { uid : 234 ,seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
+	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
 	// payType : 0 the room owner pay cards , 1 AA pay card type , 2 big winer pay cards 
 	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error,  5  server maintenance,create room later   ;
 	MSG_ROOM_REQ_ROOM_LIST, // send to data svr ;
@@ -226,7 +226,7 @@ enum eMsgType
 	// client: { times : 0 }
 	// svr: { ret : 0 }
 	// times ; 0 means do not robot , 1 means one times ;
-	// ret : 0 success , 1 you are not in room , 2 argument error , 3 you are not cur act player 4 times must big than previous player 
+	// ret : 0 success , 1 you are not in room , 2 argument error , 3 you are not cur act player, 4 times must big than previous player, 5 you must rob banker 
 
  	MSG_DDZ_ROOM_ROBOT_DZ,  // some player roboted dz ;
 	// svr : { times : 0 , idx } 
@@ -259,6 +259,20 @@ enum eMsgType
 
 	MSG_DDZ_ROOM_UPDATE_TUO_GUAN,
 	// svr : { idx : 0 , isTuoGuan : 0 } 
+	
+	MSG_DDZ_WAIT_PLAYER_CHAO_ZHUANG,
+	// svr: { watAct : [ 2,3,]  }
+	
+	MSG_DDZ_PLAYER_CHAO_ZHUANG,
+	// client : { isChao : 0 }
+	// svr : { ret : 0 } // ret : 0 success , 1 not in room , 2 you can not chao 
+	
+	MSG_DDZ_ROOM_CHAO_ZHUANG,
+	// svr: { idx : 0 , isChao : 0 }
+	
+	MSG_ROOM_DDZ_START_GAME,
+	// svr : { vSelfCard : [23,23,23,2,23] }
+
 	MSG_DDZ_MAX = 1500,
 	
 		

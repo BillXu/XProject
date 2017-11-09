@@ -46,7 +46,7 @@ public:
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
 	{
-		if ( MSG_DDZ_PLAYER_CHU != nMsgType && MSG_DDZ_PLAYER_SHOW_CARDS != nMsgType )
+		if ( MSG_DDZ_PLAYER_CHU != nMsgType && MSG_DDZ_PLAYER_SHOW_CARDS != nMsgType && MSG_DDZ_PLAYER_UPDATE_TUO_GUAN != nMsgType )
 		{
 			return false;
 		}
@@ -54,7 +54,7 @@ public:
 		auto pRoom = (DDZRoom*)getRoom();
 		auto pPlayer = (DDZPlayer*)pRoom->getPlayerBySessionID(nSessionID);
 
-		if ( MSG_DDZ_PLAYER_UPDATE_TUO_GUAN != nMsgType )
+		if ( MSG_DDZ_PLAYER_UPDATE_TUO_GUAN == nMsgType )
 		{
 			uint8_t nRet = 0;
 			bool isTuoGuan = false;
@@ -93,7 +93,7 @@ public:
 			return true;
 		}
 
-		if ( MSG_DDZ_PLAYER_SHOW_CARDS != nMsgType)
+		if ( MSG_DDZ_PLAYER_SHOW_CARDS == nMsgType)
 		{
 			Json::Value jsRet;
 			uint8_t nRet = 0;
@@ -162,7 +162,7 @@ public:
 			// tell other players ;
 			jsmsg["idx"] = pPlayer->getIdx();
 			getRoom()->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_CHU); 
-
+			pPlayer->getPlayerCard()->clearLastChu();
 			// next player do act ;
 			infomNextPlayerAct();
 			return true;
@@ -238,6 +238,29 @@ public:
 	{
 		IGameRoomState::roomInfoVisitor(js);
 		js["curActIdx"] = m_nWaitChuPlayerIdx;
+
+		Json::Value jsLastChuArray;
+		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
+		{
+			auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
+			if (p == nullptr)
+			{
+				continue;
+			}
+
+			Json::Value jsPlayer;
+			jsPlayer["idx"] = nIdx;
+
+			Json::Value jsLastChu;
+			p->getPlayerCard()->lastChuToJson(jsLastChu);
+			if (jsLastChu.size() > 0)
+			{
+				jsPlayer["chu"] = jsLastChu;
+			}
+
+			jsLastChuArray[jsLastChuArray.size()] = jsPlayer;
+		}
+		js["lastChu"] = jsLastChuArray;
 	}
 protected:
 	void infomNextPlayerAct()

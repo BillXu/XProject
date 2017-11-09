@@ -5,6 +5,7 @@
 #include "DDZRoomStateStartGame.h"
 #include "DDZRoomStateRobotBanker.h"
 #include "DDZRoomStateGameEnd.h"
+#include "DDZPlayer.h"
 bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
@@ -36,16 +37,43 @@ IGamePlayer* DDZRoom::createGamePlayer()
 void DDZRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
 	GameRoom::packRoomInfo(jsRoomInfo);
+	Json::Value jsDiPai;
+	for (auto& ref : m_vDiPai)
+	{
+		jsDiPai[jsDiPai.size()] = ref;
+	}
+
+	if (jsDiPai.size() > 0)
+	{
+		jsRoomInfo["diPai"] = jsDiPai;
+	}
 }
 
 void DDZRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID)
 {
 	GameRoom::visitPlayerInfo(pPlayer,jsPlayerInfo,nVisitorSessionID);
+	bool isStateShowCards = eRoomState_DDZ_Chu == getCurState()->getStateID() || eRoomState_JJ_DDZ_Ti_La_Chuai == getCurState()->getStateID() || eRoomState_RobotBanker == getCurState()->getStateID();
+	if ( isStateShowCards )
+	{
+		auto p = (DDZPlayer*)pPlayer;
+		jsPlayerInfo["holdCardCnt"] = p->getPlayerCard()->getHoldCardCount();
+		if ( nVisitorSessionID == pPlayer->getSessionID())
+		{
+			Json::Value jsHoldCards;
+			p->getPlayerCard()->holdCardToJson(jsHoldCards);
+			jsPlayerInfo["holdCards"] = jsHoldCards;
+		}
+	}
 }
 
 uint8_t DDZRoom::getRoomType()
 {
-	return eGame_CYDouDiZhu;
+	if (m_jsOpts["gameType"].isNull())
+	{
+		LOGFMTE("do not have game type key ");
+		return eGame_Max;
+	}
+	return m_jsOpts["gameType"].asUInt();
 }
 
 void DDZRoom::onStartGame()
@@ -55,7 +83,42 @@ void DDZRoom::onStartGame()
 	m_nBankerIdx = 0;
 	m_nBankerTimes = 0;
 	m_nBombCnt = 0;
-	m_vDiPai.clear();
+
+	// distribute card 
+	auto nSeatCnt = getSeatCnt();
+	for (uint8_t nIdx = 0; nIdx < nSeatCnt; ++nIdx)
+	{
+		auto p = (DDZPlayer*)getPlayerByIdx(nIdx);
+		if (p == nullptr || (p->haveState(eRoomPeer_CanAct) == false))
+		{
+			continue;
+		}
+
+		uint8_t nCardCnt = 17;
+		while (nCardCnt--)
+		{
+			p->getPlayerCard()->addHoldCard(getPoker()->distributeOneCard());
+		}
+	}
+
+	// send start game msg
+	Json::Value jsMsg;
+	for (uint8_t nIdx = 0; nIdx < nSeatCnt; ++nIdx)
+	{
+		auto p = (DDZPlayer*)getPlayerByIdx(nIdx);
+		if (p == nullptr || (p->haveState(eRoomPeer_CanAct) == false))
+		{
+			continue;
+		}
+
+		Json::Value jsVHoldCard;
+		if (p->haveState(eRoomPeer_CanAct))
+		{
+			p->getPlayerCard()->holdCardToJson(jsVHoldCard);
+		}
+		jsMsg["vSelfCard"] = jsVHoldCard;
+		sendMsgToPlayer(jsMsg, MSG_ROOM_DDZ_START_GAME, p->getSessionID());
+	}
 }
 
 void DDZRoom::onGameEnd()

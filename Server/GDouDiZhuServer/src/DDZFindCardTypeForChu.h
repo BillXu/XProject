@@ -92,8 +92,26 @@ public:
 		}
 		
 		// do erase 
-		vHoldCards.erase(vPickedOut.begin(),vPickedOut.end());
+		vectorErase(vHoldCards, vPickedOut);
 		return vPickedOut.empty() == false;
+	}
+
+	template < class T>
+	static bool vectorErase(std::vector<T>& vec, std::vector<T>& vecErase)
+	{
+		for (auto& ref : vecErase)
+		{
+			auto iter = std::find(vec.begin(), vec.end(), ref);
+			if (iter != vec.end())
+			{
+				vec.erase(iter);
+			}
+			else
+			{
+				LOGFMTE("why org do not have elememt");
+			}
+		}
+		return true;
 	}
 };
 
@@ -421,7 +439,7 @@ public:
 		}
 
 		// erase vfinded from hold 
-		vHoldCards.erase(vFinded3Seq.begin(), vFinded3Seq.end());
+		vectorErase(vHoldCards, vFinded3Seq);
 		vResultCards = vFinded3Seq;
 		bool isFollowPair = vCmpCards.size() == nShunCnt * 3 + nShunCnt * 2;
 		if ( isFollowPair )
@@ -438,7 +456,7 @@ public:
 					return false;
 				}
 				vResultCards.insert(vResultCards.end(), vFindPair.begin(), vFindPair.end());
-				vHoldCards.erase(vFindPair.begin(),vFindPair.end());
+				vectorErase(vHoldCards,vFindPair);
 			}
 			return true;
 		}
@@ -456,7 +474,7 @@ public:
 				return false;
 			}
 			vResultCards.insert(vResultCards.end(), vFindSingle.begin(), vFindSingle.end());
-			vHoldCards.erase(vFindSingle.begin(), vFindSingle.end());
+			vectorErase(vHoldCards, vFindSingle);
 		}
 		return true;
 	}
@@ -501,7 +519,7 @@ public:
 		}
 
 		// erase vFinded4 
-		vHoldCards.erase(vFinded4.begin(), vFinded4.end());
+		vectorErase(vHoldCards, vFinded4);
 		vResultCards = vFinded4;
 		
 		// find follow 
@@ -517,7 +535,7 @@ public:
 				return false;
 			}
 			vResultCards.insert(vResultCards.end(), vFindPair.begin(), vFindPair.end());
-			vHoldCards.erase(vFindPair.begin(), vFindPair.end());
+			vectorErase(vHoldCards, vFindPair);
 			return true;
 		}
 
@@ -531,7 +549,7 @@ public:
 			return false;
 		}
 		vResultCards.insert(vResultCards.end(), vFindSingle.begin(), vFindSingle.end());
-		vHoldCards.erase(vFindSingle.begin(), vFindSingle.end());
+		vectorErase(vHoldCards, vFindSingle);
 		return true;
 	}
 };
@@ -642,7 +660,7 @@ public:
 		// pick out rokect ,
 		std::vector<uint8_t> vBom = { DDZ_MAKE_CARD(ePoker_Club,0),DDZ_MAKE_CARD(ePoker_Club,0) };
 		m_vFindTypes[DDZ_Rokect]->findCheckType(vHoldCards, vBom, vRocket);
-		vHoldCards.erase(vRocket.begin(),vRocket.end());
+		IDDZFindCardType::vectorErase(vHoldCards, vRocket);
 		// pick out 4 ,
 		IDDZFindCardType::pickOutGroupCardAndErase(vHoldCards, 0, 4, v4Cards);
 		// pick out 3 ,

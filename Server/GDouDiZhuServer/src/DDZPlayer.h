@@ -11,6 +11,8 @@ public:
 	void doMingPai();
 	bool isTuoGuan();
 	void setTuoGuanFlag( uint8_t isTuoGuan );
+	void doChaoZhuang();
+	bool isChaoZhuang();
 protected:
 	DDZPlayerCard m_tPeerCard;
 };
