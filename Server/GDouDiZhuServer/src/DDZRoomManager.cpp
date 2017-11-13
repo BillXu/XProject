@@ -2,7 +2,7 @@
 #include "DDZPrivateRoom.h"
 IGameRoom* DDZRoomManager::createRoom(uint8_t nGameType)
 {
-	if ( eGame_CYDouDiZhu == nGameType )
+	if ( eGame_CYDouDiZhu == nGameType || eGame_JJDouDiZhu == nGameType )
 	{
 		return new DDZPrivateRoom();
 	}

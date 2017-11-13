@@ -48,15 +48,17 @@ void DDZRoom::packRoomInfo(Json::Value& jsRoomInfo)
 		jsRoomInfo["diPai"] = jsDiPai;
 	}
 	jsRoomInfo["dzIdx"] = getBankerIdx();
+	jsRoomInfo["bombCnt"] = getBombCount();
+	jsRoomInfo["bottom"] = getBankTimes();
 }
 
 void DDZRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID)
 {
 	GameRoom::visitPlayerInfo(pPlayer,jsPlayerInfo,nVisitorSessionID);
 	bool isStateShowCards = eRoomState_DDZ_Chu == getCurState()->getStateID() || eRoomState_JJ_DDZ_Ti_La_Chuai == getCurState()->getStateID() || eRoomState_RobotBanker == getCurState()->getStateID();
+	auto p = (DDZPlayer*)pPlayer;
 	if ( isStateShowCards )
 	{
-		auto p = (DDZPlayer*)pPlayer;
 		jsPlayerInfo["holdCardCnt"] = p->getPlayerCard()->getHoldCardCount();
 		if ( nVisitorSessionID == pPlayer->getSessionID())
 		{
@@ -64,6 +66,11 @@ void DDZRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, u
 			p->getPlayerCard()->holdCardToJson(jsHoldCards);
 			jsPlayerInfo["holdCards"] = jsHoldCards;
 		}
+	}
+
+	if (p->isChaoZhuang())
+	{
+		jsPlayerInfo["nJiaBei"] = 1;
 	}
 }
 

@@ -96,7 +96,7 @@ protected:
 		// do caculate 
 		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
 		{
-			auto pPlayer = getRoom()->getPlayerByIdx(nIdx);
+			auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
 			if (pPlayer == pBanker)
 			{
 				continue;
@@ -108,7 +108,7 @@ protected:
 				continue;
 			}
 
-			int32_t nBankerOffsetThisPlayer = nOffset * (isBankerWin ? 1 : -1);
+			int32_t nBankerOffsetThisPlayer = nOffset * (isBankerWin ? 1 : -1) * ( pBanker->isChaoZhuang() ? 2 : 1 ) * (pPlayer->isChaoZhuang() ? 2 : 1);
 			pBanker->addSingleOffset(nBankerOffsetThisPlayer);
 			pPlayer->addSingleOffset(nBankerOffsetThisPlayer * -1 );
 		}
