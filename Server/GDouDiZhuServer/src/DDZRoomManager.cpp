@@ -12,6 +12,10 @@ IGameRoom* DDZRoomManager::createRoom(uint8_t nGameType)
 
 uint8_t DDZRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType )
 {
+#ifdef _DEBUG
+	return 0;
+#endif // _DEBUG
+
 	if (isCreateRoomFree())
 	{
 		return 0;

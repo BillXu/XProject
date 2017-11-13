@@ -251,7 +251,7 @@ enum eMsgType
 	MSG_DDZ_ROOM_CHU,
 	// svr: { cards : [ 23,22,23], type : 23, idx : 2 }
 	MSG_DDZ_ROOM_RESULT,
-	// svr : { bombCnt : 2 , isChunTian : 0 , isMingPai : 1 , bottom : 2 , players : [ { idx : 2 , offset : -2}, ..... ]  } 
+	// svr : { bombCnt : 2 , isChunTian : 0 , isMingPai : 1 , bottom : 2 , players : [ { idx : 2 , offset : -2,cards : [23,23,2] }, ..... ]  } 
 	
 	MSG_DDZ_PLAYER_UPDATE_TUO_GUAN, 
 	// client : { isTuoGuan : 0  }

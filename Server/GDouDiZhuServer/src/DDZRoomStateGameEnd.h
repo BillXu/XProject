@@ -44,7 +44,7 @@ protected:
 			}
 		}
 
-		if (((uint8_t)-1) == (uint8_t)-1)
+		if (((uint8_t)-1) == nWinerIdx )
 		{
 			LOGFMTE( "why no player is null ? room id = %u",getRoom()->getRoomID() );
 			return;
@@ -123,7 +123,7 @@ protected:
 		Json::Value jsPlayersOffset;
 		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
 		{
-			auto p = getRoom()->getPlayerByIdx(nIdx);
+			auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
 			if (nullptr == p)
 			{
 				continue;
@@ -132,6 +132,14 @@ protected:
 			Json::Value jsPlayer;
 			jsPlayer["idx"] = nIdx;
 			jsPlayer["offset"] = p->getSingleOffset();
+
+			Json::Value jsCards;
+			p->getPlayerCard()->holdCardToJson(jsCards);
+			if (jsCards.size() != 0)
+			{
+				jsPlayer["cards"] = jsCards;
+			}
+
 			jsPlayersOffset[jsPlayersOffset.size()] = jsPlayer;
 		}
 		jsMsg["players"] = jsPlayersOffset;

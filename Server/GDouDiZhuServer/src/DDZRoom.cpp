@@ -47,6 +47,7 @@ void DDZRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	{
 		jsRoomInfo["diPai"] = jsDiPai;
 	}
+	jsRoomInfo["dzIdx"] = getBankerIdx();
 }
 
 void DDZRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID)
