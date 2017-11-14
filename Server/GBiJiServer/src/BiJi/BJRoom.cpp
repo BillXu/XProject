@@ -309,7 +309,7 @@ bool BJRoom::isAllPlayerMakedGroupCard()
 			continue;
 		}
 
-		if (false == pPlayer->haveState(eRoomPeer_DoMakedCardGroup))
+		if (false == pPlayer->haveState(eRoomPeer_DoMakedCardGroup) && false == pPlayer->haveState( eRoomPeer_GiveUp) )
 		{
 			return false;
 		}

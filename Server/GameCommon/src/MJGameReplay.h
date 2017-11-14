@@ -79,6 +79,9 @@ public:
 	}
 	bool doSaveReplayToDB( CAsyncRequestQuene* pSyncQuene )
 	{
+#ifdef _DEBUG
+		return true;
+#endif // _DEBUG
 		Json::Value jsReplay;
 		toJson(jsReplay);
 		if ( jsReplay.isNull() )

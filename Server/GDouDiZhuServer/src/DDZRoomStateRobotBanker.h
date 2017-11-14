@@ -16,6 +16,7 @@ public:
 
 		auto pRoom = (DDZRoom*)getRoom();
 		m_nCurWaitPlayerIdx = pRoom->getFirstRobotBankerIdx();
+		m_nBankerCandiate = m_nCurWaitPlayerIdx;
 		// send msg tell room player ;
 		setStateDuringTime(eTime_WaitRobotBanker);
 
@@ -77,6 +78,7 @@ public:
 		if (nRobotBankerTimes != 0)
 		{
 			m_nCurMaxRobotTimes = nRobotBankerTimes;
+			m_nBankerCandiate = pPlayer->getIdx();
 		}
 		m_vMapPlayerIdx_RobotTimes[pPlayer->getIdx()] = nRobotBankerTimes;
 		if ( 3 == nRobotBankerTimes || m_vMapPlayerIdx_RobotTimes.size() == getRoom()->getSeatCnt() )
@@ -152,10 +154,10 @@ protected:
 			}
 
 			m_nCurMaxRobotTimes = 1;
-			m_nCurWaitPlayerIdx = pRoom->getFirstRobotBankerIdx();
+			m_nBankerCandiate = pRoom->getFirstRobotBankerIdx();
 		}
 
-		auto pBanker = (DDZPlayer*)pRoom->getPlayerByIdx(m_nCurWaitPlayerIdx);
+		auto pBanker = (DDZPlayer*)pRoom->getPlayerByIdx(m_nBankerCandiate);
 		if ( pBanker == nullptr)
 		{
 			LOGFMTE( "banker is null , why ? room id = %u",pRoom->getRoomID() );
@@ -226,5 +228,6 @@ protected:
 protected:
 	std::map<uint8_t, uint8_t> m_vMapPlayerIdx_RobotTimes;
 	uint8_t m_nCurWaitPlayerIdx;
+	uint8_t m_nBankerCandiate;
 	uint8_t m_nCurMaxRobotTimes;
 };

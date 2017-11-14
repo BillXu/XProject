@@ -292,6 +292,9 @@ void CTaskPoolModule::sendVerifyResult(std::shared_ptr<stVerifyRequest> & pResul
 			pResult->nPrice /= 100; // convert to yuan ;
 		}
 
+#ifdef _DEBUG
+		return;
+#endif // _DEBUG
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
 		sprintf_s(pBuffer, sizeof(pBuffer),"insert into wxrecharge ( userUID,fee,time,tradeOrder, shopItemID ) values ('%u','%u',now(),'%s',%u );", pResult->nTargetID, pResult->nPrice, pResult->pBufferVerifyID,pResult->nShopItemID  );

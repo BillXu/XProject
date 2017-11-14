@@ -355,6 +355,10 @@ bool CPlayer::canRemovePlayer()
 
 void CPlayer::saveDiamondRecorder( uint32_t nUserUID, uint8_t nReason, int32_t nOffset, uint32_t nFinal, Json::Value& jsDetail)
 {
+#ifdef _DEBUG
+	return;
+#endif // _DEBUG
+
 	// do save sql  room recorder 
 	std::string strDetail = "";
 	if (jsDetail.isNull() == false)

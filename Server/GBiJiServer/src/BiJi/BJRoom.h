@@ -25,9 +25,11 @@ public:
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 protected:
-	uint8_t getRoomRate() { return 1; }
-	bool isEnableSanQing() { return true; }
-	bool isEnableShunQingDaTou() { return false; }
+	uint8_t getRoomRate() { return m_jsOpts["times"].asUInt(); }
+	bool isEnableSanQing() { return false; }
+	bool isEnableShunQingDaTou() { return m_jsOpts["isSQDaTou"].asUInt() == 1; }
+public:
+	bool isEnableGiveUp() { return m_jsOpts["isGiveUp"].asUInt() == 1; }
 private:
 	CBJPoker m_tPoker;
 };

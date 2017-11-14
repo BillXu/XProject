@@ -36,3 +36,13 @@ void DDZPlayer::setTuoGuanFlag(uint8_t isTuoGuan)
 		clearState(eRoomPeer_SysAutoAct);
 	}
 }
+
+void DDZPlayer::doChaoZhuang()
+{
+	addState(eRoomPeer_ChaoZhuang);
+}
+
+bool DDZPlayer::isChaoZhuang()
+{
+	return haveState(eRoomPeer_ChaoZhuang);
+}

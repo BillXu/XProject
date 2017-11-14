@@ -30,6 +30,19 @@ public:
 			return true;
 		}
 
+		if ( pRoom->isEnableGiveUp() && jsmsg["vCards"].isNull() ) // do give up 
+		{
+			js["ret"] = 0;
+			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
+			pPlayer->setState(eRoomPeer_GiveUp);
+
+			if (pRoom->isAllPlayerMakedGroupCard())
+			{
+				setStateDuringTime(0);  // all player finished cacualte Niu , process as wait time out ;
+			}
+			return true;
+		}
+
 		auto& jsCards = jsmsg["vCards"];
 		if ( jsCards.size() != 9 )
 		{
