@@ -1,5 +1,6 @@
 #include "BJPlayer.h"
 #include "log4z.h"
+#include "BJPlayerRecorder.h"
 void BJPlayer::onGameWillStart()
 {
 	IGamePlayer::onGameWillStart();
@@ -87,4 +88,20 @@ int32_t BJPlayer::getPartLose()
 int32_t BJPlayer::getPartXiPai()
 {
 	return m_nPartXiQian;
+}
+
+bool BJPlayer::recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrder)
+{
+	IGamePlayer::recorderVisitor(ptrPlayerReocrder);
+	auto pRecorder = (BJPlayerRecorder*)ptrPlayerReocrder.get();
+
+	std::vector<uint8_t> vHold,vTemp;
+	for (uint8_t nIdx = 0; nIdx < 3; ++nIdx)
+	{
+		uint8_t nType = 0;
+		getPlayerCard()->getGroupInfo(nIdx,nType,vTemp);
+		vHold.insert(vHold.end(),vTemp.begin(),vTemp.end() );
+	}
+	pRecorder->setHoldCards(vHold);
+	return true;
 }

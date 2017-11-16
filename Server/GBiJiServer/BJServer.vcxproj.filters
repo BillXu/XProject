@@ -87,5 +87,8 @@
     <ClInclude Include="src\BJRoomManager.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\BJPlayerRecorder.h">
+      <Filter>src\BiJi</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -68,6 +68,10 @@ protected:
 	bool getNormalCanHuCards( std::set<uint8_t>& vCanHus );  // must not be override , can not used , when have bai da 
 	bool isAllShunziOrKeZi(VEC_CARD vCards, uint8_t& nBaiDaCnt );
 	virtual bool isCardTypeMustKeZi(uint8_t nCardType);
+	uint8_t getHoldCardQueCnt( uint8_t nBaiDaCnt ); 
+	uint8_t getBestNotShun( VEC_CARD vCards , VEC_CARD& vNotShunCards, bool bMustKeZiShun, uint8_t nMaxCanQueCnt );
+private:
+	uint8_t tryToFindMiniQueCnt(VEC_CARD vWaitCheck, bool isMustKeZi, VEC_CARD& vNotShun, uint8_t& nQueCnt, uint8_t nMaxQueCnt);
 public:
 	void debugCardInfo();
 protected:

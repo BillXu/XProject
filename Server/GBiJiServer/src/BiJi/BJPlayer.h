@@ -18,6 +18,7 @@ public:
 	int32_t getPartWin();
 	int32_t getPartLose();
 	int32_t getPartXiPai();
+	bool recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrder)override;
 protected:
 	BJPlayerCard m_tPeerCard;
 	int32_t m_vGuoOffset[3];

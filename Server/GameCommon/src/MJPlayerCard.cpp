@@ -1021,3 +1021,351 @@ void MJPlayerCard::debugCardInfo()
 	}
 	LOGFMTD("card info end \n\n");
 }
+
+uint8_t MJPlayerCard::getHoldCardQueCnt( uint8_t nBaiDaCnt )
+{
+	VEC_CARD vCardNotShun[eCT_Max];
+	uint8_t nMaxCanQue = nBaiDaCnt + 1;  // consider maybe jiang  or dan diao ; 
+	uint8_t nTotalQueCnt = 0;
+	for (uint8_t nCardType = eCT_None; nCardType < eCT_Max; ++nCardType)
+	{
+		if (m_vCards[nCardType].empty())
+		{
+			continue;
+		}
+
+		auto nQue = getBestNotShun(m_vCards[nCardType], vCardNotShun[nCardType], isCardTypeMustKeZi(nCardType), nMaxCanQue);
+		if ( nQue > nMaxCanQue )
+		{
+			return 100;
+		}
+		nMaxCanQue -= nQue;
+		nTotalQueCnt += nQue;
+	}
+
+	// consider find dan diao ;
+	bool isFindDanDiao = false;
+	bool isFindJiang = false;
+	// find dan diao 
+	for (auto& vCards : vCardNotShun)
+	{
+		bool isMustKeZi = vCards.empty() ? false : isCardTypeMustKeZi(card_Type(vCards[0]));
+		for (uint8_t nIdx = 0; nIdx < vCards.size(); )
+		{
+			if ((nIdx + 1) < vCards.size())
+			{
+				if (vCards[nIdx] == vCards[nIdx + 1])
+				{
+					nIdx += 2;
+					isFindJiang = true;
+					continue;
+				}
+
+				if (card_Value(vCards[nIdx + 1]) - card_Value(vCards[nIdx + 1]) <= 2 && isMustKeZi == false)
+				{
+					nIdx += 2;
+					continue;
+				}
+			}
+
+			isFindDanDiao = true;
+			break;
+		}
+
+		if (isFindDanDiao)
+		{
+			break;
+		}
+	}
+
+	if ( isFindDanDiao || isFindJiang )
+	{
+		nTotalQueCnt -= 1;
+	}
+	else
+	{
+		nTotalQueCnt += 2;  // que jiang ;
+	}
+
+	if ( nTotalQueCnt <= nBaiDaCnt )
+	{
+		return 0;
+	}
+
+	return ( nTotalQueCnt - nBaiDaCnt );
+}
+
+uint8_t MJPlayerCard::getBestNotShun(VEC_CARD vCard, VEC_CARD& vNotShunCards, bool bMustKeZiShun, uint8_t nMaxCanQueCnt)
+{
+	uint8_t nBestQue = 100;
+	VEC_CARD vBestNotShunCards;
+	// normal ;
+	VEC_CARD vNotShunCardsTmpNormal;
+	uint8_t nQueCnt = 0;
+	tryToFindMiniQueCnt(vCard, bMustKeZiShun, vNotShunCardsTmpNormal, nQueCnt, nMaxCanQueCnt);
+	if (nQueCnt == 0)
+	{
+		return 0;
+	}
+
+	if (nQueCnt == 100)  // que too many ; need not try ;
+	{
+		return 100;
+	}
+
+	if (nQueCnt < nBestQue)
+	{
+		nBestQue = nQueCnt;
+		vBestNotShunCards = vNotShunCardsTmpNormal;
+	}
+	// pair jiang ;
+	VEC_CARD vMayBeJiang;
+	for (uint8_t nIdx = 0; nIdx + 1 < vCard.size(); )
+	{
+		if (vCard[nIdx] == vCard[nIdx + 1])
+		{
+			if ((vMayBeJiang.empty() || vCard[nIdx] != vMayBeJiang.back()))
+			{
+				vMayBeJiang.push_back(vCard[nIdx]);
+			}
+			nIdx += 2;
+			continue;
+		}
+		++nIdx;
+	}
+
+	VEC_CARD vNotShunBestJiang;
+	uint8_t nBestQueCntJiang = nBestQue;
+	for (auto& ref : vMayBeJiang)
+	{
+		VEC_CARD vCheckCard = vCard;
+		auto iter = std::find(vCheckCard.begin(), vCheckCard.end(), ref);
+		vCheckCard.erase(iter);
+		iter = std::find(vCheckCard.begin(), vCheckCard.end(), ref);
+		vCheckCard.erase(iter);
+
+		VEC_CARD vNotShunTemp;
+		uint8_t nQueCntTemp = 0;
+		tryToFindMiniQueCnt(vCheckCard, bMustKeZiShun, vNotShunTemp, nQueCntTemp, nBestQueCntJiang);
+		if (nQueCntTemp < nBestQueCntJiang)
+		{
+			nBestQueCntJiang = nQueCntTemp;
+			vNotShunBestJiang = vNotShunTemp;
+			vNotShunBestJiang.push_back(ref);
+			vNotShunBestJiang.push_back(ref);
+		}
+	}
+
+	if ((nBestQueCntJiang + 1) <= nBestQue)
+	{
+		nBestQue = nBestQueCntJiang + 1;
+		vBestNotShunCards = vNotShunBestJiang;
+	}
+
+	// dan diao ;
+	VEC_CARD vMayBeDanDiao;
+	for (uint8_t nIdx = 0; nIdx + 1 < vCard.size(); ++nIdx)
+	{
+		if ((vMayBeDanDiao.empty() || vCard[nIdx] != vMayBeDanDiao.back()))
+		{
+			vMayBeDanDiao.push_back(vCard[nIdx]);
+		}
+	}
+
+	VEC_CARD vNotShunBestDanDiao;
+	uint8_t nBestQueCntDanDiao = nBestQue;
+	for (auto& ref : vMayBeDanDiao)
+	{
+		VEC_CARD vCheckCard = vCard;
+		auto iter = std::find(vCheckCard.begin(), vCheckCard.end(), ref);
+		vCheckCard.erase(iter);
+
+		VEC_CARD vNotShunTemp;
+		uint8_t nQueCntTemp = 0;
+		tryToFindMiniQueCnt(vCheckCard, bMustKeZiShun, vNotShunTemp, nQueCntTemp, nBestQueCntDanDiao);
+		if (nQueCntTemp < nBestQueCntDanDiao)
+		{
+			nBestQueCntDanDiao = nQueCntTemp;
+			vNotShunBestDanDiao = vNotShunTemp;
+			vNotShunBestDanDiao.push_back(ref);
+		}
+	}
+
+	if ((nBestQueCntDanDiao + 1) <= nBestQue)
+	{
+		nBestQue = nBestQueCntDanDiao + 1;
+		vBestNotShunCards = vNotShunBestDanDiao;
+	}
+
+	std::sort(vBestNotShunCards.begin(), vBestNotShunCards.end());
+	vNotShunCards = vBestNotShunCards;
+	return nBestQue;
+}
+
+uint8_t MJPlayerCard::tryToFindMiniQueCnt(VEC_CARD vWaitCheck, bool isMustKeZi, VEC_CARD& vNotShun, uint8_t& nQueCnt, uint8_t nMaxQueCnt)
+{
+	if (vWaitCheck.empty())
+	{
+		return nQueCnt;
+	}
+
+	auto pRemoveZero = [](VEC_CARD& vCard)
+	{
+		do
+		{
+			auto iter = std::find(vCard.begin(), vCard.end(), 0);
+			if (iter == vCard.end())
+			{
+				return;
+			}
+			vCard.erase(iter);
+		} while (1);
+	};
+
+	std::vector<uint8_t> vThisBestNotShun;
+	uint8_t nThisBestQue = 100;
+	// as ke zi ;
+	if (vWaitCheck.size() >= 3)
+	{
+		if (vWaitCheck[0] == vWaitCheck[2])
+		{
+			// do check ke  zi ;
+			VEC_CARD vCards = vWaitCheck;
+			vCards[0] = vCards[1] = vCards[2] = 0;
+			pRemoveZero(vCards);
+
+			VEC_CARD vTemp = vNotShun;
+			uint8_t nTempQue = nQueCnt;
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	if (vWaitCheck.size() >= 2)
+	{
+		if (vWaitCheck[0] == vWaitCheck[1] && (nQueCnt + 1) <= nMaxQueCnt)
+		{
+			// do check ke  zi ;
+			uint8_t nTempQue = nQueCnt + 1;
+
+			VEC_CARD vTemp = vNotShun;
+			vTemp.push_back(vWaitCheck[0]);
+			vTemp.push_back(vWaitCheck[1]);
+
+			VEC_CARD vCards = vWaitCheck;
+			vCards[0] = vCards[1] = 0;
+			pRemoveZero(vCards);
+
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	// as shun zi ;
+	if (false == isMustKeZi && vWaitCheck.size() >= 3 && card_Value(vWaitCheck[0]) <= 7)
+	{
+		VEC_CARD vCards = vWaitCheck;
+		auto iter2 = std::find(vCards.begin(), vCards.end(), vCards[0] + 1);
+		auto iter3 = std::find(vCards.begin(), vCards.end(), vCards[0] + 2);
+		if (iter2 != vCards.end() && iter3 != vCards.end())
+		{
+			vCards[0] = 0;
+			*iter2 = 0; *iter3 = 0;
+
+			pRemoveZero(vCards);
+
+			uint8_t nTempQue = nQueCnt;
+			VEC_CARD vTemp = vNotShun;
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	if (false == isMustKeZi && vWaitCheck.size() >= 2 && card_Value(vWaitCheck[0]) <= 8 && (nQueCnt + 1) <= nMaxQueCnt)
+	{
+		VEC_CARD vCards = vWaitCheck;
+		auto iter2 = std::find(vCards.begin(), vCards.end(), vCards[0] + 1);
+		auto iter3 = std::find(vCards.begin(), vCards.end(), vCards[0] + 2);
+		auto& iterNotNull = iter2 != vCards.end() ? iter2 : iter3;
+		if (iterNotNull != vCards.end())
+		{
+			// do check ke  zi ;
+			uint8_t nTempQue = nQueCnt + 1;
+
+			VEC_CARD vTemp = vNotShun;
+			vTemp.push_back(vCards[0]);
+			vTemp.push_back(*iterNotNull);
+
+			vCards[0] = 0;
+			*iterNotNull = 0;
+			pRemoveZero(vCards);
+
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	// as single ;
+	if ((nQueCnt + 2) <= nMaxQueCnt)
+	{
+		VEC_CARD vCards = vWaitCheck;
+
+		uint8_t nTempQue = nQueCnt + 2;
+
+		VEC_CARD vTemp = vNotShun;
+		vTemp.push_back(vCards[0]);
+
+		vCards[0] = 0;
+		pRemoveZero(vCards);
+
+		tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+		if (nTempQue < nThisBestQue)
+		{
+			nThisBestQue = nTempQue;
+			if (0 == nThisBestQue)
+			{
+				return 0;
+			}
+			vThisBestNotShun = vTemp;
+		}
+	}
+
+	nQueCnt = nThisBestQue;
+	if (nQueCnt < 100)
+	{
+		vNotShun = vThisBestNotShun;
+	}
+	return nQueCnt;
+}

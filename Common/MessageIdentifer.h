@@ -77,6 +77,12 @@ enum eMsgType
 	MSG_ROOM_CHAT_MSG, // 房间内有玩家 发送聊天信息；
 	// svr:  { playerIdx : 2 , type : 1 , content : "biao qing or viceID" } 
 
+	MSG_NEW_MAIL,
+	// svr : { mailID : 234 , type : 0 ,state : 0 , detail : { } }
+	// type : eMailType
+	// state : eMailState 枚举值
+	// detail : 不同的邮件类型，内容不一样；
+
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
 	// payType : 0 the room owner pay cards , 1 AA pay card type , 2 big winer pay cards 

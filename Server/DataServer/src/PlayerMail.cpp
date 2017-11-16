@@ -48,6 +48,13 @@ bool CPlayerMailComponent::onRecievedMail( uint32_t nMailID, eMailType emailType
 		pMail->nState = eMailState_SysProcessed;
 		nState = pMail->nState;  // will save to db in mail module::postMail; ;
 	}
+
+	Json::Value jsTellClient;
+	jsTellClient["mailID"] = nMailID;
+	jsTellClient["type"] = emailType;
+	jsTellClient["state"] = nState;
+	jsTellClient["detail"] = jsMailDetail;
+	sendMsg(jsTellClient, MSG_NEW_MAIL);
 	return true;
 }
 

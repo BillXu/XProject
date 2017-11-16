@@ -157,8 +157,8 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		char* pBuffer = (char*)preal ;
 		pBuffer += sizeof(stMsgJsonContent);
 		//#ifdef __DEBUG
-		static char pLog[2048] = { 0 };
-		if ( pRet->nJsLen >= 2048)
+		static char pLog[4048] = { 0 };
+		if ( pRet->nJsLen >= 4048)
 		{
 			LOGFMTE("session id = %u send a invalid len json msg, len = %u",pData->nSessionID,pRet->nJsLen) ;
 			return true;
