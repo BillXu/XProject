@@ -41,6 +41,7 @@ public:
 protected:
 	stDBRequest() { reset(); }
 	friend class DBRWModule;
+	friend class CDBVerfiyTask;
 public:
 	void reset() { nRequestUID = 0; memset(pSqlBuffer, 0, sizeof(pSqlBuffer)); nSqlBufferLen = 0; pUserData = 0; lpfCallBack = nullptr; }
 };

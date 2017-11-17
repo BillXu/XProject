@@ -11,6 +11,7 @@
 void ShopModule::init(IServerApp* svrApp)
 {
 	IGlobalModule::init(svrApp);
+	LoadFile("../configFile/ShopConfig.txt");
 }
 
 bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID )
@@ -117,11 +118,11 @@ bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSend
 				break;
 			}
 
-			if ( strlen(cTranscation) != 20 )
-			{
-				nRet = 3;
-				break;
-			}
+			//if ( strlen(cTranscation) != 20 )
+			//{
+			//	nRet = 3;
+			//	break;
+			//}
 
 			pPlayer = ((DataServerApp*)getSvrApp())->getPlayerMgr()->getPlayerByUserUID(nTargetID);
 			if (pPlayer == nullptr)

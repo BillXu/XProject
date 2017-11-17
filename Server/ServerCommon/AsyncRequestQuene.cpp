@@ -69,7 +69,20 @@ bool CAsyncRequestQuene::onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t
 			auto bRet = tempFunc(pReq, jsResultContent, pReq->jsUserData, pRet->nRet == 2 );
 			if (!bRet)
 			{
-				LOGFMTE("do have a exption for this request type = %u",pReq->nReqType );
+				std::string strResut = "null", strUserData = "null";
+				if (jsResultContent.isNull() == false)
+				{
+					Json::StyledWriter jsW;
+					strResut = jsW.write(jsResultContent);
+				}
+
+				if (pReq->jsUserData.isNull() == false)
+				{
+					Json::StyledWriter jsW;
+					strUserData = jsW.write(pReq->jsUserData);
+				}
+
+				LOGFMTE("do have a exption for this request type = %u, result = %s,userData = %s",pReq->nReqType,strResut.c_str(),strUserData.c_str() );
 				canncelAsyncRequest(pRet->nReqSerailID);
 				return true;
 			}

@@ -39,6 +39,11 @@ void CDBVerfiyTask::setVerifyRequest( VERIFY_REQUEST_ptr ptr )
 	}
 
 	auto pDBRequest = m_pDBTask->getDBRequest();
+	if (!pDBRequest)
+	{
+		std::shared_ptr<stDBRequest> p(new stDBRequest);
+		pDBRequest = p;
+	}
 	pDBRequest->reset();
 	pDBRequest->eType = eRequestType_Add ;
 	pDBRequest->nRequestUID = 10 ;

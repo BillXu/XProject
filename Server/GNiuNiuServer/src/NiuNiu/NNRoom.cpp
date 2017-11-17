@@ -786,7 +786,7 @@ void NNRoom::onTimeOutPlayerAutoBet()
 	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
 	{
 		auto pPlayer = (NNPlayer*)getPlayerByIdx(nIdx);
-		if ( getBankerIdx() == nIdx || nullptr == pPlayer || pPlayer->haveState(eRoomPeer_CanAct) != false)
+		if ( getBankerIdx() == nIdx || nullptr == pPlayer || pPlayer->haveState(eRoomPeer_CanAct) == false)
 		{
 			continue;
 		}

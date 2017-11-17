@@ -25,6 +25,7 @@ public:
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 protected:
+	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint8_t getRoomRate() { return m_jsOpts["times"].asUInt(); }
 	bool isEnableSanQing() { return false; }
 	bool isEnableShunQingDaTou() { return m_jsOpts["isSQDaTou"].asUInt() == 1; }

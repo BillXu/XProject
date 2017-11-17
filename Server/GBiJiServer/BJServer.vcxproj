@@ -100,6 +100,7 @@
     <ClInclude Include="src\BiJi\BJRoomStateStartGame.h" />
     <ClInclude Include="src\BiJi\BJRoomStateWaitPlayerReady.h" />
     <ClInclude Include="src\BiJi\BJXiPaiChecker.h" />
+    <ClInclude Include="src\BJPlayerRecorder.h" />
     <ClInclude Include="src\BJPoker.h" />
     <ClInclude Include="src\IPeerCard.h" />
     <ClInclude Include="src\BJServer.h" />

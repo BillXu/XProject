@@ -9,6 +9,7 @@
 #include "BJRoomStateMakeGroupCard.h"
 #include "BJRoomStateStartGame.h"
 #include "BJRoomStateWaitPlayerReady.h"
+#include "BJPlayerRecorder.h"
 bool BJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	GameRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
@@ -315,6 +316,11 @@ bool BJRoom::isAllPlayerMakedGroupCard()
 		}
 	}
 	return true;
+}
+
+std::shared_ptr<IPlayerRecorder> BJRoom::createPlayerRecorderPtr()
+{
+	return std::make_shared<BJPlayerRecorder>();
 }
 
 uint8_t BJRoom::onPlayerDoMakeCardGroup(uint8_t nIdx, std::vector<uint8_t>& vGroupCards)

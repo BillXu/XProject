@@ -252,6 +252,14 @@ bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 
 	if ( MSG_REMOVE_WHITE_LIST == nmsgType )
 	{
+		if (recvValue["uid"].isNull() || recvValue["uid"].isUInt() == false )
+		{
+			recvValue["ret"] = 3;
+			sendMsg(recvValue, nmsgType);
+			LOGFMTE(" MSG_REMOVE_WHITE_LIST argument error");
+			return true;
+		}
+
 		auto nUID = recvValue["uid"].asUInt();
 		if ( nUID == 0 )
 		{

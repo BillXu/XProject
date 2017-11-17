@@ -12,7 +12,6 @@ void MJPlayerCard::reset()
 	m_vMingCardInfo.clear();
 	m_nNesetFetchedCard = 0 ;
 	m_nJIang = 0;
-	m_nDanDiao = 0;
 	m_vLouPenged.clear();
 	m_nDianPaoIdx = 0;
 }
@@ -24,8 +23,10 @@ void MJPlayerCard::onDoHu(uint16_t nInvokerIdx, uint8_t nHuCard, bool isInvokerH
 	uint8_t nJiang = 0;
 	if (!isHoldCardCanHu(nJiang))
 	{
+		return;
 		LOGFMTE( "you can not hu , why do hu ?" );
 	}
+	m_nJIang = nJiang;
 	return;
 }
 
@@ -688,9 +689,14 @@ bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 	// check all hold card is hun , ignore jiang ;
 	auto pCheckHoldCardAllShun = [this](uint8_t nBaiDaCnt)
 	{
+		VEC_CARD vNotShun;
+		uint8_t nAlreadyQueCnt = 0;
 		for (uint8_t nType = eCT_None; nType < eCT_Max; ++nType)
 		{
-			if (!isAllShunziOrKeZi(m_vCards[nType], nBaiDaCnt))
+			uint8_t nQueCnt = 0;
+			tryToFindMiniQueCnt(m_vCards[nType], isCardTypeMustKeZi(nType), vNotShun, nQueCnt, nBaiDaCnt - nAlreadyQueCnt );
+			nAlreadyQueCnt += nQueCnt;
+			if ( nAlreadyQueCnt > nBaiDaCnt)
 			{
 				return false;
 			}
@@ -768,171 +774,6 @@ bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 	return false;
 }
 
-bool MJPlayerCard::isAllShunziOrKeZi( VEC_CARD vCards, uint8_t& nBaiDaCnt )
-{
-	if ( vCards.empty() )
-	{
-		return true;
-	}
-
-	if (  ( vCards.size() % 3 != 0 ) && ( 3 - vCards.size() % 3  > nBaiDaCnt ) )
-	{
-		return false;
-	}
-
-	auto isMustKeZi = isCardTypeMustKeZi( card_Type(vCards.front()) );
-	for ( uint8_t nIdx = 0; nIdx < vCards.size(); )
-	{
-		if (vCards[nIdx] == 0)
-		{
-			++nIdx;
-			continue;
-		}
-
-		if ( vCards[nIdx] == vCards[nIdx + 2] )
-		{
-			vCards[nIdx] = vCards[nIdx+1] = vCards[nIdx+2] = 0;
-			nIdx += 3;
-			continue;
-		}
-
-		if ( isMustKeZi )
-		{
-			if ( vCards[nIdx] == vCards[nIdx + 1] && nBaiDaCnt >= 1)
-			{
-				vCards[nIdx] = vCards[nIdx + 1] = 0;
-				nBaiDaCnt -= 1;
-				nIdx += 2;
-				continue;
-			}
-
-			if ( nBaiDaCnt >= 2 )
-			{
-				vCards[nIdx] = 0;
-				nBaiDaCnt -= 2;
-				++nIdx;
-				continue;
-			}
-			return false;
-		}
-
-		auto iterSecond = std::find( vCards.begin(),vCards.end(), vCards[nIdx] + 1 );
-		auto iterThired = std::find(vCards.begin(), vCards.end(), vCards[nIdx] + 2);
-		if ( iterSecond != vCards.end() && iterThired != vCards.end() )
-		{
-			vCards[nIdx] = 0;
-			(*iterSecond) = 0;
-			(*iterThired) = 0;
-			++nIdx;
-			continue;
-		}
-		else if ( iterSecond == vCards.end() && iterThired == vCards.end())
-		{
-			if ( nBaiDaCnt >= 2 )
-			{
-				vCards[nIdx] = 0;
-				nBaiDaCnt -= 2;
-				++nIdx;
-				continue;
-			}
-		}
-		else if ( iterSecond == vCards.end() || iterThired == vCards.end())
-		{
-			if ( nBaiDaCnt >= 1 )
-			{
-				vCards[nIdx] = 0;
-				nBaiDaCnt -= 1;
-				auto iterNotNull = iterSecond != vCards.end() ? iterSecond : iterThired;
-				(*iterNotNull) = 0;
-				++nIdx;
-				continue;
-			}
-		}
-		return false;
-	}
-
-	return true;
-}
-
-bool MJPlayerCard::getNormalCanHuCards(std::set<uint8_t>& vCanHus)
-{
-	uint8_t nBaiDaCnt = 0;
-	std::vector<uint8_t> vNotShunKeZiType;
-	for (uint16_t nType = eCT_None; nType < eCT_Max; ++nType)
-	{
-		VEC_CARD& vCards = m_vCards[nType];
-		if (vCards.size() % 3 != 0)
-		{
-			vNotShunKeZiType.push_back((uint8_t)nType);
-			continue;
-		}
-
-		if (vCards.size() % 3 == 0 && (false == isAllShunziOrKeZi(vCards, nBaiDaCnt)))
-		{
-			return false;
-		}
-	}
-
-	if (vNotShunKeZiType.size() > 2)
-	{
-		return false;
-	}
-
-	if (vNotShunKeZiType.size() == 1)
-	{
-		auto nType = vNotShunKeZiType.front();
-		auto vCards = m_vCards[nType];
-		if (vCards.size() % 3 != 1)
-		{
-			LOGFMTE("you are xiang gang le ? ");
-			debugCardInfo();
-			return false;
-		}
-	}
-
-	if (vNotShunKeZiType.size() == 2)
-	{
-		auto nType1 = vNotShunKeZiType[0];
-		auto nType2 = vNotShunKeZiType[1];
-		if (m_vCards[nType1].size() % 3 != 2 || 2 != m_vCards[nType2].size() % 3)
-		{
-			LOGFMTD("must two type should be 2");
-			return false;
-		}
-	}
-
-	// check can hu card ;
-	for (auto &nTingType : vNotShunKeZiType)
-	{
-		auto nType = card_Type(nTingType);
-		auto nCnt = 9;
-		if (eCT_Jian == nType)
-		{
-			nCnt = 3;
-		}
-		else if (eCT_Feng == nType)
-		{
-			nCnt = 4;
-		}
-
-		uint8_t nCard = make_Card_Num(nType, 1);
-		uint8_t nJiang = 0;
-		while (nCnt--)
-		{
-			addHoldCard(nCard);
-			auto isHu = isHoldCardCanHuNormal(nJiang,nBaiDaCnt);
-			removeHoldCard(nCard);
-			if (isHu)
-			{
-				vCanHus.insert(nCard);
-			}
-			++nCard;
-		}
-	}
-
-	return vCanHus.empty() == false;
-}
-
 bool MJPlayerCard::canHoldCard7PairHu( uint8_t& nJiang, uint8_t nBaiDaCnt )
 {
 	VEC_CARD vHold;
@@ -966,42 +807,6 @@ void MJPlayerCard::addLouPengedCard(uint8_t nLouPengedCard)
 	m_vLouPenged.push_back(nLouPengedCard);
 }
 
-bool MJPlayerCard::getCanHuCards(std::set<uint8_t>& vCanHus)
-{
-	if ( this->isEanble7Pair() ) // check 7 pair can hu 
-	{
-		VEC_CARD vCards;
-		getHoldCard(vCards);
-		if ( vCards.size() != 14 )
-		{
-			return getNormalCanHuCards(vCanHus);
-		}
-
-		uint8_t n7Ting = 0;
-		std::sort(vCards.begin(),vCards.end());
-		for (uint8_t nIdx = 0; ( nIdx + 1u ) < vCards.size(); )
-		{
-			if (vCards[nIdx] != vCards[nIdx + 1])
-			{
-				if ( n7Ting == 0 )
-				{
-					n7Ting = vCards[nIdx];
-					++nIdx; 
-					continue;
-				}
-				return getNormalCanHuCards(vCanHus);
-			}
-			nIdx += 2;
-		}
-		
-		if (n7Ting)
-		{
-			vCanHus.insert(n7Ting);
-		}
-	}
-	return getNormalCanHuCards(vCanHus);
-}
-
 uint8_t MJPlayerCard::getJiang()
 {
 	uint8_t nJiang = 0;
@@ -1020,4 +825,172 @@ void MJPlayerCard::debugCardInfo()
 		LOGFMTD("cardNumber : %u\n", nCard);
 	}
 	LOGFMTD("card info end \n\n");
+}
+
+uint8_t MJPlayerCard::tryToFindMiniQueCnt(VEC_CARD vWaitCheck, bool isMustKeZi, VEC_CARD& vNotShun, uint8_t& nQueCnt, uint8_t nMaxQueCnt)
+{
+	if (vWaitCheck.empty())
+	{
+		return nQueCnt;
+	}
+
+	auto pRemoveZero = [](VEC_CARD& vCard)
+	{
+		do
+		{
+			auto iter = std::find(vCard.begin(), vCard.end(), 0);
+			if (iter == vCard.end())
+			{
+				return;
+			}
+			vCard.erase(iter);
+		} while (1);
+	};
+
+	std::vector<uint8_t> vThisBestNotShun;
+	uint8_t nThisBestQue = 100;
+	// as ke zi ;
+	if (vWaitCheck.size() >= 3)
+	{
+		if (vWaitCheck[0] == vWaitCheck[2])
+		{
+			// do check ke  zi ;
+			VEC_CARD vCards = vWaitCheck;
+			vCards[0] = vCards[1] = vCards[2] = 0;
+			pRemoveZero(vCards);
+
+			VEC_CARD vTemp = vNotShun;
+			uint8_t nTempQue = nQueCnt;
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	if (vWaitCheck.size() >= 2)
+	{
+		if (vWaitCheck[0] == vWaitCheck[1] && (nQueCnt + 1) <= nMaxQueCnt)
+		{
+			// do check ke  zi ;
+			uint8_t nTempQue = nQueCnt + 1;
+
+			VEC_CARD vTemp = vNotShun;
+			vTemp.push_back(vWaitCheck[0]);
+			vTemp.push_back(vWaitCheck[1]);
+
+			VEC_CARD vCards = vWaitCheck;
+			vCards[0] = vCards[1] = 0;
+			pRemoveZero(vCards);
+
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	// as shun zi ;
+	if (false == isMustKeZi && vWaitCheck.size() >= 3 && card_Value(vWaitCheck[0]) <= 7)
+	{
+		VEC_CARD vCards = vWaitCheck;
+		auto iter2 = std::find(vCards.begin(), vCards.end(), vCards[0] + 1);
+		auto iter3 = std::find(vCards.begin(), vCards.end(), vCards[0] + 2);
+		if (iter2 != vCards.end() && iter3 != vCards.end())
+		{
+			vCards[0] = 0;
+			*iter2 = 0; *iter3 = 0;
+
+			pRemoveZero(vCards);
+
+			uint8_t nTempQue = nQueCnt;
+			VEC_CARD vTemp = vNotShun;
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	if (false == isMustKeZi && vWaitCheck.size() >= 2 && card_Value(vWaitCheck[0]) <= 8 && (nQueCnt + 1) <= nMaxQueCnt)
+	{
+		VEC_CARD vCards = vWaitCheck;
+		auto iter2 = std::find(vCards.begin(), vCards.end(), vCards[0] + 1);
+		auto iter3 = std::find(vCards.begin(), vCards.end(), vCards[0] + 2);
+		auto& iterNotNull = iter2 != vCards.end() ? iter2 : iter3;
+		if (iterNotNull != vCards.end())
+		{
+			// do check ke  zi ;
+			uint8_t nTempQue = nQueCnt + 1;
+
+			VEC_CARD vTemp = vNotShun;
+			vTemp.push_back(vCards[0]);
+			vTemp.push_back(*iterNotNull);
+
+			vCards[0] = 0;
+			*iterNotNull = 0;
+			pRemoveZero(vCards);
+
+			tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+			if (nTempQue < nThisBestQue)
+			{
+				nThisBestQue = nTempQue;
+				if (0 == nThisBestQue)
+				{
+					return 0;
+				}
+				vThisBestNotShun = vTemp;
+			}
+		}
+	}
+
+	// as single ;
+	if ((nQueCnt + 2) <= nMaxQueCnt)
+	{
+		VEC_CARD vCards = vWaitCheck;
+
+		uint8_t nTempQue = nQueCnt + 2;
+
+		VEC_CARD vTemp = vNotShun;
+		vTemp.push_back(vCards[0]);
+
+		vCards[0] = 0;
+		pRemoveZero(vCards);
+
+		tryToFindMiniQueCnt(vCards, isMustKeZi, vTemp, nTempQue, nMaxQueCnt);
+		if (nTempQue < nThisBestQue)
+		{
+			nThisBestQue = nTempQue;
+			if (0 == nThisBestQue)
+			{
+				return 0;
+			}
+			vThisBestNotShun = vTemp;
+		}
+	}
+
+	nQueCnt = nThisBestQue;
+	if (nQueCnt < 100)
+	{
+		vNotShun = vThisBestNotShun;
+	}
+	return nQueCnt;
 }

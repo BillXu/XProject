@@ -85,7 +85,11 @@ void CSession::doWriteBuffer()
 	{
 		if (!error)
 		{
-			pSelf->m_vWillSendBuffers.pop_front();
+			if (pSelf->m_vWillSendBuffers.empty() == false)
+			{
+				pSelf->m_vWillSendBuffers.pop_front();
+			}
+
 			// go on 
 			if (pSelf->m_vWillSendBuffers.empty() == false)
 			{
