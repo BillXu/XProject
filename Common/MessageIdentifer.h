@@ -94,7 +94,7 @@ enum eMsgType
 
 	MSG_ENTER_ROOM,
 	// client : { roomID : 23, uid : 23 }
-	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error, 7 arg not allow enter ;
+	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error, 7 arg not allow enter , 8 dianmond not enough;
 	MSG_ROOM_CHANGE_STATE,
 	// svr : { lastState : 23 , newState : 23 }
 	MSG_ROOM_INFO, 
