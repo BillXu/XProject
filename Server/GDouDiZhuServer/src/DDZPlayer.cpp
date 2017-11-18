@@ -5,6 +5,12 @@ void DDZPlayer::onGameWillStart()
 	getPlayerCard()->reset();
 }
 
+void DDZPlayer::onGameDidEnd()
+{
+	IGamePlayer::onGameDidEnd();
+	m_isChaoZhuang = false;
+}
+
 DDZPlayerCard* DDZPlayer::getPlayerCard()
 {
 	return &m_tPeerCard;
@@ -39,10 +45,20 @@ void DDZPlayer::setTuoGuanFlag(uint8_t isTuoGuan)
 
 void DDZPlayer::doChaoZhuang()
 {
-	addState(eRoomPeer_ChaoZhuang);
+	m_isChaoZhuang = true;
 }
 
 bool DDZPlayer::isChaoZhuang()
 {
-	return haveState(eRoomPeer_ChaoZhuang);
+	return m_isChaoZhuang;
+}
+
+void DDZPlayer::doTiLaChuai()  
+{
+	addState(eRoomPeer_TiLaChuai);
+}
+
+bool DDZPlayer::isTiLaChuai()
+{
+	return haveState(eRoomPeer_TiLaChuai);
 }

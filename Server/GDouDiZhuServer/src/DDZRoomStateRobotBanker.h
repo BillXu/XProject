@@ -192,7 +192,15 @@ protected:
 		jsMsg["cards"] = jsCards;
 		getRoom()->sendRoomMsg(jsMsg, MSG_DDZ_ROOM_PRODUCED_DZ);
 		// go to chu pai state ;
-		getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu);
+		Json::Value jsRobotBankerInfo;
+		for ( auto& ref : m_vMapPlayerIdx_RobotTimes )
+		{
+			Json::Value jsItem;
+			jsItem["idx"] = ref.first;
+			jsItem["times"] = ref.second;
+			jsRobotBankerInfo[jsRobotBankerInfo.size()] = jsItem;
+		}
+		getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu, &jsRobotBankerInfo);
 	}
 
 	bool isPlayerMustRobBanker( uint8_t nIdx )

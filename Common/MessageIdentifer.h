@@ -267,7 +267,7 @@ enum eMsgType
 	// svr : { idx : 0 , isTuoGuan : 0 } 
 	
 	MSG_DDZ_WAIT_PLAYER_CHAO_ZHUANG,
-	// svr: { watAct : [ 2,3,]  }
+	// svr: null
 	
 	MSG_DDZ_PLAYER_CHAO_ZHUANG,
 	// client : { isChao : 0 }
@@ -278,6 +278,16 @@ enum eMsgType
 	
 	MSG_ROOM_DDZ_START_GAME,
 	// svr : { vSelfCard : [23,23,23,2,23] }
+
+	MSG_DDZ_WAIT_PLAYER_TI_LA_CHUAI,
+	// svr: { waitTiLaChuaiPlayers : [ 2,2]}
+
+	MSG_DDZ_PLAYER_TI_LA_CHUAI,
+	// client : { isTiLaChuai : 0 }
+	// svr : { ret : 0 } // ret : 0 success , 1 not in room , 2 you can not TiLaChuai 
+
+	MSG_DDZ_ROOM_TI_LA_CHUAI,
+	// svr: { idx : 0 , isTiLaChuai : 0 }
 
 	MSG_DDZ_MAX = 1500,
 	

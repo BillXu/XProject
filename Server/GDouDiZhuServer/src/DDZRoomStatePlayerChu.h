@@ -41,7 +41,7 @@ public:
 
 		// check tuoGuan 
 		checkTuoGuan();
-		setStateDuringTime(99999999);
+		setStateDuringTime(eTime_WaitForever);
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)

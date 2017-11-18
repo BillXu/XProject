@@ -101,6 +101,7 @@ bool BJPlayer::recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrde
 		uint8_t nType = 0;
 		getPlayerCard()->getGroupInfo(nIdx,nType,vTemp);
 		vHold.insert(vHold.end(),vTemp.begin(),vTemp.end() );
+		vTemp.clear();
 	}
 	pRecorder->setHoldCards(vHold);
 	return true;

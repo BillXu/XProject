@@ -11,7 +11,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(eTime_WaitPlayerReady);
+		setStateDuringTime(eTime_WaitForever);
 	}
 
 	void update(float fDeta)override

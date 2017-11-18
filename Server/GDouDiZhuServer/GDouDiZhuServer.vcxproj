@@ -105,7 +105,9 @@
     <ClInclude Include="src\IPeerCard.h" />
     <ClInclude Include="src\DDZServer.h" />
     <ClInclude Include="src\DDZRoomManager.h" />
+    <ClInclude Include="src\JJDDZRoomStateChaoZhuang.h" />
     <ClInclude Include="src\JJDDZRoomStateTuiLaChuai.h" />
+    <ClInclude Include="src\JJDDZRoomStateWaitReadyChaoZhuangMode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CardPoker.cpp" />
