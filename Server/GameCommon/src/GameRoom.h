@@ -68,6 +68,7 @@ protected:
 	IGameRoomDelegate* getDelegate();
 	stStandPlayer* getStandPlayerByUID( uint32_t nUserID );
 	virtual std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr();
+public:
 	bool addReplayFrame( uint32_t nFrameType , Json::Value& jsFrameArg );
 private:
 	std::shared_ptr<IGameRoomRecorder> getRoomRecorder();

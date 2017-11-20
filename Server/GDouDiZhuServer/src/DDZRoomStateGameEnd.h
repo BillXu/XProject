@@ -143,6 +143,10 @@ protected:
 			jsPlayersOffset[jsPlayersOffset.size()] = jsPlayer;
 		}
 		jsMsg["players"] = jsPlayersOffset;
+
+		// add frame 
+		getRoom()->addReplayFrame(DDZ_Frame_GameEnd, jsMsg);
+
 		getRoom()->sendRoomMsg(jsMsg,MSG_DDZ_ROOM_RESULT);
 	}
 };

@@ -54,6 +54,9 @@ public:
 		Json::Value jsMsg;
 		jsMsg["waitTiLaChuaiPlayers"] = jsWaitTiLaChuai;
 		getRoom()->sendRoomMsg(jsMsg, MSG_DDZ_WAIT_PLAYER_TI_LA_CHUAI);
+
+		// add frame 
+		getRoom()->addReplayFrame(DDZ_Frame_WaitTiLaChuai, jsWaitTiLaChuai);
 	}
  
 	void onStateTimeUp()override
@@ -96,6 +99,11 @@ public:
 			{
 				break;
 			}
+
+			// add frame 
+			Json::Value jsFrame;
+			jsFrame["isTiLaChuai"] = prealMsg["isTiLaChuai"];
+			getRoom()->addReplayFrame(DDZ_Frame_DoTiLaChuai, jsFrame);
 
 			// this player do chao ;
 			pPlayer->doTiLaChuai();

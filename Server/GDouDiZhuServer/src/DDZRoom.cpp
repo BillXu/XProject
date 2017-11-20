@@ -151,6 +151,30 @@ void DDZRoom::onStartGame()
 		jsMsg["vSelfCard"] = jsVHoldCard;
 		sendMsgToPlayer(jsMsg, MSG_ROOM_DDZ_START_GAME, p->getSessionID());
 	}
+
+	// add replay frame 
+	Json::Value jsFrame;
+	for (uint8_t nIdx = 0; nIdx < nSeatCnt; ++nIdx)
+	{
+		auto p = (DDZPlayer*)getPlayerByIdx(nIdx);
+		if (p == nullptr || (p->haveState(eRoomPeer_CanAct) == false))
+		{
+			continue;
+		}
+
+		Json::Value jsVHoldCard;
+		if (p->haveState(eRoomPeer_CanAct))
+		{
+			p->getPlayerCard()->holdCardToJson(jsVHoldCard);
+		}
+
+		Json::Value jsPlayers;
+		jsPlayers["idx"] = nIdx;
+		jsPlayers["uid"] = p->getUserUID();
+		jsPlayers["cards"] = jsVHoldCard;
+		jsFrame[jsFrame.size()] = jsPlayers;
+	}
+	addReplayFrame(DDZ_Frame_StartGame, jsFrame);
 }
 
 void DDZRoom::onGameEnd()

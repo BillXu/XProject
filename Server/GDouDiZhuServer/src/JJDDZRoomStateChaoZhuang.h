@@ -17,6 +17,22 @@ public:
 
 		Json::Value jsMsg;
 		getRoom()->sendRoomMsg(jsMsg,MSG_DDZ_WAIT_PLAYER_CHAO_ZHUANG);
+	
+		// add frame 
+		Json::Value jsFrame;
+		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
+		{
+			auto p = getRoom()->getPlayerByIdx(nIdx);
+			if (!p)
+			{
+				continue;
+			}
+			Json::Value jsPlayer;
+			jsPlayer["idx"] = nIdx;
+			jsPlayer["uid"] = p->getUserUID();
+			jsFrame[jsFrame.size()] = jsPlayer;
+		}
+		getRoom()->addReplayFrame( DDZ_Frame_WaitChaoZhuang, jsFrame);
 	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
@@ -49,6 +65,12 @@ public:
 				break;
 			}
 			m_vChosedWhetherChaoZhuang.push_back(pPlayer->getIdx());
+
+			Json::Value jsFrame;
+			jsFrame["isChao"] = prealMsg["isChao"];
+			getRoom()->addReplayFrame( DDZ_Frame_DoChaoZhuang, jsFrame);
+
+
 			auto isChao = prealMsg["isChao"].asUInt() == 1;
 			if (!isChao)
 			{
