@@ -58,7 +58,7 @@ public:
  
 	void onStateTimeUp()override
 	{
-		getRoom()->goToState(eRoomState_StartGame);
+		getRoom()->goToState(eRoomState_DDZ_Chu);
 	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
@@ -127,7 +127,7 @@ public:
 
 		if ( m_vWaitChaoZhuang.empty())
 		{
-			getRoom()->goToState(eRoomState_StartGame);
+			getRoom()->goToState(eRoomState_DDZ_Chu);
 		}
 		return true;
 	}
