@@ -2,7 +2,7 @@
 #include "NativeTypes.h"
 #define MAX_LEN_ACCOUNT 40   // can not big then unsigned char max = 255
 #define  MAX_LEN_PASSWORD 25 // can not big then unsigned char max = 255
-#define MAX_LEN_CHARACTER_NAME 25 // can not big then unsigned char  max = 255
+#define MAX_LEN_CHARACTER_NAME 50 // can not big then unsigned char  max = 255
 #define MAX_LEN_SIGURE 200   // can not big then unsigned char  max = 255
 #define MAX_LEN_HEADICON_URL 200
 #define MAX_LEN_EMAIL 50
