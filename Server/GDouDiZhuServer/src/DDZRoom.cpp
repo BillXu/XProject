@@ -6,6 +6,9 @@
 #include "DDZRoomStateRobotBanker.h"
 #include "DDZRoomStateGameEnd.h"
 #include "DDZPlayer.h"
+#include "JJDDZRoomStateChaoZhuang.h"
+#include "JJDDZRoomStateTuiLaChuai.h"
+#include "JJDDZRoomStateWaitReadyChaoZhuangMode.h"
 bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
@@ -15,9 +18,23 @@ bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoo
 	m_nBankerTimes = 0;
 	m_nBombCnt = 0;
 
-	IGameRoomState* pState = new DDZRoomStateWaitReady();
-	addRoomState(pState);
-	setInitState(pState);
+	IGameRoomState* pState = nullptr;
+	if (vJsOpts["isChaoZhuang"].isNull() == false && vJsOpts["isChaoZhuang"].asUInt() == 1)
+	{
+		pState = new JJDDZRoomStateWaitReadyChaoZhuangMode();
+		addRoomState(pState);
+		setInitState(pState);
+
+		pState = new JJDDZRoomStateChaoZhuang();
+		addRoomState(pState);
+	}
+	else
+	{
+		pState = new DDZRoomStateWaitReady();
+		addRoomState(pState);
+		setInitState(pState);
+	}
+	
 	pState = new DDZRoomStatePlayerChu();
 	addRoomState(pState);
 	pState = new DDZRoomStateStartGame();
@@ -25,6 +42,8 @@ bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoo
 	pState = new DDZRoomStateRobotBanker();
 	addRoomState(pState);
 	pState = new DDZRoomStateGameEnd();
+	addRoomState(pState);
+	pState = new JJDDZRoomStateTiLaChuai();
 	addRoomState(pState);
 	return true;
 }
@@ -71,6 +90,11 @@ void DDZRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, u
 	if (p->isChaoZhuang())
 	{
 		jsPlayerInfo["nJiaBei"] = 1;
+	}
+
+	if (p->isTiLaChuai())
+	{
+		jsPlayerInfo["isTiLaChuai"] = 1;
 	}
 }
 
@@ -127,6 +151,30 @@ void DDZRoom::onStartGame()
 		jsMsg["vSelfCard"] = jsVHoldCard;
 		sendMsgToPlayer(jsMsg, MSG_ROOM_DDZ_START_GAME, p->getSessionID());
 	}
+
+	// add replay frame 
+	Json::Value jsFrame;
+	for (uint8_t nIdx = 0; nIdx < nSeatCnt; ++nIdx)
+	{
+		auto p = (DDZPlayer*)getPlayerByIdx(nIdx);
+		if (p == nullptr || (p->haveState(eRoomPeer_CanAct) == false))
+		{
+			continue;
+		}
+
+		Json::Value jsVHoldCard;
+		if (p->haveState(eRoomPeer_CanAct))
+		{
+			p->getPlayerCard()->holdCardToJson(jsVHoldCard);
+		}
+
+		Json::Value jsPlayers;
+		jsPlayers["idx"] = nIdx;
+		jsPlayers["uid"] = p->getUserUID();
+		jsPlayers["cards"] = jsVHoldCard;
+		jsFrame[jsFrame.size()] = jsPlayers;
+	}
+	addReplayFrame(DDZ_Frame_StartGame, jsFrame);
 }
 
 void DDZRoom::onGameEnd()

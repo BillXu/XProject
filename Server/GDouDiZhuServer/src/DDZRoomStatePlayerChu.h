@@ -39,9 +39,13 @@ public:
 		jsMsgBack["idx"] = m_nWaitChuPlayerIdx;
 		getRoom()->sendRoomMsg(jsMsgBack, MSG_DDZ_ROOM_WAIT_CHU);
 
+		// add frame 
+		Json::Value jsFrame;
+		jsFrame["idx"] = m_nWaitChuPlayerIdx;
+		getRoom()->addReplayFrame(DDZ_Frame_WaitChu, jsFrame);
 		// check tuoGuan 
 		checkTuoGuan();
-		setStateDuringTime(99999999);
+		setStateDuringTime(eTime_WaitForever);
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
@@ -165,6 +169,10 @@ public:
 			pPlayer->getPlayerCard()->clearLastChu();
 			// next player do act ;
 			infomNextPlayerAct();
+
+			// add frame ;
+			Json::Value jsFrame;
+			getRoom()->addReplayFrame(DDZ_Frame_DoChu, jsFrame);
 			return true;
 		}
 
@@ -207,6 +215,12 @@ public:
 			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
 			return true;
 		}
+
+		// add frame ;
+		Json::Value jsFrame;
+		jsFrame["cards"] = jsmsg["cards"];
+		jsFrame["type"] = jsmsg["type"];
+		getRoom()->addReplayFrame(DDZ_Frame_DoChu, jsFrame);
 		
 		// update max card ;
 		m_tCurMaxChuPai.nWeight = nWeight;
@@ -280,6 +294,10 @@ protected:
 		jsMsgBack["idx"] = m_nWaitChuPlayerIdx;
 		getRoom()->sendRoomMsg(jsMsgBack, MSG_DDZ_ROOM_WAIT_CHU);
 
+		// add frame 
+		Json::Value jsFrame;
+		jsFrame["idx"] = m_nWaitChuPlayerIdx;
+		getRoom()->addReplayFrame(DDZ_Frame_WaitChu, jsFrame);
 		// check tuoGuan 
 		checkTuoGuan();
 	}

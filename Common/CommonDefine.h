@@ -2,7 +2,7 @@
 #include "NativeTypes.h"
 #define MAX_LEN_ACCOUNT 40   // can not big then unsigned char max = 255
 #define  MAX_LEN_PASSWORD 25 // can not big then unsigned char max = 255
-#define MAX_LEN_CHARACTER_NAME 25 // can not big then unsigned char  max = 255
+#define MAX_LEN_CHARACTER_NAME 50 // can not big then unsigned char  max = 255
 #define MAX_LEN_SIGURE 200   // can not big then unsigned char  max = 255
 #define MAX_LEN_HEADICON_URL 200
 #define MAX_LEN_EMAIL 50
@@ -86,6 +86,7 @@ enum eRoomState
 	// dou di zhu specail 
 	eRoomState_DDZ_Chu,
 	eRoomState_JJ_DDZ_Ti_La_Chuai, 
+	eRoomState_JJ_DDZ_Chao_Zhuang,
 
 	// above is new ;
 	eRoomState_None,
@@ -209,6 +210,7 @@ enum eTime
 	eTime_DoPlayerAct_Hu = 1,  // 玩家胡牌的时间
 	eTime_DoPlayerAct_Peng = 0, // 玩家碰牌时间
 	eTime_GameOver = 1, // 游戏结束状态持续时间
+	eTime_WaitForever = 999999999,
 };
 
 
@@ -253,7 +255,7 @@ enum eRoomPeerState
 	eRoomPeer_SysAutoAct = ( 1 << 18), // 托管状态
 	eRoomPeer_AlreadyHu = ((1 << 15) | eRoomPeer_CanAct),  //  已经胡牌的状态
 	eRoomPeer_DelayLeave = (1 << 17),  //  牌局结束后才离开
-	eRoomPeer_ChaoZhuang = (1 << 19),  //  超庄
+	eRoomPeer_TiLaChuai = (1 << 19),  //  提拉踹
 	eRoomPeer_Max,
 };
 

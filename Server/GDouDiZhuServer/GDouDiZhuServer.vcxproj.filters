@@ -93,5 +93,11 @@
     <ClInclude Include="src\JJDDZRoomStateTuiLaChuai.h">
       <Filter>src\DouDiZhu\state</Filter>
     </ClInclude>
+    <ClInclude Include="src\JJDDZRoomStateChaoZhuang.h">
+      <Filter>src\DouDiZhu\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JJDDZRoomStateWaitReadyChaoZhuangMode.h">
+      <Filter>src\DouDiZhu\state</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

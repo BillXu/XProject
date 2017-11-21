@@ -23,6 +23,9 @@ public:
 		Json::Value jsInfo;
 		jsInfo["idx"] = m_nCurWaitPlayerIdx;
 		getRoom()->sendRoomMsg(jsInfo, MSG_DDZ_ROOM_WAIT_ROBOT_DZ );
+
+		// add frame 
+		getRoom()->addReplayFrame(DDZ_Frame_WaitRobBanker, jsInfo);
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
@@ -74,6 +77,12 @@ public:
 		// tell all players 
 		jsmsg["idx"] = pPlayer->getIdx();
 		pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_ROBOT_DZ );
+
+		// add frame 
+		Json::Value jsFrame;
+		jsFrame["idx"] = pPlayer->getIdx();
+		jsFrame["times"] = nRobotBankerTimes;
+		getRoom()->addReplayFrame(DDZ_Frame_DoRobBanker, jsFrame);
 
 		if (nRobotBankerTimes != 0)
 		{
@@ -191,8 +200,19 @@ protected:
 		}
 		jsMsg["cards"] = jsCards;
 		getRoom()->sendRoomMsg(jsMsg, MSG_DDZ_ROOM_PRODUCED_DZ);
+
+		// add frame 
+		getRoom()->addReplayFrame(DDZ_Frame_DoProducedBanker, jsMsg);
 		// go to chu pai state ;
-		getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu);
+		Json::Value jsRobotBankerInfo;
+		for ( auto& ref : m_vMapPlayerIdx_RobotTimes )
+		{
+			Json::Value jsItem;
+			jsItem["idx"] = ref.first;
+			jsItem["times"] = ref.second;
+			jsRobotBankerInfo[jsRobotBankerInfo.size()] = jsItem;
+		}
+		getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu, &jsRobotBankerInfo);
 	}
 
 	bool isPlayerMustRobBanker( uint8_t nIdx )
