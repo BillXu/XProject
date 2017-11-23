@@ -67,6 +67,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GMaJiangServer", "GMaJiangS
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GDouDiZhuServer", "GDouDiZhuServer\GDouDiZhuServer.vcxproj", "{0C36CA6A-517A-455D-BC59-0269B1083615}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1021C400-E90B-4985-982D-DF9DB555F336} = {1021C400-E90B-4985-982D-DF9DB555F336}
+		{0C1CC656-13EF-4195-8FF4-A0DC0D28DBE9} = {0C1CC656-13EF-4195-8FF4-A0DC0D28DBE9}
+		{3BF0757D-C2EE-47D6-B251-D7B71C08D599} = {3BF0757D-C2EE-47D6-B251-D7B71C08D599}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

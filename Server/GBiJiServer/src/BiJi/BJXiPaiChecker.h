@@ -62,65 +62,34 @@ class IXiPaiQuanShun
 public:
 	bool isThisXiPaiType(BJPlayerCard* pPlayerCard, eXiPaiType& eType)override
 	{
-		std::vector<uint8_t> vHoldCardsValue , vHoldUnSort;
-		pPlayerCard->getHoldCards(vHoldUnSort);
-
-		uint8_t nJokerCnt = 0;
-		for (auto& ref : vHoldUnSort)
+		uint8_t nLastGroupMax = 0;
+		for (uint8_t nIdx = 0; nIdx < 3; ++nIdx)
 		{
-			if (ePoker_Joker == BJ_PARSE_TYPE(ref))  // ignore joker, joker can be any card 
+			auto& pG = pPlayerCard->getGroupByIdx(nIdx);
+			if (pG.getType() != CardType_Sequence && CardType_SameColorSequence != pG.getType())
 			{
-				++nJokerCnt;
-				continue;
+				return false;
 			}
 
-			auto nValue = BJ_PARSE_VALUE(ref);
-			if (1 == nValue)
+			std::vector<uint8_t> vTemp;
+			for (uint8_t nCardIdx = 0; nCardIdx < 3; ++nCardIdx)
 			{
-				nValue = 14;
-			}
-			vHoldCardsValue.push_back(nValue);
-		}
-
-		auto pCheckHoldCardShun = []( std::vector<uint8_t> vHoldCards, uint8_t nJokerCnt )
-		{
-			std::sort(vHoldCards.begin(), vHoldCards.end());
-			for (uint8_t nIdx = 0; (nIdx + 1u) < vHoldCards.size(); ++nIdx)
-			{
-				auto nElapNeedJokeCnt = vHoldCards[nIdx + 1] - (vHoldCards[nIdx] + 1);  // need how many joker can make all sequene
-				if (nElapNeedJokeCnt > nJokerCnt)
+				if (ePoker_Joker == BJ_PARSE_TYPE(pG.getCardByIdx(nCardIdx)))  // ignore joker, joker can be any card 
 				{
-					return false;
+					continue;
 				}
-				nJokerCnt -= nElapNeedJokeCnt;
+				vTemp.push_back(BJ_PARSE_VALUE(pG.getCardByIdx(nCardIdx)));
 			}
-			return true;
-		};
-
-		if (pCheckHoldCardShun(vHoldCardsValue,nJokerCnt) )
-		{
-			eType = eXiPai_QuanShun;
-			return true;
+			std::sort(vTemp.begin(),vTemp.end());
+			if (nLastGroupMax >= ( vTemp.front() == 1 && nIdx == 2 ) ? 14 : vTemp.front() )
+			{
+				return false;
+			}
+			nLastGroupMax = vTemp.back();
 		}
 
-		// maybe last A , can be 1 ;
-		auto iter = std::find(vHoldCardsValue.begin(),vHoldCardsValue.end(),14 );
-		if ( iter == vHoldCardsValue.end() )
-		{
-			return false;
-		}
-		else
-		{
-			*iter = 1;
-		}
-
-		if (pCheckHoldCardShun(vHoldCardsValue, nJokerCnt))
-		{
-			eType = eXiPai_QuanShun;
-			return true;
-		}
-
-		return false;
+		eType = eXiPai_QuanShun;
+		return true;
 	}
 };
 
@@ -131,7 +100,7 @@ public:
 	bool isThisXiPaiType(BJPlayerCard* pPlayerCard, eXiPaiType& eType)override
 	{
 		uint8_t nTongShunCnt = 0;
-		for (uint8_t nIdx = 0; nIdx < 3; ++nIdx)
+		for (uint8_t nIdx = 1; nIdx < 3; ++nIdx)
 		{
 			auto stGroup = pPlayerCard->getGroupByIdx(nIdx);
 			if ( CardType_SameColorSequence == stGroup.getType())

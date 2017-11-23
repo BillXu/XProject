@@ -19,9 +19,14 @@ public:
 	bool isThisCardType(std::vector<uint8_t>& vecCards, uint32_t& nWeight, eBJCardType& cardType)override
 	{
 		std::sort(vecCards.begin(), vecCards.end());
+		uint8_t nCardWeight = BJ_PARSE_VALUE(vecCards.back());
+		if ( BJ_PARSE_VALUE(vecCards.front()) == 1 )
+		{
+			nCardWeight = 14;
+		}
 		// make weight ;
 		cardType = CardType_None;
-		nWeight = (cardType << 16) | ((BJ_PARSE_VALUE(vecCards.back())) << 12) | (BJ_PARSE_TYPE(vecCards.back()));
+		nWeight = (cardType << 16) | ( nCardWeight << 12 ) | (BJ_PARSE_TYPE(vecCards.back()));
 		return true;
 	}
 };
@@ -143,9 +148,8 @@ public:
 				nJokeValue = vFaceValue.front() + 1;
 			}
 			vFaceValue.push_back(nJokeValue);
-			std::sort(vFaceValue.begin(),vFaceValue.end());
 		}
-
+		std::sort(vFaceValue.begin(), vFaceValue.end());
 		bool isShun = (vFaceValue[0] + 1) == vFaceValue[1] && (vFaceValue[1] + 1 == vFaceValue[2]);
 		if (!isShun)
 		{

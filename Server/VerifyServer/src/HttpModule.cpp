@@ -42,7 +42,7 @@ void CHttpModule::init(IServerApp* svrApp)
 	registerHttpHandle("/playerInfo.yh", std::bind(&CHttpModule::handleGetPlayerInfo, this, std::placeholders::_1));
 	registerHttpHandle("/addRoomCard.yh", std::bind(&CHttpModule::handleAddRoomCard, this, std::placeholders::_1));
 	registerHttpHandle("/AnyLogin.yh", std::bind(&CHttpModule::handleAnySdkLogin, this, std::placeholders::_1));
-	registerHttpHandle("cmd.yh", std::bind(&CHttpModule::handleHttpCmd, this, std::placeholders::_1));
+	registerHttpHandle("/cmd.yh", std::bind(&CHttpModule::handleHttpCmd, this, std::placeholders::_1));
 }
 
 void CHttpModule::update(float fDeta)
@@ -382,8 +382,8 @@ bool CHttpModule::handleHttpCmd(http::server::connection_ptr ptr)
 		return false;
 	}
 
-	nTargetID = jsRoot["cmd"].asUInt();
-	nCmd = jsRoot["targetID"].asUInt();
+	nCmd = jsRoot["cmd"].asUInt();
+	nTargetID = jsRoot["targetID"].asUInt();
 	auto nTargetPort = jsRoot["port"].asUInt();
 	if ( ID_MSG_PORT_MAX <= nTargetPort )
 	{

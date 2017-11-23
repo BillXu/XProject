@@ -108,7 +108,7 @@ protected:
 				continue;
 			}
 
-			int32_t nBankerOffsetThisPlayer = nOffset * (isBankerWin ? 1 : -1) * ( pBanker->isChaoZhuang() ? 2 : 1 ) * (pPlayer->isChaoZhuang() ? 2 : 1) * (pBanker->isTiLaChuai() ? 2 : 1) * (pPlayer->isTiLaChuai() ? 2 : 1);
+			int32_t nBankerOffsetThisPlayer = nOffset * (isBankerWin ? 1 : -1) * ( pBanker->isChaoZhuang() ? 2 : 1 ) * (pPlayer->isChaoZhuang() ? 2 : 1) * ( ( pBanker->isTiLaChuai() && pPlayer->isTiLaChuai() ) ? 2 : 1) * (pPlayer->isTiLaChuai() ? 2 : 1);
 			pBanker->addSingleOffset(nBankerOffsetThisPlayer);
 			pPlayer->addSingleOffset(nBankerOffsetThisPlayer * -1 );
 		}
