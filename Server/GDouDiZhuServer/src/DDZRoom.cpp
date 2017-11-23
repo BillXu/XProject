@@ -189,6 +189,7 @@ bool DDZRoom::canStartGame()
 		return false;
 	}
 
+	uint8_t nReadyCnt = 0;
 	for (uint16_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
 	{
 		auto p = getPlayerByIdx(nIdx);
@@ -201,8 +202,9 @@ bool DDZRoom::canStartGame()
 		{
 			return false;
 		}
+		++nReadyCnt;
 	}
-	return true;
+	return nReadyCnt >= getSeatCnt();
 }
 
 IPoker* DDZRoom::getPoker()

@@ -90,7 +90,7 @@ public:
 			m_nBankerCandiate = pPlayer->getIdx();
 		}
 		m_vMapPlayerIdx_RobotTimes[pPlayer->getIdx()] = nRobotBankerTimes;
-		if ( 3 == nRobotBankerTimes || m_vMapPlayerIdx_RobotTimes.size() == getRoom()->getSeatCnt() )
+		if ( getMaxBankerTimes() == nRobotBankerTimes || m_vMapPlayerIdx_RobotTimes.size() == getRoom()->getSeatCnt() )
 		{
 			doProduceBanker();
 		}
@@ -244,6 +244,11 @@ protected:
 	bool isJingJiangDDZ()
 	{
 		return eGame_JJDouDiZhu == getRoom()->getRoomType();
+	}
+
+	uint8_t getMaxBankerTimes()
+	{
+		return isJingJiangDDZ() ? 1 : 3;
 	}
 protected:
 	std::map<uint8_t, uint8_t> m_vMapPlayerIdx_RobotTimes;

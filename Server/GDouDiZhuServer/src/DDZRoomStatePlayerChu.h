@@ -289,6 +289,14 @@ protected:
 			m_nWaitChuPlayerIdx = ++m_nWaitChuPlayerIdx % getRoom()->getSeatCnt();  // try one more time ;
 		}
 
+		if ( m_nWaitChuPlayerIdx == m_tCurMaxChuPai.nPlayerIdx )
+		{
+			auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx);
+			if (p)
+			{
+				p->getPlayerCard()->clearLastChu();
+			}
+		}
 		// send msg tell player act ;
 		Json::Value jsMsgBack;
 		jsMsgBack["idx"] = m_nWaitChuPlayerIdx;

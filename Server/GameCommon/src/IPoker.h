@@ -1,6 +1,7 @@
 #pragma once
 #include "NativeTypes.h"
 #include "json\json.h"
+#include <algorithm>
 class IPoker
 {
 public:
@@ -12,19 +13,21 @@ public:
 
 	void shuffle()
 	{
-		uint8_t n = 0;
-		for ( uint8_t i = 0; i < m_vCards.size(); ++i)
-		{
-			n = rand() % (uint8_t)m_vCards.size();
-			if (n == i)
-			{
-				continue;
-			}
-			m_vCards[i] = m_vCards[n] + m_vCards[i];
-			m_vCards[n] = m_vCards[i] - m_vCards[n];
-			m_vCards[i] = m_vCards[i] - m_vCards[n];
-		}
+		std::random_shuffle(m_vCards.begin(), m_vCards.end());
 		m_nCurIdx = 0;
+#ifdef _DEBUG
+		std::vector<uint8_t> vOutCards;
+		makeSpecialCard(vOutCards);
+		for (auto& ref : vOutCards)
+		{
+			auto iter = std::find(m_vCards.begin(),m_vCards.end(),ref);
+			if (iter != m_vCards.end())
+			{
+				m_vCards.erase(iter);
+			}
+		}
+		m_vCards.insert(m_vCards.begin(),vOutCards.begin(),vOutCards.end());
+#endif
 	}
 
 	void pushCardToFron(uint8_t nCard)
@@ -83,6 +86,8 @@ protected:
 	{
 		m_vCards.push_back(nCard);
 	}
+
+	virtual void makeSpecialCard( std::vector<uint8_t>& vMakedCards ){}
 protected:
 	std::vector<uint8_t> m_vCards;
 	uint16_t m_nCurIdx;
