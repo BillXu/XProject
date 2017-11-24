@@ -5,6 +5,7 @@
 #include "AsyncRequestQuene.h"
 #include "stEnterRoomData.h"
 #include <ctime>
+#include <algorithm>
 #define MAX_CREATE_ROOM_CNT 5
 IGameRoomManager::~IGameRoomManager()
 {
@@ -317,39 +318,25 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 
 uint32_t IGameRoomManager::generateRoomID()
 {
-	uint32_t nRoomID = 0;
-	uint32_t nTryTimes = 0;
-	UINT32 nBase = 100000;
-	do
+	if ( m_vRoomIDs.empty() )
 	{
-		uint32_t nLastID = (uint32_t)time(nullptr) % ( nBase / 100 );
-		uint32_t nFirstID = rand() % 9 + 1; // [ 1- 9 ]
-		uint32_t nSecondID = rand() % 100;
-		nRoomID = nFirstID * nBase + nSecondID * ( nBase / 100 ) + nLastID;
-
-		// conditon svr idx ;
-		auto nIdx = nRoomID % getSvrApp()->getCurSvrMaxCnt();
-		nRoomID = nRoomID - nIdx + getSvrApp()->getCurSvrIdx();
-
-		++nTryTimes;
-		if ( nTryTimes > 1 )
+		if ( m_vRooms.empty() )
 		{
-			LOGFMTD("try times = %u to generate room id ", nTryTimes);
-			if ( nTryTimes > 999 )
-			{
-				LOGFMTE("try to many times ");
-				nBase *= 10;
-				nTryTimes = 1;
-			}
+			prepareRoomIDs();
 		}
-		
-		if ( getRoomByID(nRoomID) == nullptr)
+		else
 		{
-			return nRoomID;
+			LOGFMTE( "no enough roomids " );
+			return 0;
 		}
+	}
 
-	} while ( 1 );
+#ifdef _DEBUG
+	LOGFMTD( "reserver roomIDs = %u, roomsCnt = %u, all = %u",m_vRoomIDs.size(),m_vRooms.size(), m_vRoomIDs.size() + m_vRooms.size());
+#endif // _DEBUG
 
+	auto nRoomID = m_vRoomIDs.front();
+	m_vRoomIDs.pop_front();
 	return nRoomID;
 }
 
@@ -383,6 +370,8 @@ void IGameRoomManager::update(float fDeta)
 			iter->second = nullptr;
 			m_vRooms.erase(iter);
 		}
+		// recycle room ids 
+		m_vRoomIDs.push_back(nDelete);
 	}
 	m_vWillDeleteRoom.clear();
 }
@@ -537,7 +526,16 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 				LOGFMTE("game room type is null , uid = %u create room failed",nUserID );
 				break;
 			}
-			pRoom->init(this, generateSieralID(), generateRoomID(), jsUserData["seatCnt"].asUInt(), jsUserData);
+
+			auto nNewRoomID = generateRoomID();
+			if (nNewRoomID == 0 )
+			{
+				nRet = 6;
+				LOGFMTE("game room type is null , uid = %u create room failed", nUserID);
+				break;
+			}
+
+			pRoom->init(this, generateSieralID(), nNewRoomID, jsUserData["seatCnt"].asUInt(), jsUserData);
 			m_vRooms[pRoom->getRoomID()] = pRoom;
 			nRoomID = pRoom->getRoomID();
 			// inform do created room ;
@@ -579,3 +577,60 @@ bool IGameRoomManager::isCanCreateRoom()
 {
 	return m_isCanCreateRoom;
 }
+
+void IGameRoomManager::prepareRoomIDs()
+{
+	// begin(2) , portTypeCrypt (2),commonNum(2)
+	uint32_t nPortType = getSvrApp()->getLocalSvrMsgPortType();
+	auto nCurSvrIdx = getSvrApp()->getCurSvrIdx();
+	auto nCurSvrMaxCnt = getSvrApp()->getCurSvrMaxCnt();
+	if (0 == nCurSvrMaxCnt)
+	{
+		LOGFMTE( "can not invoker here , cur svr max cn must not be zero ?" );
+		nCurSvrMaxCnt = 1;
+		nCurSvrIdx = 0;
+	}
+
+	for (uint32_t nBegin = 10; nBegin <= 99; ++nBegin)
+	{
+		for (uint32_t nComNum = 0; nComNum <= 99; ++nComNum)
+		{
+			int32_t nPortTypeCrypt = 0;
+			if (nComNum >= 50)
+			{
+				nPortTypeCrypt = nComNum + nPortType;
+			}
+			else
+			{
+				nPortTypeCrypt = (nPortType + 100) - nComNum;
+			}
+			nPortTypeCrypt %= 100;
+
+			uint32_t nRoomID = nBegin * 10000 + nPortTypeCrypt * 100 + nComNum;
+			if (nRoomID % nCurSvrMaxCnt != nCurSvrIdx)
+			{
+				continue;
+			}
+			m_vRoomIDs.push_back(nRoomID);
+		}
+	}
+
+	std::random_shuffle(m_vRoomIDs.begin(), m_vRoomIDs.end());
+}
+
+//uint32_t parePortTypte(uint32_t nRoomID)
+//{
+//	// begin(2) , portTypeCrypt (2),commonNum(2)
+//	int32_t nComNum = nRoomID % 100;
+//	int32_t portTypeCrypt = ((int32_t)(nRoomID / 100)) % 100;
+//	if (nComNum >= 50)
+//	{
+//		portTypeCrypt = portTypeCrypt + 100 - nComNum;
+//	}
+//	else
+//	{
+//		portTypeCrypt = portTypeCrypt + 100 + nComNum;
+//	}
+//
+//	return (portTypeCrypt %= 100);
+//}

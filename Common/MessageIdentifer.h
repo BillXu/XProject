@@ -44,7 +44,8 @@ enum eMsgType
 	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server
 	// svr : null 
 	MSG_PLAYER_BASE_DATA,
-	// svr: { uid : 23,name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20, ip: "234.234.234"  }
+	// svr: { uid : 23,name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20, ip: "234.234.234",stayRoomID : 0  }
+	// stayRoomID , if not in any room , this key is null ;
 	MSG_PLAYER_UPDATE_INFO,
 	// client : { name : "lucy", sex : 1 , headIcon : "http://url.com"  }
 	// svr: { ret : 0 }
@@ -86,7 +87,7 @@ enum eMsgType
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
 	// payType : 0 the room owner pay cards , 1 AA pay card type , 2 big winer pay cards 
-	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error,  5  server maintenance,create room later   ;
+	// svr : {  ret : 0 , roomID : 23 } // ret : 0 success , 1 diamond is not enough, 2 create room count reach limit , 3 argument error , 4 unknown error,  5  server maintenance,create room later   , 6 svr is busy , please try later;
 	MSG_ROOM_REQ_ROOM_LIST, // send to data svr ;
 	// client : null 
 	// svr : { ret : 0 , rooms : [{id : 234, port : 23 }, ... ], stayInRoom : { id : 0 , port : 23 }  }
