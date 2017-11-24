@@ -11,6 +11,7 @@
 #include "AutoBuffer.h"
 #include "AsyncRequestQuene.h"
 #include <assert.h>
+#include "PlayerGameData.h"
 #pragma warning( disable : 4996 )
 CPlayerBaseData::CPlayerBaseData(CPlayer* player )
 	:IPlayerComponent(player)
@@ -145,6 +146,12 @@ void CPlayerBaseData::sendBaseDataToClient()
 	jsBaseData["diamond"] = getDiamoned();
 	jsBaseData["coin"] = getCoin();
 	jsBaseData["ip"] = getPlayer()->getIp();
+
+	auto pStay = ((CPlayerGameData*)getPlayer()->getComponent(ePlayerComponent_PlayerGameData))->getStayInRoom();
+	if (pStay.isEmpty() == false)
+	{
+		jsBaseData["stayRoomID"] = pStay.nRoomID;
+	}
 	sendMsg(jsBaseData, MSG_PLAYER_BASE_DATA);
 	LOGFMTD("send msg to client base data uid = %u", getPlayer()->getUserUID() );
 }

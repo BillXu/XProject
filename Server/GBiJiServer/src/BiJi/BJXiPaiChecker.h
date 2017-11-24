@@ -81,7 +81,7 @@ public:
 				vTemp.push_back(BJ_PARSE_VALUE(pG.getCardByIdx(nCardIdx)));
 			}
 			std::sort(vTemp.begin(),vTemp.end());
-			if (nLastGroupMax >= ( vTemp.front() == 1 && nIdx == 2 ) ? 14 : vTemp.front() )
+			if ( (0 != nLastGroupMax) && nLastGroupMax >= (( vTemp.front() == 1 && nIdx == 2 ) ? 14 : vTemp.front()) )
 			{
 				return false;
 			}
