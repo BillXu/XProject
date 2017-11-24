@@ -28,7 +28,7 @@ protected:
 protected:
 	std::map<uint32_t, IGameRoom*> m_vRooms;
 	std::vector<uint32_t> m_vWillDeleteRoom;
-	std::deque<uint8_t> m_vRoomIDs;
+	std::deque<uint32_t> m_vRoomIDs;
 	uint32_t m_nMaxSieralID = 0 ;
 	uint32_t m_nMaxReplayUID = 0 ;
 	bool m_isCreateRoomFree = false;
