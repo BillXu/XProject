@@ -1,7 +1,7 @@
 #pragma once
 #include "IFanxing.h"
 #include "log4z.h"
-#include "MJCard.h"
+#include "IMJPoker.h"
 class FanxingQingYiSe
 	:public IFanxing
 {
