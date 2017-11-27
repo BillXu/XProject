@@ -172,7 +172,7 @@ bool IServerApp::OnMessage( Packet* pMsg )
 		Json::Reader reader ;
 		Json::Value rootValue ;
 		auto bRet = reader.parse(pBuffer,pBuffer + pRet->nJsLen,rootValue,false) ;
-		if ( !bRet )
+		if ( !bRet || ( false == rootValue.isObject() ) )
 		{
 			std::string str(pBuffer, pRet->nJsLen);
 			LOGFMTE("recieved session id = %u invalid json msg format error : %s",pData->nSessionID,str.c_str() ) ;
