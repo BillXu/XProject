@@ -26,6 +26,12 @@ void BJPlayerCard::stGroupCard::setCard( std::vector<uint8_t>& vCompsitCard )
 	{
 		LOGFMTE( "why check card type return error ? must check it !!!" );
 	}
+
+	if (isHaveJoker())
+	{
+		m_nWeight = m_nWeight >> 4;
+		m_nWeight = m_nWeight << 4;
+	}
 	return;
 }
 
@@ -37,6 +43,18 @@ uint8_t BJPlayerCard::stGroupCard::getCardByIdx( uint8_t nIdx )
 		return 0;
 	}
 	return m_vCard[nIdx];
+}
+
+bool BJPlayerCard::stGroupCard::isHaveJoker()
+{
+	for (auto& ref : m_vCard)
+	{
+		if (BJ_PARSE_TYPE(ref) == ePoker_Joker)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // player card 
@@ -100,7 +118,7 @@ bool BJPlayerCard::getGroupInfo( uint8_t nGroupIdx, uint8_t& nGroupType, std::ve
 
 	auto& pGInfo = m_vGroups[nGroupIdx];
 	nGroupType = pGInfo.getType();
-	for ( uint8_t nIdx = 0; nIdx < PEER_CARD_COUNT; ++nIdx )
+	for ( uint8_t nIdx = 0; nIdx < PEER_CARD_COUNT && pGInfo.getWeight() > 0 ; ++nIdx )
 	{
 		vGroupCards.push_back(pGInfo.getCardByIdx(nIdx));
 	}
@@ -252,6 +270,11 @@ bool BJPlayerCard::groupCardToJson(Json::Value& vHoldCards)
 {
 	for (auto& ref : m_vGroups)
 	{
+		if ( ref.getWeight() == 0 )
+		{
+			continue;
+		}
+
 		vHoldCards[vHoldCards.size()] = ref.getCardByIdx(0);
 		vHoldCards[vHoldCards.size()] = ref.getCardByIdx(1);
 		vHoldCards[vHoldCards.size()] = ref.getCardByIdx(2);

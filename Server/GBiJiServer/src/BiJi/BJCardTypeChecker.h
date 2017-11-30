@@ -18,15 +18,27 @@ class BJCardTypeNone
 public:
 	bool isThisCardType(std::vector<uint8_t>& vecCards, uint32_t& nWeight, eBJCardType& cardType)override
 	{
-		std::sort(vecCards.begin(), vecCards.end());
-		uint8_t nCardWeight = BJ_PARSE_VALUE(vecCards.back());
-		if ( BJ_PARSE_VALUE(vecCards.front()) == 1 )
+		std::vector<uint8_t> vFaceValue;
+		for (auto& ref : vecCards)
 		{
-			nCardWeight = 14;
+			if (BJ_PARSE_TYPE(ref) == ePoker_Joker) // pick out joker
+			{
+				continue;
+			}
+
+			auto nV = BJ_PARSE_VALUE(ref);
+			vFaceValue.push_back((nV == 1 ? 14 : nV));
 		}
+		std::sort(vFaceValue.begin(), vFaceValue.end());
+		if (vecCards.size() != 3)
+		{
+			return false;
+		}
+
+		std::sort(vecCards.begin(), vecCards.end());
 		// make weight ;
 		cardType = CardType_None;
-		nWeight = (cardType << 16) | ( nCardWeight << 12 ) | (BJ_PARSE_TYPE(vecCards.back()));
+		nWeight = (cardType << 16) | (vFaceValue[2] << 12) | (vFaceValue[1] << 8) | (vFaceValue[0] << 4) | (BJ_PARSE_TYPE(vecCards.back()));
 		return true;
 	}
 };
@@ -113,6 +125,7 @@ public:
 			vFaceValue.push_back((nV == 1 ? 14 : nV ) );
 		}
 
+		std::sort(vFaceValue.begin(), vFaceValue.end());
 		// consider joker
 		if ( vFaceValue.size() == 1 ) // have two joker
 		{
@@ -145,7 +158,26 @@ public:
 			}
 			else if (1 == nElaps)
 			{
+				nJokeValue = vFaceValue.back() + 1;
+				if (nJokeValue > 14)
+				{
+					nJokeValue = vFaceValue.front() - 1;
+				}
+			}
+			else if (2 == nElaps)
+			{
 				nJokeValue = vFaceValue.front() + 1;
+			}
+			else if (vFaceValue.back() == 14)
+			{
+				if (vFaceValue.front() == 2)
+				{
+					nJokeValue = 3;
+				}
+				else if (vFaceValue.front() == 3)
+				{
+					nJokeValue = 2;
+				}
 			}
 			vFaceValue.push_back(nJokeValue);
 		}

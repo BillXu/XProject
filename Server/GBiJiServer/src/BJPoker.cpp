@@ -25,18 +25,19 @@ void CBJPoker::init( Json::Value& jsOpts )
 
 void CBJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 {
+	return;
 	//	ºÚÌÒA K Q 10 9 8 Ã·»¨8 ºìÌÒ8 ·½¿é8
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 1));
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Sword, 12));
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 13));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 1));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 2));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 3));
 
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Sword, 6));
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Club, 7));
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Sword, 8));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 4));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 5));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 6));
 
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Club, 10));
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Sword, 11));
-	//vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Club, 9));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 7));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 8));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 9));
  
 }
 

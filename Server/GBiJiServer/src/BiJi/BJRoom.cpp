@@ -116,13 +116,23 @@ void BJRoom::onGameEnd()
 	}
 
 	// caculate per guo ,
+	bool isAllGiveUp = true;
 	for (uint8_t nGuoIdx = 0; nGuoIdx < 3; ++nGuoIdx)
 	{
 		for ( auto& p : vActivePlayers)
 		{
+			if ( p->haveState(eRoomPeer_GiveUp) == false )
+			{
+				isAllGiveUp = false;
+			}
 			p->getPlayerCard()->setCurGroupIdx(nGuoIdx);
 		}
 		
+		if (isAllGiveUp)
+		{
+			break;
+		}
+
 		std::sort(vActivePlayers.begin(), vActivePlayers.end(), []( BJPlayer* pLeft , BJPlayer* pRight )
 		{
 			auto nLeft = pLeft->getPlayerCard()->getWeight();
@@ -136,7 +146,6 @@ void BJRoom::onGameEnd()
 			{
 				nRight = 0;
 			}
-
 			return nLeft < nRight;
 		});
 
@@ -157,7 +166,7 @@ void BJRoom::onGameEnd()
 	}
 
 	// caculate xi pai 
-	for ( uint8_t nCheckIdx = 0; nCheckIdx < vActivePlayers.size(); ++nCheckIdx )
+	for ( uint8_t nCheckIdx = 0; nCheckIdx < vActivePlayers.size() && ( false == isAllGiveUp ) ; ++nCheckIdx )
 	{
 		std::vector<eXiPaiType> vXiType;
 		auto nXiPaiRate = vActivePlayers[nCheckIdx]->getPlayerCard()->getXiPaiType(isEnableSanQing(),isEnableShunQingDaTou() ,vXiType );
@@ -209,7 +218,7 @@ void BJRoom::onGameEnd()
 		jsPlayerResult["offset"] = p->getSingleOffset();
 		jsPlayerResult["xiPaiOffset"] = p->getXiPaiOffset();
 		std::vector<eXiPaiType> vXiType;
-		if ( 0 != p->getPlayerCard()->getXiPaiType(isEnableSanQing(), isEnableShunQingDaTou(), vXiType))
+		if ( (false == isAllGiveUp) && 0 != p->getPlayerCard()->getXiPaiType(isEnableSanQing(), isEnableShunQingDaTou(), vXiType))
 		{
 			Json::Value jsXiPais;
 			for (auto& ref : vXiType)

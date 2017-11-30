@@ -247,3 +247,12 @@ void DDZRoom::increaseBombCount()
 {
 	++m_nBombCnt;
 }
+
+uint32_t DDZRoom::fengDing()
+{
+	if (m_jsOpts["maxBet"].isNull() == false && m_jsOpts["maxBet"].isUInt() == false )
+	{
+		return 100000; // not limit 
+	}
+	return m_jsOpts["maxBet"].asUInt();
+}

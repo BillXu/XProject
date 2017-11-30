@@ -19,6 +19,7 @@ public:
 		eBJCardType getType() { return m_eCardType; }
 		uint32_t getWeight() { return m_nWeight; }
 		uint8_t getCardByIdx( uint8_t nIdx );
+		bool isHaveJoker();
 	protected:
 		eBJCardType m_eCardType;
 		uint32_t m_nWeight;
