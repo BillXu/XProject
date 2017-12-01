@@ -485,6 +485,22 @@ enum eMsgType
 
 
 
+	MSG_ROOM_SICHUAN_MAJIANG_BEGIN = 2000, //四川麻将命令号开始标记
+
+	MSG_ROOM_SCMJ_GAME_END, //四川麻将游戏结束
+
+	MSG_ROOM_SCMJ_PLAYER_HU, //四川麻将胡
+
+	MSG_ROOM_SCMJ_PLAYER_EXCHANGE_CARDS, //四川麻将换三张
+
+	MSG_ROOM_SCMJ_PLAYER_DECIDE_MISS, //四川麻将定缺
+
+	MSG_ROOM_SCMJ_GAME_START, //四川麻将开始游戏消息
+
+	MSG_ROOM_SICHUAN_MAJIANG_END = 2100, //四川麻将命令号结束标识
+
+
+
 
 
 
