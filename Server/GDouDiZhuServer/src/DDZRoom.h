@@ -23,6 +23,7 @@ public:
 	uint8_t getBankTimes();
 	uint8_t getBombCount();
 	void increaseBombCount();
+	uint32_t fengDing();
 private:
 	uint8_t m_nFirstRobotBankerIdx;
 	uint8_t m_nBankerIdx;

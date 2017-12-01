@@ -269,7 +269,7 @@ public:
 		for (uint8_t nIdx = 0; nIdx < 3; ++nIdx)
 		{
 			auto stGroup = pPlayerCard->getGroupByIdx(nIdx);
-			if ( CardType_SameColor != stGroup.getType())
+			if ( CardType_SameColor != stGroup.getType() && CardType_SameColorSequence != stGroup.getType() )
 			{
 				return false;
 			}

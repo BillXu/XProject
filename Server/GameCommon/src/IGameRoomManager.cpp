@@ -454,7 +454,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 		{
 			LOGFMTE(" request time out uid = %u , can not create room ", nUserID);
 			Json::Value jsRet;
-			jsRet["ret"] = 4;
+			jsRet["ret"] = 7;
 			sendMsg(jsRet, MSG_CREATE_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
 			return;
 		}
