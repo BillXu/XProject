@@ -244,6 +244,13 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	case MSG_PLAYER_OPEN_ROOM:
 	{
 		m_isOpen = true;
+		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
+		auto ppS = m_pRoom->getStandPlayerBySessionID(nSessionID);
+		if ( ( pp && pp->getUserUID() != m_nOwnerUID ) || ( ppS && ppS->nUserUID != m_nOwnerUID )  )
+		{
+			LOGFMTE( "you are not owner can not do open session id %u",nSessionID  );
+			return true;
+		}
 		Json::Value js;
 		sendRoomMsg(js, MSG_ROOM_DO_OPEN);
 		LOGFMTI(" room id = %u do set open",getRoomID() );

@@ -21,3 +21,14 @@ void CDouDiZhuPoker::init( Json::Value& jsOpts )
 
 	shuffle() ;
 }
+
+void CDouDiZhuPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
+{
+	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 18));
+	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 19));
+
+	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Heart, 16));
+	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Sword, 16));
+	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Club, 16));
+	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Diamond, 16));
+}

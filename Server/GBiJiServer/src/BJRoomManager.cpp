@@ -33,6 +33,12 @@ uint8_t BJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoo
 		return vAA[nLevel] * 10;
 	}
 
-	uint8_t vFangZhu[] = { 6 , 12 , 18 };
+	if (ePayType_Winer == payType)
+	{
+		uint8_t vAA[] = { 5 , 10 , 15 };
+		return vAA[nLevel] * 10;
+	}
+
+	uint8_t vFangZhu[] = { 4 , 8 , 12 };
 	return vFangZhu[nLevel] * 10;
 }

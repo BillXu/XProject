@@ -223,12 +223,22 @@ public:
 	{
 		std::sort(vecCards.begin(), vecCards.end());		
 		uint8_t  nSinglCardType = BJ_PARSE_TYPE(vecCards.front()); // front can not be joker ;joker value is 15 , 16 ;
+		bool isRed = nSinglCardType == ePoker_Diamond || ePoker_Heart == nSinglCardType;
 		// check is same color ignore joker 
 		for (auto& ref : vecCards)
 		{
 			if ( BJ_PARSE_TYPE(ref) != ePoker_Joker && nSinglCardType != BJ_PARSE_TYPE(ref) ) // all card type be the same as front , or joker , joker can be any type ;
 			{
 				return false;
+			}
+
+			if (BJ_PARSE_TYPE(ref) == ePoker_Joker)
+			{
+				bool isJokerRed = BJ_PARSE_VALUE(ref) == 16;
+				if (isRed != isJokerRed)
+				{
+					return false;
+				}
 			}
 		}
 

@@ -18,7 +18,7 @@ GameRoom* DDZPrivateRoom::doCreatRealRoom()
 
 uint8_t DDZPrivateRoom::getInitRound(uint8_t nLevel)
 {
-	uint8_t vJun[] = { 6 , 12 , 30 };
+	uint8_t vJun[] = { 9 , 18 , 27 };
 	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
 	{
 		LOGFMTE("invalid level type = %u", nLevel);

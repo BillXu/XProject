@@ -53,11 +53,12 @@ public:
 	bool isEnableTuiZhuang();
 	void onTimeOutPlayerAutoBet();
 protected:
+	uint8_t getMiniBetTimes();
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint16_t getBankerIdx() { return m_nBankerIdx; }
 private:
-	eResultType m_eResultType;
+	uint8_t m_eResultType; // 0:Å£Å£x3 Å£¾Åx2 Å£°Ëx2, 1 : Å£Å£x4 Å£¾Åx3 Å£°Ëx2 Å£Æßx2
 	eDecideBankerType m_eDecideBankerType;
 	uint16_t m_nBankerIdx;
 	uint16_t m_nBottomTimes;

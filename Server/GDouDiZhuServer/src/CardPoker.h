@@ -7,6 +7,7 @@ class CDouDiZhuPoker
 {
 public:
 	void init(Json::Value& jsOpts)override;
+	void makeSpecialCard(std::vector<uint8_t>& vMakedCards)override;
 };
 
 #define DDZ_MAKE_CARD( type, value ) IPoker::makeCard(value,type )

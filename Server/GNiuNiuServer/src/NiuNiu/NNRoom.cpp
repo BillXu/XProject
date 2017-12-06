@@ -20,7 +20,7 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 	m_nBankerIdx = -1;
 	m_nBottomTimes = 1;
 	m_eDecideBankerType = (eDecideBankerType)vJsOpts["bankType"].asUInt();
-	m_eResultType = eResult_Max; // (eResultType)vJsOpts["resultType"].asUInt();
+	m_eResultType = vJsOpts["fanBei"].asUInt();
 	
 	IGameRoomState* pState = new NNRoomStateWaitReady();
 	addRoomState(pState);
@@ -596,18 +596,35 @@ bool NNRoom::isAllPlayerRobotedBanker()
 
 int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 {
+	// 0:Å£Å£x3 Å£¾Åx2 Å£°Ëx2, 1 : Å£Å£x4 Å£¾Åx3 Å£°Ëx2 Å£Æßx2
 	switch (nType)
 	{
 	case CNiuNiuPeerCard::Niu_Single:
 	{
-		if (nPoint == 7 || 8 == nPoint) { return 2; }
-		if (nPoint == 9) { return 3; }
+		if ( 0 == m_eResultType && (nPoint == 9 || 8 == nPoint) )
+		{
+			return 2;
+		}
+
+		if ( 1 == m_eResultType)
+		{
+			if (9 == nPoint)
+			{
+				return 3;
+			}
+
+			if (8 == nPoint || 7 == nPoint)
+			{
+				return 2;
+			}
+		}
+ 
 		return 1;
 	}
 	break;
 	case CNiuNiuPeerCard::Niu_Niu:
 	{
-		return 4;
+		return m_eResultType == 0 ? 3 : 4;
 	};
 	break;
 	case CNiuNiuPeerCard::Niu_ShunZiNiu:
@@ -638,89 +655,6 @@ int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 		return 1;
 	}
 
-	// old code below ;
-	// return ;
-	if ( m_eResultType == eResult_NiuNiu4)
-	{
-		if (nType == CNiuNiuPeerCard::Niu_None)
-		{
-			return 1;
-		}
-
-		if (nType == CNiuNiuPeerCard::Niu_Single)
-		{
-			if (nPoint >= 1 && nPoint <= 6)
-			{
-				return 1;
-			}
-
-			if (nPoint <= 8)
-			{
-				return 2;
-			}
-
-			if (nPoint == 9)
-			{
-				return 3;
-			}
-		}
-		else if (CNiuNiuPeerCard::Niu_Niu == nType)
-		{
-			return 4;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveFlower == nType)
-		{
-			return 5;
-		}
-		else if (CNiuNiuPeerCard::Niu_Boom == nType)
-		{
-			return 6;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveSmall == nType)
-		{
-			return 8;
-		}
-		LOGFMTE( "niu 4 result type : unknown : %u , p = %u",nType,nPoint );
-		return 1;
-	}
-	else if (eReulst_NiuNiu3 == m_eResultType)
-	{
-		if (nType == CNiuNiuPeerCard::Niu_None)
-		{
-			return 1;
-		}
-
-		if (nType == CNiuNiuPeerCard::Niu_Single)
-		{
-			if (nPoint >= 1 && nPoint <= 7)
-			{
-				return 1;
-			}
-
-			if (nPoint <= 9)
-			{
-				return 2;
-			}
-		}
-		else if (CNiuNiuPeerCard::Niu_Niu == nType)
-		{
-			return 3;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveFlower == nType)
-		{
-			return 5;
-		}
-		else if (CNiuNiuPeerCard::Niu_Boom == nType)
-		{
-			return 6;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveSmall == nType)
-		{
-			return 8;
-		}
-		LOGFMTE("niu 3 result type : unknown : %u , p = %u", nType, nPoint);
-		return 1;
-	}
 	LOGFMTE( "unknow result = %u , room id = %u",m_eResultType,getRoomID() );
 	return 1;
 }
@@ -793,7 +727,17 @@ void NNRoom::onTimeOutPlayerAutoBet()
 
 		if ( pPlayer->getBetTimes() == 0)
 		{
-			onPlayerDoBet(nIdx, 1);
+			onPlayerDoBet(nIdx, getMiniBetTimes());
 		}
 	}
+}
+
+uint8_t NNRoom::getMiniBetTimes()
+{
+	if (m_jsOpts["diFen"].isNull())
+	{
+		LOGFMTE( "opts di fen  is null " );
+		return 1;
+	}
+	return m_jsOpts["diFen"].asUInt();
 }

@@ -55,3 +55,13 @@ void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 	jsMsg["result"] = jsArrayPlayers;
 	sendRoomMsg(jsMsg, MSG_ROOM_BJ_GAME_OVER);
 }
+
+uint8_t BJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
+{
+	if (  isRoomStarted() )
+	{
+		return 7;
+	}
+
+	return IPrivateRoom::checkPlayerCanEnter(pEnterRoomPlayer);
+}
