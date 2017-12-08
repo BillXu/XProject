@@ -166,7 +166,7 @@ enum eMsgType
 
 	// niuniu msg 
 	MSG_ROOM_PRODUCED_BANKER,
-	// svr : { bankerIdx : 0 } 
+	// svr : { bankerIdx : 0, vCandinates : [2 ,3 ]  } 
 
 	MSG_ROOM_START_BET,
 	// svr : { players : [ { lastOffset : 0 , canTuiZhuang : 1 }, .... ] } ;
@@ -208,7 +208,7 @@ enum eMsgType
 	MSG_PLAYER_MAKED_GROUP,
 	// client : { vCards : [23,23,23,23,23] } 
 	// svr : { ret : 0 }
-	// ret : 0 success , 1 you are not in this room ,2 cards not fit , already maked card ;
+	// ret : 0 success , 1 you are not in this room ,2 cards not fit , 3 already maked card ;
 
 	MSG_ROOM_BJ_MAKE_GROUP_CARD,
 	// svr : { idx : 0 }

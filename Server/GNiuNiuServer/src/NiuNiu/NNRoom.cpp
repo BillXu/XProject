@@ -36,10 +36,10 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 		pState = new NNRoomStateStartGame();
 		addRoomState(pState);
 
-		pState = new NNRoomStateDecideBanker();
+		pState = new NNRoomStateDistributeCard();
 		addRoomState(pState);
 
-		pState = new NNRoomStateDistributeCard();
+		pState = new NNRoomStateDecideBanker();
 		addRoomState(pState);
 	}
 	else
@@ -257,43 +257,20 @@ void NNRoom::onPlayerReady(uint16_t nIdx)
 
 uint8_t NNRoom::doProduceNewBanker()
 {
+	std::vector<uint8_t> vCandinates;
+	auto nSeatCnt = getSeatCnt();
 	switch (m_eDecideBankerType)
 	{
 	case eDecideBank_Rand:
 	{
-		m_nBankerIdx = rand() % getSeatCnt();
-		for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
-		{
-			auto nReal = nIdx % getSeatCnt();
-			auto p = getPlayerByIdx(nReal);
-			if (p)
-			{
-				m_nBankerIdx = nReal;
-				break;
-			}
-		}
+
 	}
 	break;
 	case eDecideBank_NiuNiu:
 	{
-		if ((uint16_t)-1 == m_nBankerIdx)
-		{
-			m_nBankerIdx = rand() % getSeatCnt();
-			for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
-			{
-				auto nReal = nIdx % getSeatCnt();
-				auto p = getPlayerByIdx(nReal);
-				if (p)
-				{
-					m_nBankerIdx = nReal;
-					break;
-				}
-			}
-		}
-
 		if (m_nLastNiuNiuIdx != (uint16_t)-1 )
 		{
-			m_nBankerIdx = m_nLastNiuNiuIdx;
+			vCandinates.push_back(m_nLastNiuNiuIdx);
 		}
 	}
 	break;
@@ -301,29 +278,30 @@ uint8_t NNRoom::doProduceNewBanker()
 	{
 		if ((uint16_t)-1 == m_nBankerIdx)
 		{
-			m_nBankerIdx = rand() % getSeatCnt();
+
 		}
 		else
 		{
 			++m_nBankerIdx ;
+			for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
+			{
+				auto nReal = nIdx % getSeatCnt();
+				auto p = getPlayerByIdx(nReal);
+				if (p)
+				{
+					vCandinates.push_back(nReal);
+					break;
+				}
+			}
+
 		}
 		
-		for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx )
-		{
-			auto nReal = nIdx % getSeatCnt();
-			auto p = getPlayerByIdx(nReal);
-			if ( p )
-			{
-				m_nBankerIdx = nReal;
-				break;
-			}
-		}
+
 	}
 	break;
 	case eDecideBank_LookCardThenRobot:
 	{
 		auto nSeatCnt = getSeatCnt();
-		std::vector<uint16_t> vBankerCandinates;
 		uint16_t nBiggistRobotTimes = 0;
 		for (auto nIdx = 0; nIdx < nSeatCnt; ++nIdx)
 		{
@@ -342,23 +320,22 @@ uint8_t NNRoom::doProduceNewBanker()
 			if ( nRobotTimes > nBiggistRobotTimes)
 			{
 				nBiggistRobotTimes = nRobotTimes;
-				vBankerCandinates.clear();
+				vCandinates.clear();
 			}
-			vBankerCandinates.push_back(nIdx);
+			vCandinates.push_back(nIdx);
 		}
 		if ( nBiggistRobotTimes != 0 )
 		{
 			m_nBottomTimes = nBiggistRobotTimes ;
 		}
 		
-		if (vBankerCandinates.empty())
+		if ( vCandinates.empty())
 		{
 			LOGFMTE("why look card robot banker candinates is empty room id = %u",getRoomID() );
-			m_nBankerIdx = 0;
+			m_nBankerIdx = -1;
 			break;
 		}
-		m_nBankerIdx = vBankerCandinates[rand()%vBankerCandinates.size()];
-
+		m_nBankerIdx = vCandinates[rand()% vCandinates.size()];
 		// decide robot banker failed
 		for (auto nIdx = 0; nIdx < nSeatCnt && nBiggistRobotTimes > 0 ; ++nIdx )
 		{
@@ -383,11 +360,41 @@ uint8_t NNRoom::doProduceNewBanker()
 		return 0;
 	}
 
+	if (vCandinates.empty())
+	{
+		for (uint16_t nIdx = 0; nIdx < nSeatCnt; ++nIdx)
+		{
+			auto p = getPlayerByIdx(nIdx);
+			if (p)
+			{
+				vCandinates.push_back(nIdx);
+			}
+		}
+	}
+	
+	if ( m_eDecideBankerType != eDecideBank_LookCardThenRobot || m_nBankerIdx == (decltype(m_nBankerIdx))-1 )
+	{
+		m_nBankerIdx = vCandinates[rand() % vCandinates.size()];
+	}
+
+	Json::Value jsCandinates;
+	if (vCandinates.size() > 1)
+	{
+		for (auto& ref : vCandinates)
+		{
+			jsCandinates[jsCandinates.size()] = ref;
+		}
+	}
+
 	// send msg tell new banker ;
 	Json::Value jsMsg;
 	jsMsg["bankerIdx"] = m_nBankerIdx;
+	if (vCandinates.size() > 1)
+	{
+		jsMsg["vCandinates"] = jsCandinates;
+	}
 	sendRoomMsg(jsMsg, MSG_ROOM_PRODUCED_BANKER);
-	return (uint8_t)m_nBankerIdx;
+	return (uint8_t)vCandinates.size();
 }
 
 void NNRoom::doStartBet()
@@ -585,7 +592,7 @@ bool NNRoom::isAllPlayerRobotedBanker()
 			continue;
 		}
 
-		if ( pPlayer->getRobotBankerTimes() <= 0 )
+		if ( pPlayer->isRobotBanker() == false )
 		{
 			return false;
 		}

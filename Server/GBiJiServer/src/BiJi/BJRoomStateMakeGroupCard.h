@@ -30,6 +30,13 @@ public:
 			return true;
 		}
 
+		if (pPlayer->haveState(eRoomPeer_GiveUp) || pPlayer->haveState(eRoomPeer_DoMakedCardGroup))
+		{
+			js["ret"] = 3;
+			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
+			return true;
+		}
+
 		if ( pRoom->isEnableGiveUp() && jsmsg["vCards"].isNull() ) // do give up 
 		{
 			js["ret"] = 0;
