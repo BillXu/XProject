@@ -260,7 +260,7 @@ void CAsyncRequestQuene::timerCheckReqState(CTimer* pTimer, float fTick )
 		{
 			Json::StyledWriter jsWrite ;
 			auto str = jsWrite.write(pReq->jsReqContent);
-			LOGFMTE("req type = %u , target port = %u  str = %s, tried too many times = %u , why ",pReq->nReqType,pReq->nTargetPortID,str.c_str(),pReq->nSendTimes) ;
+			LOGFMTE(" sierl = %u req type = %u , target port = %u  str = %s, tried too many times = %u , why ",pReq->nReqSerialNum,pReq->nReqType,pReq->nTargetPortID,str.c_str(),pReq->nSendTimes) ;
 		}
 	}
 

@@ -82,7 +82,8 @@ void NNRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,ui
 	}
 
 	GameRoom::visitPlayerInfo(pPlayer, jsPlayerInfo,nVisitorSessionID );
-	
+	jsPlayerInfo["isTuoGuan"] = ((NNPlayer*)pPlayer)->isTuoGuan() ? 1 : 0;
+
 	if ( pPlayer->haveState(eRoomPeer_CanAct) == false )  // not join this round game ;
 	{
 		return;
@@ -234,6 +235,25 @@ bool NNRoom::canStartGame()
 	return nReadyCnt >= 2;
 }
 
+bool NNRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
+{
+	if (false == GameRoom::onPlayerNetStateRefreshed(nPlayerID, nState))
+	{
+		return false;
+	}
+
+	if (nState == eNetState::eNet_Offline)
+	{
+		auto pPlayer = (NNPlayer*)getPlayerByUID(nPlayerID);
+		if (pPlayer)
+		{
+			pPlayer->setTuoGuanFlag(true);
+			invokerTuoGuanAction(pPlayer->getIdx());
+		}
+	}
+	return true;
+}
+
 IPoker* NNRoom::getPoker()
 {
 	return (IPoker*)&m_tPoker;
@@ -245,6 +265,11 @@ void NNRoom::onPlayerReady(uint16_t nIdx)
 	if (!pPlayer)
 	{
 		LOGFMTE("idx = %u target player is null ptr can not set ready", nIdx);
+		return;
+	}
+
+	if ( pPlayer->haveState(eRoomPeer_Ready) )
+	{
 		return;
 	}
 	pPlayer->setState(eRoomPeer_Ready);
@@ -433,6 +458,11 @@ uint8_t NNRoom::onPlayerDoBet( uint16_t nIdx, uint8_t nBetTimes )
 		return 3;
 	}
 
+	if ( p->getBetTimes() != 0 )
+	{
+		return 4;
+	}
+
 	nBetTimes = p->doBet(nBetTimes);
 
 	Json::Value jsRoomBet;
@@ -506,6 +536,11 @@ uint8_t NNRoom::onPlayerDoCacuateNiu( uint16_t nIdx )
 		return 2;
 	}
 
+	if ( p->isCaculatedNiu() )
+	{
+		return 0;
+	}
+
 	p->doCaculatedNiu();
 
 	Json::Value js;
@@ -565,6 +600,11 @@ uint8_t NNRoom::onPlayerRobotBanker(uint16_t nIdx, uint8_t nRobotTimes )
 	{
 		LOGFMTE( "already robot times uid = %u times = %u room id = %u ",p->getUserUID(),p->getRobotBankerTimes(),getRoomID() );
 		return 4;
+	}
+
+	if ( p->isRobotBanker() )
+	{
+		return 0;
 	}
 
 	p->doRobotBanker(nRobotTimes);
@@ -704,6 +744,28 @@ bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPor
 		sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 		return true;
 	}
+	else if ( MSG_NN_PLAYER_UPDATE_TUO_GUAN == nMsgType )
+	{
+		bool isTuoGuan = prealMsg["isTuoGuan"].asUInt() == 1;
+		auto pPlayer = (NNPlayer*)getPlayerBySessionID(nSessionID);
+		Json::Value jsRet;
+		if (pPlayer == nullptr)
+		{
+			jsRet["ret"] = 1;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("you are not in this room how to set ready ? session id = %u", nSessionID);
+			return true;
+		}
+		pPlayer->setTuoGuanFlag(isTuoGuan);
+
+		if ( isTuoGuan )
+		{
+			invokerTuoGuanAction();
+		}
+		prealMsg["idx"] = pPlayer->getIdx();
+		sendRoomMsg(prealMsg, MSG_NN_ROOM_UPDATE_TUO_GUAN);
+		return true;
+	}
 	return false;
 }
 
@@ -735,6 +797,53 @@ void NNRoom::onTimeOutPlayerAutoBet()
 		if ( pPlayer->getBetTimes() == 0)
 		{
 			onPlayerDoBet(nIdx, getMiniBetTimes());
+		}
+	}
+}
+
+void NNRoom::invokerTuoGuanAction(uint8_t nTargetIdx)
+{
+	auto nState = getCurState()->getStateID();
+	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+	{
+		auto pPlayer = (NNPlayer*)getPlayerByIdx(nIdx);
+		if ( nullptr == pPlayer || pPlayer->isTuoGuan() == false )
+		{
+			continue;
+		}
+
+		if ( (decltype(nTargetIdx)) -1 != nTargetIdx && nTargetIdx != nIdx)
+		{
+			continue;
+		}
+
+		switch ( nState )
+		{
+		case eRoomSate_WaitReady:
+		{
+			onPlayerReady(nIdx);
+		}
+		break;
+		case eRoomState_DoBet:
+		{
+			if (nIdx != m_nBankerIdx)
+			{
+				onPlayerDoBet(nIdx, getMiniBetTimes());
+			}
+		}
+		break;
+		case eRoomState_CaculateNiu:
+		{
+			onPlayerDoCacuateNiu(nIdx);
+		}
+		break;
+		case eRoomState_RobotBanker:
+		{
+			onPlayerRobotBanker(nIdx,0);
+		}
+		break;
+		default:
+			break;
 		}
 	}
 }

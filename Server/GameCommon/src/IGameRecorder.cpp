@@ -60,9 +60,9 @@ void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecord
 		strPlayers = jswrite.write(jsPlayers);
 	}
 
-#ifdef _DEBUG
-	return;
-#endif // _DEBUG
+//#ifdef _DEBUG
+//	return;
+//#endif // _DEBUG
 	// do save sql  room round recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
@@ -140,9 +140,9 @@ uint16_t IGameRoomRecorder::getRoundRecorderCnt()
 
 void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 {
-#ifdef _DEBUG
-	return;
-#endif // _DEBUG
+//#ifdef _DEBUG
+//	return;
+//#endif // _DEBUG
 	if ( m_vAllRoundRecorders.empty())
 	{
 		LOGFMTD( "room id = %u do not have recorder creator id = %u", m_nRoomID, m_nCreaterUID );

@@ -5,7 +5,7 @@ class NNPlayer
 	:public IGamePlayer
 {
 public:
-	NNPlayer() { m_nLastOffset = 0; m_nRobotBankerFailTimes = 0; m_isRobotBanker = false; }
+	NNPlayer() { m_nLastOffset = 0; m_nRobotBankerFailTimes = 0; m_isRobotBanker = false; m_isTuoGuan = false; }
 	void onGameWillStart()override;
 	void onGameDidEnd()override;
 	uint16_t doBet( uint16_t nBetTimes );
@@ -21,6 +21,9 @@ public:
 	uint8_t getRobotBankerFailedTimes() { return m_nRobotBankerFailTimes; }
 	bool isRobotBanker() { return m_isRobotBanker; }
 	bool recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrder)override;
+	bool isTuoGuan();
+	void setTuoGuanFlag(uint8_t isTuoGuan);
+	void setIsOnline(bool isOnline)override;
 protected:
 	CNiuNiuPeerCard m_tPeerCard;
 	bool m_isCaculatedNiu;
@@ -29,4 +32,5 @@ protected:
 	int8_t m_nLastOffset;
 	uint8_t m_nRobotBankerFailTimes;
 	bool m_isRobotBanker;
+	bool m_isTuoGuan;
 };

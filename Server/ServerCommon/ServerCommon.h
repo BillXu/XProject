@@ -83,9 +83,10 @@ enum eAsyncReq
 	eAsync_HttpCmd_SetCanCreateRoom, // { canCreateRoom : 0 } // result { ret : 0 , canCreateRoom : 0 }
 	eAsync_HttpCmd_GetSvrInfo, // result : { diffrent svr , diffrent key value } 
 	eAsync_HttpCmd_DismissRoom, // { roomID : 22334 }, // result : { ret : 0 , roomID } , // when roomID == 1 means dismiss all ; 
-	eAsync_HttpCmd_GetPlayerInfo, // { uid : 234 } , result :  { ret : 0 , uid : 2323, name: "abc" , diamond : 23 , createRooms : [ { port : 2 , roomID : 23 }, ...] , stayInRoom: { port : 1 , roomID : 23 } }
+	eAsync_HttpCmd_GetPlayerInfo, // { uid : 234 } , result :  { ret : 0 , uid : 2323, name: "abc" , diamond : 23 , emojiCnt : 23 , createRooms : [ { port : 2 , roomID : 23 }, ...] , stayInRoom: { port : 1 , roomID : 23 } }  
+	eAsync_HttpCmd_AddEmojiCnt, // { targetUID : 234, addCnt : 23 , agentID : 23 }, result : { ret : 0, addCnt : 23 } // ret : 0 success , 1 argument error , 2 player is not online .
 
-
+	eAsync_Comsume_Interact_Emoji, // { targetUID : 23 ,roomID : 23452, cnt : 1 } // result : { ret : 0 }  // 0 ok , 1 not enough, 2 player is not online ;
 
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;

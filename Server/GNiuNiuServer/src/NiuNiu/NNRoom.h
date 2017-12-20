@@ -34,6 +34,7 @@ public:
 	void onGameEnd()override;
 	bool canStartGame()override;
 	IPoker* getPoker()override;
+	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)override;
 
 	void onPlayerReady( uint16_t nIdx);
 	uint8_t doProduceNewBanker();
@@ -52,6 +53,7 @@ public:
 	bool isEnableTuiZhu();
 	bool isEnableTuiZhuang();
 	void onTimeOutPlayerAutoBet();
+	void invokerTuoGuanAction( uint8_t nTargetIdx = -1 );
 protected:
 	uint8_t getMiniBetTimes();
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );

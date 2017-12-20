@@ -108,7 +108,7 @@ void CTimer::Update(float fTimeElaps)
 
 	if ( m_isAutoRepeat )
 	{
-		m_fIntervalKeeper -= m_fInterval ;
+		m_fIntervalKeeper = 0 ;
 	}
 	else
 	{

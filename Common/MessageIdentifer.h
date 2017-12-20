@@ -44,7 +44,7 @@ enum eMsgType
 	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server
 	// svr : null 
 	MSG_PLAYER_BASE_DATA,
-	// svr: { uid : 23,name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20, ip: "234.234.234",stayRoomID : 0  }
+	// svr: { uid : 23,name : "lucy" , sex : 1 , headIcon : "http://url.com",diamond : 23 , coin : 20,emojiCnt : 23, ip: "234.234.234",stayRoomID : 0  }
 	// stayRoomID , if not in any room , this key is null ;
 	MSG_PLAYER_UPDATE_INFO,
 	// client : { name : "lucy", sex : 1 , headIcon : "http://url.com"  }
@@ -83,6 +83,13 @@ enum eMsgType
 	// type : eMailType
 	// state : eMailState 枚举值
 	// detail : 不同的邮件类型，内容不一样；
+
+	MSG_PLAYER_INTERACT_EMOJI,
+	// client : { targetIdx : 0 , emoji : 23 }
+	// svr : { ret : 0 }  // 0 success , 1 money is not enough , 2 player is not online , 3 you are not sitdown  in room ;
+	
+	MSG_ROOM_INTERACT_EMOJI,
+	// svr : { invokerIdx : 1 ,targetIdx : 0 , emoji : 23 } 
 
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
@@ -197,9 +204,18 @@ enum eMsgType
 	// dismissID is null or 0 , means normal dismiss ;
 	// dismissID is 1 , means system dismiss room ;
 	// dismissID biger than 1 , means player dismiss room ;
+
 	MSG_REQ_ROOM_ITEM_INFO,
 	// client : { roomID : 23 }
 	// svr : { state : 2 ,isOpen : 0 , roomID: 23, opts: {} , players: [23,234,23 ..] }
+
+	MSG_NN_PLAYER_UPDATE_TUO_GUAN,
+	// client : { isTuoGuan : 0  }
+	// svr : { ret : 0 } ;   // 0 success , 1 the same , not change , 2 not in Room , 3 arg error;
+
+	MSG_NN_ROOM_UPDATE_TUO_GUAN,
+	// svr : { idx : 0 , isTuoGuan : 0 } 
+
 	MSG_POKER_BJ_BEGIN = 800,
 	
 	MSG_ROOM_BJ_START_GAME,

@@ -11,6 +11,7 @@ public:
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		setStateDuringTime(10);
+		m_isCheckTuoGuan = false;
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
@@ -46,6 +47,18 @@ public:
 	}
 
 	uint8_t getCurIdx()override { return m_nNewBankerIdx; };
+
+	void update(float fDeta)override
+	{
+		IGameRoomState::update(fDeta);
+		auto pRoom = (NNRoom*)getRoom();
+		if (false == m_isCheckTuoGuan)
+		{
+			m_isCheckTuoGuan = true;
+			pRoom->invokerTuoGuanAction();
+		}
+	}
 protected:
 	uint8_t m_nNewBankerIdx;
+	bool m_isCheckTuoGuan;
 };

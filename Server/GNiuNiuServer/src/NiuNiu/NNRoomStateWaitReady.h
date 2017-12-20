@@ -12,6 +12,7 @@ public:
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		setStateDuringTime(eTime_WaitPlayerReady);
+		m_isCheckTuoGuan = false;
 	}
 
 	void onStateTimeUp()
@@ -41,10 +42,16 @@ public:
 	void update(float fDeta)override
 	{
 		IGameRoomState::update(fDeta);
-		auto pRoom = getRoom();
+		auto pRoom = (NNRoom*)getRoom();
 		if (pRoom->canStartGame())
 		{
 			pRoom->goToState(eRoomState_StartGame);
+		}
+
+		if (false == m_isCheckTuoGuan)
+		{
+			m_isCheckTuoGuan = true;
+			pRoom->invokerTuoGuanAction();
 		}
 	}
 
@@ -83,4 +90,6 @@ public:
 		}
 		return false;
 	}
+protected:
+	bool m_isCheckTuoGuan;
 };

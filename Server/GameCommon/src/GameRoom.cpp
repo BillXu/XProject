@@ -578,6 +578,48 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 		sendMsgToPlayer(js, nMsgType, nSessionID);
 	}
 	break;
+	case MSG_PLAYER_INTERACT_EMOJI:
+	{
+		auto pPlayer = getPlayerBySessionID(nSessionID);
+		if (!pPlayer)
+		{
+			Json::Value js;
+			js["ret"] = 3;
+			sendMsgToPlayer(js, nMsgType, nSessionID);
+			break;
+		}
+
+		// go on  
+		Json::Value jsReq;
+		jsReq["targetUID"] = pPlayer->getUserUID();
+		jsReq["cnt"] = 1;
+		jsReq["roomID"] = getRoomID();
+		auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
+		prealMsg["invokerIdx"] = pPlayer->getIdx();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Comsume_Interact_Emoji, jsReq, [nSessionID, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			if (isTimeOut)
+			{
+				Json::Value js;
+				js["ret"] = 2;
+				sendMsgToPlayer(js, MSG_PLAYER_INTERACT_EMOJI, nSessionID);
+				LOGFMTE("wait time out can not send emoj room id = %u , sessionid = %u",getRoomID(),nSessionID );
+				return;
+			}
+
+			auto nRet = retContent["ret"].asUInt();
+			if ( 0 != nRet)
+			{
+				Json::Value js;
+				js["ret"] = nRet;
+				sendMsgToPlayer(js, MSG_PLAYER_INTERACT_EMOJI, nSessionID);
+				return;
+			}
+
+			sendRoomMsg(jsUserData, MSG_ROOM_INTERACT_EMOJI );
+		}, prealMsg,pPlayer->getUserUID());
+	}
+	break;
 	default:
 		return getCurState()->onMsg(prealMsg,nMsgType,eSenderPort,nSessionID);
 	}

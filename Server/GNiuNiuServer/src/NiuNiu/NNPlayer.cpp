@@ -75,3 +75,22 @@ bool NNPlayer::recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrde
 	p->setHoldCards(vHoldCards);
 	return true;
 }
+
+bool NNPlayer::isTuoGuan()
+{
+	return m_isTuoGuan ;
+}
+
+void NNPlayer::setTuoGuanFlag(uint8_t isTuoGuan)
+{
+	m_isTuoGuan = isTuoGuan;
+}
+
+void NNPlayer::setIsOnline(bool isOnline)
+{
+	IGamePlayer::setIsOnline(isOnline);
+	if (isOnline == false )
+	{
+		setTuoGuanFlag(true);
+	}
+}

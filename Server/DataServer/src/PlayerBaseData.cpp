@@ -61,7 +61,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_stBaseData.nUserUID = getPlayer()->getUserUID();
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,headIcon FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -84,6 +84,7 @@ void CPlayerBaseData::onPlayerLogined()
 		sprintf_s(m_stBaseData.cName, "%s", jsRow["nickName"].asCString());
 		m_stBaseData.nCoin = jsRow["coin"].asUInt();
 		m_stBaseData.nDiamoned = jsRow["diamond"].asUInt();
+		m_stBaseData.nEmojiCnt = jsRow["emojiCnt"].asUInt();
 		m_stBaseData.nSex = jsRow["sex"].asUInt();
 
 		modifyMoney(m_nTmpCoin);
@@ -123,6 +124,7 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		Json::Value jsmsg;
 		jsmsg["coin"] = getCoin();
 		jsmsg["diamond"] = getDiamoned();
+		jsmsg["emojiCnt"] = getEmojiCnt();
 		sendMsg(jsmsg, nmsgType);
 		return true;
 	}
@@ -145,6 +147,7 @@ void CPlayerBaseData::sendBaseDataToClient()
 	jsBaseData["headIcon"] = getHeadIcon();
 	jsBaseData["diamond"] = getDiamoned();
 	jsBaseData["coin"] = getCoin();
+	jsBaseData["emojiCnt"] = getEmojiCnt();
 	jsBaseData["ip"] = getPlayer()->getIp();
 
 	auto pStay = ((CPlayerGameData*)getPlayer()->getComponent(ePlayerComponent_PlayerGameData))->getStayInRoom();
@@ -189,12 +192,12 @@ void CPlayerBaseData::saveMoney()
 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "update playerbasedata set coin = %u ,diamond = %u where userUID = %u ;", getCoin(),getDiamoned(), getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "update playerbasedata set coin = %u ,diamond = %u,emojiCnt = %u where userUID = %u ;", getCoin(),getDiamoned(),getEmojiCnt(), getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
-	LOGFMTD( "uid = %u save money coin = %u , diamond = %u",getPlayer()->getUserUID(),getCoin(),getDiamoned() );
+	LOGFMTD( "uid = %u save money coin = %u , diamond = %u , emojiCnt = %u",getPlayer()->getUserUID(),getCoin(),getDiamoned(), getEmojiCnt() );
 }
 
 bool CPlayerBaseData::modifyMoney( int32_t nOffset, bool bDiamond )
@@ -217,6 +220,28 @@ bool CPlayerBaseData::modifyMoney( int32_t nOffset, bool bDiamond )
 	}
 
 	nRefMoney += nOffset;
+	m_bMoneyDataDirty = true;
+	return true;
+}
+
+bool CPlayerBaseData::modifyEmojiCnt(int32_t nOffset)
+{
+	if (m_isReadingDB)
+	{
+		LOGFMTE( "can not modify emojicnt reading db uid = %u , offset = %d",getPlayer()->getUserUID(),nOffset );
+		return false;
+	}
+
+	if (nOffset < 0)
+	{
+		if ((uint32_t)(nOffset * -1) > getEmojiCnt() )
+		{
+			LOGFMTE("uid = %u emoji cnt is too few , can not decrease emojCnt = %u ,offset = %d", getPlayer()->getUserUID(), getEmojiCnt(),  nOffset);
+			nOffset = (-1 * (int32_t)getEmojiCnt());
+		}
+	}
+
+	m_stBaseData.nEmojiCnt += nOffset;
 	m_bMoneyDataDirty = true;
 	return true;
 }

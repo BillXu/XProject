@@ -22,6 +22,8 @@ public:
 	void timerSave()override;
 	uint32_t getCoin(){ return m_stBaseData.nCoin ; }
 	uint32_t getDiamoned(){ return m_stBaseData.nDiamoned;}
+	uint32_t getEmojiCnt() { return m_stBaseData.nEmojiCnt; }
+	bool modifyEmojiCnt(int32_t nOffset );
 	bool modifyMoney(int32_t nOffset,bool bDiamond = false );
 	const char* getPlayerName(){ return m_stBaseData.cName ;}
 	const char* getHeadIcon() { return m_stBaseData.cHeadiconUrl; }
