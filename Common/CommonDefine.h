@@ -52,6 +52,7 @@ enum eGameType
 	eGame_JJDouDiZhu,
 	eGame_TestMJ,
 	eGame_Golden,
+	eGame_SCMJ,
 	eGame_Max,
 };
 
@@ -167,7 +168,7 @@ enum eFanxingType
 	eFanxing_ShuangQiDui, // 双七对
 
 	eFanxing_MengQing, // 门清
-	
+
 	eFanxing_YaJue, // 压绝 
 	eFanxing_HunYiSe, // 混一色
 	eFanxing_WuHuaGuo, // 无花果
@@ -176,6 +177,14 @@ enum eFanxingType
 	eFanxing_HaiDiLaoYue, // 海底捞月
 	eFanxing_DaMenQing, // 大门清
 	eFanxing_XiaoMenQing, // 小门清
+
+	eFanxing_GangKai, //杠开
+	eFanxing_QiangGang, //抢杠
+	eFanxing_GangHouPao, //杠后炮
+	
+	eFanxing_SC_ZhongZhang, //四川麻将中张
+	eFanxing_SC_19JiangDui, //四川麻将19将对
+	eFanxing_SC_Gen, //四川麻将根(4张相同的牌)
 
 	eFanxing_Max, // 没有胡
 };
