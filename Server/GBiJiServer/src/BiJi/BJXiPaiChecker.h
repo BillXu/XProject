@@ -26,6 +26,14 @@ public:
 			{
 				return false;
 			}
+
+			if (nType == ePoker_Joker)
+			{
+				if (BJ_PARSE_VALUE(ref) != 15)
+				{
+					return false;
+				}
+			}
 		}
 
 		eType = eXiPai_AllBlack;
@@ -48,6 +56,14 @@ public:
 			if (ePoker_Diamond != nType && ePoker_Heart != nType && ePoker_Joker != nType )
 			{
 				return false;
+			}
+
+			if (nType == ePoker_Joker)
+			{
+				if (BJ_PARSE_VALUE(ref) != 16 )
+				{
+					return false;
+				}
 			}
 		}
 

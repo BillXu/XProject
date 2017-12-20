@@ -9,7 +9,7 @@
 bool BJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
- 
+	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
 	return true;
 }
 
@@ -54,4 +54,41 @@ void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 	jsMsg["dismissID"] = m_nApplyDismissUID;
 	jsMsg["result"] = jsArrayPlayers;
 	sendRoomMsg(jsMsg, MSG_ROOM_BJ_GAME_OVER);
+}
+
+uint8_t BJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
+{
+	if (  isRoomStarted() )
+	{
+		return 7;
+	}
+
+	return IPrivateRoom::checkPlayerCanEnter(pEnterRoomPlayer);
+}
+
+bool BJPrivateRoom::canStartGame(IGameRoom* pRoom)
+{
+	if (m_isOpen == false && m_nAutoOpenCnt > 0)
+	{
+		uint8_t nCnt = 0;
+		auto pNRoom = ((BJRoom*)pRoom);
+		for (uint8_t nIdx = 0; nIdx < pNRoom->getSeatCnt(); ++nIdx)
+		{
+			if (pNRoom->getPlayerByIdx(nIdx))
+			{
+				++nCnt;
+			}
+		}
+
+		m_isOpen = nCnt >= m_nAutoOpenCnt;
+		if (m_isOpen)
+		{
+			m_isOpen = true;
+			Json::Value js;
+			sendRoomMsg(js, MSG_ROOM_DO_OPEN);
+			LOGFMTI(" room id = %u auto set open", getRoomID());
+		}
+	}
+
+	return IPrivateRoom::canStartGame(pRoom);
 }

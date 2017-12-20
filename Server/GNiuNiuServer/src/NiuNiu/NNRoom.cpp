@@ -20,7 +20,7 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 	m_nBankerIdx = -1;
 	m_nBottomTimes = 1;
 	m_eDecideBankerType = (eDecideBankerType)vJsOpts["bankType"].asUInt();
-	m_eResultType = eResult_Max; // (eResultType)vJsOpts["resultType"].asUInt();
+	m_eResultType = vJsOpts["fanBei"].asUInt();
 	
 	IGameRoomState* pState = new NNRoomStateWaitReady();
 	addRoomState(pState);
@@ -36,10 +36,10 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 		pState = new NNRoomStateStartGame();
 		addRoomState(pState);
 
-		pState = new NNRoomStateDecideBanker();
+		pState = new NNRoomStateDistributeCard();
 		addRoomState(pState);
 
-		pState = new NNRoomStateDistributeCard();
+		pState = new NNRoomStateDecideBanker();
 		addRoomState(pState);
 	}
 	else
@@ -82,7 +82,8 @@ void NNRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,ui
 	}
 
 	GameRoom::visitPlayerInfo(pPlayer, jsPlayerInfo,nVisitorSessionID );
-	
+	jsPlayerInfo["isTuoGuan"] = ((NNPlayer*)pPlayer)->isTuoGuan() ? 1 : 0;
+
 	if ( pPlayer->haveState(eRoomPeer_CanAct) == false )  // not join this round game ;
 	{
 		return;
@@ -234,6 +235,25 @@ bool NNRoom::canStartGame()
 	return nReadyCnt >= 2;
 }
 
+bool NNRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
+{
+	if (false == GameRoom::onPlayerNetStateRefreshed(nPlayerID, nState))
+	{
+		return false;
+	}
+
+	if (nState == eNetState::eNet_Offline)
+	{
+		auto pPlayer = (NNPlayer*)getPlayerByUID(nPlayerID);
+		if (pPlayer)
+		{
+			pPlayer->setTuoGuanFlag(true);
+			invokerTuoGuanAction(pPlayer->getIdx());
+		}
+	}
+	return true;
+}
+
 IPoker* NNRoom::getPoker()
 {
 	return (IPoker*)&m_tPoker;
@@ -247,6 +267,11 @@ void NNRoom::onPlayerReady(uint16_t nIdx)
 		LOGFMTE("idx = %u target player is null ptr can not set ready", nIdx);
 		return;
 	}
+
+	if ( pPlayer->haveState(eRoomPeer_Ready) )
+	{
+		return;
+	}
 	pPlayer->setState(eRoomPeer_Ready);
 	// msg ;
 	Json::Value jsMsg;
@@ -257,43 +282,20 @@ void NNRoom::onPlayerReady(uint16_t nIdx)
 
 uint8_t NNRoom::doProduceNewBanker()
 {
+	std::vector<uint8_t> vCandinates;
+	auto nSeatCnt = getSeatCnt();
 	switch (m_eDecideBankerType)
 	{
 	case eDecideBank_Rand:
 	{
-		m_nBankerIdx = rand() % getSeatCnt();
-		for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
-		{
-			auto nReal = nIdx % getSeatCnt();
-			auto p = getPlayerByIdx(nReal);
-			if (p)
-			{
-				m_nBankerIdx = nReal;
-				break;
-			}
-		}
+
 	}
 	break;
 	case eDecideBank_NiuNiu:
 	{
-		if ((uint16_t)-1 == m_nBankerIdx)
-		{
-			m_nBankerIdx = rand() % getSeatCnt();
-			for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
-			{
-				auto nReal = nIdx % getSeatCnt();
-				auto p = getPlayerByIdx(nReal);
-				if (p)
-				{
-					m_nBankerIdx = nReal;
-					break;
-				}
-			}
-		}
-
 		if (m_nLastNiuNiuIdx != (uint16_t)-1 )
 		{
-			m_nBankerIdx = m_nLastNiuNiuIdx;
+			vCandinates.push_back(m_nLastNiuNiuIdx);
 		}
 	}
 	break;
@@ -301,29 +303,30 @@ uint8_t NNRoom::doProduceNewBanker()
 	{
 		if ((uint16_t)-1 == m_nBankerIdx)
 		{
-			m_nBankerIdx = rand() % getSeatCnt();
+
 		}
 		else
 		{
 			++m_nBankerIdx ;
+			for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx)
+			{
+				auto nReal = nIdx % getSeatCnt();
+				auto p = getPlayerByIdx(nReal);
+				if (p)
+				{
+					vCandinates.push_back(nReal);
+					break;
+				}
+			}
+
 		}
 		
-		for (uint16_t nIdx = m_nBankerIdx; nIdx < (getSeatCnt() * 2); ++nIdx )
-		{
-			auto nReal = nIdx % getSeatCnt();
-			auto p = getPlayerByIdx(nReal);
-			if ( p )
-			{
-				m_nBankerIdx = nReal;
-				break;
-			}
-		}
+
 	}
 	break;
 	case eDecideBank_LookCardThenRobot:
 	{
 		auto nSeatCnt = getSeatCnt();
-		std::vector<uint16_t> vBankerCandinates;
 		uint16_t nBiggistRobotTimes = 0;
 		for (auto nIdx = 0; nIdx < nSeatCnt; ++nIdx)
 		{
@@ -342,23 +345,22 @@ uint8_t NNRoom::doProduceNewBanker()
 			if ( nRobotTimes > nBiggistRobotTimes)
 			{
 				nBiggistRobotTimes = nRobotTimes;
-				vBankerCandinates.clear();
+				vCandinates.clear();
 			}
-			vBankerCandinates.push_back(nIdx);
+			vCandinates.push_back(nIdx);
 		}
 		if ( nBiggistRobotTimes != 0 )
 		{
 			m_nBottomTimes = nBiggistRobotTimes ;
 		}
 		
-		if (vBankerCandinates.empty())
+		if ( vCandinates.empty())
 		{
 			LOGFMTE("why look card robot banker candinates is empty room id = %u",getRoomID() );
-			m_nBankerIdx = 0;
+			m_nBankerIdx = -1;
 			break;
 		}
-		m_nBankerIdx = vBankerCandinates[rand()%vBankerCandinates.size()];
-
+		m_nBankerIdx = vCandinates[rand()% vCandinates.size()];
 		// decide robot banker failed
 		for (auto nIdx = 0; nIdx < nSeatCnt && nBiggistRobotTimes > 0 ; ++nIdx )
 		{
@@ -383,11 +385,41 @@ uint8_t NNRoom::doProduceNewBanker()
 		return 0;
 	}
 
+	if (vCandinates.empty())
+	{
+		for (uint16_t nIdx = 0; nIdx < nSeatCnt; ++nIdx)
+		{
+			auto p = getPlayerByIdx(nIdx);
+			if (p)
+			{
+				vCandinates.push_back(nIdx);
+			}
+		}
+	}
+	
+	if ( m_eDecideBankerType != eDecideBank_LookCardThenRobot || m_nBankerIdx == (decltype(m_nBankerIdx))-1 )
+	{
+		m_nBankerIdx = vCandinates[rand() % vCandinates.size()];
+	}
+
+	Json::Value jsCandinates;
+	if (vCandinates.size() > 1)
+	{
+		for (auto& ref : vCandinates)
+		{
+			jsCandinates[jsCandinates.size()] = ref;
+		}
+	}
+
 	// send msg tell new banker ;
 	Json::Value jsMsg;
 	jsMsg["bankerIdx"] = m_nBankerIdx;
+	if (vCandinates.size() > 1)
+	{
+		jsMsg["vCandinates"] = jsCandinates;
+	}
 	sendRoomMsg(jsMsg, MSG_ROOM_PRODUCED_BANKER);
-	return (uint8_t)m_nBankerIdx;
+	return (uint8_t)vCandinates.size();
 }
 
 void NNRoom::doStartBet()
@@ -424,6 +456,11 @@ uint8_t NNRoom::onPlayerDoBet( uint16_t nIdx, uint8_t nBetTimes )
 	{
 		LOGFMTE("you are not play this round , can not bet");
 		return 3;
+	}
+
+	if ( p->getBetTimes() != 0 )
+	{
+		return 4;
 	}
 
 	nBetTimes = p->doBet(nBetTimes);
@@ -499,6 +536,11 @@ uint8_t NNRoom::onPlayerDoCacuateNiu( uint16_t nIdx )
 		return 2;
 	}
 
+	if ( p->isCaculatedNiu() )
+	{
+		return 0;
+	}
+
 	p->doCaculatedNiu();
 
 	Json::Value js;
@@ -560,6 +602,11 @@ uint8_t NNRoom::onPlayerRobotBanker(uint16_t nIdx, uint8_t nRobotTimes )
 		return 4;
 	}
 
+	if ( p->isRobotBanker() )
+	{
+		return 0;
+	}
+
 	p->doRobotBanker(nRobotTimes);
 
 	Json::Value jsRoomBet;
@@ -585,7 +632,7 @@ bool NNRoom::isAllPlayerRobotedBanker()
 			continue;
 		}
 
-		if ( pPlayer->getRobotBankerTimes() <= 0 )
+		if ( pPlayer->isRobotBanker() == false )
 		{
 			return false;
 		}
@@ -596,18 +643,35 @@ bool NNRoom::isAllPlayerRobotedBanker()
 
 int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 {
+	// 0:Å£Å£x3 Å£¾Åx2 Å£°Ëx2, 1 : Å£Å£x4 Å£¾Åx3 Å£°Ëx2 Å£Æßx2
 	switch (nType)
 	{
 	case CNiuNiuPeerCard::Niu_Single:
 	{
-		if (nPoint == 7 || 8 == nPoint) { return 2; }
-		if (nPoint == 9) { return 3; }
+		if ( 0 == m_eResultType && (nPoint == 9 || 8 == nPoint) )
+		{
+			return 2;
+		}
+
+		if ( 1 == m_eResultType)
+		{
+			if (9 == nPoint)
+			{
+				return 3;
+			}
+
+			if (8 == nPoint || 7 == nPoint)
+			{
+				return 2;
+			}
+		}
+ 
 		return 1;
 	}
 	break;
 	case CNiuNiuPeerCard::Niu_Niu:
 	{
-		return 4;
+		return m_eResultType == 0 ? 3 : 4;
 	};
 	break;
 	case CNiuNiuPeerCard::Niu_ShunZiNiu:
@@ -638,89 +702,6 @@ int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 		return 1;
 	}
 
-	// old code below ;
-	// return ;
-	if ( m_eResultType == eResult_NiuNiu4)
-	{
-		if (nType == CNiuNiuPeerCard::Niu_None)
-		{
-			return 1;
-		}
-
-		if (nType == CNiuNiuPeerCard::Niu_Single)
-		{
-			if (nPoint >= 1 && nPoint <= 6)
-			{
-				return 1;
-			}
-
-			if (nPoint <= 8)
-			{
-				return 2;
-			}
-
-			if (nPoint == 9)
-			{
-				return 3;
-			}
-		}
-		else if (CNiuNiuPeerCard::Niu_Niu == nType)
-		{
-			return 4;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveFlower == nType)
-		{
-			return 5;
-		}
-		else if (CNiuNiuPeerCard::Niu_Boom == nType)
-		{
-			return 6;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveSmall == nType)
-		{
-			return 8;
-		}
-		LOGFMTE( "niu 4 result type : unknown : %u , p = %u",nType,nPoint );
-		return 1;
-	}
-	else if (eReulst_NiuNiu3 == m_eResultType)
-	{
-		if (nType == CNiuNiuPeerCard::Niu_None)
-		{
-			return 1;
-		}
-
-		if (nType == CNiuNiuPeerCard::Niu_Single)
-		{
-			if (nPoint >= 1 && nPoint <= 7)
-			{
-				return 1;
-			}
-
-			if (nPoint <= 9)
-			{
-				return 2;
-			}
-		}
-		else if (CNiuNiuPeerCard::Niu_Niu == nType)
-		{
-			return 3;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveFlower == nType)
-		{
-			return 5;
-		}
-		else if (CNiuNiuPeerCard::Niu_Boom == nType)
-		{
-			return 6;
-		}
-		else if (CNiuNiuPeerCard::Niu_FiveSmall == nType)
-		{
-			return 8;
-		}
-		LOGFMTE("niu 3 result type : unknown : %u , p = %u", nType, nPoint);
-		return 1;
-	}
 	LOGFMTE( "unknow result = %u , room id = %u",m_eResultType,getRoomID() );
 	return 1;
 }
@@ -763,6 +744,28 @@ bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPor
 		sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 		return true;
 	}
+	else if ( MSG_NN_PLAYER_UPDATE_TUO_GUAN == nMsgType )
+	{
+		bool isTuoGuan = prealMsg["isTuoGuan"].asUInt() == 1;
+		auto pPlayer = (NNPlayer*)getPlayerBySessionID(nSessionID);
+		Json::Value jsRet;
+		if (pPlayer == nullptr)
+		{
+			jsRet["ret"] = 1;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("you are not in this room how to set ready ? session id = %u", nSessionID);
+			return true;
+		}
+		pPlayer->setTuoGuanFlag(isTuoGuan);
+
+		if ( isTuoGuan )
+		{
+			invokerTuoGuanAction();
+		}
+		prealMsg["idx"] = pPlayer->getIdx();
+		sendRoomMsg(prealMsg, MSG_NN_ROOM_UPDATE_TUO_GUAN);
+		return true;
+	}
 	return false;
 }
 
@@ -793,7 +796,64 @@ void NNRoom::onTimeOutPlayerAutoBet()
 
 		if ( pPlayer->getBetTimes() == 0)
 		{
-			onPlayerDoBet(nIdx, 1);
+			onPlayerDoBet(nIdx, getMiniBetTimes());
 		}
 	}
+}
+
+void NNRoom::invokerTuoGuanAction(uint8_t nTargetIdx)
+{
+	auto nState = getCurState()->getStateID();
+	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+	{
+		auto pPlayer = (NNPlayer*)getPlayerByIdx(nIdx);
+		if ( nullptr == pPlayer || pPlayer->isTuoGuan() == false )
+		{
+			continue;
+		}
+
+		if ( (decltype(nTargetIdx)) -1 != nTargetIdx && nTargetIdx != nIdx)
+		{
+			continue;
+		}
+
+		switch ( nState )
+		{
+		case eRoomSate_WaitReady:
+		{
+			onPlayerReady(nIdx);
+		}
+		break;
+		case eRoomState_DoBet:
+		{
+			if (nIdx != m_nBankerIdx)
+			{
+				onPlayerDoBet(nIdx, getMiniBetTimes());
+			}
+		}
+		break;
+		case eRoomState_CaculateNiu:
+		{
+			onPlayerDoCacuateNiu(nIdx);
+		}
+		break;
+		case eRoomState_RobotBanker:
+		{
+			onPlayerRobotBanker(nIdx,0);
+		}
+		break;
+		default:
+			break;
+		}
+	}
+}
+
+uint8_t NNRoom::getMiniBetTimes()
+{
+	if (m_jsOpts["diFen"].isNull())
+	{
+		LOGFMTE( "opts di fen  is null " );
+		return 1;
+	}
+	return m_jsOpts["diFen"].asUInt();
 }

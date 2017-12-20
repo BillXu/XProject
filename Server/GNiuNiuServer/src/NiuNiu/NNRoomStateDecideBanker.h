@@ -10,8 +10,9 @@ public:
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		auto pRoom = (NNRoom*)getRoom();
-		m_nNewBankerIdx = pRoom->doProduceNewBanker();
-		setStateDuringTime(eTime_ExeGameStart);
+		auto nCandianateCnt = pRoom->doProduceNewBanker();
+		float fT = nCandianateCnt * 0.5;
+		setStateDuringTime(((uint8_t)fT) > 2 ? 2 : fT );
 	}
 
 	void onStateTimeUp()
@@ -20,7 +21,4 @@ public:
 		getRoom()->goToState(eRoomState_DoBet, &jsValue);
 	}
 
-	uint8_t getCurIdx()override { return m_nNewBankerIdx; };
-protected:
-	uint8_t m_nNewBankerIdx;
 };

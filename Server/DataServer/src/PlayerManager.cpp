@@ -468,6 +468,36 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		pMailModule->postMail(nUserUID, eMail_GiveBack_Diamond, jsMailArg, eMailState_WaitSysAct);
 	}
 	break;
+	case eAsync_Comsume_Interact_Emoji:
+	{
+		auto nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (!pPlayer || pPlayer->isPlayerReady() == false )
+		{
+			LOGFMTE(" can not find player uid = %u , to process async req = %u, let is time out", nUID, nRequestType);
+			jsResult["ret"] = 2;
+			break;
+		}
+
+		auto nComsumCnt = jsReqContent["cnt"].asUInt();
+		auto pBaseData = pPlayer->getBaseData();
+		if ( nComsumCnt > pBaseData->getEmojiCnt())
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+
+		jsResult["ret"] = 0;
+
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+		jsMailArg["cnt"] = jsReqContent["cnt"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Consume_Emoji, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
 	case eAsync_Inform_Player_LeavedRoom:
 	case eAsync_Request_EnterRoomInfo:
 	case eAsync_Request_CreateRoomInfo:
@@ -476,7 +506,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		auto nUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUID);
-		if (!pPlayer)
+		if (!pPlayer  )
 		{
 			LOGFMTE(" can not find player uid = %u , to process async req = %u, let is time out", nUID,nRequestType );
 			jsResult["ret"] = 2;
@@ -525,7 +555,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 
 		auto nUserUID = jsReqContent["uid"].asUInt();
 		auto p = getPlayerByUserUID(nUserUID);
-		if (p == nullptr)
+		if (p == nullptr || p->isPlayerReady() == false )
 		{
 			jsResult["ret"] = 2;
 			break;
@@ -535,9 +565,35 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		jsResult["name"] = p->getBaseData()->getPlayerName();
 		jsResult["icon"] = p->getBaseData()->getHeadIcon();
 		jsResult["diamond"] = p->getBaseData()->getDiamoned();
+		jsResult["emojiCnt"] = p->getBaseData()->getEmojiCnt();
 		auto gd = (CPlayerGameData*)p->getComponent(ePlayerComponent_PlayerGameData);
 		gd->adminVisitInfo(jsResult);
 		jsResult["ret"] = 0;
+	}
+	break;
+	case eAsync_HttpCmd_AddEmojiCnt:
+	{
+		if (jsReqContent["targetUID"].isUInt() == false || false == jsReqContent["agentID"].isUInt() || false == jsReqContent["addCnt"].isUInt())
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+
+		auto p = getPlayerByUserUID(nUserUID);
+		if (p == nullptr || p->isPlayerReady() == false)
+		{
+			jsResult["ret"] = 2;
+			break;
+		}
+
+		Json::Value jsMailArg;
+		jsMailArg["agentID"] = jsReqContent["agentID"];
+		jsMailArg["addCnt"] = jsReqContent["addCnt"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Agent_AddEmojiCnt, jsMailArg, eMailState_WaitSysAct);
 	}
 	break;
 	default:

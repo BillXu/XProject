@@ -7,6 +7,7 @@ void NNPlayer::onGameWillStart()
 	m_isCaculatedNiu = false;
 	m_nBetTimes = 0;
 	m_nRobotBankerTimes = 0;
+	m_isRobotBanker = false;
 }
 
 void NNPlayer::onGameDidEnd()
@@ -33,6 +34,7 @@ uint16_t NNPlayer::getBetTimes()
 uint16_t NNPlayer::doRobotBanker(uint16_t nRobotTimes)
 {
 	m_nRobotBankerTimes = (uint8_t)nRobotTimes;
+	m_isRobotBanker = true;
 	return nRobotTimes;
 }
 
@@ -72,4 +74,23 @@ bool NNPlayer::recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrde
 
 	p->setHoldCards(vHoldCards);
 	return true;
+}
+
+bool NNPlayer::isTuoGuan()
+{
+	return m_isTuoGuan ;
+}
+
+void NNPlayer::setTuoGuanFlag(uint8_t isTuoGuan)
+{
+	m_isTuoGuan = isTuoGuan;
+}
+
+void NNPlayer::setIsOnline(bool isOnline)
+{
+	IGamePlayer::setIsOnline(isOnline);
+	if (isOnline == false )
+	{
+		setTuoGuanFlag(true);
+	}
 }

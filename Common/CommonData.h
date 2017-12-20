@@ -11,6 +11,7 @@ struct stPlayerBrifData
 	uint8_t nSex ; // eSex ;
 	uint32_t nCoin ;
 	uint32_t nDiamoned ;
+	uint32_t nEmojiCnt; 
 };
 
 struct stPlayerDetailData

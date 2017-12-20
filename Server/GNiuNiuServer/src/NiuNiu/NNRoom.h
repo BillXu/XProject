@@ -34,6 +34,7 @@ public:
 	void onGameEnd()override;
 	bool canStartGame()override;
 	IPoker* getPoker()override;
+	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)override;
 
 	void onPlayerReady( uint16_t nIdx);
 	uint8_t doProduceNewBanker();
@@ -52,12 +53,14 @@ public:
 	bool isEnableTuiZhu();
 	bool isEnableTuiZhuang();
 	void onTimeOutPlayerAutoBet();
+	void invokerTuoGuanAction( uint8_t nTargetIdx = -1 );
 protected:
+	uint8_t getMiniBetTimes();
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint16_t getBankerIdx() { return m_nBankerIdx; }
 private:
-	eResultType m_eResultType;
+	uint8_t m_eResultType; // 0:Å£Å£x3 Å£¾Åx2 Å£°Ëx2, 1 : Å£Å£x4 Å£¾Åx3 Å£°Ëx2 Å£Æßx2
 	eDecideBankerType m_eDecideBankerType;
 	uint16_t m_nBankerIdx;
 	uint16_t m_nBottomTimes;

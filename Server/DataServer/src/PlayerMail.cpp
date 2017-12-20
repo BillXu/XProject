@@ -108,6 +108,32 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 		}
 	}
 	break;
+	case eMail_Consume_Emoji:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			auto nDiamondCnt = pMail->jsDetail["cnt"].asUInt();
+			getPlayer()->getBaseData()->modifyEmojiCnt((int32_t)nDiamondCnt * -1 );
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
+	case eMail_Agent_AddEmojiCnt:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			auto nDiamondCnt = pMail->jsDetail["addCnt"].asInt();
+			getPlayer()->getBaseData()->modifyEmojiCnt((int32_t)nDiamondCnt);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
 	case eMail_GiveBack_Diamond:
 	{
 		if (getPlayer()->getBaseData()->isPlayerReady())

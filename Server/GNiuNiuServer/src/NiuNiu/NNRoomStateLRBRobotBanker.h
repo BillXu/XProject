@@ -12,7 +12,9 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		auto pRoom = (NNRoom*)getRoom();
 		pRoom->doStartRobotBanker();
-		setStateDuringTime(eTime_WaitRobotBanker);
+		setStateDuringTime(999999999);
+		m_isCheckTuoGuan = false;
+		m_isAnimateion = false;
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
@@ -42,22 +44,34 @@ public:
 		auto nRobotBankerTimes = jsmsg["robotTimes"].asUInt();
 		js["ret"] = pRoom->onPlayerRobotBanker(pPlayer->getIdx(), (uint8_t)nRobotBankerTimes );
 		pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
-		
-		if ( pRoom->isAllPlayerRobotedBanker() )
-		{
-			setStateDuringTime(0);
-		}
 		return true;
+	}
+
+	void update(float fDeta)override
+	{
+		IGameRoomState::update(fDeta);
+		auto pRoom = (NNRoom*)getRoom();
+		if ( false == m_isAnimateion && pRoom->isAllPlayerRobotedBanker())
+		{
+			m_isAnimateion = true;
+			auto nCandianateCnt = pRoom->doProduceNewBanker();
+			float fT = nCandianateCnt * 0.5;
+			setStateDuringTime(((uint8_t)fT) > 2 ? 2 : fT);
+		}
+
+		if (false == m_isCheckTuoGuan)
+		{
+			m_isCheckTuoGuan = true;
+			pRoom->invokerTuoGuanAction();
+		}
 	}
 
 	void onStateTimeUp()
 	{
-		auto pRoom = (NNRoom*)getRoom();
-		pRoom->doProduceNewBanker();
 		getRoom()->goToState(eRoomState_DoBet);
 	}
 
-	uint8_t getCurIdx()override { return m_nNewBankerIdx; };
 protected:
-	uint8_t m_nNewBankerIdx;
+	bool m_isCheckTuoGuan;
+	bool m_isAnimateion;
 };

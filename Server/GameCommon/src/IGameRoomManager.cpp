@@ -6,7 +6,7 @@
 #include "stEnterRoomData.h"
 #include <ctime>
 #include <algorithm>
-#define MAX_CREATE_ROOM_CNT 5
+#define MAX_CREATE_ROOM_CNT 10
 IGameRoomManager::~IGameRoomManager()
 {
 	for (auto pair : m_vRooms)
