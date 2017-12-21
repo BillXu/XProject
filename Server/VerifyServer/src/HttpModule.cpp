@@ -200,7 +200,7 @@ bool CHttpModule::handleGetPlayerInfo(http::server::connection_ptr ptr)
 	Json::Reader jsReader;
 	Json::Value jsRoot;
 	auto bRet = jsReader.parse(req->reqContent, jsRoot);
-	if (!bRet)
+	if (!bRet || jsRoot.isNull() )
 	{
 		LOGFMTE("parse agent get player info argument error");
 		return false;
@@ -255,7 +255,7 @@ bool CHttpModule::handleAddRoomCard(http::server::connection_ptr ptr)
 	Json::Reader jsReader;
 	Json::Value jsRoot;
 	auto bRet = jsReader.parse(req->reqContent, jsRoot);
-	if (!bRet)
+	if (!bRet || jsRoot.isNull() )
 	{
 		LOGFMTE("parse add room card argument error");
 		return false;
@@ -357,7 +357,7 @@ bool CHttpModule::handleHttpCmd(http::server::connection_ptr ptr)
 	Json::Reader jsReader;
 	Json::Value jsRoot;
 	auto bRet = jsReader.parse(req->reqContent, jsRoot);
-	if (!bRet)
+	if (!bRet || jsRoot.isNull() )
 	{
 		LOGFMTE("parse http cmd argument error");
 		return false;
