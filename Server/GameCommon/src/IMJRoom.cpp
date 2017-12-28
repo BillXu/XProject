@@ -330,7 +330,7 @@ void IMJRoom::onPlayerMo(uint8_t nIdx)
 		Assert(0,"invlid card" );
 	}
 	pPlayer->getPlayerCard()->onMoCard(nNewCard);
-	pPlayer->zeroFlag();
+	//pPlayer->zeroFlag();
 	// send msg ;
 	Json::Value msg;
 	msg["idx"] = nIdx;
@@ -359,7 +359,7 @@ void IMJRoom::onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)
 		LOGFMTE( "nidx = %u peng card = %u error",nIdx,nCard );
 	}
 	pInvoker->getPlayerCard()->onCardBeGangPengEat(nCard);
-	pPlayer->zeroFlag();
+	//pPlayer->zeroFlag();
 
 	Json::Value jsmsg;
 	jsmsg["idx"] = nIdx;
@@ -389,6 +389,7 @@ void IMJRoom::onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t n
 		LOGFMTE("nidx = %u eat card = %u error, with a = %u ,b = %u", nIdx, nCard,nWithA,nWithB);
 	}
 	pInvoker->getPlayerCard()->onCardBeGangPengEat(nCard);
+	//pPlayer->zeroFlag();
 
 	// send msg ;
 	Json::Value jsmsg;
@@ -548,7 +549,8 @@ void IMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard)
 		LOGFMTE("why this player is null idx = %u , can not chu", nIdx);
 		return;
 	}
-	pPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
+	//pPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
+	pPlayer->zeroFlag();
 
 	// send msg ;
 	Json::Value msg;

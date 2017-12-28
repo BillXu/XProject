@@ -166,5 +166,17 @@
     <ClInclude Include="src\PokerDefine.h">
       <Filter>src\PokerBase</Filter>
     </ClInclude>
+    <ClInclude Include="src\FanxingGangKai.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingQiangGang.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingMenQing.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingHaiDiLaoYue.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

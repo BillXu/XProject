@@ -29,7 +29,7 @@ public:
 		return true;
 	}
 
-	void checkFanxing( std::vector<eFanxingType>& vFanxing, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom )
+	virtual void checkFanxing( std::vector<eFanxingType>& vFanxing, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom )
 	{
 		for (auto& ref : m_vFanxing)
 		{
