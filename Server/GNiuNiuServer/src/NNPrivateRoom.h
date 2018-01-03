@@ -11,6 +11,7 @@ public:
 	void doSendRoomGameOverInfoToClient(bool isDismissed)override;
 	bool canStartGame(IGameRoom* pRoom)override;
 	bool isEnableReplay()override { return false; }
+	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
 protected:
 	bool m_isForbitEnterRoomWhenStarted;
 	uint8_t m_nAutoOpenCnt;

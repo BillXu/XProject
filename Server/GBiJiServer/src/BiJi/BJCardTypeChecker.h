@@ -203,7 +203,7 @@ public:
 		uint8_t nSingleType = ePoker_Sword;  // when can not find value , default must be joker , so joker should be biggest type ;
 		for (auto& ref : vecCards)
 		{
-			if ( BJ_PARSE_VALUE(ref) == nSingleValue)
+			if ( BJ_PARSE_VALUE(ref) == nSingleValue || (BJ_PARSE_VALUE(ref) == 1 && nSingleValue == 14) )
 			{
 				nSingleType = BJ_PARSE_TYPE(ref);
 				break;

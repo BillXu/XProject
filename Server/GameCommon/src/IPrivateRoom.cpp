@@ -512,6 +512,7 @@ void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 	// send room info ;
 	Json::Value jsMsg;
 	packRoomInfo(jsMsg);
+	LOGFMTI("send room info");
 	sendMsgToPlayer(jsMsg, MSG_ROOM_INFO, nSessionID);
 
 	// send players info ;
@@ -520,9 +521,10 @@ void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 
 bool IPrivateRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
 {
-	if ( eNet_Offline == nState && isRoomStarted() )
+	auto pp = m_pRoom->getPlayerByUID(nPlayerID);
+	if ( eNet_Offline == nState && isRoomStarted() && pp )
 	{
-		LOGFMTE( "player uid = %u do offline , but can not let player leave room , room is started room id = %u",nPlayerID,getRoomID() );
+		LOGFMTE( "player uid = %u do offline , but can not let sit down player leave room , room is started room id = %u",nPlayerID,getRoomID() );
 		return true;
 	}
 	return m_pRoom->onPlayerNetStateRefreshed(nPlayerID, nState);

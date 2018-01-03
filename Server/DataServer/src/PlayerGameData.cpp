@@ -142,7 +142,7 @@ void CPlayerGameData::onPlayerLoseConnect()
 	informNetState(eNet_WaitReconnect);
 }
 
-void CPlayerGameData::onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t nNewSessionID)
+void CPlayerGameData::onPlayerOtherDeviceLogin(uint32_t nOldSessionID, uint32_t nNewSessionID)
 {
 	IPlayerComponent::onPlayerOtherDeviceLogin(nOldSessionID,nNewSessionID );
 

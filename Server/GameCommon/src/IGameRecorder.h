@@ -33,7 +33,7 @@ public:
 	uint32_t getFinishTime();
 	uint32_t getReplayID();
 	bool addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorder> ptrPlayerRecorderInfo );
-	void doSaveRoomRecorder(IGameRoomRecorder* pOwnRoomRecorder ,CAsyncRequestQuene* pSyncQuene);
+	void doSaveRoomRecorder(IGameRoomRecorder* pOwnRoomRecorder ,CAsyncRequestQuene* pSyncQuene, uint16_t nRoomType );
 	bool calculatePlayerTotalOffset(std::map<uint32_t, int32_t>& vPlayersOffset );
 protected:
 	std::map<uint32_t, std::shared_ptr<IPlayerRecorder>> m_vPlayerRecorderInfo;
