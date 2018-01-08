@@ -51,6 +51,8 @@ void BJPlayer::addTongGuanOffset( int32_t nOffset )
 {
 	nTongGuanOffset += nOffset;
 	addSingleOffset(nOffset);
+
+	m_nPartXiQian += nOffset;
 }
 
 int32_t BJPlayer::getXiPaiOffset()

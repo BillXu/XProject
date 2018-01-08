@@ -30,7 +30,7 @@ public:
 	virtual void onPlayerDisconnect() { timerSave(); }
 	virtual void onPlayerReconnected(){}
 	virtual void onPlayerLoseConnect() { timerSave(); }  // wait player reconnect ;
-	virtual void onPlayerOtherDeviceLogin( uint16_t nOldSessionID, uint16_t nNewSessionID  ){}
+	virtual void onPlayerOtherDeviceLogin( uint32_t nOldSessionID, uint32_t nNewSessionID  ){}
 	virtual void onPlayerLogined(){}
 
 	virtual bool onPlayerEvent(stPlayerEvetArg* pArg){ return false ; }

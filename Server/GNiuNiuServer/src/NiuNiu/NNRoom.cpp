@@ -93,6 +93,7 @@ void NNRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,ui
 	{
 		jsPlayerInfo["lastOffset"] = ((NNPlayer*)pPlayer)->getLastOffset();
 		jsPlayerInfo["canTuiZhuang"] = ((NNPlayer*)pPlayer)->getRobotBankerFailedTimes() >= 3;
+		jsPlayerInfo["isLastTuiZhu"] = ((NNPlayer*)pPlayer)->isLastTuiZhu() ? 1 : 0;
 	}
 	jsPlayerInfo["betTimes"] = ((NNPlayer*)pPlayer)->getBetTimes();
 	bool isSendHoldCard = false;
@@ -437,6 +438,7 @@ void NNRoom::doStartBet()
 		jsPlayer["idx"] = p->getIdx();
 		jsPlayer["lastOffset"] = p->getLastOffset();
 		jsPlayer["canTuiZhuang"] = p->getRobotBankerFailedTimes() >= 3 ? 1 : 0;
+		jsPlayer["isLastTuiZhu"] = p->isLastTuiZhu() ? 1 : 0;
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
 	js["players"] = jsPlayers;
@@ -464,6 +466,7 @@ uint8_t NNRoom::onPlayerDoBet( uint16_t nIdx, uint8_t nBetTimes )
 	}
 
 	nBetTimes = p->doBet(nBetTimes);
+	p->setLastTuiZhu( nBetTimes > ( getMiniBetTimes() * 2 ) );
 
 	Json::Value jsRoomBet;
 	jsRoomBet["idx"] = nIdx;

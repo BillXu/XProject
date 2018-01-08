@@ -98,7 +98,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_isReadingDB = true;
 }
 
-void CPlayerBaseData::onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t nNewSessionID)
+void CPlayerBaseData::onPlayerOtherDeviceLogin(uint32_t nOldSessionID, uint32_t nNewSessionID)
 {
 	sendBaseDataToClient();
 }

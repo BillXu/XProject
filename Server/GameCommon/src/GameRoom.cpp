@@ -709,6 +709,7 @@ void GameRoom::sendRoomPlayersInfo(uint32_t nSessionID)
 	}
 	Json::Value jsPlayersInfo;
 	jsPlayersInfo["players"] = jsArraPlayers;
+	LOGFMTI( "send playes info" );
 	sendMsgToPlayer(jsPlayersInfo, MSG_ROOM_PLAYER_INFO, nSessionID);
 }
 
@@ -716,6 +717,7 @@ void GameRoom::sendRoomInfo(uint32_t nSessionID)
 {
 	Json::Value jsRoomInfo;
 	packRoomInfo(jsRoomInfo);
+	LOGFMTI("send room info game room");
 	sendMsgToPlayer(jsRoomInfo, MSG_ROOM_INFO, nSessionID);
 
 	// send players 

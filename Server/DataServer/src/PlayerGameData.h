@@ -26,7 +26,7 @@ public:
 	void onPlayerDisconnect()override;
 	void onPlayerReconnected()override;
 	void onPlayerLoseConnect()override;  // wait player reconnect ;
-	void onPlayerOtherDeviceLogin( uint16_t nOldSessionID, uint16_t nNewSessionID )override;
+	void onPlayerOtherDeviceLogin( uint32_t nOldSessionID, uint32_t nNewSessionID )override;
 	bool canRemovePlayer()override;
 	bool onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)override;
 	void onPlayerLogined()override;

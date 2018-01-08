@@ -114,7 +114,7 @@ enum eMsgType
 	// svr : { idx : 23 , uid : 23 ,isOnline : 0 , chips : 23 ... }  // the same as MSG_ROOM_INFO players item ;
 	MSG_PLAYER_SIT_DOWN,
 	// client : { idx : 1 } 
-	// svr : { ret : 0 , idx : 1 } ;  // ret : 0 success , 1 pos already have players , 2, already in other room , 3, not in room , can not sit down , 4 already sit down , 5 session id error , 6 , unknown error  , 7 not in white list ;
+	// svr : { ret : 0 , idx : 1 } ;  // ret : 0 success , 1 pos already have players , 2, already in other room , 3, not in room , can not sit down , 4 already sit down , 5 session id error , 6 , unknown error  , 7 not in white list , 8 room open , can not sit down;
 	MSG_PLAYER_STAND_UP,
 	// client : null ;
 	// svr : { ret : 0 } // ret : 0 success , 1 you are not sit down ,

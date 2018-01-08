@@ -36,7 +36,7 @@ bool ISingleRoundRecorder::addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorde
 	return true;
 }
 
-void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecorder, CAsyncRequestQuene* pSyncQuene )
+void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecorder, CAsyncRequestQuene* pSyncQuene, uint16_t nRoomType )
 {
 	if (m_vPlayerRecorderInfo.empty())
 	{
@@ -60,13 +60,13 @@ void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecord
 		strPlayers = jswrite.write(jsPlayers);
 	}
 
-//#ifdef _DEBUG
-//	return;
-//#endif // _DEBUG
+#ifdef _DEBUG
+	return;
+#endif // _DEBUG
 	// do save sql  room round recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, sizeof(pBuffer), "insert into room_record_per_round ( sieralNum,roundIdx,replayID,time,resultDetail ) values (%u,%u,%u,from_unixtime( %u ),",pOwnRoomRecorder->getSieralNum(),m_nRoundIdx,m_nReplayID,m_nFinishTime );
+	sprintf_s(pBuffer, sizeof(pBuffer), "insert into room_record_per_round ( sieralNum,roomType,roundIdx,replayID,time,resultDetail ) values (%u,%u,%u,%u,from_unixtime( %u ),",pOwnRoomRecorder->getSieralNum(),nRoomType,m_nRoundIdx,m_nReplayID,m_nFinishTime );
 	std::ostringstream ss;
 	ss << pBuffer << " '" << jsPlayers << "' ) ;";
 	jssql["sql"] = ss.str();
@@ -140,9 +140,9 @@ uint16_t IGameRoomRecorder::getRoundRecorderCnt()
 
 void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 {
-//#ifdef _DEBUG
-//	return;
-//#endif // _DEBUG
+#ifdef _DEBUG
+	return;
+#endif // _DEBUG
 	if ( m_vAllRoundRecorders.empty())
 	{
 		LOGFMTD( "room id = %u do not have recorder creator id = %u", m_nRoomID, m_nCreaterUID );
@@ -188,7 +188,7 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	Json::Value jsRounds;
 	for (auto& ref : m_vAllRoundRecorders)
 	{
-		ref.second->doSaveRoomRecorder(this, pSyncQuene);
+		ref.second->doSaveRoomRecorder(this, pSyncQuene,m_nRoomType);
 	}
 }
 

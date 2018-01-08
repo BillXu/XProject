@@ -97,11 +97,13 @@ public:
 				vTemp.push_back(BJ_PARSE_VALUE(pG.getCardByIdx(nCardIdx)));
 			}
 			std::sort(vTemp.begin(),vTemp.end());
-			if ( (0 != nLastGroupMax) && nLastGroupMax >= (( vTemp.front() == 1 && nIdx == 2 ) ? 14 : vTemp.front()) )
+			uint8_t nGroupMin = ((vTemp.front() == 1 && nIdx == 2) ? 12 : vTemp.front());
+
+			if ( (0 != nLastGroupMax) && nGroupMin != ( nLastGroupMax + 1 ) )
 			{
 				return false;
 			}
-			nLastGroupMax = vTemp.back();
+			nLastGroupMax = nGroupMin + 2;
 		}
 
 		eType = eXiPai_QuanShun;
@@ -202,10 +204,6 @@ public:
 				continue;
 			}
 			ref = BJ_PARSE_VALUE(ref);
-			if (ref == 1)
-			{
-				ref = 14;
-			}
 		}
 
 		// check tiao 4 zhang 

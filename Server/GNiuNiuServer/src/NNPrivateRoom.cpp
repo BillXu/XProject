@@ -15,10 +15,10 @@ bool NNPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_
 
 uint8_t NNPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-	if (m_isForbitEnterRoomWhenStarted && isRoomStarted() )
-	{
-		return 7;
-	}
+	//if (m_isForbitEnterRoomWhenStarted && isRoomStarted() )
+	//{
+	//	return 7;
+	//}
 
 	return IPrivateRoom::checkPlayerCanEnter(pEnterRoomPlayer);
 }
@@ -37,6 +37,17 @@ uint8_t NNPrivateRoom::getInitRound( uint8_t nLevel )
 		nLevel = 0;
 	}
 	return vJun[nLevel];
+}
+
+bool NNPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
+{
+	if (nMsgType == MSG_PLAYER_SIT_DOWN && m_isForbitEnterRoomWhenStarted && isRoomStarted() )
+	{
+		prealMsg["ret"] = 8;
+		sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+		return true;
+	}
+	return IPrivateRoom::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
 }
 
 void NNPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )

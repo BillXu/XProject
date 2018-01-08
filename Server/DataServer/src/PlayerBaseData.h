@@ -15,7 +15,7 @@ public:
 	void init()override;
 	void reset()override;
 	void onPlayerLogined()override;
-	void onPlayerOtherDeviceLogin(uint16_t nOldSessionID, uint16_t nNewSessionID)override;
+	void onPlayerOtherDeviceLogin(uint32_t nOldSessionID, uint32_t nNewSessionID)override;
 	bool onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)override;
 	void sendBaseDataToClient();
 	void saveMoney();

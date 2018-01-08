@@ -400,7 +400,9 @@ bool IServerApp::sendMsg( Json::Value& recvValue, uint16_t nMsgID, uint32_t nSen
 
 	Json::StyledWriter writerJs ;
 	std::string strContent = writerJs.write(recvValue);
-	//LOGFMTD("session id = %u , target port = %u, send : %s",nSessionID,nTargetPort,strContent.c_str());
+#ifdef _DEBUG
+	LOGFMTD("session id = %u , target port = %u, send : %s", nSenderID, nTargetPort, strContent.c_str());
+#endif // _DEBUG
 	stMsgJsonContent msg ;
 	msg.cSysIdentifer = nTargetPort ;
 	msg.nJsLen = strContent.size() ;

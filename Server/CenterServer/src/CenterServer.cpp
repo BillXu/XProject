@@ -135,7 +135,7 @@ bool  CCenterServerApp::OnMessage( Packet* pData )
 		
 		if (nPort >= ID_MSG_PORT_MAX)
 		{
-			LOGFMTE("invalid target port = %s , msgType = %u , target id = %u", getServerDescByType(pReal->cSysIdentifer),pReal->usMsgType,pReal->nTargetID );
+			LOGFMTE("invalid target port = %s , msgType = %u , target id = %u sender port = %u", getServerDescByType(pReal->cSysIdentifer),pReal->usMsgType,pReal->nTargetID , pTransfer->nSenderPort );
 			return true;
 		}
 
@@ -152,7 +152,7 @@ bool  CCenterServerApp::OnMessage( Packet* pData )
 		
 		if ( vTargetPortIDs.empty() )
 		{
-			LOGFMTE("all svr not connect for port = %s , msg = %u , target id = %u", getServerDescByType(pReal->cSysIdentifer), pReal->usMsgType, pReal->nTargetID );
+			LOGFMTE("all svr not connect for port = %s , msg = %u , target id = %u, sender port = %u", getServerDescByType(pReal->cSysIdentifer), pReal->usMsgType, pReal->nTargetID, pTransfer->nSenderPort );
 			return true;
 		}
 
