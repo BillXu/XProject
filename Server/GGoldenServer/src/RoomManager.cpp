@@ -35,5 +35,5 @@ uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomC
 
 	// 6,1 . 12.2 , 18. 3
 	uint8_t vFangZhu[] = { 6 , 12 , 18 };
-	return vFangZhu[nLevel] * 10;
+	return vFangZhu[nLevel] * 10 * 0.5;
 }
