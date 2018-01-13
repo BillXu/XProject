@@ -412,8 +412,11 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 	});
 
 	// read max room sieral num 
+	uint32_t nMax = getSvrApp()->getLocalSvrMsgPortType() + 1 ;
+	nMax = nMax << 27;
+
 	ss.str("");     
-	ss << "SELECT max(sieralNum) as sieralNum FROM roominfo ;";
+	ss << "SELECT max(sieralNum) as sieralNum FROM roominfo where sieralNum <  " << nMax << ";";
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
 		uint32_t nAft = retContent["afctRow"].asUInt();
@@ -428,6 +431,7 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 		m_nMaxSieralID = jsRow["sieralNum"].asUInt();
 		m_nMaxSieralID -= m_nMaxSieralID % getSvrApp()->getCurSvrMaxCnt();
 		m_nMaxSieralID += getSvrApp()->getCurSvrIdx();
+		m_nMaxSieralID |= ((uint32_t)getSvrApp()->getLocalSvrMsgPortType()) << 27;
 		LOGFMTD("sieralNum id  = %u", m_nMaxSieralID);
 	});
 }
