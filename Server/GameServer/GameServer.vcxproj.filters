@@ -17,6 +17,9 @@
     <Filter Include="Common\Config">
       <UniqueIdentifier>{fe25b9b0-e2bb-46e9-949b-66585a75b186}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Club">
+      <UniqueIdentifier>{af6ee922-5082-4240-bb66-e824dfe135d1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ConfigManager.h">
@@ -61,6 +64,27 @@
     <ClInclude Include="..\DataServer\src\DataServerApp.h">
       <Filter>src\App</Filter>
     </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubManager.h">
+      <Filter>src\App</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\Club.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubMail.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubBaseData.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubGameData.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\IClubComponent.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubDefine.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ConfigManager.cpp">
@@ -101,6 +125,24 @@
     </ClCompile>
     <ClCompile Include="..\DataServer\src\DataServerApp.cpp">
       <Filter>src\App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ClubManager.cpp">
+      <Filter>src\App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\Club.cpp">
+      <Filter>src\Club</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ClubMail.cpp">
+      <Filter>src\Club</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ClubBaseData.cpp">
+      <Filter>src\Club</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ClubGameData.cpp">
+      <Filter>src\Club</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\IClubComponent.cpp">
+      <Filter>src\Club</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

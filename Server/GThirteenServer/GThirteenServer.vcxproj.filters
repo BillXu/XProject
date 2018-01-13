@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="src\Card">
+      <UniqueIdentifier>{5df7c328-199b-4acf-8199-7f4a213977f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Thirteen">
+      <UniqueIdentifier>{4d7e0261-3885-424d-b123-79cca9ee373f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Thirteen\state">
+      <UniqueIdentifier>{b1a36931-98d7-4dbc-90a9-e12449e271b5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PokerServer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RoomManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Thirteen\ThirteenPeerCard.cpp">
+      <Filter>src\Thirteen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ThirteenPoker.cpp">
+      <Filter>src\Card</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Thirteen\ThirteenPlayer.cpp">
+      <Filter>src\Thirteen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Thirteen\ThirteenRoom.cpp">
+      <Filter>src\Thirteen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ThirteenPrivateRoom.cpp">
+      <Filter>src\Thirteen</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\PokerServer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RoomManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IPeerCard.h">
+      <Filter>src\Card</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenDefine.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenPeerCard.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThirteenPoker.h">
+      <Filter>src\Card</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenCardTypeChecker.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenPlayer.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenPlayerRecorder.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenRoom.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenRoomStateWaitReady.h">
+      <Filter>src\Thirteen\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenRoomStateStartGame.h">
+      <Filter>src\Thirteen\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenRoomStateDistributeCard.h">
+      <Filter>src\Thirteen\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenRoomStateWaitPlayerAct.h">
+      <Filter>src\Thirteen\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Thirteen\ThirteenRoomStateGameEnd.h">
+      <Filter>src\Thirteen\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThirteenPrivateRoom.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

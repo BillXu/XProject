@@ -9,6 +9,7 @@
 #include "PlayerGameData.h"
 #include "ShopModule.h"
 #include "MailModule.h"
+#include "ClubManager.h"
 #ifndef USHORT_MAX
 #define USHORT_MAX 65535 
 #endif
@@ -115,6 +116,12 @@ IGlobalModule* DataServerApp::createModule( uint16_t eModuleType )
 	{
 		pMod = new MailModule();
 	}
+	break;
+	case eMod_Club:
+	{
+		pMod = new CClubManager();
+	}
+	break;
 	default:
 		break;
 	}

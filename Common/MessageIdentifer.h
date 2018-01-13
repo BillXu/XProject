@@ -15,6 +15,7 @@ enum eMsgPort
 	ID_MSG_PORT_DOU_DI_ZHU,
 	ID_MSG_PORT_GOLDEN,
 	ID_MSG_PORT_SCMJ,
+	ID_MSG_PORT_THIRTEEN,
 	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_MAX,
 };
@@ -436,19 +437,19 @@ enum eMsgType
 	// uid : 玩家的uid，curCoin 结束时剩余钱；
 
 	// su zhou ma jiang
-	MSG_ROOM_SZ_PLAYER_HU, // 苏州麻将玩家胡牌 
-   // svr : { isZiMo : 0 ,isFanBei : 0 , detail : {} }
-   //  当是自摸的时候，isZiMo : 1 , detail = { huIdx : 234 , winCoin : 234,huHuaCnt : 23,holdHuaCnt : 0, isGangKai :0 , invokerGangIdx : 0, vhuTypes : [ eFanxing , ] }
-   // 当不是自摸的时候，isZiMo : 0 , detail = { dianPaoIdx : 23 , isRobotGang : 0 , nLose : 23, huPlayers : [{ idx : 234 , win : 234 , huHuaCnt : 23,holdHuaCnt : 0, vhuTypes : [ eFanxing , ] } , .... ] } 
-   // huPlayers : json 数组包含子类型，表示胡牌玩家的数组，一炮多响，有多个胡牌玩家 
-   // 胡牌子类型: idx :胡牌玩家的idx ， huaCnt : 花数量，offset ：胡牌玩家赢的钱，isGangKai ，胡牌玩家是否是杠开， vhuTypes 是一个数组，表示胡牌时候的 各种翻型叠加,
-   // invokerGangIdx : 引杠者的索引，当明杠，直杠才有这个key值,暗杠的时候这个就是胡牌者自己
+MSG_ROOM_SZ_PLAYER_HU, // 苏州麻将玩家胡牌 
+// svr : { isZiMo : 0 ,isFanBei : 0 , detail : {} }
+//  当是自摸的时候，isZiMo : 1 , detail = { huIdx : 234 , winCoin : 234,huHuaCnt : 23,holdHuaCnt : 0, isGangKai :0 , invokerGangIdx : 0, vhuTypes : [ eFanxing , ] }
+// 当不是自摸的时候，isZiMo : 0 , detail = { dianPaoIdx : 23 , isRobotGang : 0 , nLose : 23, huPlayers : [{ idx : 234 , win : 234 , huHuaCnt : 23,holdHuaCnt : 0, vhuTypes : [ eFanxing , ] } , .... ] } 
+// huPlayers : json 数组包含子类型，表示胡牌玩家的数组，一炮多响，有多个胡牌玩家 
+// 胡牌子类型: idx :胡牌玩家的idx ， huaCnt : 花数量，offset ：胡牌玩家赢的钱，isGangKai ，胡牌玩家是否是杠开， vhuTypes 是一个数组，表示胡牌时候的 各种翻型叠加,
+// invokerGangIdx : 引杠者的索引，当明杠，直杠才有这个key值,暗杠的时候这个就是胡牌者自己
 
-	MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
-	// svr: { isLiuJu : 0 , isNextFanBei : 0 , detail : [ {idx : 0 , offset : 23 }, ...  ] } 
-   // svr : isLiuJu : 是否是流局
-	// detail : 数组就是每个玩家的本局的最终输赢 ；
-	// isNextFanBei : 下一局是否要翻倍
+MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
+// svr: { isLiuJu : 0 , isNextFanBei : 0 , detail : [ {idx : 0 , offset : 23 }, ...  ] } 
+// svr : isLiuJu : 是否是流局
+ // detail : 数组就是每个玩家的本局的最终输赢 ；
+ // isNextFanBei : 下一局是否要翻倍
 
 	MSG_ROOM_UPDATE_PLAYER_NET_STATE, // 更新房间内玩家的在线状态
 	// svr : { idx : 0 , isOnLine : 0 } // isOnline 0 不在线，1 在线 。  
@@ -515,6 +516,24 @@ enum eMsgType
 	MSG_ROOM_SCMJ_GAME_START, //四川麻将开始游戏消息
 
 	MSG_ROOM_SICHUAN_MAJIANG_END = 2100, //四川麻将命令号结束标识
+
+
+	/*13水消息列表
+		(2200 - 2300)
+	*/
+	MSG_ROOM_THIRTEEN_BEGIN = 2200, //13水命令号开始标记
+
+	MSG_ROOM_THIRTEEN_GAME_END = 2201, //13水游戏结束
+
+	MSG_ROOM_THIRTEEN_GAME_WAIT_ACT = 2202, //动作列表（开始信号）
+
+	MSG_ROOM_THIRTEEN_GAME_PUT_CARDS = 2203, //三张玩家摆牌
+
+	MSG_ROOM_THIRTEEN_GAME_SHOW_CARDS = 2204, //三张玩家明牌
+
+	MSG_ROOM_THIRTEEN_GAME_DELAY_PUT = 2205, //三张增加摆牌时间
+
+	MSG_ROOM_THIRTEEN_END = 2300, //13水命令号结束标记
 
 
 

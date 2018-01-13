@@ -91,9 +91,16 @@
   <ItemGroup>
     <ClInclude Include="..\..\Common\ConfigManager.h" />
     <ClInclude Include="..\..\Common\ShopConfg.h" />
+    <ClInclude Include="..\DataServer\src\Club.h" />
+    <ClInclude Include="..\DataServer\src\ClubBaseData.h" />
+    <ClInclude Include="..\DataServer\src\ClubDefine.h" />
+    <ClInclude Include="..\DataServer\src\ClubGameData.h" />
+    <ClInclude Include="..\DataServer\src\ClubMail.h" />
+    <ClInclude Include="..\DataServer\src\ClubManager.h" />
     <ClInclude Include="..\DataServer\src\EventCenter.h" />
     <ClInclude Include="..\DataServer\src\Events.h" />
     <ClInclude Include="..\DataServer\src\DataServerApp.h" />
+    <ClInclude Include="..\DataServer\src\IClubComponent.h" />
     <ClInclude Include="..\DataServer\src\IPlayerComponent.h" />
     <ClInclude Include="..\DataServer\src\MailModule.h" />
     <ClInclude Include="..\DataServer\src\main.h" />
@@ -107,8 +114,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\ConfigManager.cpp" />
     <ClCompile Include="..\..\Common\ShopConfg.cpp" />
+    <ClCompile Include="..\DataServer\src\Club.cpp" />
+    <ClCompile Include="..\DataServer\src\ClubBaseData.cpp" />
+    <ClCompile Include="..\DataServer\src\ClubGameData.cpp" />
+    <ClCompile Include="..\DataServer\src\ClubMail.cpp" />
+    <ClCompile Include="..\DataServer\src\ClubManager.cpp" />
     <ClCompile Include="..\DataServer\src\EventCenter.cpp" />
     <ClCompile Include="..\DataServer\src\DataServerApp.cpp" />
+    <ClCompile Include="..\DataServer\src\IClubComponent.cpp" />
     <ClCompile Include="..\DataServer\src\IPlayerComponent.cpp" />
     <ClCompile Include="..\DataServer\src\MailModule.cpp" />
     <ClCompile Include="..\DataServer\src\main.cpp" />

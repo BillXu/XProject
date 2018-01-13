@@ -77,6 +77,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GGoldenServer", "GGoldenSer
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GSCMaJiangServer", "GSCMaJiangServer\GSCMaJiangServer.vcxproj", "{E0B75843-96E1-47A1-846A-891ACB9E2C18}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GThirteenServer", "GThirteenServer\GThirteenServer.vcxproj", "{7338F837-2E8F-40A3-A84C-4EB6C829490D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -143,6 +145,10 @@ Global
 		{E0B75843-96E1-47A1-846A-891ACB9E2C18}.Debug|Win32.Build.0 = Debug|Win32
 		{E0B75843-96E1-47A1-846A-891ACB9E2C18}.Release|Win32.ActiveCfg = Release|Win32
 		{E0B75843-96E1-47A1-846A-891ACB9E2C18}.Release|Win32.Build.0 = Release|Win32
+		{7338F837-2E8F-40A3-A84C-4EB6C829490D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7338F837-2E8F-40A3-A84C-4EB6C829490D}.Debug|Win32.Build.0 = Debug|Win32
+		{7338F837-2E8F-40A3-A84C-4EB6C829490D}.Release|Win32.ActiveCfg = Release|Win32
+		{7338F837-2E8F-40A3-A84C-4EB6C829490D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
