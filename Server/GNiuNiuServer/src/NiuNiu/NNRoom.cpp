@@ -412,6 +412,11 @@ uint8_t NNRoom::doProduceNewBanker()
 		}
 	}
 
+	auto pPlayer = (NNPlayer*)getPlayerByIdx(m_nBankerIdx);
+	if ( pPlayer )
+	{
+		pPlayer->setLastTuiZhu(true);
+	}
 	// send msg tell new banker ;
 	Json::Value jsMsg;
 	jsMsg["bankerIdx"] = m_nBankerIdx;
@@ -774,7 +779,7 @@ bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPor
 
 bool NNRoom::isEnableTuiZhu()
 {
-	return m_jsOpts["tuiZhu"].isNull() == false && m_jsOpts["tuiZhu"].asUInt() == 1;
+	return m_jsOpts["tuiZhu"].isNull() == false && m_jsOpts["tuiZhu"].asUInt() >= 1;
 }
 
 bool NNRoom::isEnableTuiZhuang()

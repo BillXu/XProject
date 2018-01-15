@@ -25,10 +25,16 @@ void CBJPoker::init( Json::Value& jsOpts )
 
 void CBJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 {
+	return;
 	//	ºÚÌÒA K Q 10 9 8 Ã·»¨8 ºìÌÒ8 ·½¿é8
 	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 1));
 	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Diamond, 1));
 	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Sword, 1));
 	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Club, 1));
+
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Heart, 2));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Diamond, 2));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Sword, 2));
+	vMakedCards.push_back(BJ_MAKE_CARD(ePoker_Club, 2));
 }
 

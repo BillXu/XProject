@@ -693,10 +693,10 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 						LOGFMTE("pasre add card mail error id = %u", nUserUID);
 						continue;
 					}
-					nTotalCnt += jsC["cardOffset"].asUInt();
+					nTotalCnt += jsC["cardOffset"].asInt();
 				}
 				LOGFMTD("uid = %u mail card cnt = %u", nUserUID, nTotalCnt);
-				jsUserData["leftCardCnt"] = jsUserData["leftCardCnt"].asUInt() + nTotalCnt;
+				jsUserData["leftCardCnt"] = jsUserData["leftCardCnt"].asInt() + nTotalCnt;
 
 				// build msg to send ;
 				pSvrApp->responeAsyncRequest(ID_MSG_PORT_VERIFY, nReqSerial, nSenderID, jsUserData, nUserUID );
