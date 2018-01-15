@@ -400,9 +400,9 @@ void CGateClientMgr::onGateCloseCallBack( stGateClient* pGateClient, bool isWait
 	}
 
 	// do close this connection ;
-#ifdef _DEBUG
+//#ifdef _DEBUG
 	LOGFMTD("client connection do disconnected netID = %u",pGateClient->getNetworkID() );
-#endif 
+//#endif 
 	CGateServer::SharedGateServer()->GetNetWorkForClients()->ClosePeerConnection(pGateClient->getNetworkID());
 	removeActiveClientGate(pGateClient);
 	addToResever(pGateClient);
@@ -426,7 +426,7 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 	if ( IpInfo )
 	{
 		strIP = (char*)IpInfo->strAddress;
-		//LOGFMTD("a peer connected ip = %s ,port = %d netID = %u",IpInfo->strAddress,IpInfo->nPort,nNewPeer ) ;
+		LOGFMTD("a peer connected ip = %s ,port = %d netID = %u",IpInfo->strAddress,IpInfo->nPort,nNewPeer ) ;
 	}
 	else
 	{
@@ -450,7 +450,7 @@ void CGateClientMgr::OnNewPeerConnected(CONNECT_ID nNewPeer, ConnectInfo* IpInfo
 		// send msg to tell client svr is full ;
 		stMsgGateSvrFull stFull;
 		sendMsgToClient(&stFull,sizeof(stFull),pGate->getNetworkID());
-		//LOGFMTE("gate is full , please try other gate , cnt = %u",m_vSessionGateClient.size());
+		LOGFMTE("gate is full , please try other gate , cnt = %u",m_vSessionGateClient.size());
 	}
 }
 
@@ -463,7 +463,7 @@ void CGateClientMgr::OnPeerDisconnected( CONNECT_ID nPeerDisconnected, ConnectIn
 		LOGFMTW("gate peer is nullptr , why you get disconnect again ? ");
 		return;
 	}
-	//LOGFMTD("one gate peer disconnected");
+	LOGFMTD("one gate peer disconnected");
 	onGateCloseCallBack(pDstClient,pDstClient->getBindUID() > 0 );
 }
 
@@ -485,6 +485,7 @@ void CGateClientMgr::addClientGate(stGateClient* pGateClient )
 
 	m_vNetWorkIDGateClientIdx[pGateClient->getNetworkID()] = pGateClient ;
 	m_vSessionGateClient[pGateClient->getSessionID()] = pGateClient ;
+	LOGFMTD( "new client gate , cnt = %u",m_vSessionGateClient.size() );
 }
 
 void CGateClientMgr::removeActiveClientGate(stGateClient* pGateClient )
