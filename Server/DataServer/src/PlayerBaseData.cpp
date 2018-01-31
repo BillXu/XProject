@@ -12,12 +12,14 @@
 #include "AsyncRequestQuene.h"
 #include <assert.h>
 #include "PlayerGameData.h"
+#include "Utility.h"
 #pragma warning( disable : 4996 )
 CPlayerBaseData::CPlayerBaseData(CPlayer* player )
 	:IPlayerComponent(player)
 {
 	m_eType = ePlayerComponent_BaseData ;
-	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
+	//memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
+	m_stBaseData.resetZero();
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
 	m_nTmpCoin = 0;
@@ -31,7 +33,8 @@ CPlayerBaseData::~CPlayerBaseData()
 
 void CPlayerBaseData::init()
 {
-	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
+	//memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
+	m_stBaseData.resetZero();
 	m_stBaseData.nUserUID = getPlayer()->getUserUID() ;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
@@ -47,7 +50,8 @@ void CPlayerBaseData::reset()
 	m_bPlayerInfoDirty = false;
 	m_nTmpCoin = 0;
 	m_nTmpDiamond = 0;
-	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
+	//memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
+	m_stBaseData.resetZero();
 }
 
 void CPlayerBaseData::onPlayerLogined()
@@ -61,7 +65,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_stBaseData.nUserUID = getPlayer()->getUserUID();
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,joinedClub,createdClub FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -87,6 +91,24 @@ void CPlayerBaseData::onPlayerLogined()
 		m_stBaseData.nEmojiCnt = jsRow["emojiCnt"].asUInt();
 		m_stBaseData.nSex = jsRow["sex"].asUInt();
 
+		std::string sJoinedClub = jsRow["joinedClub"].asCString();
+		if (sJoinedClub.size()) {
+			VEC_STRING vsJoinedClub;
+			StringSplit(sJoinedClub, ".", vsJoinedClub);
+			for (auto sClub : vsJoinedClub) {
+				m_stBaseData.vJoinedClub.push_back((uint32_t)std::stoi(sClub));
+			}
+		}
+
+		std::string sCreatedClub = jsRow["createdClub"].asCString();
+		if (sCreatedClub.size()) {
+			VEC_STRING vsCreatedClub;
+			StringSplit(sCreatedClub, ".", vsCreatedClub);
+			for (auto sClub : vsCreatedClub) {
+				m_stBaseData.vCreatedClub.push_back((uint32_t)std::stoi(sClub));
+			}
+		}
+
 		modifyMoney(m_nTmpCoin);
 		modifyMoney(m_nTmpDiamond,true);
 		m_nTmpCoin = 0;
@@ -111,6 +133,9 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		sprintf_s(m_stBaseData.cName, "%s", recvValue["name"].asCString());
 		m_stBaseData.nSex = recvValue["sex"].asUInt();
 		m_bPlayerInfoDirty = true;
+		Json::Value jsmsg;
+		jsmsg["ret"] = 0;
+		sendMsg(jsmsg, nmsgType);
 		return true;
 	}
 	else if ( MSG_PLAYER_UPDATE_GPS == nmsgType )
@@ -128,8 +153,87 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		sendMsg(jsmsg, nmsgType);
 		return true;
 	}
+	else if (MSG_CLUB_PLAYER_CLUB_INFO == nmsgType) {
+		Json::Value jsmsg, jsJoined, jsCreated;
+		for (auto& ref : m_stBaseData.vJoinedClub) {
+			jsJoined[jsJoined.size()] = ref;
+		}
+		for (auto& ref : m_stBaseData.vCreatedClub) {
+			jsCreated[jsCreated.size()] = ref;
+		}
+		jsmsg["joined"] = jsJoined;
+		jsmsg["created"] = jsCreated;
+		sendMsg(jsmsg, nmsgType);
+		return true;
+	}
 
 	return false ;
+}
+
+bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID) {
+	if (eAsync_player_apply_DragIn == nRequestType) {
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		if (m_stBaseData.isInClub(nClubID) == false) {
+			Json::Value jsBack;
+			jsBack["ret"] = 1;
+			getPlayer()->getPlayerMgr()->getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsBack, getPlayer()->getUserUID());
+			LOGFMTE("player apply drag in is not join this club ? uid = %u, clubID = %u ", getPlayer()->getUserUID(), nClubID);
+			return true;
+		}
+		auto nAmount = jsReqContent["amount"].asUInt();
+		if (nAmount == 0) {
+			Json::Value jsBack;
+			jsBack["ret"] = 2;
+			getPlayer()->getPlayerMgr()->getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsBack, getPlayer()->getUserUID());
+			LOGFMTE("player apply drag in amount is missing ? uid = %u, clubID = %u ", getPlayer()->getUserUID(), nClubID);
+			return true;
+		}
+		uint32_t nFee = nAmount / 10;
+		if (nFee % 10 > 0) {
+			nFee += 1;
+		}
+		uint32_t nReal = nAmount + nFee;
+		if (nReal > m_stBaseData.nCoin) {
+			Json::Value jsBack;
+			jsBack["ret"] = 3;
+			getPlayer()->getPlayerMgr()->getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsBack, getPlayer()->getUserUID());
+			LOGFMTE("player apply drag in amount is too much ? uid = %u, clubID = %u, amountReal = %u ", getPlayer()->getUserUID(), nClubID, nReal);
+			return true;
+		}
+		auto pApp = getPlayer()->getPlayerMgr()->getSvrApp();
+		Json::Value jsReq;
+		jsReq["clubID"] = nClubID;
+		jsReq["uid"] = getPlayer()->getUserUID();
+		jsReq["amount"] = nAmount;
+		jsReq["roomID"] = jsReqContent["roomID"];
+		jsReq["port"] = nSenderPort;
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_apply_DragIn, jsReq, [pApp, nReqSerial, nSenderPort, nSenderID, this, nReal](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			Json::Value jsRet;
+			if (isTimeOut)
+			{
+				LOGFMTE(" request of club apply drag in time out uid = %u , can not drag in ", getPlayer()->getUserUID());
+				jsRet["ret"] = 7;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getPlayer()->getUserUID());
+				return;
+			}
+
+			uint8_t nReqRet = retContent["ret"].asUInt();
+			uint8_t nRet = 0;
+			do {
+				if (0 != nReqRet)
+				{
+					nRet = 4;
+					break;
+				}
+			} while (0);
+
+			jsRet["ret"] = nRet;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getPlayer()->getUserUID());
+		});
+		return true;
+	}
+	return false;
 }
 
 void CPlayerBaseData::sendBaseDataToClient()
@@ -167,6 +271,7 @@ void CPlayerBaseData::timerSave()
 	}
 
 	saveMoney();
+	saveClub();
 	// check player info ;
 	if ( m_bPlayerInfoDirty )
 	{
@@ -198,6 +303,24 @@ void CPlayerBaseData::saveMoney()
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
 	LOGFMTD( "uid = %u save money coin = %u , diamond = %u , emojiCnt = %u",getPlayer()->getUserUID(),getCoin(),getDiamoned(), getEmojiCnt() );
+}
+
+void CPlayerBaseData::saveClub() {
+	if (m_bClubDataDirty == false) {
+		return;
+	}
+	m_bClubDataDirty = false;
+
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	auto sJoined = m_stBaseData.jcToString();
+	auto sCreated = m_stBaseData.ccToString();
+	sprintf_s(pBuffer, "update playerbasedata set joinedClub = '%s' ,createdClub = '%s' where userUID = %u;", sJoined.c_str(), sCreated.c_str(), getPlayer()->getUserUID());
+	std::string str = pBuffer;
+	jssql["sql"] = pBuffer;
+	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
+	LOGFMTD("uid = %u save joinedClub = %s , createdClub = %s", getPlayer()->getUserUID(), sJoined.c_str(), sCreated.c_str());
 }
 
 bool CPlayerBaseData::modifyMoney( int32_t nOffset, bool bDiamond )
@@ -246,3 +369,43 @@ bool CPlayerBaseData::modifyEmojiCnt(int32_t nOffset)
 	return true;
 }
 
+void CPlayerBaseData::addJoinedClub(uint32_t nClubID) {
+	if (std::find(m_stBaseData.vJoinedClub.begin(), m_stBaseData.vJoinedClub.end(), nClubID) == m_stBaseData.vJoinedClub.end()) {
+		m_stBaseData.vJoinedClub.push_back(nClubID);
+		m_bClubDataDirty = true;
+	}
+}
+
+void CPlayerBaseData::addCreatedClub(uint32_t nClubID) {
+	if (std::find(m_stBaseData.vCreatedClub.begin(), m_stBaseData.vCreatedClub.end(), nClubID) == m_stBaseData.vCreatedClub.end()) {
+		m_stBaseData.vCreatedClub.push_back(nClubID);
+		m_bClubDataDirty = true;
+	}
+}
+
+void CPlayerBaseData::removeJoinedClub(uint32_t nClubID) {
+	auto it = std::find(m_stBaseData.vJoinedClub.begin(), m_stBaseData.vJoinedClub.end(), nClubID);
+	if (it != m_stBaseData.vJoinedClub.end()) {
+		m_stBaseData.vJoinedClub.erase(it);
+		m_bClubDataDirty = true;
+	}
+}
+
+void CPlayerBaseData::removeCreatedClub(uint32_t nClubID) {
+	auto it = std::find(m_stBaseData.vCreatedClub.begin(), m_stBaseData.vCreatedClub.end(), nClubID);
+	if (it != m_stBaseData.vCreatedClub.end()) {
+		m_stBaseData.vCreatedClub.erase(it);
+		m_bClubDataDirty = true;
+	}
+}
+
+void CPlayerBaseData::dismissClub(uint32_t nClubID) {
+	removeJoinedClub(nClubID);
+	removeCreatedClub(nClubID);
+}
+
+void CPlayerBaseData::getJoinedAndCreatedClubs(std::vector<uint32_t>& vClubIDs) {
+	vClubIDs.clear();
+	vClubIDs.assign(m_stBaseData.vJoinedClub.begin(), m_stBaseData.vJoinedClub.end());
+	vClubIDs.insert(vClubIDs.end(), m_stBaseData.vCreatedClub.begin(), m_stBaseData.vCreatedClub.end());
+}

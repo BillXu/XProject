@@ -20,6 +20,9 @@
     <Filter Include="src\Club">
       <UniqueIdentifier>{af6ee922-5082-4240-bb66-e824dfe135d1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\League">
+      <UniqueIdentifier>{ad84e300-0a99-498f-b1ed-8343b0c49e61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ConfigManager.h">
@@ -70,12 +73,6 @@
     <ClInclude Include="..\DataServer\src\Club.h">
       <Filter>src\Club</Filter>
     </ClInclude>
-    <ClInclude Include="..\DataServer\src\ClubMail.h">
-      <Filter>src\Club</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DataServer\src\ClubBaseData.h">
-      <Filter>src\Club</Filter>
-    </ClInclude>
     <ClInclude Include="..\DataServer\src\ClubGameData.h">
       <Filter>src\Club</Filter>
     </ClInclude>
@@ -84,6 +81,30 @@
     </ClInclude>
     <ClInclude Include="..\DataServer\src\ClubDefine.h">
       <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubMemberData.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubEvent.h">
+      <Filter>src\Club</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\League.h">
+      <Filter>src\League</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\LeagueMemberData.h">
+      <Filter>src\League</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\LeagueEvent.h">
+      <Filter>src\League</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ILeagueComponent.h">
+      <Filter>src\League</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\LeagueManager.h">
+      <Filter>src\App</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\LeagueGameData.h">
+      <Filter>src\League</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -132,17 +153,35 @@
     <ClCompile Include="..\DataServer\src\Club.cpp">
       <Filter>src\Club</Filter>
     </ClCompile>
-    <ClCompile Include="..\DataServer\src\ClubMail.cpp">
-      <Filter>src\Club</Filter>
-    </ClCompile>
-    <ClCompile Include="..\DataServer\src\ClubBaseData.cpp">
-      <Filter>src\Club</Filter>
-    </ClCompile>
     <ClCompile Include="..\DataServer\src\ClubGameData.cpp">
       <Filter>src\Club</Filter>
     </ClCompile>
     <ClCompile Include="..\DataServer\src\IClubComponent.cpp">
       <Filter>src\Club</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ClubMemberData.cpp">
+      <Filter>src\Club</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ClubEvent.cpp">
+      <Filter>src\Club</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\League.cpp">
+      <Filter>src\League</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\LeagueMemberData.cpp">
+      <Filter>src\League</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\LeagueEvent.cpp">
+      <Filter>src\League</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ILeagueComponent.cpp">
+      <Filter>src\League</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\LeagueManager.cpp">
+      <Filter>src\App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\LeagueGameData.cpp">
+      <Filter>src\League</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

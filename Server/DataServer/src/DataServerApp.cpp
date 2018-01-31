@@ -10,6 +10,7 @@
 #include "ShopModule.h"
 #include "MailModule.h"
 #include "ClubManager.h"
+#include "LeagueManager.h"
 #ifndef USHORT_MAX
 #define USHORT_MAX 65535 
 #endif
@@ -46,6 +47,11 @@ CPlayerManager* DataServerApp::getPlayerMgr()
 {
 	auto p = (CPlayerManager*)getModuleByType(eMod_PlayerMgr) ;
 	return p ;
+}
+
+CClubManager* DataServerApp::getClubMgr() {
+	auto p = (CClubManager*)getModuleByType(eMod_Club);
+	return p;
 }
 
 MailModule* DataServerApp::getMailModule()
@@ -120,6 +126,11 @@ IGlobalModule* DataServerApp::createModule( uint16_t eModuleType )
 	case eMod_Club:
 	{
 		pMod = new CClubManager();
+	}
+	break;
+	case eMod_League:
+	{
+		pMod = new CLeagueManager();
 	}
 	break;
 	default:

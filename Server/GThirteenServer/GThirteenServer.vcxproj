@@ -89,6 +89,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\ThirteenGPrivateRoom.h" />
     <ClInclude Include="src\ThirteenPoker.h" />
     <ClInclude Include="src\IPeerCard.h" />
     <ClInclude Include="src\PokerServer.h" />
@@ -96,6 +97,7 @@
     <ClInclude Include="src\RoomManager.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateDistributeCard.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateGameEnd.h" />
+    <ClInclude Include="src\Thirteen\ThirteenRoomStateRobBanker.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateStartGame.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateWaitPlayerAct.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateWaitReady.h" />
@@ -107,6 +109,8 @@
     <ClInclude Include="src\Thirteen\ThirteenDefine.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\IPeerCard.cpp" />
+    <ClCompile Include="src\ThirteenGPrivateRoom.cpp" />
     <ClCompile Include="src\ThirteenPoker.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\PokerServer.cpp" />

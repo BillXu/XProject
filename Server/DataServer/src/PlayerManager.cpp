@@ -395,6 +395,71 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_Club_Quit:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+		jsMailArg["uid"] = jsReqContent["uid"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Club_Quit, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_Club_Fire:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+		jsMailArg["uid"] = jsReqContent["uid"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Club_Fire, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_Club_Dismiss:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Club_Dismiss, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_Club_Create:
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Club_Create, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_Club_Join:
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+		jsMailArg["agentID"] = jsReqContent["agentID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Club_Join, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_Club_AddCoin:
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+		jsMailArg["amount"] = jsReqContent["amount"];
+		jsMailArg["agentID"] = jsReqContent["agentID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Club_AddCoin, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
 	case eAsync_Player_Logined:
 	{
 		auto nUID = jsReqContent["uid"].asUInt();
@@ -612,6 +677,9 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 				return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
 			}
 		}
+		else {
+			return false;
+		}
 	}
 
 	}
@@ -705,6 +773,21 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 		});
 		return true;
 	}
+
+	if (jsReqContent["playerUID"].isNull() == false)
+	{
+		auto nPlayerUID = jsReqContent["playerUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nPlayerUID);
+		if (pPlayer == nullptr)
+		{
+			return false;
+		}
+		else
+		{
+			return pPlayer->onAsyncRequestDelayResp(nRequestType, nReqSerial, jsReqContent, nSenderPort, nSenderID);
+		}
+	}
+
 	return false;
 }
 

@@ -46,6 +46,8 @@ public:
 	uint8_t getHoldCardCnt() { return m_vHoldCards.size(); }
 	bool holdCardToJson(Json::Value& js);
 	bool groupCardToJson(Json::Value& js);
+	bool groupCardTypeToJson(Json::Value& js);
+	bool groupCardWeightToJson(Json::Value& js);
 	void getHoldCards(std::vector<uint8_t>& vHoldCards);
 
 protected:

@@ -664,7 +664,7 @@ public:
 class ThirteenCardTypeChecker
 	:public CSingleton<ThirteenCardTypeChecker>
 {
-protected:
+public:
 	ThirteenCardTypeChecker()
 	{
 		IThirteenCardType* p = new ThirteenCardType5Tong();
@@ -711,7 +711,7 @@ public:
 public:
 	bool checkCardType(std::vector<uint8_t> vecCards, uint32_t& nWeight, ThirteenType& cardType)
 	{
-		if (vecCards.size() != 3)
+		if (vecCards.size() != HEAD_DAO_CARD_COUNT && vecCards.size() != OTHER_DAO_CARD_COUNT)
 		{
 			return false;
 		}

@@ -36,6 +36,7 @@ public:
 	void adminVisitInfo( Json::Value& jsInfo );
 protected:
 	void informNetState( uint8_t nStateFlag ); //  0 online , 1 wait reconnect , 2 offline .
+	void getClubRoomInfo(Json::Value& jsRooms, const std::vector<uint32_t>& vClubs, uint16_t nmsgType, uint32_t nIdx = 0);
 protected:
 	stRoomEntry m_tStayRoom;
 	std::vector<stRoomEntry> m_vCreatedRooms;

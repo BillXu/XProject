@@ -520,21 +520,236 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 
 	/*13水消息列表
 		(2200 - 2300)
+		ret: 0成功, >1 失败
 	*/
 	MSG_ROOM_THIRTEEN_BEGIN = 2200, //13水命令号开始标记
 
-	MSG_ROOM_THIRTEEN_GAME_END = 2201, //13水游戏结束
+	MSG_ROOM_THIRTEEN_GAME_END, //13水游戏结束
+	// svr: { result : [ { idx : 23 , offset : 23, cards : [[1,2,3], [4,5,6,7,8], [9,10,11,12,13]], cardsType : [1,1,1], swat : 0 , shoot : [0 , 1 , 2] }, .... ] }
+	// swat 红波浪：值为玩家IDX
+	// shoot 打枪 : 数组被打枪玩家的IDX
 
-	MSG_ROOM_THIRTEEN_GAME_WAIT_ACT = 2202, //动作列表（开始信号）
+	MSG_ROOM_THIRTEEN_GAME_WAIT_ACT, //动作列表（开始信号）
+	// null
 
-	MSG_ROOM_THIRTEEN_GAME_PUT_CARDS = 2203, //三张玩家摆牌
+	MSG_ROOM_THIRTEEN_GAME_PUT_CARDS, //十三张玩家摆牌
+	// client: { cards : [1, 2, 3, ... , 13] }
+	// svr : { ret : 1 } 正确时无返回，错误时返回为大于0的值
 
-	MSG_ROOM_THIRTEEN_GAME_SHOW_CARDS = 2204, //三张玩家明牌
+	MSG_ROOM_THIRTEEN_GAME_PUT_CARDS_UPDATE, //十三张玩家摆牌更新
+	// svr : { idx : 1 , state : 0/1 }
 
-	MSG_ROOM_THIRTEEN_GAME_DELAY_PUT = 2205, //三张增加摆牌时间
+	MSG_ROOM_THIRTEEN_GAME_SHOW_CARDS, //十三张玩家明牌
+	// client: null
+	// svr : { ret : 1 }
+
+	MSG_ROOM_THIRTEEN_GAME_DELAY_PUT, //十三张增加摆牌时间
+	// client: 暂时定义null, 每次增加固定的时间
+	// svr : { ret : 1 }
+
+	MSG_ROOM_THIRTEEN_UPDATE_CARDS_PUT_TIME, //十三张摆牌时间更新
+	// svr : {idx : 1, time : int}
+
+	MSG_ROOM_THIRTEEN_START_ROT_BANKER, //十三水开始抢庄信号
+	// svr : {}
+
+	MSG_ROOM_THIRTEEN_ROT_BANKER, //十三张抢庄
+	// client: {state : 1}
+	// state : 1, rot banker; 0, do not rot banker
+	// svr : { ret : 0 }
+
+	MSG_ROOM_THIRTEEN_PRODUCED_BANKER, //十三水庄信息
+	// svr : {bankerIdx : 1, rotBanker : 1}
+	// rotBanker : 1, banker is rotted; 0, normal banker
+
+	//MSG_ROOM_THIRTEEN_SHOW_CARDS, //十三水明牌命令
+	// client : {}
+	// svr : {ret : 0}
+
+	MSG_ROOM_THIRTEEN_SHOW_CARDS_UPDATE, //十三水玩家明牌更新
+	// svr : {idx : 1, cards : [1,2, ... 13], waitTime: int}
+
+	MSG_ROOM_THIRTEEN_GOLDEN_UPDATE, //十三张游戏内剩余金币更新
+	// svr : { idx : 1 , chips : 123 }
+
+	MSG_ROOM_THIRTEEN_APPLAY_DRAG_IN, //申请带入金币
+	// client : {amount : 100, clubID : 123}
+	// svr : {ret : 0}
+
+	MSG_ROOM_THIRTEEN_DRAG_IN,//带入金币反馈信息
+	// svr : {idx : 1 , chips : 123}
+
+	MSG_ROOM_THIRTEEN_NEED_DRAGIN, //需要带入金币才能继续
+	// svr : {idx : 1, cludIDs : [123,123,123]}
 
 	MSG_ROOM_THIRTEEN_END = 2300, //13水命令号结束标记
 
+
+
+	/*Club消息列表
+		(2400 - 2500)
+		ret: 0成功, >1 失败
+	*/
+	MSG_CLUB_MESSAGE_BEGIN = 2400,
+
+	MSG_CLUB_PLAYER_CLUB_INFO, //玩家俱乐部信息
+	//client : {nTargetID : playerUID}
+	//svr : {joined : [111, 222, 333] , created : [111, 222, 333]}
+
+	MSG_CLUB_CREATE_CLUB, //创建俱乐部
+	//client : targetID: playerUID, {name : "str", region : "str", description : "null", icon : "str"}
+	//svr : {ret : 0, clubID : 123}
+
+	MSG_CLUB_DISMISS_CLUB, //解散俱乐部
+	//client : targetID: clubID, {uid : 123}
+	//svr : {ret : 0, clubID : 123}
+
+	MSG_CLUB_APPLY_JOIN, //玩家申请加入俱乐部
+	//client : targetID: clubID, {uid : 123}
+	//svr : {ret : 0}
+
+	MSG_CLUB_FIRE_PLAYER, //踢出玩家
+	//client : targetID: clubID, {uid : 123, fireUID : 123}
+	//svr : {ret : 0}
+
+	MSG_CLUB_QUIT_CLUB, //玩家请求退出俱乐部
+	//client : targetID: clubID, {uid : 123}
+	//svr : {ret : 0}
+	
+	MSG_CLUB_APPLY_CLUB_INFO, //玩家申请俱乐部信息
+	//client : targetID: clubID, {}
+	//svr : {ret : 0, clubID : 123, name : "str", creator : 123, nom : 12, lom : 12, region : "str", description : "str", icon : "url", nor : 123}
+	//nom : number of member	lom : limit of member amount	nor : number of room
+
+	MSG_CLUB_APPLY_CLUB_DETAIL, //玩家申请俱乐部详情
+	//client : targetID: clubID, {}
+	//svr : {ret : 0, creator : 123, members : [{id : 123, level : 1}, {id : 321, level : 1}, ...], createType : 1, searchLimit : 1, foundation : 123}
+	//createType : who can create room (0: everyone, 1: administrator or creator, 2: creator)
+	//searchLimit : who can search dao this club(0: everyone, 1: nobody)
+
+	MSG_CLUB_APPLY_ROOM_INFO, //玩家请求俱乐部牌局信息
+	//client : targetID: clubID, {}
+	//svr : {ret : 0, clubID : 123, rooms : [{id : 123, port : 13}, {id : 321, port : 12}, ...]}
+
+	MSG_CLUB_INFO_UPDATE_ICON, //修改头像
+	//client : targetID: clubID, {uid : 123, icon : "url"}
+	//svr : {ret : 0, clubID : 123}
+
+	MSG_CLUB_INFO_UPDATE_NAME, //修改名称
+	//client : targetID: clubID, {uid : 123, name : "str"}
+	//svr : {ret : 0, clubID : 123}
+
+	MSG_CLUB_INFO_UPDATE_CREATE_TYPE, //修改建房权限
+	//client : targetID: clubID, {uid : 123, state : 1}
+	//svr : {ret : 0, clubID : 123, state : 1}
+
+	MSG_CLUB_INFO_UPDATE_SEARCH_LIMIT, //修改搜索限制
+	//client : targetID: clubID, {uid : 123, state : 1}
+	//svr : {ret : 0, clubID : 123, state : 1}
+
+	MSG_CLUB_INFO_UPDATE_DESCRIPTION, //修改描述
+	//client : targetID: clubID, {uid : 123, description : "str"}
+	//svr : {ret : 0, clubID : 123}
+
+	MSG_CLUB_INFO_UPDATE_LEVEL, //修改玩家等级权限
+	//client : targetID: clubID, {uid : 123, memberUID : 321, level : 1}
+	//svr : {ret : 0}
+
+	MSG_CLUB_EVENT_GRANT_FOUNDATION, //发放基金
+	//client : targetID: clubID, {uid : 123, memberUID : 321, amount : 1000}
+	//svr : {ret : 0}
+
+	MSG_CLUB_EVENT_GRANT_RECORDER, //俱乐部发放基金记录
+	//client : targetID: clubID, {}
+	//svr : {ret : 0, clubID : 123, events : [{eventID : 123, time: 123456, disposer:123, detail : {json}}, ... ]}
+
+	MSG_CLUB_EVENT_JOIN, //申请加入消息列表
+	//client : targetID: clubID, {}
+	//svr : {ret : 0, events : [{eventID: 123, time: 123456, state: 0, disposer: 123, detail : {json}}, ...]}
+	//state : 0, wait access	1, apply accede		2, apply refused
+	//disposer : treat uid, if 0 no body or treat by system
+	//detail : json received from client
+
+	MSG_CLUB_EVENT_JOIN_UPDATE, //申请加入列表更新
+	//wait
+
+	MSG_CLUB_EVENT_ENTRY, //申请带入消息列表
+	//client : targetID: clubID, {}
+	//svr : {ret : 0, events : [{eventID: 123, time: 123456, detail : {json}}, ...]}
+
+	MSG_CLUB_EVENT_ENTRY_UPDATE, //申请带入列表更新
+	//wait
+
+	MSG_CLUB_EVENT_ENTRY_RECORDER, //申请带入消息记录列表
+	//client : targetID: clubID, {}
+	//svr : {ret : 0, events : [{eventID: 123, time: 123456, state: 0, disposer: 123, detail : {json}}, ...]}
+	//state : 0, wait access	1, apply accede		2, apply refused
+	//disposer : treat uid, if 0 no body or treat by system
+	//detail : json received from client
+
+	MSG_CLUB_EVENT_ENTRY_RECORDER_UPDATE, //申请带入记录列表更新
+	//wait
+
+	MSG_CLUB_EVENT_APPLY_TREAT, //申请处理俱乐部事件
+	//client : targetID: clubID, {uid : 123, eventID : 321, state : 0}
+	//svr : {ret : 0}
+	//state : 1, accede		2, refused
+
+	MSG_LEAGUE_CLUB_LEAGUE_INFO, //俱乐部联盟信息
+	//client : targetID: clubID, {}
+	//svr : {joined : [111, 222, 333] , created : [111, 222, 333]}
+
+	MSG_LEAGUE_CREATE_LEAGUE, //创建联盟部
+	//client : targetID: clubID, {uid : 123, name : "str", icon : "url:null"}
+	//svr : {ret : 0}
+
+	MSG_LEAGUE_APPLY_LEAGUE_INFO, //玩家申请联盟信息
+	//client : targetID: leagueID, {}
+	//svr : {ret : 0, leagueID : 123, name : "str", creator : 123}
+
+	MSG_LEAGUE_APPLY_LEAGUE_DETAIL, //玩家申请联盟详情
+	//client : targetID: leagueID, {}
+	//svr : {ret : 0, leagueID : 123, name : "str", creator : 123, members : [{id : 123, level : 1}, {id : 321, level : 1}, ...], joinLimit : 1, joinEvents : [{eventID : 123, time : 123, detail : {json}}, ...]}
+	//joinLimit : 0, all club can join		1, no one can search dao
+
+	MSG_LEAGUE_JOIN_LEAGUE, //加入联盟
+	//client : targetID: leagueID, {uid : 123, clubID : 123}
+	//svr : {ret : 0}
+
+	MSG_LEAGUE_UPDATE_JOIN_LIMIT, //修改联盟搜索限制
+	//client : targetID: leagueID, {uid : 123, clubID : 123, state : 1}
+	//svr : {ret : 0, clubID : 123, state : 1}
+
+	MSG_LEAGUE_FIRE_CLUB, //踢出俱乐部
+	//client : targetID: leagueID, {uid : 123, clubID : 123, fireCID : 123}
+	//svr : {ret : 0}
+
+	MSG_LEAGUE_DISMISS_LEAGUE, //解散联盟
+	//client : targetID: leagueID, {uid : 123, clubID : 123}
+	//svr : {ret : 0}
+
+	MSG_LEAGUE_QUIT_LEAGUE, //退出联盟
+	//client : targetID: leagueID, {uid : 123, clubID : 123}
+	//svr : {ret : 0}
+
+	MSG_LEAGUE_EVENT_JOIN, //申请加入联盟列表
+	//client : targetID: leagueID, {}
+	//svr : {ret : 0, events : [{eventID: 123, time: 123456, state: 0, disposer: 123, detail : {json}}, ...]}
+	//state : 0, wait access	1, apply accede		2, apply refused
+	//disposer : treat uid, if 0 no body or treat by system
+	//detail : json received from client
+
+	MSG_LEAGUE_EVENT_APPLY_TREAT, //申请处理联盟事件
+	//client : targetID: leagueID, {uid : 123, eventID : 321, clubID : 123, state : 0}
+	//svr : {ret : 0}
+	//state : 1, accede		2, refused
+
+	MSG_CLUB_MESSAGE_END = 2500,
+
+	MSG_PLAYER_RESET_PASSWORD, //玩家重置密码
+	//client : {number : 11111111, password : "123456"}
+	//DATASERVER消息 targetID 发玩家ID
+	//svr : {ret : 0} 0成功，大于0失败
 
 
 

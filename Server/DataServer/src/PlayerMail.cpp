@@ -95,6 +95,60 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 		}
 	}
 	break;
+	case eMail_Club_AddCoin:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			auto nCoinCnt = pMail->jsDetail["amount"].asInt();
+			getPlayer()->getBaseData()->modifyMoney((int32_t)nCoinCnt);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
+	case eMail_Club_Join:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			uint32_t nClubID = pMail->jsDetail["clubID"].asInt();
+			getPlayer()->getBaseData()->addJoinedClub(nClubID);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
+	case eMail_Club_Create:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			uint32_t nClubID = pMail->jsDetail["clubID"].asInt();
+			getPlayer()->getBaseData()->addCreatedClub(nClubID);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
+	case eMail_Club_Dismiss:
+	case eMail_Club_Fire:
+	case eMail_Club_Quit:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			uint32_t nClubID = pMail->jsDetail["clubID"].asInt();
+			getPlayer()->getBaseData()->dismissClub(nClubID);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	break;
 	case eMail_Consume_Diamond:
 	{
 		if (getPlayer()->getBaseData()->isPlayerReady())

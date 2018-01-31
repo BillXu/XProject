@@ -10,7 +10,7 @@ IGameRoom* RoomManager::createRoom(uint8_t nGameType)
 	return nullptr;
 }
 
-uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType)
+uint32_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType)
 {
 	if (isCreateRoomFree())
 	{

@@ -300,6 +300,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 				return ;
 			}
 			jsRet["ret"] = 0;
+			jsRet["roomID"] = nRoomID;
 			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
 		},nUserID);
 	}

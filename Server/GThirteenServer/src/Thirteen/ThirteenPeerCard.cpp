@@ -2,7 +2,6 @@
 #include "log4z.h"
 #include <algorithm>
 #include "ThirteenCardTypeChecker.h"
-#include "ThirteenCardTypeChecker.h"
 ThirteenPeerCard::ThirteenPeerCard(){
 	m_nCurGroupIdx = DAO_HEAD;
 	m_vGroups.resize(DAO_MAX);
@@ -31,6 +30,7 @@ void ThirteenPeerCard::addCompositCardNum( uint8_t nCardCompositNum )
 bool ThirteenPeerCard::setDao(uint8_t nIdx, VEC_CARD vCards) {
 	if (nIdx < DAO_MAX) {
 		std::sort(vCards.begin(), vCards.end());
+		std::reverse(vCards.begin(), vCards.end());
 		return m_vGroups[nIdx].setCard(vCards);
 	}
 	return false;
@@ -41,8 +41,9 @@ bool ThirteenPeerCard::autoSetDao() {
 		VEC_CARD vCards;
 		vCards.assign(m_vHoldCards.begin(), m_vHoldCards.end());
 		std::sort(vCards.begin(), vCards.end());
-		for (uint8_t nDao = DAO_HEAD; nDao < DAO_MAX; nDao++) {
-			if (autoSetDao(vCards, nDao)) {
+		std::reverse(vCards.begin(), vCards.end());
+		for (uint8_t nDao = DAO_MAX; nDao > DAO_HEAD; nDao--) {
+			if (autoSetDao(vCards, nDao - 1)) {
 				continue;
 			}
 			return false;
@@ -160,9 +161,31 @@ bool ThirteenPeerCard::groupCardToJson(Json::Value& vHoldCards)
 		{
 			continue;
 		}
-		Json::Value jsPeerGroup;
-		ref.holdCardToJson(jsPeerGroup);
-		vHoldCards[vHoldCards.size()] = jsPeerGroup;
+		//Json::Value jsPeerGroup;
+		ref.holdCardToJson(vHoldCards);
+		//vHoldCards[vHoldCards.size()] = jsPeerGroup;
+	}
+	return true;
+}
+
+bool ThirteenPeerCard::groupCardTypeToJson(Json::Value& js) {
+	for (auto& ref : m_vGroups) {
+		if (ref.getWeight() == 0)
+		{
+			continue;
+		}
+		js[js.size()] = ref.getType();
+	}
+	return true;
+}
+
+bool ThirteenPeerCard::groupCardWeightToJson(Json::Value& js) {
+	for (auto& ref : m_vGroups) {
+		if (ref.getWeight() == 0)
+		{
+			continue;
+		}
+		js[js.size()] = ref.getWeight();
 	}
 	return true;
 }
@@ -551,7 +574,7 @@ bool ThirteenPeerCard::setFuLu(VEC_CARD& vCards, uint8_t nIdx) {
 		}
 		if (nSameCnt == 3) {
 			if (nSame3) {
-				continue;
+				//continue;
 			}
 			else {
 				nSame3 = tValue;
@@ -562,7 +585,7 @@ bool ThirteenPeerCard::setFuLu(VEC_CARD& vCards, uint8_t nIdx) {
 		}
 		else if (nSameCnt == 1) {
 			if (nBigValue) {
-				continue;
+				//continue;
 			}
 			else {
 				nBigValue = tValue;
@@ -866,7 +889,7 @@ bool ThirteenPeerCard::setThreeCards(VEC_CARD& vCards, uint8_t nIdx) {
 		}
 		if (nSameCnt == 3) {
 			if (nSame3) {
-				continue;
+				//continue;
 			}
 			else {
 				nSame3 = tValue;
@@ -874,7 +897,7 @@ bool ThirteenPeerCard::setThreeCards(VEC_CARD& vCards, uint8_t nIdx) {
 		}
 		else if (nSameCnt == 2) {
 			if (nSame2) {
-				continue;
+				//continue;
 			}
 			else {
 				nSame2 = tValue;
@@ -882,7 +905,7 @@ bool ThirteenPeerCard::setThreeCards(VEC_CARD& vCards, uint8_t nIdx) {
 		}
 		else if (nSameCnt == 1) {
 			if (nBigValue) {
-				continue;
+				//continue;
 			}
 			else {
 				nBigValue = tValue;
@@ -976,7 +999,7 @@ bool ThirteenPeerCard::setDoubleDouble(VEC_CARD& vCards, uint8_t nIdx) {
 		}
 		nSameCnt++;
 		auto tValue = TT_PARSE_VALUE(vCards[i]);
-		if (i + 1 < vCards.size() && vCards[i + 1] == tValue) {
+		if (i + 1 < vCards.size() && TT_PARSE_VALUE(vCards[i + 1]) == tValue) {
 			continue;
 		}
 		if (nSameCnt == 1) {
@@ -985,6 +1008,7 @@ bool ThirteenPeerCard::setDoubleDouble(VEC_CARD& vCards, uint8_t nIdx) {
 				nNeedOtherCnt--;
 				nNeedCnt--;
 			}
+			nSameCnt = 0;
 		}
 		else if (nSameCnt == 2) {
 			if (nNeedDouble) {
@@ -998,6 +1022,7 @@ bool ThirteenPeerCard::setDoubleDouble(VEC_CARD& vCards, uint8_t nIdx) {
 				nNeedOtherCnt--;
 				nNeedCnt--;
 			}
+			nSameCnt = 0;
 		}
 		else {
 			return false;
@@ -1046,6 +1071,7 @@ bool ThirteenPeerCard::setDouble(VEC_CARD& vCards, uint8_t nIdx) {
 			if (nJokerCnt) {
 				return false;
 			}
+			//nSameCnt = 0;
 			continue;
 		}
 		if (nSameCnt == 1) {
@@ -1053,13 +1079,13 @@ bool ThirteenPeerCard::setDouble(VEC_CARD& vCards, uint8_t nIdx) {
 				nSame2 = tValue;
 				vTemp.push_back(vCards[i]);
 				nCurNeedCnt--;
-				continue;
 			}
-			if (nNeedOtherCnt) {
+			else if (nNeedOtherCnt) {
 				vTemp.push_back(vCards[i]);
 				nCurNeedCnt--;
 				nNeedOtherCnt--;
 			}
+			nSameCnt = 0;
 		}
 		else if (nSameCnt == 2) {
 			if (nSame2) {
@@ -1072,6 +1098,7 @@ bool ThirteenPeerCard::setDouble(VEC_CARD& vCards, uint8_t nIdx) {
 			vTemp.push_back(vCards[i]);
 			vTemp.push_back(vCards[i - 1]);
 			nCurNeedCnt -= 2;
+			nSameCnt = 0;
 		}
 		else {
 			return false;

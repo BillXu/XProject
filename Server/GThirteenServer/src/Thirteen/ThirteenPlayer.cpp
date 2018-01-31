@@ -1,11 +1,18 @@
 #include "ThirteenPlayer.h"
 #include "ThirteenPeerCard.h"
 #include "ThirteenPlayerRecorder.h"
+void ThirteenPlayer::init(stEnterRoomData* pEnterPlayer, uint16_t nIdx) {
+	IGamePlayer::init(pEnterPlayer, nIdx);
+	setChips(pEnterPlayer->nChip);
+}
+
 void ThirteenPlayer::onGameWillStart()
 {
 	IGamePlayer::onGameWillStart();
 	m_tPeerCard.reset();
 	clearDeterMined();
+	clearRotBanker();
+	clearShowCards();
 }
 
 void ThirteenPlayer::onGameDidEnd()

@@ -10,7 +10,7 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		auto pRoom = (ThirteenRoom*)getRoom();
 		pRoom->doDistributeCard(MAX_HOLD_CARD_COUNT);
-		setStateDuringTime(eTime_ExeGameStart);
+		setStateDuringTime(eTime_DoPlayerMoPai);
 	}
 
 	void onStateTimeUp()

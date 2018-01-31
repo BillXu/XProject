@@ -15,6 +15,6 @@ public:
 
 	void onStateTimeUp()
 	{
-		getRoom()->goToState(eRoomState_DistributeCard);
+		getRoom()->goToState(eRoomState_RobotBanker);
 	}
 };

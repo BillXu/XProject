@@ -98,6 +98,32 @@ enum eAsyncReq
 	eAsync_Apns, // { apnsType : 0 , targets : [234,2345,23,4] , content : "hello this is" ,msgID : "fs" ,msgdesc : "shfsg" }  apnsType : 0 , group type . 1 , target persions ;
 	//
 	//eAsync_ApplyLeaveRoom, // {uid : 234 , roomID : 2345 , reason : 0 } reason : 0 , disconnect , 1 other peer login.  result : { ret : 0 , coin : 2345 } // ret : 0 leave direct, 1 delay leave room , 2 not in room , 3 not find room   ;
+	eAsync_player_apply_DragIn,//玩家请求带入
+	eAsync_Club_AddCoin, //俱乐部添加金币
+	eAsync_Club_Join, //申请通过加入俱乐部
+	eAsync_Club_Create, //玩家创建俱乐部
+	eAsync_Club_Dismiss, //玩家解散俱乐部
+	eAsync_Club_Fire, //玩家被踢出
+	eAsync_Club_Quit, //玩家退出
+	eAsync_Club_CreateRoom_Check, //玩家创建俱乐部房间检查
+	eAsync_Club_CreateRoom, //玩家创建俱乐部房间
+	eAsync_club_apply_DragIn, //玩家向俱乐部申请带入金币
+	eAsync_club_agree_DragIn, //玩家同意带入请求
+	eAsync_club_CreateRoom_Info, //玩家请求俱乐部牌局信息
+	eAsync_League_AddIntegration, //联盟发放积分
+	eAsync_league_JoinLeague, //玩家申请加入联盟
+	eAsync_league_ClubJoin, //俱乐部加入联盟
+	eAsync_league_TreatEvent, //玩家请求处理联盟请求
+	eAsync_league_FireClub_Check, //玩家请求处理联盟开除俱乐部资质审核
+	eAsync_league_FireClub, //通知俱乐部被联盟开除
+	eAsync_league_Dismiss_Check, //玩家请求解散联盟资质审核
+	eAsync_league_Dismiss, //通知俱乐部们联盟已经解散
+	eAsync_league_ClubQuit_Check, //玩家申请退出联盟资质审核
+	eAsync_league_ClubQuit, //通知俱乐部已退出联盟
+	eAsync_league_CreateRoom_Check, //俱乐部创建联盟房间检查
+	eAsync_league_CreateRoom, //俱乐部创建联盟房间
+	eAsync_league_CreateRoom_Info, //俱乐部申请联盟创建房间信息
+	eAsync_league_or_club_DeleteRoom, //联盟或俱乐部删除房间信息
 	eAsync_Max,
 };
 

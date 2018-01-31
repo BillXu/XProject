@@ -28,6 +28,7 @@ public:
 	void start();
 	bool isRunning();
 	void clearTime();
+	float getDuringTime();
 protected:
 	void Update( float fTimeElaps );
 	uint32_t getTimerID();

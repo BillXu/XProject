@@ -1,6 +1,7 @@
 #pragma once
 #include "ISeverApp.h"
 #include "PlayerManager.h"
+#include "ClubManager.h"
 #include "ConfigManager.h"
 #include "PokerCircle.h"
 #include "Singleton.h"
@@ -17,6 +18,7 @@ public:
 		eMod_Shop,
 		eMod_Mail,
 		eMod_Club,
+		eMod_League,
 		eMod_Max,
 	};
 public:
@@ -24,6 +26,7 @@ public:
 	bool init(Json::Value& jsSvrCfg);
 	MailModule* getMailModule();
 	CPlayerManager* getPlayerMgr();
+	CClubManager* getClubMgr();
 	CConfigManager* getConfigMgr(){ return m_pConfigManager ; }
 protected:
 	bool onLogicMsg(stMsg* prealMsg, eMsgPort eSenderPort, uint32_t nSenderID)override;

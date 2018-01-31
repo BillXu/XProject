@@ -266,6 +266,7 @@ enum eRoomPeerState
 	eRoomPeer_AlreadyHu = ((1 << 15) | eRoomPeer_CanAct),  //  已经胡牌的状态
 	eRoomPeer_DelayLeave = (1 << 17),  //  牌局结束后才离开
 	eRoomPeer_TiLaChuai = (1 << 19),  //  提拉踹
+	eRoomPeer_WaitDragIn = (1 << 20) | eRoomPeer_SitDown, //等待带入
 	eRoomPeer_Max,
 };
 
@@ -332,6 +333,12 @@ enum eMailType
 	eMail_RealMail_Begin = 500, // will mail will show in golden server windown ;
 	eMail_PlainText,  // need not parse , just display the content ;
 	eMail_InvitePrize, // { targetUID : 2345 , addCoin : 300 } // you invite player to join game ,and give prize to you 
+	eMail_Club_AddCoin,
+	eMail_Club_Join,
+	eMail_Club_Create,
+	eMail_Club_Dismiss,
+	eMail_Club_Fire,
+	eMail_Club_Quit,
 	eMail_Max,
 };
 

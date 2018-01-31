@@ -2,6 +2,7 @@
 #include "GameRoom.h"
 #include "IPoker.h"
 #include "ThirteenPoker.h"
+#include "IPeerCard.h"
 class ThirteenRoom
 	:public GameRoom
 {
@@ -14,9 +15,13 @@ public:
 	void onWillStartGame()override;
 	void onStartGame()override;
 	void onGameEnd()override;
+	bool isRoomGameOver();
 	bool canStartGame()override;
 	IPoker* getPoker()override;
+	bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
 
+	uint8_t getBankerIdx() { return m_nBankerIdx; }
+	uint8_t doProduceNewBanker();
 	void onPlayerReady( uint16_t nIdx);
 	void doDistributeCard( uint8_t nCardCnt );
 
@@ -24,18 +29,31 @@ public:
 	bool onWaitAct();
 	bool onWaitPlayerAct(uint8_t nIdx);
 	bool onAutoDoPlayerAct();
-	bool onPlayerSetDao(uint8_t nIdx, ThirteenPeerCard::VEC_CARD vCards);
-	bool isWaitPlayerActForever() { return true; }
+	bool onPlayerSetDao(uint8_t nIdx, IPeerCard::VEC_CARD vCards);
+	bool isWaitPlayerActForever() { return false; }
 	bool isPlayerCanAct(uint8_t nIdx);
 	bool isGameOver();
+	bool onPlayerRotBanker(uint8_t nIdx);
+	bool onPlayerShowCards(uint8_t nIdx);
 	uint8_t getBaseScore();
 	uint8_t getMultiple();
+	uint8_t getPutCardsTime();
+	bool isCanMingPai();
+	bool isCanRotBanker();
+	bool isClubRoom();
+	bool hasRotBanker() { return m_bRotBanker; }
+	bool onPlayerDragIn(uint32_t nUserID, uint32_t nAmount);
+	uint32_t getMaxLose();
 
 protected:
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint8_t getWinShui(uint8_t nIdx, uint8_t nWinType = WIN_SHUI_TYPE_NONE, uint8_t nDaoIdx = DAO_MAX);
 	uint8_t getDaoWinShui(uint8_t nType, uint8_t nDaoIdx);
 	uint32_t getWinCoin(uint8_t nIdx, uint8_t nWinType = WIN_SHUI_TYPE_NONE, uint8_t nDaoIdx = DAO_MAX);
+	bool checkDragInAmount(uint32_t nAmount);
+	IGameRoomDelegate* getDelegate() override;
 private:
 	ThirteenPoker m_tPoker;
+	uint8_t m_nBankerIdx;
+	bool m_bRotBanker;
 };

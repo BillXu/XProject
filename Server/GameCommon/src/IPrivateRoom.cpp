@@ -10,8 +10,10 @@
 #define TIME_AUTO_DISMISS (60*60*5)
 IPrivateRoom::~IPrivateRoom()
 {
-	delete m_pRoom;
-	m_pRoom = nullptr;
+	if (m_pRoom) {
+		delete m_pRoom;
+		m_pRoom = nullptr;
+	}
 }
 
 bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts )
@@ -281,6 +283,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			break;
 		}
 
+		//prealMsg["ret"] = 0;
 		prealMsg["playerIdx"] = pp->getIdx();
 		sendRoomMsg(prealMsg, MSG_ROOM_CHAT_MSG);
 	}
@@ -444,7 +447,7 @@ void IPrivateRoom::sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uin
 	}
 }
 
-uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType )
+uint32_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType )
 {
 	if ( !m_pRoom)
 	{

@@ -316,6 +316,21 @@ bool CPlayer::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqCont
 	return false;
 }
 
+bool CPlayer::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID) {
+	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
+	{
+		IPlayerComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			if (p->onAsyncRequestDelayResp(nRequestType, nReqSerial, jsReqContent, nSenderPort, nSenderID))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void CPlayer::saveLoginInfo()
 {
 	Json::Value jssql;

@@ -19,7 +19,7 @@ public:
 	virtual void onStateTimeUp(){}
 	virtual void leaveState(){}
 	virtual uint8_t getCurIdx(){ return 0; };
-	virtual void roomInfoVisitor(Json::Value& js) {}
+	virtual void roomInfoVisitor(Json::Value& js) { js["during"] = getStateDuring(); }
 	virtual void update(float fDeta)
 	{
 		if (m_fStateDuring >= 0.0f)

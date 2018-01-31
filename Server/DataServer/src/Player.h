@@ -42,6 +42,7 @@ public:
 	void postPlayerEvent(stPlayerEvetArg* pEventArg );
 	void onTimerSave();
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
+	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID);
 	CPlayerManager* getPlayerMgr() { return m_pPlayerMgr; }
 	bool isPlayerReady();
 	bool canRemovePlayer();

@@ -214,7 +214,10 @@ bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 			jsRoomEntry["port"] = ref.nSvrPort;
 			jsRooms[jsRooms.size()] = jsRoomEntry;
 		}
-		Json::Value jsMsg;
+		std::vector<uint32_t> vClubIDs;
+		getPlayer()->getBaseData()->getJoinedAndCreatedClubs(vClubIDs);
+		getClubRoomInfo(jsRooms, vClubIDs, nmsgType);
+		/*Json::Value jsMsg;
 		jsMsg["ret"] = 0;
 		jsMsg["rooms"] = jsRooms;
 		if ( getStayInRoom().isEmpty() == false )
@@ -224,7 +227,7 @@ bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 			jsRoomEntry["port"] = getStayInRoom().nSvrPort;
 			jsMsg["stayInRoom"] = jsRoomEntry;
 		}
-		sendMsg(jsMsg, nmsgType);
+		sendMsg(jsMsg, nmsgType);*/
 		return true;
 	}
 
@@ -440,4 +443,81 @@ void CPlayerGameData::informNetState(uint8_t nStateFlag)
 		}
 		LOGFMTD("inform new state to game svr! uid = %u new", getPlayer()->getUserUID());
 	});
+}
+
+void CPlayerGameData::getClubRoomInfo(Json::Value& jsRooms, const std::vector<uint32_t>& vClubs, uint16_t nmsgType, uint32_t nIdx) {
+	if (nIdx < vClubs.size()) {
+		Json::Value jsReq;
+		auto nClubID = vClubs[nIdx];
+		jsReq["clubID"] = nClubID;
+		jsReq["rooms"] = jsRooms;
+		//LOGFMTE("apply club = %u room info", nClubID);
+		getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_CreateRoom_Info, jsReq, [this, nIdx, vClubs, jsRooms, nmsgType](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+			//LOGFMTE("received club = %u room info", vClubs[nIdx]);
+			if (isTimeOut) {
+				//LOGFMTE("apply club = %u room info timeout", vClubs[nIdx]);
+				Json::Value jsMsg;
+				jsMsg["ret"] = 0;
+				jsMsg["rooms"] = jsRooms;
+				if (getStayInRoom().isEmpty() == false)
+				{
+					Json::Value jsRoomEntry;
+					jsRoomEntry["id"] = getStayInRoom().nRoomID;
+					jsRoomEntry["port"] = getStayInRoom().nSvrPort;
+					jsMsg["stayInRoom"] = jsRoomEntry;
+				}
+				sendMsg(jsMsg, nmsgType);
+
+
+				/*Json::Value jsInfo;
+				jsInfo["ret"] = 1;
+				jsInfo["clubID"] = getClub()->getClubID();
+				jsInfo["rooms"] = jsRoomInfo;
+				sendMsgToClient(jsInfo, MSG_CLUB_APPLY_ROOM_INFO, nSenderID);*/
+			}
+			else {
+				uint8_t nRet = retContent["ret"].asUInt();
+				Json::Value jsRooms_1;
+				if (nRet) {
+					jsRooms_1 = jsRooms;
+				}
+				else {
+					jsRooms_1 = retContent["rooms"];
+				}
+				uint32_t nCurIdx = nIdx + 1;
+				if (nCurIdx < vClubs.size()) {
+					//LOGFMTE("go on apply club = %u room info", vClubs[nCurIdx]);
+					getClubRoomInfo(jsRooms_1, vClubs, nmsgType, nCurIdx);
+				}
+				else {
+					//LOGFMTE("finish apply room info");
+					Json::Value jsMsg;
+					jsMsg["ret"] = 0;
+					jsMsg["rooms"] = jsRooms_1;
+					if (getStayInRoom().isEmpty() == false)
+					{
+						Json::Value jsRoomEntry;
+						jsRoomEntry["id"] = getStayInRoom().nRoomID;
+						jsRoomEntry["port"] = getStayInRoom().nSvrPort;
+						jsMsg["stayInRoom"] = jsRoomEntry;
+					}
+					sendMsg(jsMsg, nmsgType);
+				}
+			}
+
+		});
+	}
+	else if (vClubs.size() == 0) {
+		Json::Value jsMsg;
+		jsMsg["ret"] = 0;
+		jsMsg["rooms"] = jsRooms;
+		if (getStayInRoom().isEmpty() == false)
+		{
+			Json::Value jsRoomEntry;
+			jsRoomEntry["id"] = getStayInRoom().nRoomID;
+			jsRoomEntry["port"] = getStayInRoom().nSvrPort;
+			jsMsg["stayInRoom"] = jsRoomEntry;
+		}
+		sendMsg(jsMsg, nmsgType);
+	}
 }

@@ -1,7 +1,8 @@
 #pragma once
 #include "NativeTypes.h"
 #include <cassert>
-#include "ThirteenDefine.h"
+#include "Thirteen/ThirteenDefine.h"
+#include <vector>
 class IPeerCard
 {
 public:
@@ -33,25 +34,7 @@ public:
 		return pk(&refTarget) == PK_RESULT_EQUAL ;
 	}
 
-	void static addCardToVecAsc(VEC_CARD& vec, uint8_t nCard)
-	{
-		auto iter = vec.begin();
-		for (; iter < vec.end(); ++iter)
-		{
-			if ((*iter) < nCard)
-			{
-				vec.insert(iter, nCard);
-				return;
-			}
-		}
-		vec.push_back(nCard);
-	}
+	void static addCardToVecAsc(VEC_CARD& vec, uint8_t nCard);
 
-	void static eraseVector(uint8_t p, VEC_CARD& typeVec) {
-		VEC_CARD::iterator it = find(typeVec.begin(), typeVec.end(), p);
-		if (it != typeVec.end())
-		{
-			typeVec.erase(it);
-		}
-	}
+	void static eraseVector(uint8_t p, VEC_CARD& typeVec);
 };

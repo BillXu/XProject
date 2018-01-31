@@ -65,7 +65,7 @@ public:
 	uint16_t getPlayerCnt()override;
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
-	IGameRoomDelegate* getDelegate();
+	virtual IGameRoomDelegate* getDelegate();
 	stStandPlayer* getStandPlayerByUID( uint32_t nUserID );
 	virtual std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr();
 public:

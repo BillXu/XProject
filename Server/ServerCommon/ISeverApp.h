@@ -48,6 +48,7 @@ public:
 	CAsyncRequestQuene* getAsynReqQueue();
 	uint16_t getCurSvrIdx() { return m_nCurSvrIdx; }
 	uint16_t getCurSvrMaxCnt() { return m_nCurSvrPortMaxCnt; }
+	bool isIDInThisSvr(uint32_t nID);
 protected:
 	bool installModule( uint16_t nModuleType );
 	virtual IGlobalModule* createModule( uint16_t eModuleType );

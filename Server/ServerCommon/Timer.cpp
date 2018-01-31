@@ -78,6 +78,15 @@ void CTimer::clearTime()
 	m_fIntervalKeeper = 0;
 }
 
+float CTimer::getDuringTime() {
+	if (m_fIntervalKeeper < m_fInterval) {
+		return m_fInterval - m_fIntervalKeeper;
+	}
+	else {
+		return 0;
+	}
+}
+
 void CTimer::reset()
 {
 	if ( eTimerState_Runing == m_eState )

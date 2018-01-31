@@ -30,7 +30,7 @@ public:
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 
 	virtual GameRoom* doCreatRealRoom() = 0;
-	uint8_t getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType );
+	uint32_t getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType );
 	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
 
 	void packRoomInfo(Json::Value& jsRoomInfo)override;

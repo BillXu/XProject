@@ -9,7 +9,12 @@ public:
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		getRoom()->onGameEnd();
-		setStateDuringTime(eTime_GameOver);
+		if (((ThirteenRoom*)getRoom())->isRoomGameOver()) {
+			setStateDuringTime(eTime_GameOver * 30);
+		}
+		else {
+			setStateDuringTime(eTime_GameOver);
+		}
 	}
 
 	void onStateTimeUp()

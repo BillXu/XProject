@@ -57,6 +57,14 @@ public:
 	{
 		return m_nChips;
 	}
+	void setChips(int32_t nChips)
+	{
+		m_nChips = nChips;
+	}
+	void addChips(int32_t nOffset) {
+		m_nChips += nOffset;
+	}
+
 	void setState(uint32_t eState) 
 	{
 		m_nState = eState;

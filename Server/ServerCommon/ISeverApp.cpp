@@ -631,3 +631,7 @@ CAsyncRequestQuene* IServerApp::getAsynReqQueue()
 {
 	return (CAsyncRequestQuene*)getModuleByType(eDefMod_AsyncRequestQueu);
 }
+
+bool IServerApp::isIDInThisSvr(uint32_t nID) {
+	return nID % getCurSvrMaxCnt() == getCurSvrIdx();
+}

@@ -37,6 +37,11 @@ void StringSplit( const char* pString, char pSplitChar, VEC_STRING& vOutString )
 	StringSplit(str, strDe.c_str(), vOutString);
 }
 
+void parseESSpace(std::string& pString) {
+	pString.erase(0, pString.find_first_not_of(" "));
+	pString.erase(pString.find_last_not_of(" ") + 1);
+}
+
 std::string TimeToStringFormate( unsigned int nSec )
 {
     char pBuffer[100] = { 0 } ;

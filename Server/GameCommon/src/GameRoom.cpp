@@ -283,13 +283,14 @@ bool GameRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx 
 	p->init(pEnterRoomPlayer, nIdx);
 	m_vPlayers[p->getIdx()] = p;
 	
-	Json::Value jsRoomPlayerSitDown;
-	visitPlayerInfo(p, jsRoomPlayerSitDown,0 );
-	sendRoomMsg(jsRoomPlayerSitDown,MSG_ROOM_SIT_DOWN);
 	if (getDelegate())
 	{
 		getDelegate()->onPlayerSitDown(this,p);
 	}
+
+	Json::Value jsRoomPlayerSitDown;
+	visitPlayerInfo(p, jsRoomPlayerSitDown, 0);
+	sendRoomMsg(jsRoomPlayerSitDown, MSG_ROOM_SIT_DOWN);
 	return true;
 }
 
