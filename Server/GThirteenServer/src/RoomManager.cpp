@@ -1,7 +1,10 @@
 #include "RoomManager.h"
 #include "ThirteenPrivateRoom.h"
+#include "ThirteenGPrivateRoom.h"
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
+#include "stEnterRoomData.h"
+#define MAX_CREATE_ROOM_CNT 10
 IGameRoom* RoomManager::createRoom(uint8_t nGameType)
 {
 	if (eGame_Thirteen == nGameType )
@@ -9,6 +12,15 @@ IGameRoom* RoomManager::createRoom(uint8_t nGameType)
 		return new ThirteenPrivateRoom();
 	}
 	LOGFMTE("unknown game type = %u , can not create private room", nGameType );
+	return nullptr;
+}
+
+IGameRoom* RoomManager::createGRoom(uint8_t nGameType) {
+	if (eGame_Thirteen == nGameType)
+	{
+		return new ThirteenGPrivateRoom();
+	}
+	LOGFMTE("unknown game type = %u , can not create private room", nGameType);
 	return nullptr;
 }
 
@@ -23,14 +35,15 @@ uint32_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoom
 #endif // _DEBUG
 
 	uint8_t nAmountLevel = nLevel >> 4;
-	uint8_t nTypeLevel = (nLevel << 4) >> 4;
+	uint8_t nTypeLevel = nLevel << 4;
+	nTypeLevel = nTypeLevel >> 4;
 	if (nTypeLevel > 4) {
 		LOGFMTE("invalid room level for game = %u , level = %u", nGameType, nLevel);
 		nTypeLevel = 4;
 	}
 	if (nAmountLevel > 5) {
 		LOGFMTE("invalid room level for game = %u , level = %u", nGameType, nLevel);
-		nTypeLevel = 5;
+		nAmountLevel = 5;
 	}
 	uint16_t vDiamond[] = { 30, 40, 60, 70, 110 };
 	uint16_t vAmount[] = { 4, 20, 30, 50, 100, 200 };
@@ -58,7 +71,15 @@ uint32_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoom
 IGameRoom* RoomManager::doPlayerCreateRoom(Json::Value& prealMsg, uint32_t nDiamondNeed, bool isRoomOwnerPay) {
 	auto nRoomType = prealMsg["gameType"].asUInt();
 	auto nUserID = prealMsg["uid"].asUInt();
-	auto pRoom = createRoom(nRoomType);
+	auto nLevel = prealMsg["level"].asUInt();
+	IGameRoom* pRoom = nullptr;
+	if (isGRoom(nLevel)) {
+		pRoom = createGRoom(nRoomType);
+	}
+	else {
+		pRoom = createRoom(nRoomType);
+	}
+	//auto pRoom = createRoom(nRoomType);
 	if (!pRoom)
 	{
 		LOGFMTE("game room type is null , uid = %u create room failed", nUserID);
@@ -281,7 +302,17 @@ bool RoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 	if (IGameRoomManager::onAsyncRequest(nRequestType, jsReqContent, jsResult)) {
 		return true;
 	}
-	if (eAsync_club_agree_DragIn == nRequestType) {
+	if (eAsync_club_decline_DragIn == nRequestType) {
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		auto nUID = jsReqContent["uid"].asUInt();
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		auto pRoom = (ThirteenPrivateRoom*)getRoomByID(nRoomID);
+		if (pRoom) {
+			pRoom->onPlayerDeclineDragIn(nUID);
+		}
+		return true;
+	}
+	/*if (eAsync_club_agree_DragIn == nRequestType) {
 		auto nRoomID = jsReqContent["roomID"].asUInt();
 		auto nUID = jsReqContent["uid"].asUInt();
 		auto nAmount = jsReqContent["amount"].asUInt();
@@ -293,6 +324,222 @@ bool RoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 			jsResult["ret"] = 1;
 		}
 		return true;
-	}
+	}*/
 	return false;
+}
+
+bool RoomManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID) {
+	if (IGameRoomManager::onAsyncRequestDelayResp(nRequestType, nReqSerial, jsReqContent, nSenderPort, nSenderID, nTargetID)) {
+		return true;
+	}
+	
+	if (eAsync_club_agree_DragIn == nRequestType) {
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		auto pRoom = (ThirteenPrivateRoom*)getRoomByID(nRoomID);
+		auto pApp = getSvrApp();
+		if (pRoom == nullptr) {
+			Json::Value jsRet;
+			jsRet["ret"] = 1;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, nRoomID);
+			return true;
+		}
+		auto nUID = jsReqContent["uid"].asUInt();
+		auto nAmount = jsReqContent["amount"].asUInt();
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		Json::Value jsReq;
+		jsReq["targetUID"] = nUID;
+		jsReq["roomID"] = nRoomID;
+		jsReq["amount"] = nAmount;
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_player_check_DragIn, jsReq, [pApp, nSenderID, nReqSerial, nSenderPort, this, nUID, pRoom, nAmount, nClubID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			Json::Value jsRet;
+			if (isTimeOut)
+			{
+				LOGFMTE(" request of check drag in time out, uid = %u , room id = %u ", nUID, pRoom->getRoomID());
+				jsRet["ret"] = 7;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, pRoom->getRoomID());
+				return;
+			}
+
+			uint8_t nReqRet = retContent["ret"].asUInt();
+			uint8_t nRet = 0;
+			do {
+				if (0 != nReqRet)
+				{
+					nRet = 3;
+					break;
+				}
+
+				Json::Value jsReq_1;
+				jsReq_1["targetUID"] = nUID;
+				jsReq_1["roomID"] = pRoom->getRoomID();
+				jsReq_1["amount"] = nAmount;
+				if (pRoom->onPlayerDragIn(nUID, nClubID, nAmount)) {
+					pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_player_do_DragIn, jsReq_1);
+				}
+				else {
+					nRet = 2;
+				}
+
+			} while (0);
+
+			jsRet["ret"] = nRet;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, pRoom->getRoomID());
+		});
+		return true;
+	}
+
+	return false;
+}
+
+bool RoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID)
+{
+	switch (nMsgType)
+	{
+	case MSG_ENTER_ROOM:
+	{
+		auto nRoomID = prealMsg["roomID"].asUInt();
+		auto pRoom = getRoomByID(nRoomID);
+		if (nullptr == pRoom)
+		{
+			Json::Value jsRet;
+			jsRet["ret"] = 1;
+			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+			break;
+		}
+
+		auto nUserID = prealMsg["uid"].asUInt();
+		bool isPrivate = false;
+		if (prealMsg["private"].isNull() == false && prealMsg["private"].isUInt()) {
+			isPrivate = prealMsg["private"].asUInt();
+		}
+		if (isPrivate && pRoom->isClubRoom()) {
+			Json::Value jsRet;
+			jsRet["ret"] = 7;
+			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+			break;
+		}
+		if (pRoom->isRoomGameOver()) {
+			Json::Value jsRet;
+			jsRet["ret"] = 8;
+			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+			break;
+		}
+
+		// request enter room info 
+		Json::Value jsReq;
+		jsReq["targetUID"] = nUserID;
+		jsReq["roomID"] = nRoomID;
+		jsReq["sessionID"] = nSenderID;
+		jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
+		auto pAsync = getSvrApp()->getAsynReqQueue();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync, nRoomID, nSenderID, this, nUserID, pRoom](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			if (isTimeOut)
+			{
+				LOGFMTE(" request time out uid = %u , can not enter room ", nUserID);
+				Json::Value jsRet;
+				jsRet["ret"] = 5;
+				sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+				return;
+			}
+
+			uint8_t nReqRet = retContent["ret"].asUInt();
+			uint8_t nRet = 0;
+			do
+			{
+				if (1 == nReqRet)
+				{
+					nRet = 2;
+					break;
+				}
+
+				if (2 == nReqRet)
+				{
+					nRet = 4;
+					break;
+				}
+
+				if (0 != nReqRet)
+				{
+					nRet = 6;
+					break;
+				}
+
+				//auto pRoom = getRoomByID(nRoomID);
+				/*if (nullptr == pRoom)
+				{
+				nRet = 1;
+				break;
+				}*/
+
+				/*if (pRoom->isClubRoom()) {
+				nRet = 7;
+				break;
+				}*/
+
+				auto nStatyRoomID = retContent["stayRoomID"].asUInt();
+				bool isAlreadyInThisRoom = nStatyRoomID == nRoomID;
+				/*if (isAlreadyInThisRoom == false && pRoom->isRoomFull())
+				{
+					nRet = 3;
+					break;
+				}*/
+
+				stEnterRoomData tInfo;
+				tInfo.nUserUID = retContent["uid"].asUInt();
+				tInfo.nSessionID = nSenderID;
+				tInfo.nDiamond = retContent["diamond"].asUInt();
+				tInfo.nChip = retContent["coin"].asInt();
+
+				nRet = pRoom->checkPlayerCanEnter(&tInfo);
+				if (isAlreadyInThisRoom == false && nRet)
+				{
+					break;
+				}
+
+				if (pRoom->onPlayerEnter(&tInfo))
+				{
+					pRoom->sendRoomInfo(tInfo.nSessionID);
+				}
+
+			} while (0);
+
+			Json::Value jsRet;
+			if (nRet)
+			{
+				jsRet["ret"] = nRet;
+				sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+
+				if (nReqRet == 0) // must reset stay in room id ;
+				{
+					Json::Value jsReqLeave;
+					jsReqLeave["targetUID"] = nUserID;
+					jsReqLeave["roomID"] = nRoomID;
+					jsReqLeave["port"] = getSvrApp()->getLocalSvrMsgPortType();
+					pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
+				}
+				return;
+			}
+			jsRet["ret"] = 0;
+			jsRet["roomID"] = nRoomID;
+			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+		}, nUserID);
+	}
+	break;
+	case MSG_CREATE_ROOM:
+	{
+		// req create player info 
+		onPlayerCreateRoom(prealMsg, nSenderID);
+	}
+	break;
+	default:
+		return false;
+	}
+	return true;
+}
+
+bool RoomManager::isGRoom(uint8_t nLevel) {
+	uint8_t nAmountLevel = nLevel >> 4;
+	return nAmountLevel > 0;
 }

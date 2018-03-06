@@ -525,7 +525,7 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	MSG_ROOM_THIRTEEN_BEGIN = 2200, //13水命令号开始标记
 
 	MSG_ROOM_THIRTEEN_GAME_END, //13水游戏结束
-	// svr: { result : [ { idx : 23 , offset : 23, cards : [[1,2,3], [4,5,6,7,8], [9,10,11,12,13]], cardsType : [1,1,1], swat : 0 , shoot : [0 , 1 , 2] }, .... ] }
+	// svr: { result : [ { idx : 23 , offset : 23, cards : [[1,2,3], [4,5,6,7,8], [9,10,11,12,13]], cardsType : [1,1,1], cardsWeight : [12,12,12], swat : 0 , shoot : [0 , 1 , 2] }, .... ] }
 	// swat 红波浪：值为玩家IDX
 	// shoot 打枪 : 数组被打枪玩家的IDX
 
@@ -535,17 +535,21 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	MSG_ROOM_THIRTEEN_GAME_PUT_CARDS, //十三张玩家摆牌
 	// client: { cards : [1, 2, 3, ... , 13] }
 	// svr : { ret : 1 } 正确时无返回，错误时返回为大于0的值
+	// ret : 1, 找不到该玩家  2, 牌型信息错误  3, 摆牌错误，无法摆牌  4, 已摆牌
 
 	MSG_ROOM_THIRTEEN_GAME_PUT_CARDS_UPDATE, //十三张玩家摆牌更新
-	// svr : { idx : 1 , state : 0/1 }
+	// svr : { idx : 1 , state : 0/1 , sys : 1}
+	// sys : system auto put cards, if not do not send this key
 
 	MSG_ROOM_THIRTEEN_GAME_SHOW_CARDS, //十三张玩家明牌
 	// client: null
 	// svr : { ret : 1 }
+	// 1, 玩家不存在  2, 状态错误操作失败  3, 当前房间不能明牌  4, 金币不足  7, 请求超时
 
 	MSG_ROOM_THIRTEEN_GAME_DELAY_PUT, //十三张增加摆牌时间
 	// client: 暂时定义null, 每次增加固定的时间
 	// svr : { ret : 1 }
+	// 1, 玩家不存在 
 
 	MSG_ROOM_THIRTEEN_UPDATE_CARDS_PUT_TIME, //十三张摆牌时间更新
 	// svr : {idx : 1, time : int}
@@ -557,6 +561,7 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	// client: {state : 1}
 	// state : 1, rot banker; 0, do not rot banker
 	// svr : { ret : 0 }
+	// 1, 玩家不存在  2, 状态错误操作失败  3, 当前房间不能抢庄  4, 金币不足  5, 积分不足  7, 请求超时 
 
 	MSG_ROOM_THIRTEEN_PRODUCED_BANKER, //十三水庄信息
 	// svr : {bankerIdx : 1, rotBanker : 1}
@@ -575,12 +580,60 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	MSG_ROOM_THIRTEEN_APPLAY_DRAG_IN, //申请带入金币
 	// client : {amount : 100, clubID : 123}
 	// svr : {ret : 0}
+	// 1, 玩家不存在  2 3, 带入金额错误  4, 金币不足  5 6, 俱乐部选择错误  7, 请求超时
 
 	MSG_ROOM_THIRTEEN_DRAG_IN,//带入金币反馈信息
 	// svr : {idx : 1 , chips : 123}
 
 	MSG_ROOM_THIRTEEN_NEED_DRAGIN, //需要带入金币才能继续
-	// svr : {idx : 1, cludIDs : [123,123,123]}
+	// svr : {idx : 1, clubIDs : [123,123,123], min : 100, max : 200}
+
+	MSG_ROOM_THIRTEEN_REAL_TIME_RECORD, //十三水实时战绩
+	// svr : {idx : 0, detail : [{uid : 123, chip : 123, drag : 123}, ...]}
+	// 10 tips per page
+
+	MSG_ROOM_THIRTEEN_STAND_PLAYERS, //十三水围观玩家信息
+	// client : {}
+	// svr : {idx : 0, players : [123, 123, 123...]}
+	// 20/per page
+
+	MSG_ROOM_THIRTEEN_BOARD_GAME_RECORD, //十三水上局回顾
+	// client : {idx : -1}
+	// -1 : last game (stat form 0)
+	// svr : {ret : 0, idx : 123, detail : [{uid : 123, offset : 123, cards : [12, 12, ...], types : [1, 2, 3]}, ...]}
+
+	MSG_ROOM_REQUEST_THIRTEEN_ROOM_INFO, //十三水请求房间基本信息
+	// client : as request room info
+	// svr : {ret : 0, roomID : 123, leftTime : 123, opts : {json::opts}}
+
+	MSG_ROOM_THIRTEEN_PLAYER_AUTO_STANDUP, //十三水玩家自动站起切换
+	// clinet : {state : 1}
+	// state : 1 auto stand up,  0 cancle auto stand up
+	// svr : {ret : 0, state : 1}
+	// 1, 玩家不存在  2, 操作错误
+
+	MSG_ROOM_THIRTEEN_PLAYER_AUTO_LEAVE, //十三水玩家自动离开切换
+	// clinet : {state : 1}
+	// state : 1 auto leave,  0 cancle auto leave
+	// svr : {ret : 0, state : 1}
+	// 1, 玩家不存在  2, 操作错误
+
+	MSG_ROOM_THIRTEEN_CLIENT_OVER, //十三水游戏客户端结束
+	// client : {}
+
+	MSG_ROOM_THIRTEEN_DECLINE_DRAG_IN, //带入金币拒绝反馈信息
+	// svr : {}
+
+	MSG_ROOM_THIRTEEN_REPUT_CARDS, //十三水游戏重新摆牌
+	// client : {}
+	// svr : {ret : 0}
+	// 1, 玩家不存在  2, 操作错误  3, 未摆牌
+
+	MSG_ROOM_THIRTEEN_RBPOOL_UPDATE, //十三张抢庄池发生变化
+	// svr : {pool : 123}
+
+	MSG_ROOM_THIRTEEN_CANCEL_DRAGIN, //十三水取消带入
+	// client : {}
 
 	MSG_ROOM_THIRTEEN_END = 2300, //13水命令号结束标记
 
@@ -599,22 +652,27 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	MSG_CLUB_CREATE_CLUB, //创建俱乐部
 	//client : targetID: playerUID, {name : "str", region : "str", description : "null", icon : "str"}
 	//svr : {ret : 0, clubID : 123}
+	// 1, 俱乐部名为空  2, 地区为空  3, 俱乐部已存在
 
 	MSG_CLUB_DISMISS_CLUB, //解散俱乐部
 	//client : targetID: clubID, {uid : 123}
 	//svr : {ret : 0, clubID : 123}
+	// 1, 俱乐部错误  2, 权限不足  3, 操作失败
 
 	MSG_CLUB_APPLY_JOIN, //玩家申请加入俱乐部
 	//client : targetID: clubID, {uid : 123}
 	//svr : {ret : 0}
+	// 1, 俱乐部错误  2, 已加入  3, 已申请
 
 	MSG_CLUB_FIRE_PLAYER, //踢出玩家
 	//client : targetID: clubID, {uid : 123, fireUID : 123}
 	//svr : {ret : 0}
+	// 1 2, 玩家信息错误  3, 权限不足  4, 操作无效
 
 	MSG_CLUB_QUIT_CLUB, //玩家请求退出俱乐部
 	//client : targetID: clubID, {uid : 123}
 	//svr : {ret : 0}
+	// 1, 玩家信息错误  2, 俱乐部群主无法退出  3, 操作无效
 	
 	MSG_CLUB_APPLY_CLUB_INFO, //玩家申请俱乐部信息
 	//client : targetID: clubID, {}
@@ -630,34 +688,42 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	MSG_CLUB_APPLY_ROOM_INFO, //玩家请求俱乐部牌局信息
 	//client : targetID: clubID, {}
 	//svr : {ret : 0, clubID : 123, rooms : [{id : 123, port : 13}, {id : 321, port : 12}, ...]}
+	// 1, 连接超时，牌局信息可能不全
 
 	MSG_CLUB_INFO_UPDATE_ICON, //修改头像
 	//client : targetID: clubID, {uid : 123, icon : "url"}
 	//svr : {ret : 0, clubID : 123}
+	// 1, 玩家信息错误  2, 权限不足
 
 	MSG_CLUB_INFO_UPDATE_NAME, //修改名称
 	//client : targetID: clubID, {uid : 123, name : "str"}
 	//svr : {ret : 0, clubID : 123}
+	// 1, 玩家信息错误  2, 权限不足  3, 名字为空
 
 	MSG_CLUB_INFO_UPDATE_CREATE_TYPE, //修改建房权限
 	//client : targetID: clubID, {uid : 123, state : 1}
 	//svr : {ret : 0, clubID : 123, state : 1}
+	// 1, 玩家信息错误  2, 权限不足  3 4, 信息有误
 
 	MSG_CLUB_INFO_UPDATE_SEARCH_LIMIT, //修改搜索限制
 	//client : targetID: clubID, {uid : 123, state : 1}
 	//svr : {ret : 0, clubID : 123, state : 1}
+	// 1, 玩家信息错误  2, 权限不足  3 4, 信息有误
 
 	MSG_CLUB_INFO_UPDATE_DESCRIPTION, //修改描述
 	//client : targetID: clubID, {uid : 123, description : "str"}
 	//svr : {ret : 0, clubID : 123}
+	// 1, 玩家信息错误  2, 权限不足  3 4, 信息有误
 
 	MSG_CLUB_INFO_UPDATE_LEVEL, //修改玩家等级权限
 	//client : targetID: clubID, {uid : 123, memberUID : 321, level : 1}
 	//svr : {ret : 0}
+	// 1 3, 玩家信息错误  2, 权限不足  4, 玩家未加入  5, 信息错误  6, 操作无效
 
 	MSG_CLUB_EVENT_GRANT_FOUNDATION, //发放基金
 	//client : targetID: clubID, {uid : 123, memberUID : 321, amount : 1000}
 	//svr : {ret : 0}
+	// 1, 玩家信息错误  2, 权限不足  3, 信息有误  4, 玩家未加入  5, 金额错误  6, 基金不足
 
 	MSG_CLUB_EVENT_GRANT_RECORDER, //俱乐部发放基金记录
 	//client : targetID: clubID, {}
@@ -670,15 +736,17 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	//disposer : treat uid, if 0 no body or treat by system
 	//detail : json received from client
 
-	MSG_CLUB_EVENT_JOIN_UPDATE, //申请加入列表更新
-	//wait
+	MSG_CLUB_EVENT_ACTIVE_UPDATE, //服务器主动推送事件列表更新
+	//svr : {clubID : 123, type : 0}
+	//type : eClubEventType
 
 	MSG_CLUB_EVENT_ENTRY, //申请带入消息列表
 	//client : targetID: clubID, {}
 	//svr : {ret : 0, events : [{eventID: 123, time: 123456, detail : {json}}, ...]}
 
-	MSG_CLUB_EVENT_ENTRY_UPDATE, //申请带入列表更新
-	//wait
+	MSG_CLUB_EVENT_ENTRY_UPDATE, //服务器接受客户端申请事件列表更新
+	//client : targetID: clubID, {uid : 123}
+	//svr : {ret : 0, clubID : 123, detail : [{type : 0, amount : 0}, ...]}
 
 	MSG_CLUB_EVENT_ENTRY_RECORDER, //申请带入消息记录列表
 	//client : targetID: clubID, {}
@@ -694,6 +762,7 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	//client : targetID: clubID, {uid : 123, eventID : 321, state : 0}
 	//svr : {ret : 0}
 	//state : 1, accede		2, refused
+	// 1, 玩家信息错误  2 3 5 10, 信息错误  6, 事件已处理  7, 权限不足  8, 操作错误  9, 事件类型错误  11, 联盟积分不足  12, 请求超时  13, 该玩家金币不足
 
 	MSG_LEAGUE_CLUB_LEAGUE_INFO, //俱乐部联盟信息
 	//client : targetID: clubID, {}
@@ -702,6 +771,7 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	MSG_LEAGUE_CREATE_LEAGUE, //创建联盟部
 	//client : targetID: clubID, {uid : 123, name : "str", icon : "url:null"}
 	//svr : {ret : 0}
+	// 1, 名字为空  3, 联盟已存在
 
 	MSG_LEAGUE_APPLY_LEAGUE_INFO, //玩家申请联盟信息
 	//client : targetID: leagueID, {}
@@ -715,22 +785,27 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	MSG_LEAGUE_JOIN_LEAGUE, //加入联盟
 	//client : targetID: leagueID, {uid : 123, clubID : 123}
 	//svr : {ret : 0}
+	// 1, 俱乐部信息错误  2, 玩家信息错误  3, 已申请  4, 权限不足  6, 联盟拒绝请求  7, 请求超时
 
 	MSG_LEAGUE_UPDATE_JOIN_LIMIT, //修改联盟搜索限制
 	//client : targetID: leagueID, {uid : 123, clubID : 123, state : 1}
 	//svr : {ret : 0, clubID : 123, state : 1}
+	// 1, 俱乐部信息错误  2, 玩家信息错误  3 4, 信息错误  5, 权限不足
 
 	MSG_LEAGUE_FIRE_CLUB, //踢出俱乐部
 	//client : targetID: leagueID, {uid : 123, clubID : 123, fireCID : 123}
 	//svr : {ret : 0}
+	// 1, 俱乐部信息错误  2, 玩家信息错误  3 4, 信息错误  5 6, 权限不足  7, 请求超时
 
 	MSG_LEAGUE_DISMISS_LEAGUE, //解散联盟
 	//client : targetID: leagueID, {uid : 123, clubID : 123}
 	//svr : {ret : 0}
+	// 1, 俱乐部信息错误  2, 玩家信息错误  3, 信息错误  5, 权限不足  7, 请求超时
 
 	MSG_LEAGUE_QUIT_LEAGUE, //退出联盟
 	//client : targetID: leagueID, {uid : 123, clubID : 123}
 	//svr : {ret : 0}
+	// 1, 俱乐部信息错误  2, 玩家信息错误  3, 信息错误  5, 操作失败  7, 请求超时
 
 	MSG_LEAGUE_EVENT_JOIN, //申请加入联盟列表
 	//client : targetID: leagueID, {}
@@ -743,6 +818,14 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	//client : targetID: leagueID, {uid : 123, eventID : 321, clubID : 123, state : 0}
 	//svr : {ret : 0}
 	//state : 1, accede		2, refused
+	// 1, 玩家信息错误  2 4 5 8, 信息错误  3, 俱乐部信息错误  6 10, 权限不足  7, 请求超时  9, 事件已处理  11, 操作失败  12, 事件无法处理
+
+	MSG_LEAGUE_EVENT_ACTIVE_UPDATE, //服务器主动推送联盟事件列表更新
+	//svr : {leagueID : 123, clubID : 123, type : 0}
+
+	MSG_LEAGUE_EVENT_ACTIVE_LIST_UPDATE, //服务器接受客户端申请联盟事件列表更新
+	//client : targetID: leagueID, {uid : 123, clubID : 123}
+	//svr : {ret : 0, clubID : 123, leagueID : 123, detail : [{type : 0, amount : 0}, ...]}
 
 	MSG_CLUB_MESSAGE_END = 2500,
 

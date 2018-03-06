@@ -208,7 +208,27 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 	case MSG_ENTER_ROOM:
 	{
 		auto nRoomID = prealMsg["roomID"].asUInt();
+		auto pRoom = getRoomByID(nRoomID);
+		if (nullptr == pRoom)
+		{
+			Json::Value jsRet;
+			jsRet["ret"] = 1;
+			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+			break;
+		}
+
 		auto nUserID = prealMsg["uid"].asUInt();
+		bool isPrivate = false;
+		if (prealMsg["private"].isNull() == false && prealMsg["private"].isUInt()) {
+			isPrivate = prealMsg["private"].asUInt();
+		}
+		if (isPrivate && pRoom->isClubRoom()) {
+			Json::Value jsRet;
+			jsRet["ret"] = 7;
+			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+			break;
+		}
+
 		// request enter room info 
 		Json::Value jsReq;
 		jsReq["targetUID"] = nUserID;
@@ -216,7 +236,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 		jsReq["sessionID"] = nSenderID;
 		jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
 		auto pAsync = getSvrApp()->getAsynReqQueue();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync,nRoomID,nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync,nRoomID,nSenderID, this, nUserID, pRoom](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			if (isTimeOut)
 			{
@@ -249,12 +269,17 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 					break;
 				}
 
-				auto pRoom = getRoomByID(nRoomID);
-				if (nullptr == pRoom)
+				//auto pRoom = getRoomByID(nRoomID);
+				/*if (nullptr == pRoom)
 				{
 					nRet = 1;
 					break;
-				}
+				}*/
+
+				/*if (pRoom->isClubRoom()) {
+					nRet = 7;
+					break;
+				}*/
 
 				auto nStatyRoomID = retContent["stayRoomID"].asUInt();
 				bool isAlreadyInThisRoom = nStatyRoomID == nRoomID;
@@ -268,7 +293,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 				tInfo.nUserUID = retContent["uid"].asUInt();
 				tInfo.nSessionID = nSenderID;
 				tInfo.nDiamond = retContent["diamond"].asUInt();
-				tInfo.nChip = retContent["coin"].asUInt();
+				tInfo.nChip = retContent["coin"].asInt();
 
 				nRet = pRoom->checkPlayerCanEnter(&tInfo);
 				if ( isAlreadyInThisRoom == false &&  nRet )
@@ -535,6 +560,8 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			auto nNewRoomID = generateRoomID();
 			if (nNewRoomID == 0 )
 			{
+				delete pRoom;
+				pRoom = nullptr;
 				nRet = 6;
 				LOGFMTE("game room type is null , uid = %u create room failed", nUserID);
 				break;

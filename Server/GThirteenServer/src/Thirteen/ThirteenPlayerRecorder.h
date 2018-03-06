@@ -13,12 +13,17 @@ public:
 	bool toJson(Json::Value& js)override
 	{
 		IPlayerRecorder::toJson(js);
-		Json::Value jsCards;
+		Json::Value jsCards, jsTypes;
 		for (auto& ref : vHoldCards)
 		{
 			jsCards[jsCards.size()] = ref;
 		}
+		for (auto& ref : vTypes)
+		{
+			jsTypes[jsTypes.size()] = ref;
+		}
 		js["cards"] = jsCards;
+		js["types"] = jsTypes;
 		return true;
 	}
 
@@ -26,6 +31,12 @@ public:
 	{
 		this->vHoldCards = vHoldCards;
 	}
+
+	void setTypes(std::vector<uint8_t>& vTypes)
+	{
+		this->vTypes = vTypes;
+	}
 protected:
 	std::vector<uint8_t> vHoldCards;
+	std::vector<uint8_t> vTypes;
 };

@@ -5,6 +5,7 @@
 #include "AsyncRequestQuene.h"
 #include "log4z.h"
 #include <time.h>
+#include <algorithm>
 CClubMemberData::CClubMemberData()
 {
 	m_eType = eClubComponent_MemberData;
@@ -83,6 +84,18 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 }
 
 bool CClubMemberData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult) {
+	if (eAsync_club_League_Push_Event == nRequestType) {
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		auto nType = jsReqContent["type"].asUInt();
+
+		Json::Value jsReq;
+		jsReq["clubID"] = getClub()->getClubID();
+		jsReq["leagueID"] = nLeagueID;
+		jsReq["type"] = nType;
+		pushAsyncRequestToLevelNeed(ID_MSG_PORT_DATA, eAsync_player_League_Push_Event, jsReq, eClubMemberLevel_Admin);
+		return true;
+	}
+
 	if (eAsync_league_ClubQuit_Check == nRequestType) {
 		auto nUserID = jsReqContent["uid"].asUInt();
 		auto nLeagueID = jsReqContent["leagueID"].asUInt();
@@ -214,13 +227,30 @@ uint16_t CClubMemberData::getMemberCnt() {
 }
 
 void CClubMemberData::memberDataToJson(Json::Value& jsData) {
+	std::vector<stMemberBaseData*> vMembers;
 	for (auto& ref : m_mMembers) {
 		if (ref.second.nState != eClubState_Delete) {
-			Json::Value jsMember;
+			vMembers.push_back(&(ref.second));
+			/*Json::Value jsMember;
 			jsMember["id"] = ref.first;
 			jsMember["level"] = ref.second.nLevel;
-			jsData[jsData.size()] = jsMember;
+			jsData[jsData.size()] = jsMember;*/
 		}
+	}
+	std::sort(vMembers.begin(), vMembers.end(), [](stMemberBaseData* st1, stMemberBaseData* st2) {
+		if (st1->nLevel != st2->nLevel) {
+			return st1->nLevel > st2->nLevel;
+		}
+		else {
+			return st1->nJoinTime < st2->nJoinTime;
+		}
+	});
+
+	for (auto& ref : vMembers) {
+		Json::Value jsMember;
+		jsMember["id"] = ref->nMemberUID;
+		jsMember["level"] = ref->nLevel;
+		jsData[jsData.size()] = jsMember;
 	}
 }
 
@@ -256,6 +286,17 @@ void CClubMemberData::pushAsyncRequestToAll(eMsgPort nPortID, eAsyncReq nReqType
 	auto pAsync = getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue();
 	for (auto& ref : m_mMembers) {
 		if (ref.second.nState == eClubState_Delete) {
+			continue;
+		}
+		jsData["targetUID"] = ref.second.nMemberUID;
+		pAsync->pushAsyncRequest(nPortID, ref.second.nMemberUID, nReqType, jsData);
+	}
+}
+
+void CClubMemberData::pushAsyncRequestToLevelNeed(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData, uint8_t nLevel) {
+	auto pAsync = getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue();
+	for (auto& ref : m_mMembers) {
+		if (ref.second.nState == eClubState_Delete || ref.second.nLevel < nLevel) {
 			continue;
 		}
 		jsData["targetUID"] = ref.second.nMemberUID;
@@ -314,7 +355,7 @@ void CClubMemberData::timerSave() {
 	m_vMemberDertyIDs.clear();
 }
 
-void CClubMemberData::readMemberFormDB(uint8_t nOffset) {
+void CClubMemberData::readMemberFormDB(uint32_t nOffset) {
 	m_bReadingDB = true;
 	std::ostringstream ss;
 	ss << "SELECT userUID, state, level, unix_timestamp(joinDataTime) as joinDataTime, unix_timestamp(quitDataTime) as quitDataTime FROM clubmember where clubID = " << (UINT)m_pClub->getClubID() << " order by userUID desc limit 10 offset " << (UINT)nOffset << ";";

@@ -106,7 +106,7 @@ bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSend
 		CPlayer* pPlayer = nullptr;
 		do
 		{
-			if (nPayChannel != ePay_AppStore )
+			if (nPayChannel != ePay_AppStore &&  nPayChannel != ePay_Owner)
 			{
 				nRet = 4;
 				break;
@@ -130,6 +130,11 @@ bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSend
 				nRet = 2;
 				break;
 			}
+
+			if (pItem->nPrice > pPlayer->getBaseData()->getDiamoned()) {
+				nRet = 3;
+				break;
+			}
 		} while (0);
 
 		if ( nRet )
@@ -139,6 +144,80 @@ bool ShopModule::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSend
 			jsRet["shopItemID"] = nShopItemID;
 			sendMsg(jsRet, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
 			LOGFMTD("shopitem id = %d buy item, failed ret = %u uid = %d", jsRet["shopItemID"].asUInt(), nRet, nTargetID);
+			return true;
+		}
+
+		if (nPayChannel == ePay_AppStore) {
+			auto amount = pItem->nDiamondCnt;
+			Json::Value jsBack;
+			jsBack["ret"] = nRet;
+			jsBack["shopItemID"] = nShopItemID;
+			pPlayer->sendMsgToClient(jsBack, MSG_SHOP_BUY_ITEM);
+
+			// do send mail ;
+			auto pMail = ((DataServerApp*)getSvrApp())->getMailModule();
+			Json::Value jsMailDetail;
+			jsMailDetail["ret"] = nRet;
+			jsMailDetail["diamondCnt"] = amount;
+			pMail->postMail(nTargetID, eMail_AppleStore_Pay, jsMailDetail, eMailState_WaitSysAct);
+			return true;
+		}
+
+		if (nPayChannel == ePay_Owner) {
+			auto amount = pItem->nDiamondCnt;
+			if (pPlayer->getBaseData()->modifyMoney((int32_t)pItem->nPrice * -1, true) == false) {
+				Json::Value jsRet;
+				jsRet["ret"] = 4;
+				jsRet["shopItemID"] = nShopItemID;
+				pPlayer->sendMsgToClient(jsRet, MSG_SHOP_BUY_ITEM);
+				LOGFMTD("shopitem id = %d buy item cosume diamond failed, uid = %d", jsRet["shopItemID"].asUInt(), nTargetID);
+				return true;
+			}
+
+			uint32_t nClubID = 0;
+			if (prealMsg["clubID"].isNull() == false && prealMsg["clubID"].isUInt()) {
+				nClubID = prealMsg["clubID"].asUInt();
+			}
+			if (nClubID) {
+				auto pAsync = getSvrApp()->getAsynReqQueue();
+				Json::Value jsReq;
+				jsReq["clubID"] = nClubID;
+				jsReq["amount"] = amount;
+
+				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_Club_AddFoundation, jsReq, [pAsync, this, pPlayer, nClubID, nShopItemID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+				{
+					if (isTimeOut)
+					{
+						LOGFMTE(" request time out uid = %u can not add foundation to club id = %u ", pPlayer->getUserUID(), nClubID);
+						Json::Value jsRet;
+						jsRet["ret"] = 7;
+						pPlayer->sendMsgToClient(jsRet, MSG_SHOP_BUY_ITEM);
+						return;
+					}
+					auto nRet = retContent["ret"].asUInt();
+					if (nRet != 0) {
+						nRet = 8;
+					}
+					// do send mail ;
+					Json::Value jsBack;
+					jsBack["ret"] = nRet;
+					jsBack["shopItemID"] = nShopItemID;
+					pPlayer->sendMsgToClient(jsBack, MSG_SHOP_BUY_ITEM);
+				});
+			}
+			else {
+				// do send mail ;
+				Json::Value jsBack;
+				jsBack["ret"] = nRet;
+				jsBack["shopItemID"] = nShopItemID;
+				pPlayer->sendMsgToClient(jsBack, MSG_SHOP_BUY_ITEM);
+
+				auto pMail = ((DataServerApp*)getSvrApp())->getMailModule();
+				Json::Value jsMailDetail;
+				jsMailDetail["ret"] = nRet;
+				jsMailDetail["amount"] = amount;
+				pMail->postMail(nTargetID, eMail_Owner_Pay, jsMailDetail, eMailState_WaitSysAct);
+			}
 			return true;
 		}
 

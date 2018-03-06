@@ -1,5 +1,6 @@
 #pragma once
 #include "IClubComponent.h"
+#include <functional>
 class CClub;
 class CClubEvent
 	: public IClubComponent
@@ -15,7 +16,7 @@ public:
 		uint32_t nDisposerUID;
 		Json::Value jsDetail;
 	};
-	typedef std::map<uint32_t, stEventData> MAP_ID_EVENTS;
+	typedef std::map<uint32_t, stEventData, std::greater<uint32_t>> MAP_ID_EVENTS;
 	typedef std::vector<uint32_t> VEC_EVENTIDS;
 public:
 	CClubEvent();
@@ -27,7 +28,7 @@ public:
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)override;
 
 protected:
-	void readEventFormDB(uint8_t nOffset = 0);
+	void readEventFormDB(uint32_t nOffset = 0);
 	void doProcessAfterReadDB();
 	uint8_t getEventLevel(uint8_t nEventType);
 	bool eventIsDirty(uint32_t nEventID);

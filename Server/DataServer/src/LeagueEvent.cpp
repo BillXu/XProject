@@ -31,6 +31,49 @@ void CLeagueEvent::reset() {
 }
 
 bool CLeagueEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID) {
+	if (MSG_LEAGUE_EVENT_ACTIVE_LIST_UPDATE == nmsgType) {
+		Json::Value jsMsg;
+		jsMsg["leagueID"] = getLeague()->getLeagueID();
+		if (recvValue["uid"].isNull() || recvValue["uid"].isUInt() == false) {
+			//Json::Value jsMsg;
+			jsMsg["ret"] = 1;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			return true;
+		}
+		auto nClubID = recvValue["clubID"].asUInt();
+		jsMsg["clubID"] = nClubID;
+		auto nUserID = recvValue["uid"].asUInt();
+		if (getLeague()->getLeagueMemberData()->isNotJoin(nClubID)) {
+			//Json::Value jsMsg;
+			jsMsg["ret"] = 2;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			return true;
+		}
+
+		if (getLeague()->getLeagueMemberData()->checkUpdateLevel(nClubID, getEventLevel(eLeagueEventType_AppcationJoin)) == false) {
+			//Json::Value jsMsg;
+			jsMsg["ret"] = 3;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			return true;
+		}
+		jsMsg["ret"] = 0;
+		Json::Value jsDetail, jsJoinInfo;
+		uint32_t nJoinAmount(0);
+		jsJoinInfo["type"] = eLeagueEventType_AppcationJoin;
+		for (auto ref : m_mAllEvents) {
+			if (ref.second.nState == eClubEventState_Wait) {
+				if (ref.second.nEventType == eLeagueEventType_AppcationJoin) {
+					nJoinAmount++;
+				}
+			}
+		}
+		jsJoinInfo["amount"] = nJoinAmount;
+		jsDetail[jsDetail.size()] = jsJoinInfo;
+		jsMsg["detail"] = jsDetail;
+		sendMsgToClient(jsMsg, nmsgType, nSenderID);
+		return true;
+	}
+
 	if (MSG_LEAGUE_QUIT_LEAGUE == nmsgType) {
 		if (recvValue["clubID"].isNull() || recvValue["clubID"].isUInt() == false) {
 			LOGFMTE("can not find clubID to quit league id = %u from session id = %u", getLeague()->getLeagueID(), nSenderID);
@@ -278,6 +321,14 @@ bool CLeagueEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSe
 	}
 
 	if (MSG_LEAGUE_JOIN_LEAGUE == nmsgType) {
+		if (getLeague()->getJoinLimit()) {
+			LOGFMTE("can not join league id = %u league now is limit join", getLeague()->getLeagueID());
+			Json::Value jsMsg;
+			jsMsg["ret"] = 6;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			return true;
+		}
+
 		if (recvValue["clubID"].isNull() || recvValue["clubID"].isUInt() == false) {
 			Json::Value jsMsg;
 			jsMsg["ret"] = 1;
@@ -286,6 +337,7 @@ bool CLeagueEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSe
 			return true;
 		}
 		auto nClubID = recvValue["clubID"].asUInt();
+
 		if (recvValue["uid"].isNull() || recvValue["uid"].isUInt() == false) {
 			Json::Value jsMsg;
 			jsMsg["ret"] = 2;
@@ -294,6 +346,14 @@ bool CLeagueEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSe
 			return true;
 		}
 		auto nUserID = recvValue["uid"].asUInt();
+
+		if (hasApplayJoin(nClubID)) {
+			Json::Value jsMsg;
+			LOGFMTE("club apply join to league error, is already apply join, uid = %u, clubID = %u, leagueID = %u", nUserID, nClubID, getLeague()->getLeagueID());
+			jsMsg["ret"] = 3;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			return true;
+		}
 
 		Json::Value jsReq;
 		jsReq["uid"] = nUserID;
@@ -317,7 +377,7 @@ bool CLeagueEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSe
 			{
 				if (0 != nReqRet)
 				{
-					nRet = 3;
+					nRet = 4;
 					break;
 				}
 
@@ -331,6 +391,11 @@ bool CLeagueEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSe
 				sted.jsDetail = recvValue;
 				m_mAllEvents[sted.nEventID] = sted;
 				m_vAddIDs.push_back(sted.nEventID);
+
+				Json::Value jsMsg;
+				jsMsg["leagueID"] = getLeague()->getLeagueID();
+				jsMsg["type"] = eLeagueEventType_AppcationJoin;
+				getLeague()->getLeagueMemberData()->pushAsyncRequestToLevelNeed(ID_MSG_PORT_DATA, eAsync_club_League_Push_Event, jsMsg, sted.nLevel);
 
 			} while (0);
 
@@ -553,7 +618,7 @@ void CLeagueEvent::timerSave() {
 	}
 }
 
-void CLeagueEvent::readEventFormDB(uint8_t nOffset) {
+void CLeagueEvent::readEventFormDB(uint32_t nOffset) {
 	m_bReadingDB = true;
 	std::ostringstream ss;
 	ss << "SELECT eventID, unix_timestamp(postTime) as postTime, eventType, level, state, disposerUID, detail FROM leagueevent where leagueID = " << m_pLeague->getLeagueID() << " order by eventID desc limit 10 offset " << (UINT)nOffset << ";";
@@ -714,4 +779,15 @@ uint8_t CLeagueEvent::treatEvent(uint32_t nEventID, uint32_t nClubID, uint32_t n
 	itEvent->second.nDisposerUID = nPlayerID;
 	m_vDirtyIDs.push_back(itEvent->first);
 	return 0;
+}
+
+bool CLeagueEvent::hasApplayJoin(uint32_t nClubID) {
+	for (auto ref : m_mAllEvents) {
+		if (ref.second.nEventType == eLeagueEventType_AppcationJoin && ref.second.nState == eClubEventState_Wait) {
+			if (ref.second.jsDetail["clubID"].asUInt() == nClubID) {
+				return true;
+			}
+		}
+	}
+	return false;
 }

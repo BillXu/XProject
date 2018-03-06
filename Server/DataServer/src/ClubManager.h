@@ -29,7 +29,7 @@ public:
 protected:
 	void onTimeSave()override;
 	void addActiveClub(CClub* pNewClub);
-	void readClubFormDB(uint8_t nOffset = 0);
+	void readClubFormDB(uint32_t nOffset = 0);
 	void doProcessAfterReadDB();
 	void createClub(CPlayer* pPlayer, const Json::Value& jsReqContent);
 	uint32_t generateClubID();

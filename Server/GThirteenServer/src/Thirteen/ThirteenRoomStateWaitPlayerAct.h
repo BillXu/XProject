@@ -1,5 +1,8 @@
 #pragma once
 #include "IGameRoomState.h"
+#include "ISeverApp.h"
+#include "AsyncRequestQuene.h"
+#include "RoomManager.h"
 #define Show_Cards_Add_Time 30
 
 class ThirteenRoomStateWaitPlayerAct
@@ -20,7 +23,7 @@ public:
 	{
 		auto pRoom = (ThirteenRoom*)getRoom();
 		if (pRoom->onAutoDoPlayerAct()) {
-			pRoom->goToState(eRoomState_GameEnd);
+			//pRoom->goToState(eRoomState_GameEnd);
 		}
 		else {
 			LOGFMTE("Big error!!! room is in error state can not auto end, id = %u", pRoom->getRoomID());
@@ -40,6 +43,53 @@ public:
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override
 	{
+		if (MSG_ROOM_THIRTEEN_REPUT_CARDS == nMsgType) {
+			auto pRoom = (ThirteenRoom*)getRoom();
+			auto pPlayer = (ThirteenPlayer*)pRoom->getPlayerBySessionID(nSessionID);
+			if (pPlayer == nullptr)
+			{
+				Json::Value jsRet;
+				jsRet["ret"] = 1;
+				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				LOGFMTE("you are not in this room how to apply reput cards? session id = %u", nSessionID);
+				return true;
+			}
+
+			if (pRoom->isPlayerCanAct(pPlayer->getIdx()) == false) {
+				Json::Value jsRet;
+				jsRet["ret"] = 2;
+				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				LOGFMTE("you are not in this game how to apply reput cards? session id = %u", nSessionID);
+				return true;
+			}
+
+			if (pPlayer->hasDetermined() == false) {
+				Json::Value jsRet;
+				jsRet["ret"] = 3;
+				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				LOGFMTE("you have not put cards how to apply reput cards? session id = %u", nSessionID);
+				return true;
+			}
+
+			pPlayer->clearDeterMined();
+			auto pCard = (ThirteenPeerCard*)pPlayer->getPlayerCard();
+			pCard->reSetDao();
+			setStateDuringTime(getStateDuring() + Show_Cards_Add_Time);
+
+			Json::Value jsRet, jsMsgRoom, jsTime;
+			jsRet["ret"] = 0;
+			pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+
+			jsMsgRoom["idx"] = pPlayer->getIdx();
+			jsMsgRoom["state"] = 0;
+			pRoom->sendRoomMsg(jsMsgRoom, MSG_ROOM_THIRTEEN_GAME_PUT_CARDS_UPDATE);
+
+			jsTime["idx"] = pPlayer->getIdx();
+			jsTime["time"] = (int32_t)getStateDuring();
+			pRoom->sendRoomMsg(jsTime, MSG_ROOM_THIRTEEN_UPDATE_CARDS_PUT_TIME);
+			return true;
+		}
+
 		if (MSG_ROOM_THIRTEEN_GAME_DELAY_PUT == nMsgType) {
 			auto pRoom = (ThirteenRoom*)getRoom();
 			auto pPlayer = pRoom->getPlayerBySessionID(nSessionID);
@@ -71,24 +121,68 @@ public:
 				LOGFMTE("you are not in this room how to show cards? session id = %u", nSessionID);
 				return true;
 			}
-			if (pRoom->onPlayerShowCards(pPlayer->getIdx())) {
-				setStateDuringTime(getStateDuring() + Show_Cards_Add_Time);
-				jsRet["ret"] = 0;
-				//jsRet["time"] = (int32_t)getStateDuring();
+
+			if (pRoom->isCanMingPai() == false) {
+				jsRet["ret"] = 3;
 				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
-				Json::Value jsMsg, jsCards;
-				jsMsg["idx"] = pPlayer->getIdx();
-				((ThirteenPlayer*)pPlayer)->getPlayerCard()->groupCardToJson(jsCards);
-				jsMsg["cards"] = jsCards;
-				jsmsg["waitTime"] = (int32_t)getStateDuring();
-				pRoom->sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_SHOW_CARDS_UPDATE);
-				//LOGFMTE("show cards success! session id = %u", nSessionID);
+				LOGFMTE("this room can not show cards? room id = %u, session id = %u", pRoom->getRoomID(), nSessionID);
+				return true;
 			}
-			else {
-				jsRet["ret"] = 2;
-				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
-				LOGFMTE("show cards failed? session id = %u", nSessionID);
-			}
+
+			auto pApp = pRoom->getRoomMgr()->getSvrApp();
+			Json::Value jsReq;
+			jsReq["targetUID"] = pPlayer->getUserUID();
+			jsReq["baseScore"] = pRoom->getBaseScore();
+			jsReq["roomID"] = pRoom->getRoomID();
+			pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_player_apply_Show_Cards, jsReq, [pApp, pPlayer, pRoom, nMsgType, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+			{
+				Json::Value jsRet;
+				if (isTimeOut)
+				{
+					LOGFMTE(" request apply show cards time out uid = %u , can not show cards", pPlayer->getUserUID());
+					jsRet["ret"] = 7;
+					pRoom->sendMsgToPlayer(jsRet, nMsgType, pPlayer->getSessionID());
+					return;
+				}
+
+				uint8_t nReqRet = retContent["ret"].asUInt();
+				uint8_t nRet = 0;
+				do {
+					if (0 != nReqRet)
+					{
+						nRet = 4;
+						break;
+					}
+
+					if (pRoom->onPlayerShowCards(pPlayer->getIdx())) {
+						setStateDuringTime(getStateDuring() + Show_Cards_Add_Time);
+						//jsRet["ret"] = 0;
+						//jsRet["time"] = (int32_t)getStateDuring();
+						//pRoom->sendMsgToPlayer(jsRet, nMsgType, pPlayer->getSessionID());
+						Json::Value jsMsg, jsCards;
+						jsMsg["idx"] = pPlayer->getIdx();
+						((ThirteenPlayer*)pPlayer)->getPlayerCard()->groupCardToJson(jsCards);
+						jsMsg["cards"] = jsCards;
+						jsMsg["waitTime"] = (int32_t)getStateDuring();
+						pRoom->sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_SHOW_CARDS_UPDATE);
+						Json::Value jsReq_1;
+						jsReq_1["targetUID"] = pPlayer->getUserUID();
+						jsReq_1["baseScore"] = pRoom->getBaseScore();
+						jsReq_1["roomID"] = pRoom->getRoomID();
+						pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_player_do_Show_Cards, jsReq_1);
+						//LOGFMTE("show cards success! session id = %u", nSessionID);
+					}
+					else {
+						LOGFMTE("show cards failed? user id = %u", pPlayer->getUserUID());
+						nRet = 2;
+						break;
+					}
+
+				} while (0);
+
+				jsRet["ret"] = nRet;
+				pRoom->sendMsgToPlayer(jsRet, nMsgType, pPlayer->getSessionID());
+			});
 			return true;
 		}
 

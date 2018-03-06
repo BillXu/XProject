@@ -16,6 +16,8 @@ struct stPlayerBrifData
 	uint32_t nEmojiCnt; 
 	std::vector<uint32_t> vJoinedClub;
 	std::vector<uint32_t> vCreatedClub;
+	uint32_t nAllGame;
+	uint32_t nWinGame;
 
 	bool isJoinedClub(uint32_t nClubID) {
 		return std::find(vJoinedClub.begin(), vJoinedClub.end(), nClubID) != vJoinedClub.end();

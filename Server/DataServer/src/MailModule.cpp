@@ -15,6 +15,7 @@ void MailModule::init(IServerApp* svrApp)
 
 void MailModule::onConnectedSvr( bool isReconnected )
 {
+	//return;
 	if ( isReconnected )
 	{
 		return;
@@ -41,7 +42,7 @@ void MailModule::onConnectedSvr( bool isReconnected )
 		m_nMaxMailID -= m_nMaxMailID % getSvrApp()->getCurSvrMaxCnt();  
 		m_nMaxMailID += getSvrApp()->getCurSvrIdx();
 #ifdef  _DEBUG
-		m_nMaxMailID = 0;
+		//m_nMaxMailID = 0;
 #endif //  _DEBUG
 		LOGFMTD("maxMailUID id  = %u", m_nMaxMailID);
 	});
@@ -81,7 +82,7 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nTargetID, eAsync_DB_Add, jssql);	
 
 	// save diamond log
-	if ( eMail_Agent_AddCard == emailType || eMail_Consume_Diamond == emailType || eMail_GiveBack_Diamond == emailType || ( (eMail_Wechat_Pay == emailType || eMail_AppleStore_Pay == emailType) && jsMailDetail["ret"].asUInt() == 0 ) )
+	if (eMail_Owner_Pay == emailType || eMail_Agent_AddCard == emailType || eMail_Consume_Diamond == emailType || eMail_GiveBack_Diamond == emailType || ( (eMail_Wechat_Pay == emailType || eMail_AppleStore_Pay == emailType) && jsMailDetail["ret"].asUInt() == 0 ) )
 	{
 		int32_t nOffset = 0;
 		uint8_t nLogDiamond = eLogDiamond_Max;
@@ -98,13 +99,31 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 		else if ( eMail_Wechat_Pay == emailType || eMail_AppleStore_Pay == emailType)
 		{
 			nOffset = jsMailDetail["diamondCnt"].asInt();
-			nLogDiamond = eMail_Wechat_Pay == emailType ? eLogDiamond_Shop_Wechat : eLogDiamond_Shop_AppStore;
+			if (eMail_Wechat_Pay == emailType) {
+				nLogDiamond = eLogDiamond_Shop_Wechat;
+			}
+			else if(eMail_AppleStore_Pay == emailType) {
+				nLogDiamond = eLogDiamond_Shop_AppStore;
+			}
+			/*else {
+				nLogDiamond = eLogDiamond_Shop_Owner;
+			}*/
+			//nLogDiamond = eMail_Wechat_Pay == emailType ? eLogDiamond_Shop_Wechat : eLogDiamond_Shop_AppStore;
+		}
+		else if (eMail_Owner_Pay == emailType) {
+			nOffset = jsMailDetail["amount"].asInt();
+			nLogDiamond = eLogDiamond_Shop_Owner;
 		}
 
 		uint32_t nFinal = 0;
 		if (pPlayer)
 		{
-			nFinal = pPlayer->getBaseData()->getDiamoned();
+			if (eMail_Owner_Pay == emailType) {
+				nFinal = pPlayer->getBaseData()->getCoin();
+			}
+			else {
+				nFinal = pPlayer->getBaseData()->getDiamoned();
+			}
 		}
 
 		CPlayer::saveDiamondRecorder(nTargetID, nLogDiamond, nOffset, nFinal, jsMailDetail);

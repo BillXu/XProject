@@ -50,6 +50,7 @@ enum eClubEventType
 	eClubEventType_Dismiss, //申请解散俱乐部
 	eClubEventType_FirePlayer, //申请踢出俱乐部玩家
 	eClubEventType_PlayerQuit, //玩家退出
+	eClubEventType_PlayerAddFoundation, //玩家给俱乐部充值基金
 };
 
 enum eLeagueEventType

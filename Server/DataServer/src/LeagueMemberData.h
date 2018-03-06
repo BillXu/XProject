@@ -33,9 +33,10 @@ public:
 	bool fireClub(uint32_t nMemberCID, uint32_t nFireCID);
 	bool onClubQuit(uint32_t nMemberCID);
 	void pushAsyncRequestToAll(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData);
+	void pushAsyncRequestToLevelNeed(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData, uint8_t nLevel = eLeagueMemberLevel_None);
 
 protected:
-	void readMemberFormDB(uint8_t nOffset = 0);
+	void readMemberFormDB(uint32_t nOffset = 0);
 	void doProcessAfterReadDB();
 	bool findCreator();
 

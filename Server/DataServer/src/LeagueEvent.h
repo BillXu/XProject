@@ -29,12 +29,13 @@ public:
 	void joinEventWaitToJson(Json::Value& jsMsg);
 
 protected:
-	void readEventFormDB(uint8_t nOffset = 0);
+	void readEventFormDB(uint32_t nOffset = 0);
 	void doProcessAfterReadDB();
 	uint8_t getEventLevel(uint8_t nEventType);
 	uint8_t getEventTreatLevel(uint32_t nEventID);
 	bool eventIsDirty(uint32_t nEventID);
 	uint8_t treatEvent(uint32_t nEventID, uint32_t nClubID, uint32_t nPlayerID, uint8_t nState);
+	bool hasApplayJoin(uint32_t nClubID);
 
 protected:
 	MAP_ID_EVENTS m_mAllEvents;

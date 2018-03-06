@@ -65,7 +65,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_stBaseData.nUserUID = getPlayer()->getUserUID();
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,joinedClub,createdClub FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,joinedClub,createdClub,allGame,winGame FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -90,6 +90,8 @@ void CPlayerBaseData::onPlayerLogined()
 		m_stBaseData.nDiamoned = jsRow["diamond"].asUInt();
 		m_stBaseData.nEmojiCnt = jsRow["emojiCnt"].asUInt();
 		m_stBaseData.nSex = jsRow["sex"].asUInt();
+		m_stBaseData.nAllGame = jsRow["allGame"].asUInt();
+		m_stBaseData.nWinGame = jsRow["winGame"].asUInt();
 
 		std::string sJoinedClub = jsRow["joinedClub"].asCString();
 		if (sJoinedClub.size()) {
@@ -171,6 +173,47 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 }
 
 bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID) {
+	if (eAsync_player_apply_DragIn_Clubs == nRequestType) {
+		std::vector<uint32_t> vClubIDs;
+		getJoinedAndCreatedClubs(vClubIDs);
+		Json::Value jsClubIDs, jsReq;
+		for (auto& ref : vClubIDs) {
+			jsClubIDs[jsClubIDs.size()] = ref;
+		}
+		auto pApp = getPlayer()->getPlayerMgr()->getSvrApp();
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		jsReq["leagueID"] = nLeagueID;
+		jsReq["clubIDs"] = jsClubIDs;
+
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nLeagueID, eAsync_league_apply_DragIn_Clubs, jsReq, [pApp, nReqSerial, nSenderPort, nSenderID, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			Json::Value jsRet;
+			if (isTimeOut)
+			{
+				LOGFMTE(" request of club from league apply drag in time out uid = %u , can not drag in ", getPlayer()->getUserUID());
+				jsRet["ret"] = 7;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getPlayer()->getUserUID());
+				return;
+			}
+
+			uint8_t nReqRet = retContent["ret"].asUInt();
+			uint8_t nRet = 0;
+			do {
+				if (0 != nReqRet)
+				{
+					nRet = 4;
+					break;
+				}
+				jsRet["clubIDs"] = retContent["clubIDs"];
+			} while (0);
+
+			jsRet["ret"] = nRet;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getPlayer()->getUserUID());
+		});
+
+		return true;
+	}
+
 	if (eAsync_player_apply_DragIn == nRequestType) {
 		auto nClubID = jsReqContent["clubID"].asUInt();
 		if (m_stBaseData.isInClub(nClubID) == false) {
@@ -272,6 +315,7 @@ void CPlayerBaseData::timerSave()
 
 	saveMoney();
 	saveClub();
+	saveGameWin();
 	// check player info ;
 	if ( m_bPlayerInfoDirty )
 	{
@@ -321,6 +365,21 @@ void CPlayerBaseData::saveClub() {
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
 	LOGFMTD("uid = %u save joinedClub = %s , createdClub = %s", getPlayer()->getUserUID(), sJoined.c_str(), sCreated.c_str());
+}
+
+void CPlayerBaseData::saveGameWin() {
+	if (m_bGameWinDirty == false) {
+		return;
+	}
+	m_bGameWinDirty = false;
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, "update playerbasedata set allGame = %u ,winGame = %u where userUID = %u;", m_stBaseData.nAllGame, m_stBaseData.nWinGame, getPlayer()->getUserUID());
+	std::string str = pBuffer;
+	jssql["sql"] = pBuffer;
+	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
+	LOGFMTD("uid = %u save allGame = %u , winGame = %u", getPlayer()->getUserUID(), m_stBaseData.nAllGame, m_stBaseData.nWinGame);
 }
 
 bool CPlayerBaseData::modifyMoney( int32_t nOffset, bool bDiamond )
@@ -402,6 +461,14 @@ void CPlayerBaseData::removeCreatedClub(uint32_t nClubID) {
 void CPlayerBaseData::dismissClub(uint32_t nClubID) {
 	removeJoinedClub(nClubID);
 	removeCreatedClub(nClubID);
+}
+
+void CPlayerBaseData::addGameWin(bool isWin) {
+	m_stBaseData.nAllGame++;
+	if (isWin) {
+		m_stBaseData.nWinGame++;
+	}
+	m_bGameWinDirty = true;
 }
 
 void CPlayerBaseData::getJoinedAndCreatedClubs(std::vector<uint32_t>& vClubIDs) {

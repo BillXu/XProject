@@ -31,6 +31,7 @@ void CLeagueManager::init(IServerApp* svrApp)
 
 void CLeagueManager::onConnectedSvr(bool isReconnected)
 {
+	//return;
 	if (isReconnected)
 	{
 		return;
@@ -234,10 +235,11 @@ void CLeagueManager::addActiveLeague(CLeague* pLeague) {
 	m_vAllLeagues[pLeague->getLeagueID()] = pLeague;
 }
 
-void CLeagueManager::readLeagueFormDB(uint8_t nOffset) {
+void CLeagueManager::readLeagueFormDB(uint32_t nOffset) {
+	//return;
 	m_bReadingDB = true;
 	std::ostringstream ss;
-	ss << "SELECT leagueID, creator, name, headIcon, unix_timestamp(createTime) as createTime, state, memberLimit, joinLimit FROM league where state !=  " << eClubState_Delete << " order by leagueID desc limit 10 offset " << (UINT)nOffset << ";";
+	ss << "SELECT leagueID, creator, name, headIcon, unix_timestamp(createTime) as createTime, state, memberLimit, joinLimit FROM league where state !=  " << eClubState_Delete << " order by leagueID desc limit 10 offset " << nOffset << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand(), eAsync_DB_Select, jsReq, [this, nOffset](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
@@ -249,6 +251,7 @@ void CLeagueManager::readLeagueFormDB(uint8_t nOffset) {
 		}
 
 		uint32_t nAft = retContent["afctRow"].asUInt();
+		LOGFMTE("Attention: finish read league info, count = %u", nAft);
 		auto jsData = retContent["data"];
 		if (nAft == 0 || jsData.isNull())
 		{

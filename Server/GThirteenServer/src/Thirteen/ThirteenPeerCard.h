@@ -33,6 +33,7 @@ public:
 	void addCompositCardNum( uint8_t nCardCompositNum ) override;
 	bool setDao(uint8_t nIdx, VEC_CARD vCards) override;
 	bool autoSetDao()override;
+	bool reSetDao();
 	const char*  getNameString() override;
 	uint32_t getWeight() override;
 	uint8_t getType()override;

@@ -42,6 +42,7 @@ enum eLogDiamond
 {
 	eLogDiamond_Shop_AppStore,
 	eLogDiamond_Shop_Wechat,
+	eLogDiamond_Shop_Owner,
 	eLogDiamond_Agent,
 	eLogDiamond_Room,
 	eLogDiamond_Max,
@@ -88,6 +89,8 @@ enum eAsyncReq
 
 	eAsync_Comsume_Interact_Emoji, // { targetUID : 23 ,roomID : 23452, cnt : 1 } // result : { ret : 0 }  // 0 ok , 1 not enough, 2 player is not online ;
 
+	eAsync_HttpCmd_GetPlayerClubInfo, // { targetUID : 123 } // result { created : {{id : 1, name : "123"}, {id : 2, name : "321"}, ...}, joined : {{id : 3, name : "123"}, {id : 4, name : "321"}, ...} }
+	eAsync_HttpCmd_GetClubInfo, // { clubID : 123 } // result { integration : 123, created : {{id : 1, name : "123"}, {id : 2, name : "321"}, ...}, joined : {{id : 3, name : "123"}, {id : 4, name : "321"}, ...} }
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
 	//eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;
@@ -98,8 +101,21 @@ enum eAsyncReq
 	eAsync_Apns, // { apnsType : 0 , targets : [234,2345,23,4] , content : "hello this is" ,msgID : "fs" ,msgdesc : "shfsg" }  apnsType : 0 , group type . 1 , target persions ;
 	//
 	//eAsync_ApplyLeaveRoom, // {uid : 234 , roomID : 2345 , reason : 0 } reason : 0 , disconnect , 1 other peer login.  result : { ret : 0 , coin : 2345 } // ret : 0 leave direct, 1 delay leave room , 2 not in room , 3 not find room   ;
+	eAsync_player_game_add, //游戏局数变化
 	eAsync_player_apply_DragIn,//玩家请求带入
+	eAsync_player_apply_DragIn_Clubs,//玩家请求带入俱乐部列表
+	eAsync_player_check_DragIn, //玩家带入金币检测
+	eAsync_player_do_DragIn, //玩家带入金币
+	eAsync_player_club_Push_Event,//玩家收到俱乐部推送请求
+	eAsync_player_clubRoom_Back_Chip,//俱乐部房间结束时给玩家退回金币
+	eAsync_player_apply_Show_Cards, //玩家请求明牌
+	eAsync_player_do_Show_Cards, //玩家明牌
+	eAsync_player_apply_Rot_Banker, //玩家请求抢庄
+	eAsync_player_do_Rot_Banker, //玩家抢庄
+	eAsync_player_League_Push_Event, //玩家收到联盟推送请求
+	eAsync_player_club_decline_DragIn, //玩家收到俱乐部拒绝带入消息
 	eAsync_Club_AddCoin, //俱乐部添加金币
+	eAsync_Club_AddFoundation, //俱乐部充值基金
 	eAsync_Club_Join, //申请通过加入俱乐部
 	eAsync_Club_Create, //玩家创建俱乐部
 	eAsync_Club_Dismiss, //玩家解散俱乐部
@@ -109,7 +125,10 @@ enum eAsyncReq
 	eAsync_Club_CreateRoom, //玩家创建俱乐部房间
 	eAsync_club_apply_DragIn, //玩家向俱乐部申请带入金币
 	eAsync_club_agree_DragIn, //玩家同意带入请求
+	eAsync_club_decline_DragIn, //玩家拒绝带入请求
 	eAsync_club_CreateRoom_Info, //玩家请求俱乐部牌局信息
+	eAsync_club_League_Push_Event, //俱乐部收到联盟推送请求
+	eAsync_club_Treat_Event_Message, //联盟处理事件发送群体消息
 	eAsync_League_AddIntegration, //联盟发放积分
 	eAsync_league_JoinLeague, //玩家申请加入联盟
 	eAsync_league_ClubJoin, //俱乐部加入联盟
@@ -124,6 +143,7 @@ enum eAsyncReq
 	eAsync_league_CreateRoom, //俱乐部创建联盟房间
 	eAsync_league_CreateRoom_Info, //俱乐部申请联盟创建房间信息
 	eAsync_league_or_club_DeleteRoom, //联盟或俱乐部删除房间信息
+	eAsync_league_apply_DragIn_Clubs, //请求带入联盟房间可选择俱乐部列表
 	eAsync_Max,
 };
 

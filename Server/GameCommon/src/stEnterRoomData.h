@@ -4,7 +4,7 @@ struct stEnterRoomData
 {
 	uint32_t nUserUID;
 	uint32_t nSessionID;
-	uint32_t nChip;  // most situation equal coin ;
+	int32_t nChip;  // most situation equal coin ;
 	uint32_t nDiamond;
 	uint32_t nCurInRoomID;
 };

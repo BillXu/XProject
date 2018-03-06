@@ -9,9 +9,9 @@ public:
 	struct stShopItem
 	{
 		uint16_t nShopID;
-		uint16_t nPrice; // yuan 
+		uint32_t nPrice; // yuan 
 		std::string strDesc;
-		uint16_t nDiamondCnt;
+		uint32_t nDiamondCnt;
 	};
 public:
 	void init(IServerApp* svrApp)override;

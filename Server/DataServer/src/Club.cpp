@@ -68,6 +68,7 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 		for (auto& ref : m_stBaseData.vCreatedLeague) {
 			jsCreated[jsCreated.size()] = ref;
 		}
+		jsMsg["clubID"] = getClubID();
 		jsMsg["joined"] = jsJoined;
 		jsMsg["created"] = jsCreated;
 		sendMsgToClient(jsMsg, nmsgType, nSenderID);
@@ -288,6 +289,7 @@ bool CClub::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqConten
 		auto nLeagueID = jsReqContent["leagueID"].asUInt();
 		auto nUserID = jsReqContent["uid"].asUInt();
 		m_stBaseData.eraseLeague(nLeagueID);
+		m_bLeagueDataDirty = true;
 		return true;
 	}
 
@@ -295,6 +297,7 @@ bool CClub::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqConten
 		auto nLeagueID = jsReqContent["leagueID"].asUInt();
 		auto nUserID = jsReqContent["uid"].asUInt();
 		m_stBaseData.eraseLeague(nLeagueID);
+		m_bLeagueDataDirty = true;
 		return true;
 	}
 
@@ -303,6 +306,7 @@ bool CClub::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqConten
 		auto nClubID = jsReqContent["agentCID"].asUInt();
 		auto nUserID = jsReqContent["uid"].asUInt();
 		m_stBaseData.eraseJoinedLeague(nLeagueID);
+		m_bLeagueDataDirty = true;
 		return true;
 	}
 
@@ -315,6 +319,13 @@ bool CClub::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqConten
 		}
 		return true;
 	}
+
+	/*if (eAsync_Club_AddFoundation == nRequestType) {
+		int32_t nAmount = jsReqContent["amount"].asInt();
+		addFoundation(nAmount);
+		jsResult["ret"] = 0;
+		return true;
+	}*/
 
 	if (eAsync_league_JoinLeague == nRequestType) {
 		auto nUserID = jsReqContent["uid"].asUInt();
@@ -428,7 +439,7 @@ void CClub::onTimerSave() {
 		char pBuffer[512] = { 0 };
 		auto sJoined = m_stBaseData.jlToString();
 		auto sCreated = m_stBaseData.clToString();
-		sprintf_s(pBuffer, "update club set joinedLeague = '%s' ,createdLeague = '%s' where clubID = %u;", sJoined.c_str(), sCreated.c_str(), getClubID());
+		sprintf_s(pBuffer, "update club set joinedLeague = '%s', createdLeague = '%s' where clubID = %u;", sJoined.c_str(), sCreated.c_str(), getClubID());
 		std::string str = pBuffer;
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = getClubMgr()->getSvrApp()->getAsynReqQueue();

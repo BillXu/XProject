@@ -12,13 +12,21 @@ public:
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID )override;
 	uint8_t getRoomType()override;
+	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;
+	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	void onWillStartGame()override;
 	void onStartGame()override;
 	void onGameEnd()override;
-	bool isRoomGameOver();
+	void onGameDidEnd()override;
+	bool isRoomGameOver()override;
 	bool canStartGame()override;
 	IPoker* getPoker()override;
 	bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
+	bool doPlayerLeaveRoom(uint32_t nUserUID)override;
+	void update(float fDelta)override;
+	std::shared_ptr<IGameRoomRecorder> getRoomRecorder()override;
+	bool clearRoom();
+	bool doAllPlayerStandUp();
 
 	uint8_t getBankerIdx() { return m_nBankerIdx; }
 	uint8_t doProduceNewBanker();
@@ -33,27 +41,41 @@ public:
 	bool isWaitPlayerActForever() { return false; }
 	bool isPlayerCanAct(uint8_t nIdx);
 	bool isGameOver();
-	bool onPlayerRotBanker(uint8_t nIdx);
+	bool onPlayerRotBanker(uint8_t nIdx, uint8_t nState);
 	bool onPlayerShowCards(uint8_t nIdx);
 	uint8_t getBaseScore();
 	uint8_t getMultiple();
 	uint8_t getPutCardsTime();
 	bool isCanMingPai();
 	bool isCanRotBanker();
-	bool isClubRoom();
-	bool hasRotBanker() { return m_bRotBanker; }
+	bool isPlayerCanRotBanker(uint8_t nIdx);
+	uint8_t getOpenCnt();
+	uint32_t isClubRoom()override;
+	uint32_t isLeagueRoom();
+	bool hasRotBanker();
+	bool hasShowCards() { return m_bShowCards; }
 	bool onPlayerDragIn(uint32_t nUserID, uint32_t nAmount);
+	bool onPlayerDeclineDragIn(uint32_t nUserID);
 	uint32_t getMaxLose();
+	uint32_t getMaxDragIn();
+	uint32_t getMinDragIn();
+	bool isRoomWaiting() { return m_bIsWaiting; }
+	void signIsWaiting() { m_bIsWaiting = true; }
+	void clearIsWaiting() { m_bIsWaiting = false; }
+	bool checkDragInAmount(uint32_t nAmount);
+	bool doPlayerAutoLeave();
+	bool doPlayerAutoStandUp();
 
 protected:
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint8_t getWinShui(uint8_t nIdx, uint8_t nWinType = WIN_SHUI_TYPE_NONE, uint8_t nDaoIdx = DAO_MAX);
 	uint8_t getDaoWinShui(uint8_t nType, uint8_t nDaoIdx);
 	uint32_t getWinCoin(uint8_t nIdx, uint8_t nWinType = WIN_SHUI_TYPE_NONE, uint8_t nDaoIdx = DAO_MAX);
-	bool checkDragInAmount(uint32_t nAmount);
 	IGameRoomDelegate* getDelegate() override;
 private:
 	ThirteenPoker m_tPoker;
 	uint8_t m_nBankerIdx;
 	bool m_bRotBanker;
+	bool m_bShowCards;
+	bool m_bIsWaiting;
 };

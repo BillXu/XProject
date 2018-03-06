@@ -30,10 +30,11 @@ public:
 	uint8_t getMemberLevel(uint32_t nMemberID);
 	bool grantFoundation(uint32_t nGrantUID, uint32_t nMemberUID, uint32_t nAmount);
 	void pushAsyncRequestToAll(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData);
+	void pushAsyncRequestToLevelNeed(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData, uint8_t nLevel = eClubMemberLevel_None);
 	bool fireMember(uint32_t nMemberUID);
 
 protected:
-	void readMemberFormDB(uint8_t nOffset = 0);
+	void readMemberFormDB(uint32_t nOffset = 0);
 	void doProcessAfterReadDB();
 	bool findCreator();
 

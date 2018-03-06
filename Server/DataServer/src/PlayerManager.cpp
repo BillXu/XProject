@@ -121,7 +121,7 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 	// new 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,headIcon FROM playerbasedata where userUID = %u", nReqUID );
+	sprintf_s(pBuffer, "SELECT nickName,sex,headIcon,allGame,winGame FROM playerbasedata where userUID = %u", nReqUID );
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, nReqUID,eAsync_DB_Select, jssql, [nReqUID,this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
@@ -141,6 +141,8 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 			jsBrifData["name"] = jsRow["nickName"];
 			jsBrifData["headIcon"] = jsRow["headIcon"];
 			jsBrifData["sex"] = jsRow["sex"];
+			jsBrifData["allGame"] = jsRow["allGame"];
+			jsBrifData["winGame"] = jsRow["winGame"];
 		}
 		else
 		{
@@ -178,6 +180,8 @@ void CPlayerBrifDataCacher::visitBrifData(Json::Value& jsBrifData, CPlayer* pPla
 	jsBrifData["ip"] = pPlayer->getIp();
 	jsBrifData["J"] = pPlayer->getBaseData()->getGPS_J();
 	jsBrifData["W"] = pPlayer->getBaseData()->getGPS_W();
+	jsBrifData["allGame"] = pPlayer->getBaseData()->getAllGame();
+	jsBrifData["winGame"] = pPlayer->getBaseData()->getWinGame();
 }
 
 void CPlayerBrifDataCacher::checkState()
@@ -395,6 +399,162 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_club_Treat_Event_Message:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			Json::Value jsMsg;
+			jsMsg["ret"] = jsReqContent["ret"];
+			jsMsg["eventID"] = jsReqContent["eventID"];
+			pPlayer->sendMsgToClient(jsMsg, MSG_CLUB_EVENT_APPLY_TREAT);
+		}
+	}
+	break;
+	case eAsync_player_club_decline_DragIn:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+		jsMailArg["uid"] = jsReqContent["uid"];
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Club_DeclineDragIn, jsMailArg, eMailState_SysProcessed);
+	}
+	break;
+	case eAsync_player_do_Rot_Banker:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		int32_t nAmount = -1 * jsReqContent["baseScore"].asInt() * 5;
+		Json::Value jsMailArg;
+		jsMailArg["amount"] = nAmount;
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Room_RotBanker, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_player_apply_Rot_Banker:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			uint32_t nAmount = jsReqContent["baseScore"].asUInt() * 5;
+			if (pPlayer->getBaseData()->getCoin() < nAmount) {
+				jsResult["ret"] = 1;
+			}
+			else {
+				jsResult["ret"] = 0;
+			}
+		}
+		else {
+			jsResult["ret"] = 2;
+		}
+	}
+	break;
+	case eAsync_player_do_Show_Cards:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		int32_t nAmount = -1 * jsReqContent["baseScore"].asInt() * 100;
+		Json::Value jsMailArg;
+		jsMailArg["amount"] = nAmount;
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Room_ShowCards, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_player_apply_Show_Cards:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			uint32_t nAmount = jsReqContent["baseScore"].asUInt() * 100;
+			if (pPlayer->getBaseData()->getCoin() < nAmount) {
+				jsResult["ret"] = 1;
+			}
+			else {
+				jsResult["ret"] = 0;
+			}
+		}
+		else {
+			jsResult["ret"] = 2;
+		}
+	}
+	break;
+	case eAsync_player_clubRoom_Back_Chip:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["amount"] = jsReqContent["chip"];
+		jsMailArg["clubID"] = jsReqContent["clubID"];
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Room_BackChip, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_player_League_Push_Event:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			Json::Value jsMsg;
+			jsMsg["type"] = jsReqContent["type"];
+			jsMsg["clubID"] = jsReqContent["clubID"];
+			jsMsg["leagueID"] = jsReqContent["leagueID"];
+			pPlayer->sendMsgToClient(jsMsg, MSG_LEAGUE_EVENT_ACTIVE_UPDATE);
+		}
+	}
+	break;
+	case eAsync_player_club_Push_Event:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			Json::Value jsMsg;
+			jsMsg["type"] = jsReqContent["type"];
+			jsMsg["clubID"] = jsReqContent["clubID"];
+			pPlayer->sendMsgToClient(jsMsg, MSG_CLUB_EVENT_ACTIVE_UPDATE);
+		}
+	}
+	break;
+	case eAsync_player_game_add:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			bool isWin = jsReqContent["win"].asUInt();
+			pPlayer->getBaseData()->addGameWin(isWin);
+		}
+		else {
+			Json::Value jsMailArg;
+			jsMailArg["uid"] = nUserUID;
+			jsMailArg["win"] = jsReqContent["win"];
+			auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+			pMailModule->postMail(nUserUID, eMail_Room_AddGame, jsMailArg, eMailState_WaitSysAct);
+		}
+	}
+	break;
+	case eAsync_player_do_DragIn:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		uint32_t nAmount = jsReqContent["amount"].asUInt();
+		uint32_t nFee = nAmount / 10;
+		if (nFee % 10 > 0) {
+			nFee += 1;
+		}
+		nAmount += nFee;
+		Json::Value jsMailArg;
+		jsMailArg["uid"] = nUserUID;
+		jsMailArg["amount"] = -1 * (int32_t)nAmount;
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Room_DragInCoin, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
 	case eAsync_Club_Quit:
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
@@ -492,6 +652,28 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 
 		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
 		pMailModule->postMail(nUserUID, eMail_Agent_AddCard, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_player_check_DragIn:
+	{
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer == nullptr)  // player is not online , so should process in onAsyncRequestDelayResp
+		{
+			return false;
+		}
+		uint32_t nAmount = jsReqContent["amount"].asUInt();
+		uint32_t nFee = nAmount / 10;
+		if (nFee % 10 > 0) {
+			nFee += 1;
+		}
+		uint32_t nReal = nAmount + nFee;
+		if (nReal > pPlayer->getBaseData()->getCoin()) {
+			jsResult["ret"] = 1;
+		}
+		else {
+			jsResult["ret"] = 0;
+		}
 	}
 	break;
 	case eAsync_AgentGetPlayerInfo:  // process , when target player is  online 
@@ -688,6 +870,95 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 
 bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID )
 {
+	if (eAsync_player_check_DragIn == nRequestType) {
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (nullptr != pPlayer)  // shold process in onAsyncRequest
+		{
+			return false;
+		}
+		uint32_t nAmount = jsReqContent["amount"].asUInt();
+		uint32_t nFee = nAmount / 10;
+		if (nFee % 10 > 0) {
+			nFee += 1;
+		}
+		nAmount += nFee;
+		auto pApp = getSvrApp();
+		LOGFMTD("uid = %u not online get check drag in from db ", nUserUID);
+		Json::Value jsSql;
+		char pBuffer[512] = { 0 };
+		sprintf_s(pBuffer, sizeof(pBuffer), "SELECT coin FROM playerbasedata WHERE userUID = %u ;", nUserUID);
+		jsSql["sql"] = pBuffer;
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nSenderID, eAsync_DB_Select, jsSql, [nReqSerial, nSenderID, nSenderPort, pApp, nUserUID, nAmount](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			uint8_t nRow = retContent["afctRow"].asUInt();
+			if (isTimeOut)
+			{
+				nRow = 0;
+			}
+
+			if (nRow == 0)
+			{
+				Json::Value jsAgentBack;
+				jsAgentBack["ret"] = 7;
+				LOGFMTE(" request time out or can not find info , so can not check drag in, uid = %u", nUserUID);
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+				return;
+			}
+
+			Json::Value jsData = retContent["data"];
+			Json::Value jsRow = jsData[0u];
+			int32_t nCoin = jsRow["coin"].asInt();
+			//LOGFMTD("uid = %u base data card cnt = %u", nUserUID, jsRow["diamond"].asUInt());
+
+			// take not process add coin mail in to account 
+			Json::Value jsSql;
+			char pBuffer[512] = { 0 };
+			sprintf_s(pBuffer, sizeof(pBuffer), "SELECT mailDetail FROM mail WHERE userUID = %u and (mailType = %u or mailType = %u or mailType = %u or mailType = %u or mailType = %u or mailType = %u) and state = %u limit 10 ;", nUserUID, eMail_Club_AddCoin, eMail_Room_DragInCoin, eMail_Owner_Pay, eMail_Room_BackChip, eMail_Room_RotBanker, eMail_Room_ShowCards, eMailState_WaitSysAct);
+			jsSql["sql"] = pBuffer;
+			pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nUserUID, eAsync_DB_Select, jsSql, [nSenderPort, nReqSerial, nSenderID, nUserUID, pApp, nCoin, nAmount](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+			{
+				if (isTimeOut)
+				{
+					Json::Value jsAgentBack;
+					jsAgentBack["ret"] = 7;
+					LOGFMTE(" request time out or can not find info , so can not check drag in, uid = %u", nUserUID);
+					pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+					return;
+				}
+
+				int32_t nTotalCnt = 0;
+				uint8_t nRow = retContent["afctRow"].asUInt();
+				Json::Value jsData = retContent["data"];
+				for (uint8_t nIdx = 0; nIdx < jsData.size(); ++nIdx)
+				{
+					Json::Value jsRow = jsData[nIdx];
+
+					Json::Reader jsReader;
+					Json::Value jsC;
+					auto bRt = jsReader.parse(jsRow["mailDetail"].asString(), jsC);
+					if (!bRt || jsC["amount"].isNull())
+					{
+						LOGFMTE("pasre add coin mail error id = %u", nUserUID);
+						continue;
+					}
+					nTotalCnt += jsC["amount"].asInt();
+				}
+				LOGFMTD("uid = %u mail coin = %u", nUserUID, nTotalCnt);
+				nTotalCnt += nCoin;
+				Json::Value jsAgentBack;
+				if (nTotalCnt < (int32_t)nAmount) {
+					jsAgentBack["ret"] = 1;
+				}
+				else {
+					jsAgentBack["ret"] = 0;
+				}
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+			});
+		});
+		return true;
+	}
+
 	if ( eAsync_AgentGetPlayerInfo == nRequestType)
 	{
 		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
@@ -746,7 +1017,7 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 					return;
 				}
 
-				uint32_t nTotalCnt = 0;
+				int32_t nTotalCnt = 0;
 				uint8_t nRow = retContent["afctRow"].asUInt();
 				Json::Value jsData = retContent["data"];
 				for (uint8_t nIdx = 0; nIdx < jsData.size(); ++nIdx)

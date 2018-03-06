@@ -17,6 +17,7 @@ public:
 	virtual bool isRoomFull() = 0;
 	virtual bool doDeleteRoom() = 0; // wanning: invoke by roomMgr ;
 
+	virtual Json::Value getOpts() = 0;
 	virtual uint32_t getRoomID() = 0;
 	virtual uint32_t getSeiralNum() = 0;
 	virtual void update(float fDelta) = 0;
@@ -29,5 +30,7 @@ public:
 	virtual bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID ) = 0;
 	virtual void packRoomInfo( Json::Value& jsRoomInfo ) = 0;
 	virtual uint16_t getPlayerCnt() = 0;
+	virtual uint32_t isClubRoom() = 0;
+	virtual bool isRoomGameOver() = 0;
 
 };

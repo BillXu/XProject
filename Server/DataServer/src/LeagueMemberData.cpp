@@ -73,6 +73,26 @@ bool CLeagueMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPor
 }
 
 bool CLeagueMemberData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult) {
+	if (eAsync_league_apply_DragIn_Clubs == nRequestType) {
+		if (jsReqContent["clubIDs"].isNull() || jsReqContent["clubIDs"].isArray() == false) {
+			jsResult["ret"] = 1;
+			return true;
+		}
+		Json::Value jsMsg, jsClubs;
+		for (auto& ref : jsReqContent["clubIDs"]) {
+			auto nClubID = ref.asUInt();
+			if (isNotJoin(nClubID)) {
+				continue;
+			}
+			else {
+				jsClubs[jsClubs.size()] = nClubID;
+			}
+		}
+		jsResult["ret"] = 0;
+		jsResult["clubIDs"] = jsClubs;
+		return true;
+	}
+
 	if (eAsync_league_CreateRoom_Check == nRequestType) {
 		auto nClubID = jsReqContent["clubID"].asUInt();
 		if (nClubID) {
@@ -220,6 +240,17 @@ void CLeagueMemberData::pushAsyncRequestToAll(eMsgPort nPortID, eAsyncReq nReqTy
 	}
 }
 
+void CLeagueMemberData::pushAsyncRequestToLevelNeed(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData, uint8_t nLevel) {
+	auto pAsync = getLeague()->getLeagueMgr()->getSvrApp()->getAsynReqQueue();
+	for (auto& ref : m_mMembers) {
+		if (ref.second.nState == eClubState_Delete || ref.second.nLevel < nLevel) {
+			continue;
+		}
+		jsData["clubID"] = ref.second.nMemberCID;
+		pAsync->pushAsyncRequest(nPortID, ref.second.nMemberCID, nReqType, jsData);
+	}
+}
+
 void CLeagueMemberData::timerSave() {
 	if (m_bReadingDB) {
 		return;
@@ -260,7 +291,7 @@ void CLeagueMemberData::timerSave() {
 	m_vMemberDertyCIDs.clear();
 }
 
-void CLeagueMemberData::readMemberFormDB(uint8_t nOffset) {
+void CLeagueMemberData::readMemberFormDB(uint32_t nOffset) {
 	m_bReadingDB = true;
 	std::ostringstream ss;
 	ss << "SELECT clubID, state, level, unix_timestamp(joinDataTime) as joinDataTime, unix_timestamp(quitDataTime) as quitDataTime FROM leaguemember where leagueID = " << getLeague()->getLeagueID() << " order by clubID desc limit 10 offset " << (UINT)nOffset << ";";

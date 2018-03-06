@@ -86,7 +86,7 @@ bool GameRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 		p->nSessionID = pEnterRoomPlayer->nSessionID;
 		p->nUserUID = pEnterRoomPlayer->nUserUID;
 		m_vStandPlayers[p->nUserUID] = p;
-		LOGFMTD("room id = %u , player uid = %u enter room chip = %u",getRoomID(),p->nUserUID,pEnterRoomPlayer->nChip );
+		LOGFMTD("room id = %u , player uid = %u enter room chip = %d",getRoomID(),p->nUserUID,pEnterRoomPlayer->nChip );
 	}
 	else
 	{
@@ -113,6 +113,9 @@ bool GameRoom::isRoomFull()
 bool GameRoom::doDeleteRoom()
 {
 	// save room recorder 
+	/*if (getDelegate()) {
+		getRoomRecorder()->setPlayerCnt(getDelegate()->getRoomPlayerCnt());
+	}*/
 	getRoomRecorder()->doSaveRoomRecorder( getRoomMgr()->getSvrApp()->getAsynReqQueue() );
 
 	// process player leave ;
@@ -189,17 +192,17 @@ bool GameRoom::canStartGame()
 
 void GameRoom::onGameDidEnd()
 {
+	if (getDelegate())
+	{
+		getDelegate()->onGameDidEnd(this);
+	}
+
 	for (auto& ref : m_vPlayers)
 	{
 		if (ref)
 		{
 			ref->onGameDidEnd();
 		}
-	}
-
-	if (getDelegate())
-	{
-		getDelegate()->onGameDidEnd(this);
 	}
 }
 
@@ -276,6 +279,12 @@ bool GameRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx 
 		LOGFMTE("room id = %u , player id = %u , not enter room how to sit down",getRoomID(), pEnterRoomPlayer->nUserUID );
 		return false;
 	}
+
+	if (getDelegate())
+	{
+		getDelegate()->onPlayerWillSitDown(this, pEnterRoomPlayer->nUserUID);
+	}
+
 	delete pStand->second;
 	m_vStandPlayers.erase(pStand);
 
@@ -520,7 +529,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 			tInfo.nUserUID = retContent["uid"].asUInt();
 			tInfo.nSessionID = nSessionID;
 			tInfo.nDiamond = retContent["diamond"].asUInt();
-			tInfo.nChip = retContent["coin"].asUInt();
+			tInfo.nChip = retContent["coin"].asInt();
 			doPlayerSitDown(&tInfo, nIdx);
 
 			Json::Value jsRet;
@@ -593,7 +602,11 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 		// go on  
 		Json::Value jsReq;
 		jsReq["targetUID"] = pPlayer->getUserUID();
-		jsReq["cnt"] = 1;
+		uint8_t nCnt = 1;
+#ifdef _DEBUG
+		nCnt = 0;
+#endif // DEBUG
+		jsReq["cnt"] = nCnt;
 		jsReq["roomID"] = getRoomID();
 		auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
 		prealMsg["invokerIdx"] = pPlayer->getIdx();

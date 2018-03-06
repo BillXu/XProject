@@ -28,7 +28,7 @@ public:
 protected:
 	void onTimeSave()override;
 	void addActiveLeague(CLeague* pNewLeague);
-	void readLeagueFormDB(uint8_t nOffset = 0);
+	void readLeagueFormDB(uint32_t nOffset = 0);
 	void doProcessAfterReadDB();
 	void createLeague(CClub* pClub, const Json::Value& jsReqContent, uint32_t nSenderID);
 	uint32_t generateLeagueID();

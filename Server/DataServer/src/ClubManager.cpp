@@ -32,6 +32,7 @@ void CClubManager::init(IServerApp* svrApp)
 
 void CClubManager::onConnectedSvr(bool isReconnected)
 {
+	//return;
 	if (isReconnected)
 	{
 		return;
@@ -247,14 +248,15 @@ void CClubManager::addActiveClub(CClub* pClub) {
 	m_vAllClubs[pClub->getClubID()] = pClub;
 }
 
-void CClubManager::readClubFormDB(uint8_t nOffset) {
+void CClubManager::readClubFormDB(uint32_t nOffset) {
+	//return;
 	m_bReadingDB = true;
 	std::ostringstream ss;
-	ss << "SELECT clubID, creator, name, headIcon, unix_timestamp(createTime) as createTime, region, state, memberLimit, foundation, integration, description, createRoomType, searchLimit, joinedLeague, createdLeague FROM xproject.club where state !=  " << eClubState_Delete << " order by clubID desc limit 10 offset " << (UINT)nOffset << ";";
+	ss << "SELECT clubID, creator, name, headIcon, unix_timestamp(createTime) as createTime, region, state, memberLimit, foundation, integration, description, createRoomType, searchLimit, joinedLeague, createdLeague FROM xproject.club where state !=  " << eClubState_Delete << " order by clubID desc limit 10 offset " << nOffset << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
-	printf("%s", ss.str().c_str());
-	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand(), eAsync_DB_Select, jsReq, [this, nOffset](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+	//printf("%s", ss.str().c_str());
+	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, 0, eAsync_DB_Select, jsReq, [this, nOffset](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
 		if (isTimeOut)
 		{
 			LOGFMTE("caution: load club info from DB time out , caution!!!!!");
@@ -263,6 +265,7 @@ void CClubManager::readClubFormDB(uint8_t nOffset) {
 		}
 
 		uint32_t nAft = retContent["afctRow"].asUInt();
+		LOGFMTE("Attention: finish read club info, count = %u", nAft);
 		auto jsData = retContent["data"];
 		if (nAft == 0 || jsData.isNull())
 		{

@@ -21,6 +21,7 @@ public:
 	void sendBaseDataToClient();
 	void saveMoney();
 	void saveClub();
+	void saveGameWin();
 	void timerSave()override;
 	uint32_t getCoin(){ return m_stBaseData.nCoin ; }
 	uint32_t getDiamoned(){ return m_stBaseData.nDiamoned;}
@@ -33,6 +34,8 @@ public:
 	bool isPlayerReady()override { return m_isReadingDB == false; }
 	double getGPS_J() { return m_stBaseData.dfJ; }
 	double getGPS_W() { return m_stBaseData.dfW; }
+	uint32_t getAllGame() { return m_stBaseData.nAllGame; }
+	uint32_t getWinGame() { return m_stBaseData.nWinGame; }
 	void getJoinedAndCreatedClubs(std::vector<uint32_t>& vClubIDs);
 
 	void addJoinedClub(uint32_t nClubID);
@@ -41,11 +44,14 @@ public:
 	void removeCreatedClub(uint32_t nClubID);
 	void dismissClub(uint32_t nClubID);
 
+	void addGameWin(bool isWin);
+
 private:
 	stServerBaseData m_stBaseData ;
 	bool m_bMoneyDataDirty;
 	bool m_bPlayerInfoDirty;
 	bool m_bClubDataDirty;
+	bool m_bGameWinDirty;
 	bool m_isReadingDB;
 
 	int32_t m_nTmpCoin;

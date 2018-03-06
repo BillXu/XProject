@@ -36,6 +36,24 @@ bool ISingleRoundRecorder::addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorde
 	return true;
 }
 
+std::shared_ptr<IPlayerRecorder> ISingleRoundRecorder::getPlayerRecorderInfo(uint32_t nUserID) {
+	for (auto ref : m_vPlayerRecorderInfo) {
+		if (ref.second->getUserUID() == nUserID) {
+			return ref.second;
+		}
+	}
+	return nullptr;
+}
+
+void ISingleRoundRecorder::toJson(Json::Value& js) {
+	for (auto& ref : m_vPlayerRecorderInfo)
+	{
+		Json::Value jsPlayer;
+		ref.second->toJson(jsPlayer);
+		js[js.size()] = jsPlayer;
+	}
+}
+
 void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecorder, CAsyncRequestQuene* pSyncQuene, uint16_t nRoomType )
 {
 	if (m_vPlayerRecorderInfo.empty())
@@ -61,7 +79,7 @@ void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecord
 	}
 
 #ifdef _DEBUG
-	return;
+	//return;
 #endif // _DEBUG
 	// do save sql  room round recorder 
 	Json::Value jssql;
@@ -97,8 +115,12 @@ void IGameRoomRecorder::init( uint32_t nSieralNum, uint32_t nRoomID, uint32_t nR
 	m_nSieralNum = nSieralNum;
 	m_nRoomType = nRoomType;
 	m_nCreaterUID = nCreaterUID;
+	m_nPlayerCnt = 0;
+	m_nClubID = 0;
+	m_nLeagueID = 0;
 	m_jsOpts = jsOpts;
 	m_vAllRoundRecorders.clear();
+	m_nCurRoundIdx = m_vAllRoundRecorders.size();
 }
 
 void IGameRoomRecorder::addSingleRoundRecorder(std::shared_ptr<ISingleRoundRecorder>& ptrSingleRecorder)
@@ -135,13 +157,18 @@ uint32_t IGameRoomRecorder::getSieralNum()
 
 uint16_t IGameRoomRecorder::getRoundRecorderCnt()
 {
+	//return m_vAllRoundRecorders.size();
+	return m_nCurRoundIdx++;
+}
+
+uint16_t IGameRoomRecorder::getRoundCnt() {
 	return m_vAllRoundRecorders.size();
 }
 
 void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 {
 #ifdef _DEBUG
-	return;
+	//return;
 #endif // _DEBUG
 	if ( m_vAllRoundRecorders.empty())
 	{
@@ -159,7 +186,7 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	// do save sql  room recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,time,roomType,opts ) values (%u,%u,%u,now(),'%u',", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nRoomType );
+	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,time,roomType,joinAmount,clubID,leagueID,rotBankerPool,opts ) values (%u,%u,%u,now(),%u,%u,%u,%u,%u,", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nRoomType, m_nPlayerCnt, m_nClubID, m_nLeagueID, m_nRotBankerPool );
 	std::ostringstream ss;
 	ss << pBuffer << "'" << strOpts << "' ) ;";
 	jssql["sql"] = ss.str();
@@ -177,9 +204,13 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	{
 		auto nUserUID = ref.first;
 		auto nOffset = ref.second;
+		uint32_t nDragIn = 0;
+		if (m_mAllDragIn.count(nUserUID)) {
+			nDragIn = m_mAllDragIn[nUserUID];
+		}
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,time,roomType ) values (%u,%u,%u,%d,now(),'%u');", nUserUID,m_nSieralNum, m_nRoomID, nOffset, m_nRoomType);
+		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,dragin,time,roomType ) values (%u,%u,%u,%d,%u,now(),%u);", nUserUID,m_nSieralNum, m_nRoomID, nOffset, nDragIn, m_nRoomType);
 		jssql["sql"] = pBuffer;
 		pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSieralNum(), eAsync_DB_Add, jssql);
 	}
@@ -192,3 +223,19 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	}
 }
 
+void IGameRoomRecorder::addDragIn(uint32_t nUserID, uint32_t nAmount) {
+	if (m_mAllDragIn.count(nUserID)) {
+		m_mAllDragIn[nUserID] += nAmount;
+	}
+	else {
+		m_mAllDragIn[nUserID] = nAmount;
+	}
+}
+
+void IGameRoomRecorder::getPlayerSingleRecorder(uint32_t nUserID, std::vector<std::shared_ptr<ISingleRoundRecorder>>& vRecorder) {
+	for (auto ref : m_vAllRoundRecorders) {
+		if (ref.second->getPlayerRecorderInfo(nUserID)) {
+			vRecorder.push_back(ref.second);
+		}
+	}
+}

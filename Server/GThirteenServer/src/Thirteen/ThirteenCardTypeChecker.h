@@ -339,11 +339,9 @@ public:
 		}
 		if (vCards.size() && TT_PARSE_VALUE(vCards[0]) == 14) {
 			if (std::find_if(vCards.begin(), vCards.end(), [](uint8_t& nCard) {
-				return TT_PARSE_VALUE(nCard) > OTHER_DAO_CARD_COUNT;
+				auto nValue = TT_PARSE_VALUE(nCard);
+				return nValue != 14 && nValue > OTHER_DAO_CARD_COUNT;
 			}) == vCards.end()) {
-				//TODO NOTHING
-			}
-			else {
 				for (auto& ref : vCards) {
 					if (TT_PARSE_VALUE(ref) == 14) {
 						ref = TT_MAKE_CARD(TT_PARSE_TYPE(ref), 1);
@@ -353,6 +351,9 @@ public:
 					return nCard_1 > nCard_2;
 				});
 			}
+			//else {
+			//	//TODO NOTHING
+			//}
 		}
 		uint8_t needJokerCnt = 0;
 		for (uint8_t i = 0; i < vCards.size(); i++) {
@@ -512,7 +513,7 @@ public:
 		uint8_t nBD = 0;
 		uint8_t nSD = 0;
 		for (uint8_t i = 0; i < vecCards.size(); i++) {
-			if (i + 1 < vecCards.size() && vecCards[i] == vecCards[i + 1]) {
+			if (i + 1 < vecCards.size() && TT_PARSE_VALUE(vecCards[i]) == TT_PARSE_VALUE(vecCards[i + 1])) {
 				continue;
 			}
 			auto tType = TT_PARSE_TYPE(vecCards[i]);
@@ -647,8 +648,9 @@ public:
 				return false;
 			}
 			auto tValue = TT_PARSE_VALUE(vecCards[i]);
-			nWeight = (nWeight << ((OTHER_DAO_CARD_COUNT - nLMCnt) * 4 + 3)) | tValue;
 			nLMCnt++;
+			//nWeight = (nWeight << ((OTHER_DAO_CARD_COUNT - nLMCnt) * 4 + 3)) | tValue;
+			nWeight = nWeight | (tValue << ((OTHER_DAO_CARD_COUNT - nLMCnt) * 4 + 3));
 			if ((uint8_t)-1 ==  bigType) {
 				bigType = tType;
 			}

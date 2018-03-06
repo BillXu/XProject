@@ -6,7 +6,7 @@
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include <time.h>
-#define TIME_WAIT_REPLY_DISMISS 180
+#define TIME_WAIT_REPLY_DISMISS 1
 #define TIME_AUTO_DISMISS (60*60*5)
 IPrivateRoom::~IPrivateRoom()
 {
@@ -123,7 +123,7 @@ uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 
 	if ( isWinerPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, getPayType() ))
 	{
-		return false;
+		return 9;
 	}
 
 	if ( m_pRoom )
@@ -157,6 +157,10 @@ bool IPrivateRoom::doDeleteRoom()
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
 	return m_pRoom->doDeleteRoom();
+}
+
+Json::Value IPrivateRoom::getOpts() {
+	return m_pRoom->getOpts();
 }
 
 //virtual void roomItemDetailVisitor(Json::Value& vOutJsValue) = 0;
@@ -241,6 +245,9 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	{
 		LOGFMTD("reback room state and info msg to session id =%u", nSessionID);
 		sendRoomInfo(nSessionID);
+		Json::Value jsMsg;
+		jsMsg["ret"] = 0;
+		sendMsgToPlayer(jsMsg, MSG_REQUEST_ROOM_INFO, nSessionID);
 	}
 	break;
 	case MSG_PLAYER_OPEN_ROOM:

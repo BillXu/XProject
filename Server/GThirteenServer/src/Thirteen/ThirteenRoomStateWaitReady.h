@@ -9,7 +9,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(eTime_WaitPlayerReady * 6);
+		setStateDuringTime(eTime_WaitPlayerReady);
 	}
 
 	void onStateTimeUp()
@@ -31,7 +31,9 @@ public:
 	void update(float fDeta)override
 	{
 		IGameRoomState::update(fDeta);
-		auto pRoom = getRoom();
+		auto pRoom = (ThirteenRoom*)getRoom();
+		pRoom->doPlayerAutoLeave();
+		pRoom->doPlayerAutoStandUp();
 		if (pRoom->canStartGame())
 		{
 			pRoom->goToState(eRoomState_StartGame);

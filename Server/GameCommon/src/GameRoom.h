@@ -37,6 +37,8 @@ public:
 	virtual bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer,uint16_t nIdx );
 	virtual bool doPlayerStandUp(uint32_t nUserUID);
 	virtual bool doPlayerLeaveRoom( uint32_t nUserUID );
+	uint32_t isClubRoom()override { return 0; }
+	bool isRoomGameOver()override { return false; };
 
 	uint32_t getRoomID()final;
 	uint32_t getSeiralNum()final;
@@ -63,6 +65,7 @@ public:
 	virtual IPoker* getPoker() = 0;
 	stStandPlayer* getStandPlayerBySessionID(uint32_t nSessinID);
 	uint16_t getPlayerCnt()override;
+	Json::Value getOpts() { return m_jsOpts; }
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	virtual IGameRoomDelegate* getDelegate();
@@ -70,8 +73,8 @@ protected:
 	virtual std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr();
 public:
 	bool addReplayFrame( uint32_t nFrameType , Json::Value& jsFrameArg );
-private:
-	std::shared_ptr<IGameRoomRecorder> getRoomRecorder();
+//private:
+	virtual std::shared_ptr<IGameRoomRecorder> getRoomRecorder();
 protected:
 	std::shared_ptr<ISingleRoundRecorder> getCurRoundRecorder();
 protected:

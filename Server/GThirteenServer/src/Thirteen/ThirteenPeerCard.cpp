@@ -53,6 +53,13 @@ bool ThirteenPeerCard::autoSetDao() {
 	return false;
 }
 
+bool ThirteenPeerCard::reSetDao() {
+	for (auto& ref : m_vGroups) {
+		ref.reset();
+	}
+	return true;
+}
+
 const char*  ThirteenPeerCard::getNameString()
 {
 	return "thirteen" ;
@@ -500,7 +507,7 @@ bool ThirteenPeerCard::setTieZhi(VEC_CARD& vCards, uint8_t nIdx) {
 	}
 	if (nSameValue) {
 		uint8_t nNeedCnt = OTHER_DAO_CARD_COUNT;
-		uint8_t nNeedOtherCnt = OTHER_DAO_CARD_COUNT - 5;
+		uint8_t nNeedOtherCnt = OTHER_DAO_CARD_COUNT - 4;
 		vTemp.clear();
 		for (auto ref : vCards) {
 			if (nNeedCnt) {

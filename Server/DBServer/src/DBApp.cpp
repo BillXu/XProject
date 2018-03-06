@@ -48,6 +48,8 @@ bool CDBServerApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqS
 		LOGFMTE("sql is null reqType = %u, from srcPort = %u, serialNum = %u", nRequestType, nSenderPort, nReqSerial);
 		return false;
 	}
+
+	//LOGFMTE("sql : %s", jsReqContent["sql"].asCString());
 #ifdef _DEBUG
 	std::string strSql = jsReqContent["sql"].asString();
 	std::transform(strSql.begin(), strSql.end(), strSql.begin(), ::tolower);

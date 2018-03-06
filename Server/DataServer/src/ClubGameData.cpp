@@ -201,9 +201,11 @@ uint8_t CClubGameData::getCreateRoomLevelRequire(uint8_t nCreateType) {
 }
 
 void CClubGameData::getLeagueRoomInfo(Json::Value& jsRoomInfo, std::vector<uint32_t> vLeagues, uint32_t nSenderID, uint32_t nIdx) {
+	//LOGFMTE("Enter request club roomInfo from league, leaguesize = %u", vLeagues.size());
 	if (nIdx < vLeagues.size()) {
 		Json::Value jsReq;
 		auto nLeagueID = vLeagues[nIdx];
+		//LOGFMTE("Enter request club roomInfo from league, leagueID = %u", nLeagueID);
 		jsReq["leagueID"] = nLeagueID;
 		jsReq["rooms"] = jsRoomInfo;
 		getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nLeagueID, eAsync_league_CreateRoom_Info, jsReq, [this, nIdx, vLeagues, jsRoomInfo, nSenderID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
@@ -216,6 +218,7 @@ void CClubGameData::getLeagueRoomInfo(Json::Value& jsRoomInfo, std::vector<uint3
 			}
 			else {
 				uint8_t nRet = retContent["ret"].asUInt();
+				//LOGFMTE("Enter request club roomInfo get response form league, leagueID = %u, ret = %u", vLeagues[nIdx], nRet);
 				Json::Value jsRooms;
 				if (nRet) {
 					jsRooms = jsRoomInfo;
@@ -225,9 +228,11 @@ void CClubGameData::getLeagueRoomInfo(Json::Value& jsRoomInfo, std::vector<uint3
 				}
 				uint32_t nCurIdx = nIdx + 1;
 				if (nCurIdx < vLeagues.size()) {
-					getLeagueRoomInfo(jsRooms, vLeagues, nCurIdx);
+					//LOGFMTE("Enter request club roomInfo continue read league info from, leagueID = %u", vLeagues[nCurIdx]);
+					getLeagueRoomInfo(jsRooms, vLeagues, nSenderID, nCurIdx);
 				}
 				else {
+					//LOGFMTE("Enter request club roomInfo end");
 					Json::Value jsInfo;
 					jsInfo["ret"] = 0;
 					jsInfo["clubID"] = getClub()->getClubID();
@@ -239,6 +244,7 @@ void CClubGameData::getLeagueRoomInfo(Json::Value& jsRoomInfo, std::vector<uint3
 		});
 	}
 	else if (vLeagues.size() == 0) {
+		//LOGFMTE("Enter request club roomInfo end with empty");
 		Json::Value jsInfo;
 		jsInfo["ret"] = 0;
 		jsInfo["clubID"] = getClub()->getClubID();

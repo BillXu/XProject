@@ -11,6 +11,8 @@ public:
 	virtual bool canStartGame(IGameRoom* pRoom) { return true; }
 	virtual void onGameDidEnd(IGameRoom* pRoom){ }
 	virtual void onGameEnd( IGameRoom* pRoom ){}
+	virtual void doPlayerEnter(IGameRoom* pRoom, uint32_t nUserUID) {}
+	virtual void onPlayerWillSitDown(IGameRoom* pRoom, uint32_t nUserUID) {}
 	virtual void onPlayerSitDown(IGameRoom* pRoom,IGamePlayer* pPlayer ){ }
 	virtual void onPlayerWillStandUp(IGameRoom* pRoom,IGamePlayer* pPlayer) {};
 	virtual void onPlayerStandedUp( IGameRoom* pRoom,uint32_t nUserUID) {} ;
@@ -18,6 +20,15 @@ public:
 	virtual bool isEnableRecorder() { return false; }
 	virtual bool isEnableReplay() { return false; }
 	virtual void setCurrentPointer(IGameRoom* pRoom) {}
-	virtual void onPlayerApplyDragIn(uint16_t nCnt) {}
+	virtual void onPlayerWaitDragIn(uint32_t nUserUID) {}
+	virtual void onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID) {}
 	virtual bool isRoomGameOver() { return false; }
+	virtual std::shared_ptr<IGameRoomRecorder> getRoomRecorder() { return nullptr; }
+	virtual uint32_t getRoomPlayerCnt() { return 0; }
+	virtual uint32_t getDragInClubID(uint32_t nUserID) { return 0; }
+	virtual uint32_t getClubID() { return 0; }
+	virtual uint32_t getLeagueID() { return 0; }
+	virtual void onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin) {}
+	virtual void onPlayerAutoStandUp(uint32_t nUserUID, bool bSwitch = true) {}
+	virtual void onPlayerAutoLeave(uint32_t nUserUID, bool bSwitch = true) {}
 };

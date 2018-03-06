@@ -31,6 +31,7 @@ enum ePayChannel
 	ePay_ZhiFuBao,
 	ePay_XiaoMi,
 	ePay_WeChat_365Golden,
+	ePay_Owner,
 	ePay_Max,
 };
 
@@ -204,7 +205,7 @@ enum eSettleType    // Õâ¸öÃ¶¾Ù¶¨ÒåµÄÖ»ÊÇÒ»¸öÖÐÁ¢µÄÊÂ¼þ£¬¶ÔÓÚ·¢ÉúÊÂ¼þµÄË«·½£¬½Ð·
 
 enum eTime
 {
-	eTime_WaitPlayerReady = 15,
+	eTime_WaitPlayerReady = 10,
 	eTime_WaitRobotBanker = 5,
 	eTime_ExeGameStart = 2,			// Ö´ÐÐÓÎÏ·¿ªÊ¼ µÄÊ±¼ä
 	eTime_WaitChoseExchangeCard = 5, //  µÈ´ýÍæ¼ÒÑ¡Ôñ»»ÅÆµÄÊ±¼ä
@@ -319,11 +320,25 @@ enum eMailType
 {
 	eMail_Wechat_Pay, // { ret : 0 , diamondCnt : 23 }  // ret : 1 means verify error 
 	eMail_AppleStore_Pay, // { ret : 0 , diamondCnt : 23 }   // ret : 1 means verify error 
+	eMail_Owner_Pay, // { ret : 0 , diamondCnt : 12 } // ret : 1 means verify error 
 	eMail_Agent_AddCard, // { agentID : 23 , serialNo : 2345 , cardOffset : 23 }
 	eMail_Consume_Diamond, // { diamond : 23 , roomID :23, reason : 0 } 
 	eMail_GiveBack_Diamond, // { diamond : 23 , roomID :23, reason : 0  } 
 	eMail_Consume_Emoji, // { roomID :23, cnt : 0 }
 	eMail_Agent_AddEmojiCnt, // { agentID : 23 ,addCnt : 23 }
+
+	eMail_Room_DragInCoin,
+	eMail_Club_AddCoin,
+	eMail_Club_Join,
+	eMail_Club_Create,
+	eMail_Club_Dismiss,
+	eMail_Club_Fire,
+	eMail_Club_Quit,
+	eMail_Room_AddGame,
+	eMail_Room_BackChip,
+	eMail_Room_ShowCards,
+	eMail_Room_RotBanker,
+	eMail_Club_DeclineDragIn, // { uid : 12, roomID : 123, clubID : 123 }  uid : who declined
 
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;
@@ -333,12 +348,13 @@ enum eMailType
 	eMail_RealMail_Begin = 500, // will mail will show in golden server windown ;
 	eMail_PlainText,  // need not parse , just display the content ;
 	eMail_InvitePrize, // { targetUID : 2345 , addCoin : 300 } // you invite player to join game ,and give prize to you 
+	/*eMail_Room_DragInCoin,
 	eMail_Club_AddCoin,
 	eMail_Club_Join,
 	eMail_Club_Create,
 	eMail_Club_Dismiss,
 	eMail_Club_Fire,
-	eMail_Club_Quit,
+	eMail_Club_Quit,*/
 	eMail_Max,
 };
 

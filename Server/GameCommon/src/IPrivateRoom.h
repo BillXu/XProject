@@ -19,15 +19,16 @@ public:
 	bool init( IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts )override;
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
-	bool isRoomFull()final;
+	bool isRoomFull()override;
 	bool doDeleteRoom()override; // wanning: invoke by roomMgr ;
 
+	Json::Value getOpts()final;
 	uint32_t getRoomID()final;
 	uint32_t getSeiralNum()final;
-	void update(float fDelta)final;
+	void update(float fDelta)override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
-	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0)final;
-	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
+	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0)override;
+	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)override;
 
 	virtual GameRoom* doCreatRealRoom() = 0;
 	uint32_t getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType );
@@ -36,8 +37,8 @@ public:
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	void sendRoomPlayersInfo(uint32_t nSessionID)override;
 	void sendRoomInfo(uint32_t nSessionID)override;
-	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) final;
-	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)final;
+	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
+	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
 
 	// delegate interface 
 	void onStartGame(IGameRoom* pRoom)override;
@@ -45,11 +46,13 @@ public:
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool isEnableRecorder()final { return true; }
 	bool isEnableReplay()override { return true; }
+	uint32_t isClubRoom()override { return 0; }
 
-	void doRoomGameOver(bool isDismissed);
+	virtual void doRoomGameOver(bool isDismissed);
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
 	GameRoom* getCoreRoom();
 	uint16_t getPlayerCnt()override;
+	bool isRoomGameOver()override { return false; }
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();
