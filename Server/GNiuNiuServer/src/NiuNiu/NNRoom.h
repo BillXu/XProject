@@ -53,6 +53,7 @@ public:
 	bool isEnableTuiZhu();
 	bool isEnableTuiZhuang();
 	void onTimeOutPlayerAutoBet();
+	void onTimeOutPlayerAutoRobBanker();
 	void invokerTuoGuanAction( uint8_t nTargetIdx = -1 );
 protected:
 	uint8_t getMiniBetTimes();

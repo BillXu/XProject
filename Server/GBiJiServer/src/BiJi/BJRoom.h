@@ -28,7 +28,7 @@ protected:
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint8_t getRoomRate() { return m_jsOpts["times"].asUInt(); }
 	bool isEnableSanQing() { return m_jsOpts["isSQ"].asUInt() == 1; }
-	bool isEnableShunQingDaTou() { return m_jsOpts["isSQDaTou"].asUInt() == 1; }
+	bool isEnableShunQingDaTou() { return m_jsOpts["isShunqing"].asUInt() == 1; }
 public:
 	bool isEnableGiveUp() { return m_jsOpts["isGiveUp"].asUInt() == 1; }
 private:

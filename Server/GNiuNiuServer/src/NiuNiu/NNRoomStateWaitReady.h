@@ -11,7 +11,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(eTime_WaitPlayerReady);
+		setStateDuringTime(5);
 		m_isCheckTuoGuan = false;
 	}
 
@@ -35,7 +35,7 @@ public:
 		}
 		else
 		{
-			setStateDuringTime(eTime_WaitPlayerReady);
+			setStateDuringTime(5);
 		}
 	}
 

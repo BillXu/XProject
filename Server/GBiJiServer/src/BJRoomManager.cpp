@@ -16,9 +16,9 @@ uint8_t BJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoo
 	{
 		return 0;
 	}
-#ifdef _DEBUG
-	return 0;
-#endif // _DEBUG
+//#ifdef _DEBUG
+//	return 0;
+//#endif // _DEBUG
 
 	if (nLevel >= 3)
 	{
@@ -29,8 +29,8 @@ uint8_t BJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoo
 	// is aa true ;
 	if ( ePayType_AA == payType)
 	{
-		uint8_t vAA[] = { 1 , 2 , 3 };
-		return vAA[nLevel] * 10;
+		uint8_t vAA[] = { 8 , 16 , 24 };
+		return vAA[nLevel];
 	}
 
 	if (ePayType_Winer == payType)

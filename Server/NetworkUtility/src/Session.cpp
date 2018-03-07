@@ -121,17 +121,17 @@ void CSession::doWriteBuffer()
 			if (pSelf->m_vWillSendBuffers.empty() == false)
 			{
 #ifdef _DEBUG
-				if (pSelf->m_vWillSendBuffers.front()->bodyLength() > 32 )
-				{
-					char* p = pSelf->m_vWillSendBuffers.front()->body();
-					p = p + 20;
-					uint16_t * pLen = (uint16_t*)p;
-					if (*pLen > 10 && (p + 2))
-					{
-						std::string str(p + 2, *pLen);
-						LOGFMTI("do already sender msg  : %s", str.c_str());
-					}
-				}
+				//if (pSelf->m_vWillSendBuffers.front()->bodyLength() > 32 )
+				//{
+				//	char* p = pSelf->m_vWillSendBuffers.front()->body();
+				//	p = p + 20;
+				//	uint16_t * pLen = (uint16_t*)p;
+				//	if (*pLen > 10 && (p + 2))
+				//	{
+				//		std::string str(p + 2, *pLen);
+				//		LOGFMTI("do already sender msg  : %s", str.c_str());
+				//	}
+				//}
 
 #endif // 
 

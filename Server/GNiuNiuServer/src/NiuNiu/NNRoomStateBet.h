@@ -12,8 +12,7 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		auto pRoom = (NNRoom*)getRoom();
 		pRoom->doStartBet();
-		setStateDuringTime(15);
-		m_isCheckTuoGuan = false;
+		setStateDuringTime(8);
 	}
 
 	void update(float fDeta)override
@@ -25,11 +24,7 @@ public:
 			setStateDuringTime(0);
 		}
 
-		if (false == m_isCheckTuoGuan)
-		{
-			m_isCheckTuoGuan = true;
-			pRoom->invokerTuoGuanAction();
-		}
+		pRoom->invokerTuoGuanAction();
 	}
 
 	bool onMsg( Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )
@@ -79,5 +74,4 @@ public:
 	uint8_t getCurIdx()override { return m_nNewBankerIdx; };
 protected:
 	uint8_t m_nNewBankerIdx;
-	bool m_isCheckTuoGuan;
 };
