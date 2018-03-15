@@ -34,6 +34,7 @@ public:
 	void sendRoomPlayersInfo(uint32_t nSessionID)override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override ;
 	virtual void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID );
+	virtual bool canPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx) { return true; }
 	virtual bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer,uint16_t nIdx );
 	virtual bool doPlayerStandUp(uint32_t nUserUID);
 	virtual bool doPlayerLeaveRoom( uint32_t nUserUID );
@@ -66,6 +67,7 @@ public:
 	stStandPlayer* getStandPlayerBySessionID(uint32_t nSessinID);
 	uint16_t getPlayerCnt()override;
 	Json::Value getOpts() { return m_jsOpts; }
+	void onDismiss()override {}
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	virtual IGameRoomDelegate* getDelegate();

@@ -172,8 +172,8 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 #endif // _DEBUG
 	if ( m_vAllRoundRecorders.empty())
 	{
-		LOGFMTD( "room id = %u do not have recorder creator id = %u", m_nRoomID, m_nCreaterUID );
-		return;
+		//LOGFMTD( "room id = %u do not have recorder creator id = %u", m_nRoomID, m_nCreaterUID );
+		//return;
 	}
 	// get opts str 
 	std::string strOpts = "";
@@ -186,7 +186,7 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	// do save sql  room recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,time,roomType,joinAmount,clubID,leagueID,rotBankerPool,opts ) values (%u,%u,%u,now(),%u,%u,%u,%u,%u,", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nRoomType, m_nPlayerCnt, m_nClubID, m_nLeagueID, m_nRotBankerPool );
+	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,time,duration,roomType,joinAmount,clubID,leagueID,rotBankerPool,opts ) values (%u,%u,%u,now(),%d,%u,%u,%u,%u,%u,", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nDuration, m_nRoomType, m_nPlayerCnt, m_nClubID, m_nLeagueID, m_nRotBankerPool );
 	std::ostringstream ss;
 	ss << pBuffer << "'" << strOpts << "' ) ;";
 	jssql["sql"] = ss.str();
@@ -199,18 +199,34 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 		ref.second->calculatePlayerTotalOffset(vPlayerOffset);
 	}
 
+	for (auto ref : m_mAllDragIn) {
+		if (vPlayerOffset.count(ref.first)) {
+			continue;
+		}
+		else
+		{
+			vPlayerOffset[ref.first] = 0;
+		}
+	}
+
 	// do save 
 	for ( auto& ref : vPlayerOffset)
 	{
 		auto nUserUID = ref.first;
 		auto nOffset = ref.second;
 		uint32_t nDragIn = 0;
+		uint32_t nClubID = 0;
+		uint32_t nRotBankerCoin = 0;
+		if (m_mRotBankerPool.count(nUserUID)) {
+			nRotBankerCoin = m_mRotBankerPool[nUserUID];
+		}
 		if (m_mAllDragIn.count(nUserUID)) {
-			nDragIn = m_mAllDragIn[nUserUID];
+			nDragIn = m_mAllDragIn[nUserUID].nAmount;
+			nClubID = m_mAllDragIn[nUserUID].nClubID;
 		}
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,dragin,time,roomType ) values (%u,%u,%u,%d,%u,now(),%u);", nUserUID,m_nSieralNum, m_nRoomID, nOffset, nDragIn, m_nRoomType);
+		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,rotPool,dragin,draginClubID,time,roomType ) values (%u,%u,%u,%d,%u,%u,%u,now(),%u);", nUserUID,m_nSieralNum, m_nRoomID, nOffset, nRotBankerCoin, nDragIn, nClubID, m_nRoomType);
 		jssql["sql"] = pBuffer;
 		pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSieralNum(), eAsync_DB_Add, jssql);
 	}
@@ -223,12 +239,24 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	}
 }
 
-void IGameRoomRecorder::addDragIn(uint32_t nUserID, uint32_t nAmount) {
+void IGameRoomRecorder::addDragIn(uint32_t nUserID, uint32_t nAmount, uint32_t nClubID) {
 	if (m_mAllDragIn.count(nUserID)) {
-		m_mAllDragIn[nUserID] += nAmount;
+		m_mAllDragIn[nUserID].nAmount += nAmount;
 	}
 	else {
-		m_mAllDragIn[nUserID] = nAmount;
+		reDraginInfo draginInfo;
+		draginInfo.nAmount = nAmount;
+		draginInfo.nClubID = nClubID;
+		m_mAllDragIn[nUserID] = draginInfo;
+	}
+}
+
+void IGameRoomRecorder::addRotBankerPool(uint32_t nUserID, uint32_t nAmount) {
+	if (m_mRotBankerPool.count(nUserID)) {
+		m_mRotBankerPool[nUserID] += nAmount;
+	}
+	else {
+		m_mRotBankerPool[nUserID] = nAmount;
 	}
 }
 

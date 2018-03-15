@@ -5,6 +5,7 @@
 #include "IGameRoomManager.h"
 #include "AsyncRequestQuene.h"
 #include "../ServerCommon/ISeverApp.h"
+#define OFFLINE_AUTO_LEAVE_ROOM 2
 ThirteenPrivateRoom::~ThirteenPrivateRoom() {
 	/*for (auto& ref : m_vPRooms) {
 		if (ref) {
@@ -98,6 +99,7 @@ void ThirteenPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo) {
 	IPrivateRoom::packRoomInfo(jsRoomInfo);
 	if (m_nOverType == ROOM_OVER_TYPE_TIME) {
 		jsRoomInfo["leftTime"] = (int32_t)m_tCreateTimeLimit.getDuringTime();
+		jsRoomInfo["time"] = (int32_t)m_tCreateTimeLimit.getInterval();
 	}
 	jsRoomInfo["RBPool"] = m_nRotBankerPool;
 }
@@ -247,7 +249,7 @@ bool ThirteenPrivateRoom::canStartGame(IGameRoom* pRoom)
 	{
 		m_isOpen = true;
 		Json::Value js;
-		sendRoomMsg(js, MSG_ROOM_DO_OPEN);
+		pRoom->sendRoomMsg(js, MSG_ROOM_DO_OPEN);
 		LOGFMTI(" room id = %u auto set open", getRoomID());
 	}
 
@@ -306,7 +308,22 @@ void ThirteenPrivateRoom::onGameDidEnd(IGameRoom* pRoom) {
 		}
 		auto stg = isEnterByUserID(pPlayer->getUserUID());
 		if (stg) {
-			stg->isJoin = true;
+			stg->isJoin += 1;
+			if (stg->nState == eNet_Offline || stg->nState == eNet_WaitReconnect) {
+				stg->nOffLineGame += 1;
+				if (stg->nOffLineGame >= OFFLINE_AUTO_LEAVE_ROOM) {
+					if (stg->nState == eNet_Offline) {
+						getCoreRoom()->doPlayerLeaveRoom(stg->nUserUID);
+					}
+					else {
+						getCoreRoom()->doPlayerStandUp(stg->nUserUID);
+					}
+					stg->nOffLineGame = 0;
+				}
+			}
+			else {
+				stg->nOffLineGame = 0;
+			}
 		}
 	}
 
@@ -363,29 +380,66 @@ bool ThirteenPrivateRoom::onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uin
 	st->isDragIn = true;
 	st->nAllWrag += nAmount;
 	st->nClubID = nClubID;
-	getRoomRecorder()->addDragIn(nUserID, nAmount);
+	getRoomRecorder()->addDragIn(nUserID, nAmount, nClubID);
 	return true;
 }
 
 bool ThirteenPrivateRoom::doDeleteRoom() {
-	if (IPrivateRoom::doDeleteRoom()) {
-		if (m_nLeagueID) {
-			Json::Value jsReqInfo;
-			jsReqInfo["leagueID"] = m_nLeagueID;
-			jsReqInfo["roomID"] = getRoomID();
-			auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nLeagueID, eAsync_league_or_club_DeleteRoom, jsReqInfo);
-		}
-		else if (m_nClubID) {
-			Json::Value jsReqInfo;
-			jsReqInfo["clubID"] = m_nClubID;
-			jsReqInfo["roomID"] = getRoomID();
-			auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nClubID, eAsync_league_or_club_DeleteRoom, jsReqInfo);
-		}
-		return true;
+	m_tWaitReplyDismissTimer.canncel();
+	m_tAutoDismissTimer.canncel();
+	// tell client closed room ;
+	/*Json::Value jsDoClosed;
+	jsDoClosed["roomID"] = getRoomID();
+	jsDoClosed["isDismiss"] = m_nApplyDismissUID > 0 ? 1 : 0;
+	sendRoomMsg(jsDoClosed, MSG_VIP_ROOM_DO_CLOSED);*/
+
+	// tell data svr , the room is closed 
+	Json::Value jsReqInfo;
+	jsReqInfo["targetUID"] = m_nOwnerUID;
+	jsReqInfo["roomID"] = getRoomID();
+	jsReqInfo["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
+	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
+
+	//auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	getRoomRecorder()->doSaveRoomRecorder(pAsync);
+	if (m_nLeagueID) {
+		Json::Value jsReqInfo;
+		jsReqInfo["leagueID"] = m_nLeagueID;
+		jsReqInfo["roomID"] = getRoomID();
+		//auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nLeagueID, eAsync_league_or_club_DeleteRoom, jsReqInfo);
 	}
-	return false;
+	else if (m_nClubID) {
+		Json::Value jsReqInfo;
+		jsReqInfo["clubID"] = m_nClubID;
+		jsReqInfo["roomID"] = getRoomID();
+		//auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nClubID, eAsync_league_or_club_DeleteRoom, jsReqInfo);
+	}
+
+	return m_pRoom->doDeleteRoom();
+
+	//if (m_pRoom->doDeleteRoom()) {
+	//	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	//	getRoomRecorder()->doSaveRoomRecorder(pAsync);
+	//	if (m_nLeagueID) {
+	//		Json::Value jsReqInfo;
+	//		jsReqInfo["leagueID"] = m_nLeagueID;
+	//		jsReqInfo["roomID"] = getRoomID();
+	//		//auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	//		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nLeagueID, eAsync_league_or_club_DeleteRoom, jsReqInfo);
+	//	}
+	//	else if (m_nClubID) {
+	//		Json::Value jsReqInfo;
+	//		jsReqInfo["clubID"] = m_nClubID;
+	//		jsReqInfo["roomID"] = getRoomID();
+	//		//auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	//		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nClubID, eAsync_league_or_club_DeleteRoom, jsReqInfo);
+	//	}
+	//	return true;
+	//}
+	//return false;
 }
 
 bool ThirteenPrivateRoom::isRoomGameOver() {
@@ -467,6 +521,7 @@ bool ThirteenPrivateRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t n
 void ThirteenPrivateRoom::doRoomGameOver(bool isDismissed) {
 	getRoomRecorder()->setPlayerCnt(getRoomPlayerCnt());
 	getRoomRecorder()->setRotBankerPool(m_nRotBankerPool);
+	getRoomRecorder()->setDuration(m_tCreateTimeLimit.getInterval());
 
 	auto pRoom = (ThirteenRoom*)getCoreRoom();
 	pRoom->doAllPlayerStandUp();
@@ -480,6 +535,13 @@ void ThirteenPrivateRoom::doRoomGameOver(bool isDismissed) {
 			jsReqInfo["roomID"] = getRoomID();
 			jsReqInfo["clubID"] = nClubID;
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_player_clubRoom_Back_Chip, jsReqInfo);
+
+			auto nLeagueID = getLeagueID();
+			if (nLeagueID) {
+				jsReqInfo["uid"] = ref.second->nUserUID;
+				jsReqInfo["leagueID"] = nLeagueID;
+				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_league_clubRoom_Back_Integration, jsReqInfo);
+			}
 		}
 	}
 
@@ -524,6 +586,7 @@ void ThirteenPrivateRoom::doRoomGameOver(bool isDismissed) {
 
 void ThirteenPrivateRoom::onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin) {
 	m_nRotBankerPool += nCoin;
+	getRoomRecorder()->addRotBankerPool(pPlayer->getUserUID(), nCoin);
 	Json::Value jsMsg;
 	jsMsg["pool"] = m_nRotBankerPool;
 	sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_RBPOOL_UPDATE);
@@ -531,6 +594,18 @@ void ThirteenPrivateRoom::onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin)
 
 uint32_t ThirteenPrivateRoom::isClubRoom() {
 	return getClubID();
+}
+
+bool ThirteenPrivateRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) {
+	auto st = isEnterByUserID(nPlayerID);
+	if (st) {
+		st->nState = nState;
+	}
+	return IPrivateRoom::onPlayerNetStateRefreshed(nPlayerID, nState);
+}
+
+void ThirteenPrivateRoom::onDismiss() {
+	m_tCreateTimeLimit.setInterval(0);
 }
 
 bool ThirteenPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
@@ -541,8 +616,12 @@ bool ThirteenPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
 		LOGFMTE("why room is null ? ");
 		return false;
 	}
-	if (m_mStayPlayers.count(pEnterRoomPlayer->nUserUID)) {
+	auto sPlayer = isEnterByUserID(pEnterRoomPlayer->nUserUID);
+	if (sPlayer) {
+		//auto sPlayer = m_mStayPlayers[pEnterRoomPlayer->nUserUID];
 		pEnterRoomPlayer->nChip = m_mStayPlayers[pEnterRoomPlayer->nUserUID]->nChip;
+		sPlayer->nSessionID = pEnterRoomPlayer->nSessionID;
+		sPlayer->nState = eNet_Online;
 	}
 	else {
 		stStayPlayer* stp = new stStayPlayer();
@@ -589,6 +668,127 @@ void ThirteenPrivateRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID) 
 
 bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) {
 	switch (nMsgType) {
+	case MSG_PLAYER_SIT_DOWN:
+	{
+		auto sPlayer = isEnterBySession(nSessionID);
+		if (sPlayer == nullptr) {
+			Json::Value jsRet;
+			//jsRet["ret"] = 4;
+			//sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			sendMsgToPlayer(jsRet, MSG_ROOM_PLAYER_LEAVE, nSessionID);
+			break;
+		}
+		else {
+			return IPrivateRoom::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
+		}
+	}
+	break;
+	case MSG_ROOM_THIRTEEN_DELAY_TIME:
+	{
+		if (isRoomGameOver()) {
+			Json::Value jsMsg;
+			jsMsg["ret"] = 1;
+			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+			break;
+		}
+		if (prealMsg["uid"].isNull() || prealMsg["uid"].isUInt() == false) {
+			Json::Value jsMsg;
+			jsMsg["ret"] = 2;
+			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+			break;
+		}
+		auto nUID = prealMsg["uid"].asUInt();
+		auto nTime = prealMsg["time"].asUInt() == 30 ? 30 : 60;
+		uint8_t nIdx = nTime == 30 ? 0 : 1;
+		uint8_t nIdx_1 = m_nRoundLevel >> 4;
+		uint16_t vDiamond[2][6] = { {120, 600, 900, 1500, 3000, 6000}, {180, 900, 1350, 2250, 4500, 9000} };
+		uint32_t nDiamond = vDiamond[nIdx][nIdx_1];
+		auto pApp = m_pRoomMgr->getSvrApp();
+		Json::Value jsReq;
+		jsReq["targetUID"] = nUID;
+		jsReq["diamond"] = nDiamond;
+		jsReq["roomID"] = getRoomID();
+
+#ifdef _DEBUG
+		nTime = 3;
+#endif // _DEBUG
+
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_thirteen_delay_check_Diamond, jsReq, [pApp, nMsgType, nUID, nSessionID, nDiamond, nTime, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			Json::Value jsRet;
+			if (isTimeOut)
+			{
+				LOGFMTE(" request apply delay room time out uid = %u , can not delay room time", nUID);
+				jsRet["ret"] = 7;
+				sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				return;
+			}
+
+			uint8_t nReqRet = retContent["ret"].asUInt();
+			uint8_t nRet = 0;
+			do {
+				if (0 != nReqRet)
+				{
+					nRet = 4;
+					break;
+				}
+
+				if (isRoomGameOver()) {
+					//Json::Value jsMsg;
+					nRet = 1;
+					//sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+					break;
+				}
+
+				//LOGFMTE("before delay time is %f", m_tCreateTimeLimit.getDuringTime());
+				m_tCreateTimeLimit.addInterval(nTime * 60);
+				//LOGFMTE("after delay time is %f", m_tCreateTimeLimit.getDuringTime());
+				Json::Value jsConsumDiamond;
+				jsConsumDiamond["playerUID"] = nUID;
+				jsConsumDiamond["diamond"] = nDiamond;
+				jsConsumDiamond["roomID"] = getRoomID();
+				jsConsumDiamond["reason"] = 1;
+				pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_Consume_Diamond, jsConsumDiamond);
+				LOGFMTD("user uid = %u delay room time do comuse diamond = %u room id = %u", nUID, nDiamond, getRoomID());
+
+			} while (0);
+
+			jsRet["ret"] = nRet;
+			if (nRet == 0) {
+				jsRet["leftTime"] = (int32_t)m_tCreateTimeLimit.getDuringTime();
+				jsRet["time"] = (int32_t)m_tCreateTimeLimit.getInterval();
+				sendRoomMsg(jsRet, nMsgType, nSessionID);
+			}
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+		});
+	}
+	break;
+	case MSG_ROOM_THIRTEEN_DISMISS_ROOM:
+	{
+		if (prealMsg["uid"].isNull() || prealMsg["uid"].isUInt() == false) {
+			Json::Value jsMsg;
+			jsMsg["ret"] = 1;
+			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+			break;
+		}
+		auto nUID = prealMsg["uid"].asUInt();
+		if (nUID != m_nOwnerUID) {
+			Json::Value jsMsg;
+			jsMsg["ret"] = 2;
+			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+			break;
+		}
+		if (m_nOverType == ROOM_OVER_TYPE_TIME) {
+			m_tCreateTimeLimit.setInterval(0);
+		}
+		else {
+			m_nLeftRounds = 0;
+		}
+		Json::Value jsMsg;
+		jsMsg["ret"] = 0;
+		sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+	}
+	break;
 	case MSG_ROOM_THIRTEEN_BOARD_GAME_RECORD:
 	{
 		if (!getRoomRecorder() || getRoomRecorder()->getRoundCnt() == 0) {
@@ -667,7 +867,7 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 				}
 				auto st = vsPlayers.at(tIdx);
 				tIdx++;
-				if (st->isJoin == false && st->isDragIn == false) {
+				if (st->isJoin == 0 && st->isDragIn == false) {
 					continue;
 				}
 				cIdx++;
@@ -681,6 +881,7 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 					jsDetail["chip"] = st->nChip;
 				}
 				jsDetail["drag"] = st->nAllWrag;
+				jsDetail["round"] = st->isJoin;
 				jsDetails[jsDetails.size()] = jsDetail;
 			}
 

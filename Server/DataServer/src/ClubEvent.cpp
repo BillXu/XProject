@@ -187,6 +187,7 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 				LOGFMTE("User apply fire player in club complete, uid = %u, clubID = %u, fireUID = %u", nMemberID, getClub()->getClubID(), nFireUID);
 				Json::Value jsResult;
 				jsResult["ret"] = 0;
+				jsResult["fireUID"] = nFireUID;
 				sendMsgToClient(jsResult, nmsgType, nSenderID);
 			}
 			else {
@@ -502,6 +503,7 @@ bool CClubEvent::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqC
 		auto nAmount = jsReqContent["amount"].asUInt();
 		auto roomID = jsReqContent["roomID"].asUInt();
 		auto nUserID = jsReqContent["uid"].asUInt();
+		//auto nLeagueID = jsReqContent["leagueID"].asUInt();
 		for (auto& ref : m_mAllEvents) {
 			if (ref.second.nEventType == eClubEventType_AppcationEntry && ref.second.nState == eClubEventState_Wait) {
 				if (ref.second.jsDetail["uid"].asUInt() == nUserID && ref.second.jsDetail["roomID"].asUInt() == roomID) {
@@ -621,6 +623,7 @@ void CClubEvent::readEventFormDB(uint32_t nOffset) {
 			return;
 		}
 
+		//LOGFMTE("caution: success load club event from DB, clubID = %u , caution!!!!!", getClub()->getClubID());
 		uint32_t nAft = retContent["afctRow"].asUInt();
 		auto jsData = retContent["data"];
 		if (nAft == 0 || jsData.isNull())
@@ -628,6 +631,8 @@ void CClubEvent::readEventFormDB(uint32_t nOffset) {
 			doProcessAfterReadDB();
 			return;
 		}
+
+		//LOGFMTE("caution: success load club event from DB, clubID = %u with %u recorder caution!!!!!", getClub()->getClubID(), nAft);
 
 		for (uint32_t nRowIdx = 0; nRowIdx < nAft; ++nRowIdx)
 		{
@@ -720,6 +725,15 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 		return 5;
 	}
 
+	if (itEvent->second.bWaiting) {
+		LOGFMTE("User apply treat club event error, event is already in treating, eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
+		Json::Value jsResult;
+		jsResult["eventID"] = nEventID;
+		jsResult["ret"] = 6;
+		sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
+		return 6;
+	}
+
 	if (itEvent->second.nState != eClubEventState_Wait) {
 		LOGFMTE("User apply treat club event error, event is already be treated, eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
 		Json::Value jsResult;
@@ -776,7 +790,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			}
 			auto nRoomID = itEvent->second.jsDetail["roomID"].asUInt();
 			auto nAmount = itEvent->second.jsDetail["amount"].asUInt();
-			if (getClub()->getClubGameData()->isClubCreateThisRoom(nRoomID) == false) {
+			auto nLeagueID = itEvent->second.jsDetail["leagueID"].asUInt();
+			//if (getClub()->getClubGameData()->isClubCreateThisRoom(nRoomID) == false) {
 				/*if (getClub()->getIntegration() < nAmount) {
 					Json::Value jsResult;
 					jsResult["ret"] = 11;
@@ -786,14 +801,24 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 				/*else {
 					getClub()->addIntegration(-1 * (int32_t)nAmount);
 				}*/
-			}
+			//}
 			Json::Value jsMsg;
 			jsMsg["amount"] = itEvent->second.jsDetail["amount"];
 			jsMsg["roomID"] = nRoomID;
 			jsMsg["uid"] = nMemberUID;
 			jsMsg["clubID"] = getClub()->getClubID();
+			auto sendPort = itEvent->second.jsDetail["port"].asUInt();
+			auto sendTargetID = nRoomID;
 			//getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(itEvent->second.jsDetail["port"].asUInt(), nRoomID, eAsync_club_agree_DragIn, jsMsg);
-			getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(itEvent->second.jsDetail["port"].asUInt(), nRoomID, eAsync_club_agree_DragIn, jsMsg, [this, nRoomID, nSenderID, nAmount, itEvent, nPlayerID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+			if (nLeagueID) {
+				jsMsg["leagueID"] = nLeagueID;
+				jsMsg["port"] = itEvent->second.jsDetail["port"].asUInt();
+				sendPort = ID_MSG_PORT_DATA;
+				sendTargetID = nLeagueID;
+			}
+			itEvent->second.bWaiting = true;
+			getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(sendPort, sendTargetID, eAsync_club_agree_DragIn, jsMsg, [this, nRoomID, nSenderID, nAmount, itEvent, nPlayerID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+				itEvent->second.bWaiting = false;
 				if (isTimeOut) {
 					Json::Value jsResult;
 					jsResult["eventID"] = itEvent->first;
@@ -805,7 +830,16 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 				if (retContent["ret"].asUInt()) {
 					Json::Value jsResult;
 					jsResult["eventID"] = itEvent->first;
-					jsResult["ret"] = 13;
+					jsResult["ret"] = retContent["ret"].asUInt() == 11 ? 11 : 13;
+					sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
+					return;
+				}
+
+				if (itEvent->second.nState != eClubEventState_Wait) {
+					LOGFMTE("User apply treat club event error, event is already be treated, eventID = %u, playerID = %u, clubID = %u", itEvent->second.nEventID, nPlayerID, getClub()->getClubID());
+					Json::Value jsResult;
+					jsResult["eventID"] = itEvent->second.nEventID;
+					jsResult["ret"] = 6;
 					sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 					return;
 				}
@@ -813,9 +847,9 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 				itEvent->second.nState = eClubEventState_Accede;
 				itEvent->second.nDisposerUID = nPlayerID;
 				m_vDirtyIDs.push_back(itEvent->first);
-				if (getClub()->getClubGameData()->isClubCreateThisRoom(nRoomID) == false) {
-					getClub()->addIntegration(-1 * (int32_t)nAmount);
-				}
+				/*if (getClub()->getClubGameData()->isClubCreateThisRoom(nRoomID) == false) {
+				getClub()->addIntegration(-1 * (int32_t)nAmount);
+				}*/
 				Json::Value jsResult;
 				jsResult["eventID"] = itEvent->first;
 				jsResult["ret"] = 0;

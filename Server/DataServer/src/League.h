@@ -27,6 +27,7 @@ public:
 	void reset(); // for reuse the object ;
 	bool onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID);
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
+	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID);
 	ILeagueComponent* getComponent(eLeagueComponentType eType);
 	void onTimerSave();
 	void sendMsgToClient(Json::Value& jsMsg, uint16_t nMsgType, uint32_t nSessionID);

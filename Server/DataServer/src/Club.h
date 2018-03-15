@@ -21,6 +21,7 @@ public:
 		uint32_t nIntegration; //积分 用于联盟带入
 		uint8_t nCreateRoomType;
 		uint8_t nSearchLimit;
+		uint8_t nCreateFlag = 0;
 
 		std::vector<uint32_t> vJoinedLeague;
 		std::vector<uint32_t> vCreatedLeague;
@@ -136,7 +137,10 @@ public:
 	void setIntegration(uint32_t nIntegration);
 	void setCreateRoomType(uint8_t nCreateRoomType);
 	void setSearchLimit(uint8_t nSearchLimit);
+	void setCreateFlag(uint8_t nCreateFlag);
 	void setDescription(const char* cDescription);
+
+	void signUsefulDataDirty() { m_bUseFulDataDirty = true; };
 
 	void addFoundation(int32_t nAmount);
 	void addIntegration(int32_t nIntegration);
@@ -150,9 +154,11 @@ public:
 	uint8_t getState();
 	uint8_t getCreateRoomType();
 	uint32_t getIntegration();
+	uint32_t getCreateFlag();
 	void insertIntoDB();
 
 	bool dismissClub();
+	void readLeagueIntegration(Json::Value jsInfo, std::vector<uint32_t> vLeagues, uint32_t nReqSerial, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nIdx = 0);
 
 protected:
 	stClubBaseData m_stBaseData;
@@ -162,6 +168,6 @@ protected:
 	bool m_bBaseDataDirty; //name, headIcon, description
 	bool m_bMoneyDataDirty; //foundation, integration
 	bool m_bLevelInfoDirty; //state, memberLimit
-	bool m_bUseFulDataDirty; //create type, search limit
+	bool m_bUseFulDataDirty; //create type, search limit, create flag
 	bool m_bLeagueDataDirty; //created league, joined league
 };

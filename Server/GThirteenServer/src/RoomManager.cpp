@@ -539,6 +539,14 @@ bool RoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort
 	return true;
 }
 
+void RoomManager::onExit() {
+	for (auto ref : m_vRooms) {
+		if (ref.second) {
+			ref.second->doDeleteRoom();
+		}
+	}
+}
+
 bool RoomManager::isGRoom(uint8_t nLevel) {
 	uint8_t nAmountLevel = nLevel >> 4;
 	return nAmountLevel > 0;

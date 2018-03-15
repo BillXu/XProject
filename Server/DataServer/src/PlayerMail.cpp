@@ -252,6 +252,18 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 			return false;
 		}
 	}
+	case eMail_Consume_Golden_Emoji:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			int32_t nCoinCnt = pMail->jsDetail["amount"].asInt();
+			getPlayer()->getBaseData()->modifyMoney(nCoinCnt);
+		}
+		else
+		{
+			return false;
+		}
+	}
 	break;
 	case eMail_Agent_AddEmojiCnt:
 	{

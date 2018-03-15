@@ -8,6 +8,7 @@
 #include "Club.h"
 #include <time.h>
 #include "ClubMemberData.h"
+#include "LeagueMemberData.h"
 CLeagueManager::CLeagueManager() {
 	m_vAllLeagues.clear();
 }
@@ -150,6 +151,146 @@ bool CLeagueManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& js
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_HttpCmd_GetStopInfo:
+	{
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		auto pLeague = getLeagueByLeagueID(nLeagueID);
+		if (pLeague) {
+			auto nClubID = jsReqContent["clubID"].asUInt();
+			auto leagueMember = pLeague->getLeagueMemberData();
+			if (leagueMember->isNotJoin(nClubID)) {
+				jsResult["ret"] = 2;
+			}
+			else {
+				auto nState = leagueMember->getStropState(nClubID);
+				if (uint8_t(-1) == nState) {
+					jsResult["ret"] = 3;
+				}
+				else {
+					jsResult["ret"] = 0;
+					jsResult["state"] = nState;
+				}
+			}
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_HttpCmd_StopClubInLeagueDragIn:
+	{
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		auto pLeague = getLeagueByLeagueID(nLeagueID);
+		if (pLeague) {
+			auto nClubID = jsReqContent["clubID"].asUInt();
+			auto leagueMember = pLeague->getLeagueMemberData();
+			if (leagueMember->isNotJoin(nClubID)) {
+				jsResult["ret"] = 2;
+			}
+			else {
+				uint8_t nState = jsReqContent["state"].asUInt();
+				if (leagueMember->setStopState(nClubID, nState)) {
+					jsResult["ret"] = 0;
+					jsResult["state"] = nState;
+				}
+				else {
+					jsResult["ret"] = 3;
+				}
+			}
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_HttpCmd_AddClubLeagueIntialIntegration:
+	{
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		auto pLeague = getLeagueByLeagueID(nLeagueID);
+		if (pLeague) {
+			auto nClubID = jsReqContent["clubID"].asUInt();
+			auto leagueMember = pLeague->getLeagueMemberData();
+			if (leagueMember->isNotJoin(nClubID)) {
+				jsResult["ret"] = 2;
+			}
+			else {
+				int32_t nAmount = jsReqContent["amount"].asInt();
+				if (leagueMember->addInitialIntegration(nClubID, nAmount)) {
+					jsResult["ret"] = 0;
+					jsResult["initialIntegration"] = leagueMember->getInitialIntegration(nClubID);
+				}
+				else {
+					jsResult["ret"] = 3;
+				}
+			}
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_HttpCmd_AddClubLeagueIntegration:
+	{
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		auto pLeague = getLeagueByLeagueID(nLeagueID);
+		if (pLeague) {
+			auto nClubID = jsReqContent["clubID"].asUInt();
+			auto leagueMember = pLeague->getLeagueMemberData();
+			if (leagueMember->isNotJoin(nClubID)) {
+				jsResult["ret"] = 2;
+			}
+			else {
+				int32_t nAmount = jsReqContent["amount"].asInt();
+				if (leagueMember->addIntegration(nClubID, nAmount)) {
+					jsResult["ret"] = 0;
+					jsResult["integration"] = leagueMember->getIntegration(nClubID);
+				}
+				else {
+					jsResult["ret"] = 3;
+				}
+			}
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_HttpCmd_GetLeagueClubInfo:
+	{
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		auto pLeague = getLeagueByLeagueID(nLeagueID);
+		if (pLeague) {
+			Json::Value jsInfo;
+			pLeague->getLeagueMemberData()->memberIDToJson(jsInfo);
+			jsResult["ret"] = 0;
+			jsResult["member"] = jsInfo;
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_HttpCmd_GetClubLeagueIntegration:
+	{
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		auto pLeague = getLeagueByLeagueID(nLeagueID);
+		if (pLeague) {
+			auto nClubID = jsReqContent["clubID"].asUInt();
+			auto leagueMember = pLeague->getLeagueMemberData();
+			if (leagueMember->isNotJoin(nClubID)) {
+				jsResult["ret"] = 2;
+			}
+			else {
+				jsResult["ret"] = 0;
+				jsResult["intialIntegration"] = leagueMember->getInitialIntegration(nClubID);
+				jsResult["integration"] = leagueMember->getIntegration(nClubID);
+			}
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
 		//case eAsync_Inform_Player_LeavedRoom:
 		//case eAsync_Request_EnterRoomInfo:
 		//case eAsync_Request_CreateRoomInfo:
@@ -201,7 +342,31 @@ CLeague* CLeagueManager::getLeagueByLeagueID(uint32_t nLeagueID) {
 }
 
 bool CLeagueManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID) {
-	return false;
+	switch (nRequestType)
+	{
+
+	default:
+	{
+		if (jsReqContent["leagueID"].isNull() == false)
+		{
+			auto nLeague = jsReqContent["leagueID"].asUInt();
+			auto pLeague = getLeagueByLeagueID(nLeague);
+			if (pLeague == nullptr)
+			{
+				return false;
+			}
+			else
+			{
+				return pLeague->onAsyncRequestDelayResp(nRequestType, nReqSerial, jsReqContent, nSenderPort, nSenderID);
+			}
+		}
+		else {
+			return false;
+		}
+	}
+
+	}
+	return true;
 }
 
 void CLeagueManager::update(float fDeta) {

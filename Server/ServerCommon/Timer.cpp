@@ -49,6 +49,17 @@ void CTimer::setInterval(float fNewInterval )
 	m_fInterval = fNewInterval ;
 }
 
+void CTimer::addInterval(float fAddInterval) {
+	m_fInterval += fAddInterval;
+}
+
+float CTimer::getInterval() {
+	if (m_fInterval == 0.0f) {
+		return m_fIntervalKeeper;
+	}
+	return m_fInterval;
+}
+
 void CTimer::start()
 {
 	if ( m_eState == eTimerState_Runing)

@@ -45,6 +45,7 @@ enum eLogDiamond
 	eLogDiamond_Shop_Owner,
 	eLogDiamond_Agent,
 	eLogDiamond_Room,
+	eLogCoin_Room,
 	eLogDiamond_Max,
 };
 
@@ -88,9 +89,19 @@ enum eAsyncReq
 	eAsync_HttpCmd_AddEmojiCnt, // { targetUID : 234, addCnt : 23 , agentID : 23 }, result : { ret : 0, addCnt : 23 } // ret : 0 success , 1 argument error , 2 player is not online .
 
 	eAsync_Comsume_Interact_Emoji, // { targetUID : 23 ,roomID : 23452, cnt : 1 } // result : { ret : 0 }  // 0 ok , 1 not enough, 2 player is not online ;
+	eAsync_Comsume_Golden_Emoji, //
 
-	eAsync_HttpCmd_GetPlayerClubInfo, // { targetUID : 123 } // result { created : {{id : 1, name : "123"}, {id : 2, name : "321"}, ...}, joined : {{id : 3, name : "123"}, {id : 4, name : "321"}, ...} }
-	eAsync_HttpCmd_GetClubInfo, // { clubID : 123 } // result { integration : 123, created : {{id : 1, name : "123"}, {id : 2, name : "321"}, ...}, joined : {{id : 3, name : "123"}, {id : 4, name : "321"}, ...} }
+	eAsync_HttpCmd_GetClubLeagueInfo, // { clubID : 123 } // result { ret : 0, created : {123, 132, 312, 321...}, joined : {123, 321, 213, ...} }
+	eAsync_HttpCmd_GetLeagueClubInfo, // { leagueID : 123 } // result { ret : 0, member : {123, 123, 123, ...} }
+	eAsync_HttpCmd_GetClubLeagueIntegration, // { leagueID : 123, clubID : 123 } // {ret : 0, integration : 100, initialIntegration : 100}
+	eAsync_HttpCmd_AddClubLeagueIntegration, // { leagueID : 123, clubID : 123, amount : 100 } // {ret : 0, integration : 100}
+	eAsync_HttpCmd_AddClubLeagueIntialIntegration, // { leagueID : 123, clubID : 123, amount : 100 } // {ret : 0, initialIntegration : 100}
+	eAsync_HttpCmd_StopClubInLeagueDragIn, // { leagueID : 123, clubID : 123, state : 0 } // { ret : 0, state : 1 }
+	eAsync_HttpCmd_GetStopInfo, // { leagueID : 123, clubID : 123 } // { ret : 0, state : 1 }
+	eAsync_HttpCmd_GetClubCreatFlag, // { clubID : 123 } // { ret : 0, state : 0 }
+	eAsync_HttpCmd_SetClubCreatFlag, // { clubID : 123, state : 1 } // { ret : 0, state : 0 }
+
+
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
 	//eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;
@@ -114,6 +125,8 @@ enum eAsyncReq
 	eAsync_player_do_Rot_Banker, //玩家抢庄
 	eAsync_player_League_Push_Event, //玩家收到联盟推送请求
 	eAsync_player_club_decline_DragIn, //玩家收到俱乐部拒绝带入消息
+	eAsync_thirteen_delay_check_Diamond, //十三水延时摆牌检测
+	eAsync_thirteen_reput_check_Diamond, //十三水重新摆牌检测
 	eAsync_Club_AddCoin, //俱乐部添加金币
 	eAsync_Club_AddFoundation, //俱乐部充值基金
 	eAsync_Club_Join, //申请通过加入俱乐部
@@ -144,6 +157,8 @@ enum eAsyncReq
 	eAsync_league_CreateRoom_Info, //俱乐部申请联盟创建房间信息
 	eAsync_league_or_club_DeleteRoom, //联盟或俱乐部删除房间信息
 	eAsync_league_apply_DragIn_Clubs, //请求带入联盟房间可选择俱乐部列表
+	eAsync_league_apply_Club_Integration, //俱乐部请求所在联盟积分
+	eAsync_league_clubRoom_Back_Integration, //联盟局回退俱乐部积分
 	eAsync_Max,
 };
 

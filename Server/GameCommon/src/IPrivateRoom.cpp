@@ -247,6 +247,15 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 		sendRoomInfo(nSessionID);
 		Json::Value jsMsg;
 		jsMsg["ret"] = 0;
+		if (getCoreRoom()->getPlayerBySessionID(nSessionID)) {
+			jsMsg["isIn"] = 1;
+		}
+		else if (getCoreRoom()->getStandPlayerBySessionID(nSessionID)) {
+			jsMsg["isIn"] = 1;
+		}
+		else {
+			jsMsg["isIn"] = 0;
+		}
 		sendMsgToPlayer(jsMsg, MSG_REQUEST_ROOM_INFO, nSessionID);
 	}
 	break;
@@ -261,7 +270,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			return true;
 		}
 		Json::Value js;
-		sendRoomMsg(js, MSG_ROOM_DO_OPEN);
+		m_pRoom->sendRoomMsg(js, MSG_ROOM_DO_OPEN);
 		LOGFMTI(" room id = %u do set open",getRoomID() );
 	}
 	break;
@@ -292,7 +301,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 
 		//prealMsg["ret"] = 0;
 		prealMsg["playerIdx"] = pp->getIdx();
-		sendRoomMsg(prealMsg, MSG_ROOM_CHAT_MSG);
+		m_pRoom->sendRoomMsg(prealMsg, MSG_ROOM_CHAT_MSG);
 	}
 	break;
 	case MSG_APPLY_DISMISS_VIP_ROOM:

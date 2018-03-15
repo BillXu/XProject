@@ -25,6 +25,8 @@ public:
 	void setIsAutoRepeat( bool isAutoRepeat );
 	void setCallBack( time_func lpfCallBackFunc );
 	void setInterval(float fNewInterval );
+	void addInterval(float fAddInterval);
+	float getInterval();
 	void start();
 	bool isRunning();
 	void clearTime();

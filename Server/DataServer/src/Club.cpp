@@ -98,6 +98,7 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 		jsMsg["members"] = jsMembers;
 		jsMsg["createType"] = m_stBaseData.nCreateRoomType;
 		jsMsg["searchLimit"] = m_stBaseData.nSearchLimit;
+		jsMsg["createFlag"] = m_stBaseData.nCreateFlag;
 		jsMsg["foundation"] = m_stBaseData.nFoundation;
 		jsMsg["ret"] = 0;
 		sendMsgToClient(jsMsg, nmsgType, nSenderID);
@@ -425,7 +426,7 @@ void CClub::onTimerSave() {
 		m_bUseFulDataDirty = false;
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, "update club set createRoomType = %u, searchLimit = %u where clubID = %u;", m_stBaseData.nCreateRoomType, m_stBaseData.nSearchLimit, m_stBaseData.nClubID);
+		sprintf_s(pBuffer, "update club set createRoomType = %u, searchLimit = %u, createFlag = %u where clubID = %u;", m_stBaseData.nCreateRoomType, m_stBaseData.nSearchLimit, m_stBaseData.nCreateFlag, m_stBaseData.nClubID);
 		std::string str = pBuffer;
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = m_pClubManager->getSvrApp()->getAsynReqQueue();
@@ -508,6 +509,10 @@ void CClub::setSearchLimit(uint8_t nSearchLimit) {
 	m_stBaseData.nSearchLimit = nSearchLimit;
 }
 
+void CClub::setCreateFlag(uint8_t nCreateFlag) {
+	m_stBaseData.nCreateFlag = nCreateFlag;
+}
+
 void CClub::setDescription(const char* cDescription) {
 	sprintf_s(m_stBaseData.cDescription, "%s", cDescription);
 }
@@ -569,6 +574,10 @@ uint32_t CClub::getIntegration() {
 	return m_stBaseData.nIntegration;
 }
 
+uint32_t CClub::getCreateFlag() {
+	return m_stBaseData.nCreateFlag;
+}
+
 void CClub::insertIntoDB() {
 	Json::Value jssql;
 	char pBuffer[1024] = { 0 };
@@ -583,4 +592,58 @@ bool CClub::dismissClub() {
 	m_stBaseData.nState = eClubState_Delete;
 	m_bLevelInfoDirty = true;
 	return true;
+}
+
+void CClub::readLeagueIntegration(Json::Value jsInfo, std::vector<uint32_t> vLeagues, uint32_t nReqSerial, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nIdx) {
+	//LOGFMTE("Enter request club roomInfo from league, leaguesize = %u", vLeagues.size());
+	if (nIdx < vLeagues.size()) {
+		Json::Value jsReq;
+		auto nLeagueID = vLeagues[nIdx];
+		//LOGFMTE("Enter request club roomInfo from league, leagueID = %u", nLeagueID);
+		jsReq["leagueID"] = nLeagueID;
+		jsReq["clubID"] = getClubID();
+		jsReq["info"] = jsInfo;
+		getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nLeagueID, eAsync_league_apply_Club_Integration, jsReq, [this, nIdx, vLeagues, jsInfo, nReqSerial, nSenderPort, nSenderID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+			if (isTimeOut) {
+				Json::Value jsRet;
+				jsRet["ret"] = 1;
+				jsRet["clubID"] = getClubID();
+				jsRet["info"] = jsInfo;
+				getClubMgr()->getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getClubID());
+			}
+			else {
+				uint8_t nRet = retContent["ret"].asUInt();
+				//LOGFMTE("Enter request club roomInfo get response form league, leagueID = %u, ret = %u", vLeagues[nIdx], nRet);
+				Json::Value jsInfo_1;
+				if (nRet) {
+					jsInfo_1 = jsInfo;
+				}
+				else {
+					jsInfo_1 = retContent["info"];
+				}
+				uint32_t nCurIdx = nIdx + 1;
+				if (nCurIdx < vLeagues.size()) {
+					//LOGFMTE("Enter request club roomInfo continue read league info from, leagueID = %u", vLeagues[nCurIdx]);
+					readLeagueIntegration(jsInfo_1, vLeagues, nReqSerial, nSenderPort, nSenderID, nCurIdx);
+				}
+				else {
+					//LOGFMTE("Enter request club roomInfo end");
+					Json::Value jsRet;
+					jsRet["ret"] = 0;
+					jsRet["clubID"] = getClubID();
+					jsRet["info"] = jsInfo_1;
+					getClubMgr()->getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getClubID());
+				}
+			}
+
+		});
+	}
+	else if (vLeagues.size() == 0) {
+		//LOGFMTE("Enter request club roomInfo end with empty");
+		Json::Value jsRet;
+		jsRet["ret"] = 0;
+		jsRet["clubID"] = getClubID();
+		jsRet["info"] = jsInfo;
+		getClubMgr()->getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getClubID());
+	}
 }

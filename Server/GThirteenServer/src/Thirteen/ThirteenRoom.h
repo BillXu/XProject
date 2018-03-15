@@ -21,10 +21,12 @@ public:
 	bool isRoomGameOver()override;
 	bool canStartGame()override;
 	IPoker* getPoker()override;
+	bool canPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
 	bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
 	bool doPlayerLeaveRoom(uint32_t nUserUID)override;
 	void update(float fDelta)override;
 	std::shared_ptr<IGameRoomRecorder> getRoomRecorder()override;
+	bool doDeleteRoom()override;
 	bool clearRoom();
 	bool doAllPlayerStandUp();
 

@@ -14,6 +14,7 @@ public:
 		m_pRoom = pmjRoom;
 		setStateDuringTime(999999);
 	}
+	virtual bool isWaiting() { return false; }
 	virtual uint32_t getStateID() = 0;
 	virtual bool onMsg( Json::Value& jsmsg,uint16_t nMsgType,eMsgPort eSenderPort, uint32_t nSessionID ){ return false; }
 	virtual void onStateTimeUp(){}

@@ -87,6 +87,11 @@ bool CClubGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsR
 	}
 
 	if (eAsync_Club_CreateRoom_Check == nRequestType) {
+		if (getClub()->getCreateFlag() == 0) {
+			//LOGFMTE("User apply create room for club error, level is error, levelRequire = %u, uid = %u, clubID = %u", nLevelRequire, nUserID, getClub()->getClubID());
+			jsResult["ret"] = 2;
+			return true;
+		}
 		auto nLeagueID = jsReqContent["leagueID"].asUInt();
 		auto nUserID = jsReqContent["uid"].asUInt();
 		auto nLevelRequire = getCreateRoomLevelRequire(getClub()->getCreateRoomType());

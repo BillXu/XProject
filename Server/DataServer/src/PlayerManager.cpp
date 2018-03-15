@@ -12,6 +12,7 @@
 #include <ctime>
 #include "MailModule.h"
 #include "PlayerGameData.h"
+#define Emoji_Golden_Consume 50
 void CPlayerBrifDataCacher::stPlayerDataPrifle::recivedData(Json::Value& jsData, IServerApp* pApp )
 {
 	if ( isContentData() )
@@ -399,11 +400,30 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_thirteen_delay_check_Diamond:
+	case eAsync_thirteen_reput_check_Diamond:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer && pPlayer->isPlayerReady()) {
+			uint32_t nDiamond = jsReqContent["diamond"].asUInt();
+			if (pPlayer->getBaseData()->getDiamoned() < nDiamond) {
+				jsResult["ret"] = 1;
+			}
+			else {
+				jsResult["ret"] = 0;
+			}
+		}
+		else {
+			jsResult["ret"] = 2;
+		}
+	}
+	break;
 	case eAsync_club_Treat_Event_Message:
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUserUID);
-		if (pPlayer) {
+		if (pPlayer && pPlayer->isPlayerReady()) {
 			Json::Value jsMsg;
 			jsMsg["ret"] = jsReqContent["ret"];
 			jsMsg["eventID"] = jsReqContent["eventID"];
@@ -439,7 +459,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUserUID);
-		if (pPlayer) {
+		if (pPlayer && pPlayer->isPlayerReady()) {
 			uint32_t nAmount = jsReqContent["baseScore"].asUInt() * 5;
 			if (pPlayer->getBaseData()->getCoin() < nAmount) {
 				jsResult["ret"] = 1;
@@ -469,7 +489,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUserUID);
-		if (pPlayer) {
+		if (pPlayer && pPlayer->isPlayerReady()) {
 			uint32_t nAmount = jsReqContent["baseScore"].asUInt() * 100;
 			if (pPlayer->getBaseData()->getCoin() < nAmount) {
 				jsResult["ret"] = 1;
@@ -499,7 +519,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUserUID);
-		if (pPlayer) {
+		if (pPlayer && pPlayer->isPlayerReady()) {
 			Json::Value jsMsg;
 			jsMsg["type"] = jsReqContent["type"];
 			jsMsg["clubID"] = jsReqContent["clubID"];
@@ -512,7 +532,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUserUID);
-		if (pPlayer) {
+		if (pPlayer && pPlayer->isPlayerReady()) {
 			Json::Value jsMsg;
 			jsMsg["type"] = jsReqContent["type"];
 			jsMsg["clubID"] = jsReqContent["clubID"];
@@ -524,7 +544,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUserUID);
-		if (pPlayer) {
+		if (pPlayer && pPlayer->isPlayerReady()) {
 			bool isWin = jsReqContent["win"].asUInt();
 			pPlayer->getBaseData()->addGameWin(isWin);
 		}
@@ -713,6 +733,33 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 
 		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
 		pMailModule->postMail(nUserUID, eMail_GiveBack_Diamond, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
+	case eAsync_Comsume_Golden_Emoji:
+	{
+		auto nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (!pPlayer || pPlayer->isPlayerReady() == false)
+		{
+			LOGFMTE(" can not find player uid = %u , to process async req = %u, let is time out", nUID, nRequestType);
+			jsResult["ret"] = 2;
+			break;
+		}
+		auto nComsumCnt = Emoji_Golden_Consume;
+		if (nComsumCnt > pPlayer->getBaseData()->getCoin())
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+		jsResult["ret"] = 0;
+
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["roomID"] = jsReqContent["roomID"];
+		jsMailArg["amount"] = -1 * (int32_t)Emoji_Golden_Consume;
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Consume_Golden_Emoji, jsMailArg, eMailState_WaitSysAct);
 	}
 	break;
 	case eAsync_Comsume_Interact_Emoji:

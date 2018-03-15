@@ -195,7 +195,10 @@ bool CClubMemberData::addMember(uint32_t nMemberUID, uint8_t nLevel) {
 		stmbd.nJoinTime = time(NULL);
 		stmbd.nQuitTime = 0;
 
-		m_vMemberAddIDs.push_back(nMemberUID);
+		if (std::find(m_vMemberAddIDs.begin(), m_vMemberAddIDs.end(), nMemberUID) == m_vMemberAddIDs.end()) {
+			m_vMemberAddIDs.push_back(nMemberUID);
+		}
+		
 		m_mMembers[nMemberUID] = stmbd;
 	}
 	else {

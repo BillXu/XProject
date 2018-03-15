@@ -53,6 +53,7 @@ public:
 	GameRoom* getCoreRoom();
 	uint16_t getPlayerCnt()override;
 	bool isRoomGameOver()override { return false; }
+	void onDismiss()override {}
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();

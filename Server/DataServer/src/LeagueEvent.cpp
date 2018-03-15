@@ -530,6 +530,84 @@ bool CLeagueEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSe
 }
 
 bool CLeagueEvent::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult) {
+	/*if (eAsync_club_agree_DragIn == nRequestType) {
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		if (getLeague()->getLeagueMemberData()->isNotJoin(nClubID)) {
+			jsResult["ret"] = 1;
+			return true;
+		}
+		auto nAmount = jsReqContent["amount"].asUInt();
+		if (getLeague()->getLeagueMemberData()->checkDecreaseIntegration(nClubID, nAmount) == false) {
+			jsResult["ret"] = 11;
+			return true;
+		}
+
+		return true;
+	}*/
+
+	return false;
+}
+
+bool CLeagueEvent::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID) {
+	if (eAsync_club_agree_DragIn == nRequestType) {
+		auto pApp = getLeague()->getLeagueMgr()->getSvrApp();
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		/*if (getLeague()->getLeagueMemberData()->isNotJoin(nClubID)) {
+			Json::Value jsRet;
+			jsRet["ret"] = 11;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getLeague()->getLeagueID());
+			return true;
+		}*/
+		auto nAmount = jsReqContent["amount"].asUInt();
+		if (getLeague()->getLeagueMemberData()->checkDecreaseIntegration(nClubID, nAmount) == false) {
+			Json::Value jsRet;
+			jsRet["ret"] = 11;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getLeague()->getLeagueID());
+			return true;
+		}
+		auto nPort = jsReqContent["port"].asUInt();
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		auto nUID = jsReqContent["uid"].asUInt();
+		Json::Value jsMsg;
+		jsMsg["amount"] = nAmount;
+		jsMsg["roomID"] = nRoomID;
+		jsMsg["uid"] = nUID;
+		jsMsg["clubID"] = nClubID;
+		pApp->getAsynReqQueue()->pushAsyncRequest(nPort, nRoomID, eAsync_club_agree_DragIn, jsMsg, [this, nRoomID, nClubID, nSenderID, nSenderPort, nReqSerial, nAmount, pApp](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+			Json::Value jsRet;
+			if (isTimeOut) {
+				getLeague()->getLeagueMemberData()->clearTempIntegration(nClubID, nAmount);
+				jsRet["ret"] = 7;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getLeague()->getLeagueID());
+				return;
+			}
+
+			if (retContent["ret"].asUInt()) {
+				getLeague()->getLeagueMemberData()->clearTempIntegration(nClubID, nAmount);
+				jsRet["ret"] = 13;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getLeague()->getLeagueID());
+				return;
+			}
+
+			getLeague()->getLeagueMemberData()->decreaseIntegration(nClubID, nAmount);
+			jsRet["ret"] = 0;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getLeague()->getLeagueID());
+
+			stEventData sted;
+			sted.nEventID = getLeague()->getLeagueMgr()->generateEventID();
+			sted.nDisposerUID = 0;
+			sted.nState = eClubEventState_Accede;
+			sted.nPostTime = time(NULL);
+			sted.nEventType = eLeagueEventType_ClubEntry;
+			sted.nLevel = getEventLevel(eLeagueEventType_ClubEntry);
+			sted.jsDetail = jsUserData;
+			m_mAllEvents[sted.nEventID] = sted;
+			m_vAddIDs.push_back(sted.nEventID);
+		}, jsMsg);
+
+		return true;
+	}
+	
 	return false;
 }
 

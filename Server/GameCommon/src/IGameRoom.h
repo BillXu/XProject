@@ -32,5 +32,6 @@ public:
 	virtual uint16_t getPlayerCnt() = 0;
 	virtual uint32_t isClubRoom() = 0;
 	virtual bool isRoomGameOver() = 0;
+	virtual void onDismiss() = 0;
 
 };

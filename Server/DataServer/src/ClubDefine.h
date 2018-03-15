@@ -59,6 +59,7 @@ enum eLeagueEventType
 	eLeagueEventType_FireClub, //踢出俱乐部
 	eLeagueEventType_DismissLeague, //联盟解散
 	eLeagueEventType_ClubQuit, //俱乐部退出
+	eLeagueEventType_ClubEntry, //俱乐部带入积分变化
 };
 
 enum eClubMemberLevel

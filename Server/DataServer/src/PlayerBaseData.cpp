@@ -250,13 +250,14 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 		jsReq["amount"] = nAmount;
 		jsReq["roomID"] = jsReqContent["roomID"];
 		jsReq["port"] = nSenderPort;
+		jsReq["leagueID"] = jsReqContent["leagueID"];
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_apply_DragIn, jsReq, [pApp, nReqSerial, nSenderPort, nSenderID, this, nReal](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			Json::Value jsRet;
 			if (isTimeOut)
 			{
 				LOGFMTE(" request of club apply drag in time out uid = %u , can not drag in ", getPlayer()->getUserUID());
-				jsRet["ret"] = 7;
+				jsRet["ret"] = 8;
 				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getPlayer()->getUserUID());
 				return;
 			}
@@ -266,7 +267,7 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 			do {
 				if (0 != nReqRet)
 				{
-					nRet = 4;
+					nRet = 8;
 					break;
 				}
 			} while (0);

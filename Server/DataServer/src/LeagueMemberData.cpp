@@ -73,6 +73,42 @@ bool CLeagueMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPor
 }
 
 bool CLeagueMemberData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult) {
+	if (eAsync_league_clubRoom_Back_Integration == nRequestType) {
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		if (isNotJoin(nClubID)) {
+			return true;
+		}
+		auto nAmount = jsReqContent["chip"].asUInt();
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		auto nUID = jsReqContent["uid"].asUInt();
+		addIntegration(nClubID, nAmount);
+		LOGFMTI("player id = %u, back integration from room id = %u to league id = %u by club id = %u of amount = %u", nUID, nRoomID, getLeague()->getLeagueID(), nClubID, nAmount);
+		return true;
+	}
+
+	if (eAsync_league_apply_Club_Integration == nRequestType) {
+		if (jsReqContent["clubID"].isNull() || jsReqContent["clubID"].isUInt() == false) {
+			jsResult["ret"] = 1;
+			return true;
+		}
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		if (isNotJoin(nClubID)) {
+			jsResult["ret"] = 2;
+			return true;
+		}
+
+		jsResult["ret"] = 0;
+		auto& st = m_mMembers[nClubID];
+		Json::Value jsDetail, jsInfo;
+		jsDetail["leagueID"] = getLeague()->getLeagueID();
+		jsDetail["integration"] = st.nIntegration - st.nTempIntegration;
+		jsDetail["initialIntegration"] = st.nInitialIntegration;
+		jsInfo = jsReqContent["info"];
+		jsInfo[jsInfo.size()] = jsDetail;
+		jsResult["info"] = jsInfo;
+		return true;
+	}
+
 	if (eAsync_league_apply_DragIn_Clubs == nRequestType) {
 		if (jsReqContent["clubIDs"].isNull() || jsReqContent["clubIDs"].isArray() == false) {
 			jsResult["ret"] = 1;
@@ -143,7 +179,10 @@ bool CLeagueMemberData::addMember(uint32_t nMemberCID, uint8_t nLevel) {
 		stmbd.nJoinTime = time(NULL);
 		stmbd.nQuitTime = 0;
 
-		m_vMemberAddCIDs.push_back(nMemberCID);
+		if (std::find(m_vMemberAddCIDs.begin(), m_vMemberAddCIDs.end(), nMemberCID) == m_vMemberAddCIDs.end()) {
+			m_vMemberAddCIDs.push_back(nMemberCID);
+		}
+		
 		m_mMembers[nMemberCID] = stmbd;
 	}
 	else {
@@ -152,7 +191,9 @@ bool CLeagueMemberData::addMember(uint32_t nMemberCID, uint8_t nLevel) {
 		it->second.nLevel = nLevel;
 		it->second.nQuitTime = 0;
 
-		m_vMemberDertyCIDs.push_back(nMemberCID);
+		if (isNotDirty(nMemberCID)) {
+			m_vMemberDertyCIDs.push_back(nMemberCID);
+		}
 	}
 
 	return true;
@@ -184,6 +225,16 @@ void CLeagueMemberData::memberDataToJson(Json::Value& jsData) {
 	}
 }
 
+void CLeagueMemberData::memberIDToJson(Json::Value& jsData) {
+	for (auto& ref : m_mMembers) {
+		if (ref.second.nState != eClubState_Delete) {
+			Json::Value jsMember;
+			jsMember["id"] = ref.first;
+			jsData[jsData.size()] = jsMember;
+		}
+	}
+}
+
 bool CLeagueMemberData::checkUpdateLevel(uint32_t nMemberCID, uint8_t nLevelRequired) {
 	return getMemberLevel(nMemberCID) >= nLevelRequired;
 }
@@ -206,13 +257,152 @@ bool CLeagueMemberData::grantIntegration(uint32_t nGrantCID, uint32_t nMemberCID
 	return true;
 }
 
+bool CLeagueMemberData::addIntegration(uint32_t nGrantCID, int32_t nAmount) {
+	if (isNotJoin(nGrantCID)) {
+		return false;
+	}
+
+	auto& it = m_mMembers[nGrantCID];
+
+	if (it.nTempIntegration && nAmount < 0) {
+		int32_t nTemp = it.nIntegration + nAmount - (int32_t)it.nTempIntegration;
+		if (nTemp < 0) {
+			return false;
+		}
+	}
+
+	it.nIntegration += nAmount;
+	if (isNotDirty(nGrantCID)) {
+		m_vMemberDertyCIDs.push_back(nGrantCID);
+	}
+	return true;
+}
+
+bool CLeagueMemberData::setStopState(uint32_t nMemberCID, uint8_t& nState) {
+	if (isNotJoin(nMemberCID)) {
+		return false;
+	}
+
+	nState = nState == 0 ? 0 : 1;
+
+	auto& it = m_mMembers[nMemberCID];
+	if (it.nStop != nState) {
+		it.nStop = nState;
+		if (isNotDirty(nMemberCID)) {
+			m_vMemberDertyCIDs.push_back(nMemberCID);
+		}
+	}
+	return true;
+}
+
+uint8_t CLeagueMemberData::getStropState(uint32_t nMemberCID) {
+	if (isNotJoin(nMemberCID)) {
+		return -1;
+	}
+
+	auto& it = m_mMembers[nMemberCID];
+	return it.nStop;
+}
+
+bool CLeagueMemberData::addInitialIntegration(uint32_t nGrantCID, int32_t nAmount) {
+	if (isNotJoin(nGrantCID)) {
+		return false;
+	}
+
+	auto& it = m_mMembers[nGrantCID];
+	it.nInitialIntegration += nAmount;
+	if (isNotDirty(nGrantCID)) {
+		m_vMemberDertyCIDs.push_back(nGrantCID);
+	}
+	return true;
+}
+
+int32_t CLeagueMemberData::getIntegration(uint32_t nMemberCID) {
+	if (isNotJoin(nMemberCID)) {
+		return 0;
+	}
+
+	auto& it = m_mMembers[nMemberCID];
+	return it.nIntegration - it.nTempIntegration;
+}
+
+int32_t CLeagueMemberData::getInitialIntegration(uint32_t nMemberCID) {
+	if (isNotJoin(nMemberCID)) {
+		return 0;
+	}
+
+	return m_mMembers[nMemberCID].nInitialIntegration;
+}
+
+bool CLeagueMemberData::checkDecreaseIntegration(uint32_t nMemberCID, uint32_t nAmount) {
+	if (isNotJoin(nMemberCID)) {
+		return false;
+	}
+
+	auto& it = m_mMembers[nMemberCID];
+	
+	if (it.nStop) {
+		return false;
+	}
+
+	if (it.nIntegration < it.nTempIntegration + nAmount) {
+		return false;
+	}
+	else {
+		it.nTempIntegration += nAmount;
+		return true;
+	}
+	//return it.nIntegration >= nAmount;
+}
+
+bool CLeagueMemberData::decreaseIntegration(uint32_t nMemberCID, uint32_t nAmount) {
+	if (isNotJoin(nMemberCID)) {
+		return false;
+	}
+
+	auto& it = m_mMembers[nMemberCID];
+	if (it.nIntegration < nAmount) {
+		return false;
+	}
+
+	it.nIntegration -= nAmount;
+	if (it.nTempIntegration < nAmount) {
+		it.nTempIntegration = 0;
+	}
+	else {
+		it.nTempIntegration -= nAmount;
+	}
+	
+	if (isNotDirty(nMemberCID)) {
+		m_vMemberDertyCIDs.push_back(nMemberCID);
+	}
+	return true;
+}
+
+bool CLeagueMemberData::clearTempIntegration(uint32_t nMemberCID, uint32_t nAmount) {
+	if (isNotJoin(nMemberCID)) {
+		return false;
+	}
+
+	auto& it = m_mMembers[nMemberCID];
+	if (it.nTempIntegration < nAmount) {
+		it.nTempIntegration = 0;
+	}
+	else {
+		it.nTempIntegration -= nAmount;
+	}
+	return true;
+}
+
 bool CLeagueMemberData::fireClub(uint32_t nMemberCID, uint32_t nFireCID) {
 	auto nFirelevel = getMemberLevel(nFireCID);
 	auto nMemberLevel = getMemberLevel(nMemberCID);
 	if (nMemberLevel > nFirelevel && nMemberCID != nFireCID) {
 		m_mMembers[nFireCID].nState = eClubState_Delete;
 		m_mMembers[nFireCID].nQuitTime = time(NULL);
-		m_vMemberDertyCIDs.push_back(nFireCID);
+		if (isNotDirty(nFireCID)) {
+			m_vMemberDertyCIDs.push_back(nFireCID);
+		}
 		return true;
 	}
 	return false;
@@ -225,7 +415,9 @@ bool CLeagueMemberData::onClubQuit(uint32_t nMemberCID) {
 	}
 	it->second.nState = eClubState_Delete;
 	it->second.nQuitTime = time(NULL);
-	m_vMemberDertyCIDs.push_back(nMemberCID);
+	if (isNotDirty(nMemberCID)) {
+		m_vMemberDertyCIDs.push_back(nMemberCID);
+	}
 	return true;
 }
 
@@ -283,7 +475,7 @@ void CLeagueMemberData::timerSave() {
 		auto info = m_mMembers[nDirtyCID];
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, "update leaguemember set state = %u, level = %u, quitDataTime = from_unixtime( %u ) where leagueID = %u and clubID = %u;", info.nState, info.nLevel, info.nQuitTime, getLeague()->getLeagueID(), nDirtyCID);
+		sprintf_s(pBuffer, "update leaguemember set state = %u, level = %u, quitDataTime = from_unixtime( %u ), integration = %d, initialIntegration = %d, stop = %u where leagueID = %u and clubID = %u;", info.nState, info.nLevel, info.nQuitTime, info.nIntegration, info.nInitialIntegration, info.nStop, getLeague()->getLeagueID(), nDirtyCID);
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = m_pLeague->getLeagueMgr()->getSvrApp()->getAsynReqQueue();
 		pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getLeague()->getLeagueID(), eAsync_DB_Update, jssql);
@@ -294,7 +486,7 @@ void CLeagueMemberData::timerSave() {
 void CLeagueMemberData::readMemberFormDB(uint32_t nOffset) {
 	m_bReadingDB = true;
 	std::ostringstream ss;
-	ss << "SELECT clubID, state, level, unix_timestamp(joinDataTime) as joinDataTime, unix_timestamp(quitDataTime) as quitDataTime FROM leaguemember where leagueID = " << getLeague()->getLeagueID() << " order by clubID desc limit 10 offset " << (UINT)nOffset << ";";
+	ss << "SELECT clubID, state, level, unix_timestamp(joinDataTime) as joinDataTime, unix_timestamp(quitDataTime) as quitDataTime, integration, initialIntegration, stop FROM leaguemember where leagueID = " << getLeague()->getLeagueID() << " order by clubID desc limit 10 offset " << (UINT)nOffset << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	getLeague()->getLeagueMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
@@ -331,6 +523,9 @@ void CLeagueMemberData::readMemberFormDB(uint32_t nOffset) {
 			stMemberInfo.nLevel = jsRow["level"].asUInt();
 			stMemberInfo.nJoinTime = jsRow["joinDataTime"].asUInt();
 			stMemberInfo.nQuitTime = jsRow["quitDataTime"].asUInt();
+			stMemberInfo.nIntegration = jsRow["integration"].asInt();
+			stMemberInfo.nInitialIntegration = jsRow["initialIntegration"].asInt();
+			stMemberInfo.nStop = jsRow["stop"].asUInt();
 
 			m_mMembers[nMemberCID] = stMemberInfo;
 		}
@@ -354,4 +549,8 @@ void CLeagueMemberData::doProcessAfterReadDB() {
 bool CLeagueMemberData::findCreator() {
 	auto it = m_mMembers.find(getLeague()->getCreatorCID());
 	return it != m_mMembers.end() && it->second.nState != eClubState_Delete;
+}
+
+bool CLeagueMemberData::isNotDirty(uint32_t nMemberCID) {
+	return std::find(m_vMemberDertyCIDs.begin(), m_vMemberDertyCIDs.end(), nMemberCID) == m_vMemberDertyCIDs.end();
 }

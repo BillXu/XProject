@@ -530,11 +530,19 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 			tInfo.nSessionID = nSessionID;
 			tInfo.nDiamond = retContent["diamond"].asUInt();
 			tInfo.nChip = retContent["coin"].asInt();
-			doPlayerSitDown(&tInfo, nIdx);
+			
+			if (canPlayerSitDown(&tInfo, nIdx)) {
+				doPlayerSitDown(&tInfo, nIdx);
 
-			Json::Value jsRet;
-			jsRet["ret"] = 0;
-			sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+				Json::Value jsRet;
+				jsRet["ret"] = 0;
+				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+			}
+			else {
+				Json::Value jsRet;
+				jsRet["ret"] = 6;
+				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+			}
 		}, pStand->nUserUID);
 	}
 	break;
@@ -610,7 +618,13 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 		jsReq["roomID"] = getRoomID();
 		auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
 		prealMsg["invokerIdx"] = pPlayer->getIdx();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Comsume_Interact_Emoji, jsReq, [nSessionID, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+
+		auto consumeID = eAsync_Comsume_Interact_Emoji;
+		if (getRoomType() == eGame_Thirteen) {
+			consumeID = eAsync_Comsume_Golden_Emoji;
+		}
+
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), consumeID, jsReq, [nSessionID, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			if (isTimeOut)
 			{

@@ -589,7 +589,7 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	// svr : {idx : 1, clubIDs : [123,123,123], min : 100, max : 200}
 
 	MSG_ROOM_THIRTEEN_REAL_TIME_RECORD, //十三水实时战绩
-	// svr : {idx : 0, detail : [{uid : 123, chip : 123, drag : 123}, ...]}
+	// svr : {idx : 0, detail : [{uid : 123, chip : 123, drag : 123, round : 123}, ...]}
 	// 10 tips per page
 
 	MSG_ROOM_THIRTEEN_STAND_PLAYERS, //十三水围观玩家信息
@@ -634,6 +634,17 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 
 	MSG_ROOM_THIRTEEN_CANCEL_DRAGIN, //十三水取消带入
 	// client : {}
+
+	MSG_ROOM_THIRTEEN_DISMISS_ROOM, //十三水解散房间
+	// client : {uid : 123}
+	// svr : {ret : 0}
+	// 1, uid is null or is not correct  2, uid is not the owner
+
+	MSG_ROOM_THIRTEEN_DELAY_TIME, //十三水房间延时
+	// client : {uid : 123, time : 30}
+	// svr : {ret : 0}
+	// 1, game is over  2, uid is miss  4, time out
+	// time : is not 30 will be 60
 
 	MSG_ROOM_THIRTEEN_END = 2300, //13水命令号结束标记
 

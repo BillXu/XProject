@@ -12,6 +12,10 @@ public:
 		uint8_t nLevel;
 		uint32_t nJoinTime;
 		uint32_t nQuitTime;
+		int32_t nIntegration;
+		int32_t nInitialIntegration;
+		uint8_t nStop = 0;
+		uint32_t nTempIntegration = 0;
 	};
 	typedef std::map<uint32_t, stMemberBaseData> MAP_CID_MEMBERS;
 
@@ -27,9 +31,19 @@ public:
 	bool isNotJoin(uint32_t uMemberCID);
 	uint16_t getMemberCnt();
 	void memberDataToJson(Json::Value& jsData);
+	void memberIDToJson(Json::Value& jsData);
 	bool checkUpdateLevel(uint32_t nMemberCID, uint8_t nLevelRequired);
 	uint8_t getMemberLevel(uint32_t nMemberCID);
 	bool grantIntegration(uint32_t nGrantCID, uint32_t nMemberCID, uint32_t nAmount);
+	bool addIntegration(uint32_t nGrantCID, int32_t nAmount);
+	bool addInitialIntegration(uint32_t nGrantCID, int32_t nAmount);
+	bool setStopState(uint32_t nMemberCID, uint8_t& nState);
+	uint8_t getStropState(uint32_t nMemberCID);
+	int32_t getIntegration(uint32_t nMemberCID);
+	int32_t getInitialIntegration(uint32_t nMemberCID);
+	bool checkDecreaseIntegration(uint32_t nMemberCID, uint32_t nAmount);
+	bool decreaseIntegration(uint32_t nMemberCID, uint32_t nAmount);
+	bool clearTempIntegration(uint32_t nMemberCID, uint32_t nAmount);
 	bool fireClub(uint32_t nMemberCID, uint32_t nFireCID);
 	bool onClubQuit(uint32_t nMemberCID);
 	void pushAsyncRequestToAll(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData);
@@ -39,6 +53,7 @@ protected:
 	void readMemberFormDB(uint32_t nOffset = 0);
 	void doProcessAfterReadDB();
 	bool findCreator();
+	bool isNotDirty(uint32_t nMemberCID);
 
 protected:
 	bool m_bReadingDB;

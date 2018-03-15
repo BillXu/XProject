@@ -14,6 +14,7 @@ public:
 		uint8_t nLevel;
 		uint8_t nState;
 		uint32_t nDisposerUID;
+		bool bWaiting = false;
 		Json::Value jsDetail;
 	};
 	typedef std::map<uint32_t, stEventData, std::greater<uint32_t>> MAP_ID_EVENTS;

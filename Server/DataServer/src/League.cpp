@@ -163,6 +163,21 @@ bool CLeague::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqCont
 	return false;
 }
 
+bool CLeague::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID) {
+	for (int i = eLeagueComponent_None; i < eLeagueComponent_Max; ++i)
+	{
+		ILeagueComponent* p = m_vAllComponents[i];
+		if (p)
+		{
+			if (p->onAsyncRequestDelayResp(nRequestType, nReqSerial, jsReqContent, nSenderPort, nSenderID))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 ILeagueComponent* CLeague::getComponent(eLeagueComponentType eType) {
 	if (eType < eLeagueComponent_Max) {
 		return m_vAllComponents[eType];

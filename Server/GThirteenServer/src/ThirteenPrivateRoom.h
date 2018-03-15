@@ -13,9 +13,14 @@ public:
 		int32_t nAllWrag = 0;
 		bool isSitdown = false;
 		bool isDragIn = false;
-		bool isJoin = false;
+		uint32_t isJoin = 0;
+		eNetState nState = eNet_Online;
+		uint8_t nOffLineGame = 0;
 
-		virtual void reset() {}
+		virtual void reset() {
+			nState = eNet_Offline;
+			nOffLineGame = 0;
+		}
 	};
 	typedef std::map<uint32_t, stStayPlayer*> MAP_UID_PLAYERS;
 public:
@@ -51,6 +56,8 @@ public:
 	void doRoomGameOver(bool isDismissed)override;
 	void onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin)override;
 	uint32_t isClubRoom()override;
+	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
+	void onDismiss()override;
 	//void setCurrentPointer(IGameRoom* pRoom)override;
 
 protected:

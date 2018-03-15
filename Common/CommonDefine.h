@@ -340,6 +340,8 @@ enum eMailType
 	eMail_Room_RotBanker,
 	eMail_Club_DeclineDragIn, // { uid : 12, roomID : 123, clubID : 123 }  uid : who declined
 
+	eMail_Consume_Golden_Emoji,
+
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;
 	eMail_DlgNotice, // content will be send by , stMsgDlgNotice 

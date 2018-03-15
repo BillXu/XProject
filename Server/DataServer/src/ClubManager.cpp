@@ -139,6 +139,59 @@ bool CClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsRe
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_HttpCmd_GetClubCreatFlag:
+	{
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		auto pClub = getClubByClubID(nClubID);
+		if (pClub) {
+			jsResult["ret"] = 0;
+			jsResult["state"] = pClub->getCreateFlag();
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_HttpCmd_SetClubCreatFlag:
+	{
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		auto pClub = getClubByClubID(nClubID);
+		if (pClub) {
+			auto nState = jsReqContent["state"].asUInt() == 0 ? 0 : 1;
+			pClub->setCreateFlag(nState);
+			pClub->signUsefulDataDirty();
+			jsResult["ret"] = 0;
+			jsResult["state"] = pClub->getCreateFlag();
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_HttpCmd_GetClubLeagueInfo:
+	{
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		auto pClub = getClubByClubID(nClubID);
+		if (pClub) {
+			std::vector<uint32_t> vLeagueIDs;
+			vLeagueIDs.assign(pClub->getBaseData()->vJoinedLeague.begin(), pClub->getBaseData()->vJoinedLeague.end());
+			vLeagueIDs.insert(vLeagueIDs.end(), pClub->getBaseData()->vCreatedLeague.begin(), pClub->getBaseData()->vCreatedLeague.end());
+			Json::Value jsCreated, jsJoined;
+			for (auto& ref : pClub->getBaseData()->vCreatedLeague) {
+				jsCreated[jsCreated.size()] = ref;
+			}
+			for (auto& ref : pClub->getBaseData()->vJoinedLeague) {
+				jsJoined[jsJoined.size()] = ref;
+			}
+			jsResult["ret"] = 0;
+			jsResult["created"] = jsCreated;
+			jsResult["joined"] = jsJoined;
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
 	//case eAsync_Inform_Player_LeavedRoom:
 	//case eAsync_Request_EnterRoomInfo:
 	//case eAsync_Request_CreateRoomInfo:
@@ -184,7 +237,24 @@ bool CClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsRe
 bool CClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID) {
 	switch (nRequestType)
 	{
-		
+	/*case eAsync_HttpCmd_GetClubLeagueInfo:
+	{
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		auto pClub = getClubByClubID(nClubID);
+		if (pClub) {
+			std::vector<uint32_t> vLeagueIDs;
+			vLeagueIDs.assign(pClub->getBaseData()->vJoinedLeague.begin(), pClub->getBaseData()->vJoinedLeague.end());
+			vLeagueIDs.insert(vLeagueIDs.end(), pClub->getBaseData()->vCreatedLeague.begin(), pClub->getBaseData()->vCreatedLeague.end());
+			Json::Value jsInfo;
+			pClub->readLeagueIntegration(jsInfo, vLeagueIDs, nReqSerial, nSenderPort, nSenderID);
+		}
+		else {
+			Json::Value jsRet;
+			jsRet["ret"] = 1;
+			getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, nClubID);
+		}
+	}
+	break;*/
 	default:
 	{
 		if (jsReqContent["clubID"].isNull() == false)
@@ -252,7 +322,7 @@ void CClubManager::readClubFormDB(uint32_t nOffset) {
 	//return;
 	m_bReadingDB = true;
 	std::ostringstream ss;
-	ss << "SELECT clubID, creator, name, headIcon, unix_timestamp(createTime) as createTime, region, state, memberLimit, foundation, integration, description, createRoomType, searchLimit, joinedLeague, createdLeague FROM xproject.club where state !=  " << eClubState_Delete << " order by clubID desc limit 10 offset " << nOffset << ";";
+	ss << "SELECT clubID, creator, name, headIcon, unix_timestamp(createTime) as createTime, region, state, memberLimit, foundation, integration, description, createRoomType, searchLimit, createFlag, joinedLeague, createdLeague FROM xproject.club where state !=  " << eClubState_Delete << " order by clubID desc limit 10 offset " << nOffset << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	//printf("%s", ss.str().c_str());
@@ -304,6 +374,7 @@ void CClubManager::readClubFormDB(uint32_t nOffset) {
 			pClub->setIntegration(jsRow["integration"].asUInt());
 			pClub->setCreateRoomType(jsRow["createRoomType"].asUInt());
 			pClub->setSearchLimit(jsRow["searchLimit"].asUInt());
+			pClub->setCreateFlag(jsRow["createFlag"].asUInt());
 			pClub->setDescription(jsRow["description"].asCString());
 
 			std::string sJoinedLeague = jsRow["joinedLeague"].asCString();

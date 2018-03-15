@@ -82,7 +82,7 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nTargetID, eAsync_DB_Add, jssql);	
 
 	// save diamond log
-	if (eMail_Owner_Pay == emailType || eMail_Agent_AddCard == emailType || eMail_Consume_Diamond == emailType || eMail_GiveBack_Diamond == emailType || ( (eMail_Wechat_Pay == emailType || eMail_AppleStore_Pay == emailType) && jsMailDetail["ret"].asUInt() == 0 ) )
+	if (eMail_Owner_Pay == emailType || eMail_Agent_AddCard == emailType || eMail_Consume_Diamond == emailType || eMail_GiveBack_Diamond == emailType || ( (eMail_Wechat_Pay == emailType || eMail_AppleStore_Pay == emailType || eMail_Consume_Golden_Emoji == emailType) && jsMailDetail["ret"].asUInt() == 0 ) )
 	{
 		int32_t nOffset = 0;
 		uint8_t nLogDiamond = eLogDiamond_Max;
@@ -114,11 +114,15 @@ void MailModule::postMail( uint32_t nTargetID, eMailType emailType, Json::Value&
 			nOffset = jsMailDetail["amount"].asInt();
 			nLogDiamond = eLogDiamond_Shop_Owner;
 		}
+		else if (eMail_Consume_Golden_Emoji == emailType) {
+			nOffset = jsMailDetail["amount"].asInt();
+			nLogDiamond = eLogCoin_Room;
+		}
 
 		uint32_t nFinal = 0;
 		if (pPlayer)
 		{
-			if (eMail_Owner_Pay == emailType) {
+			if (eMail_Owner_Pay == emailType || eMail_Consume_Golden_Emoji == emailType) {
 				nFinal = pPlayer->getBaseData()->getCoin();
 			}
 			else {
