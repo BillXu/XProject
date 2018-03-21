@@ -11,6 +11,15 @@ public:
 		uint8_t nLevel;
 		uint32_t nJoinTime;
 		uint32_t nQuitTime;
+		char cRemark[MAX_LEN_CLUB_NAME];
+
+		stMemberBaseData() {
+			memset(cRemark, 0, sizeof(cRemark));
+		}
+
+		void setRemark(const char* remark) {
+			sprintf_s(cRemark, "%s", remark);
+		}
 	};
 	typedef std::map<uint32_t, stMemberBaseData> MAP_ID_MEMBERS;
 
@@ -28,6 +37,7 @@ public:
 	void memberDataToJson(Json::Value& jsData);
 	bool checkUpdateLevel(uint32_t nMemberID, uint8_t nLevelRequired);
 	uint8_t getMemberLevel(uint32_t nMemberID);
+	char* getMemberRemark(uint32_t nMemberID);
 	bool grantFoundation(uint32_t nGrantUID, uint32_t nMemberUID, uint32_t nAmount);
 	void pushAsyncRequestToAll(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData);
 	void pushAsyncRequestToLevelNeed(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData, uint8_t nLevel = eClubMemberLevel_None);

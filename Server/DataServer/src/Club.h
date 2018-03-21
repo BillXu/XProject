@@ -17,6 +17,7 @@ public:
 		uint32_t nCreateTime;
 		uint8_t nState;
 		uint16_t nMemberLimit;
+		uint16_t nTempMemberLimit = 0;
 		uint32_t nFoundation; //基金 用于发放
 		uint32_t nIntegration; //积分 用于联盟带入
 		uint8_t nCreateRoomType;
@@ -146,10 +147,15 @@ public:
 	void addIntegration(int32_t nIntegration);
 	void addJoinedLeague(uint32_t nLeagueID);
 	void addCreatedLeague(uint32_t nLeagueID);
+	void addMemberLimit(uint16_t nTemp);
+	void addTempMemberLimit(uint16_t nTemp);
+
+	void clearTempMemberLimit(uint16_t nTemp);
 
 	uint32_t getClubID();
 	uint32_t getCreatorUID();
 	uint16_t getMemberLimit();
+	uint16_t getTempMemberLimit();
 	uint32_t getFoundation();
 	uint8_t getState();
 	uint8_t getCreateRoomType();

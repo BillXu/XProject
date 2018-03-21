@@ -55,6 +55,7 @@ public:
 	uint32_t isClubRoom()override;
 	uint32_t isLeagueRoom();
 	bool hasRotBanker();
+	bool isFinishRotBanker();
 	bool hasShowCards() { return m_bShowCards; }
 	bool onPlayerDragIn(uint32_t nUserID, uint32_t nAmount);
 	bool onPlayerDeclineDragIn(uint32_t nUserID);

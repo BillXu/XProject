@@ -38,11 +38,18 @@ public:
 	std::shared_ptr<IPlayerRecorder> getPlayerRecorderInfo(uint32_t nUserID);
 	void toJson(Json::Value& js);
 
+	void setBankerUID(uint32_t nBankerUID) { m_nBankerUID = nBankerUID; };
+	void signRotBanker() { m_bRotBanker = true; }
+	bool isRotBanker() { return m_bRotBanker; }
+	uint32_t getBankerUID() { return m_nBankerUID; }
+
 protected:
 	std::map<uint32_t, std::shared_ptr<IPlayerRecorder>> m_vPlayerRecorderInfo;
 	uint32_t m_nFinishTime;
 	uint32_t m_nReplayID;
 	uint16_t m_nRoundIdx;
+	uint32_t m_nBankerUID = 0;
+	bool m_bRotBanker = false;
 };
 
 class IGameRoomRecorder

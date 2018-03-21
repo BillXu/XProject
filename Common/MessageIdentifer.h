@@ -731,6 +731,25 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	//svr : {ret : 0}
 	// 1 3, 玩家信息错误  2, 权限不足  4, 玩家未加入  5, 信息错误  6, 操作无效
 
+	MSG_CLUB_INFO_UPDATE_MEMBER_LIMIT, //修改俱乐部人数上限
+	//client : targetID: clubID, {uid : 123, amount : 1}
+	//svr : {ret : 0}
+	//amount : update times, +10/per time
+
+	MSG_CLUB_MEMBER_INFO, //俱乐部成员信息
+	//client : targetID : clubID, {}
+	//svr : {ret : 0, clubID : 123, members : {123, 123, 123...}}
+
+	MSG_CLUB_MEMBER_DETAIL, //俱乐部成员详情
+	//client : targetID : clubID, {memberUID : 123}
+	//svr : {ret : 0, clubID : 123, uid : 123, level : 123, remark : '123'}
+	// 1, 玩家信息错误  4, 玩家未加入  
+
+	MSG_CLUB_MEMBER_UPDATE_REMARK, //俱乐部修改成员备注
+	//client : targetID : clubID, {uid : 123, memberUID : 123, remark : '123'}
+	//svr : {ret : 0, uid : 123}
+	// 1 3, 玩家信息错误  2, 权限不足  4, 玩家未加入  6, 操作无效
+
 	MSG_CLUB_EVENT_GRANT_FOUNDATION, //发放基金
 	//client : targetID: clubID, {uid : 123, memberUID : 321, amount : 1000}
 	//svr : {ret : 0}

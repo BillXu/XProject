@@ -29,7 +29,7 @@ public:
 	{
 		IGameRoomState::update(fDeta);
 		auto pRoom = (ThirteenRoom*)getRoom();
-		if (pRoom->hasRotBanker())
+		if (pRoom->isFinishRotBanker())
 		{
 			pRoom->goToState(eRoomState_DistributeCard);
 		}

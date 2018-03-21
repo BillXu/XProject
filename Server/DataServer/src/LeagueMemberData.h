@@ -12,8 +12,8 @@ public:
 		uint8_t nLevel;
 		uint32_t nJoinTime;
 		uint32_t nQuitTime;
-		int32_t nIntegration;
-		int32_t nInitialIntegration;
+		int32_t nIntegration = 0;
+		int32_t nInitialIntegration = 0;
 		uint8_t nStop = 0;
 		uint32_t nTempIntegration = 0;
 	};

@@ -251,6 +251,8 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 		jsReq["roomID"] = jsReqContent["roomID"];
 		jsReq["port"] = nSenderPort;
 		jsReq["leagueID"] = jsReqContent["leagueID"];
+		jsReq["roomName"] = jsReqContent["roomName"];
+		jsReq["roomLevel"] = jsReqContent["roomLevel"];
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_apply_DragIn, jsReq, [pApp, nReqSerial, nSenderPort, nSenderID, this, nReal](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			Json::Value jsRet;

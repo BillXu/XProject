@@ -97,11 +97,9 @@ public:
 		//¼ì²âË³×Ó
 		if (vCards.size() && TT_PARSE_VALUE(vCards[0]) == 14) {
 			if (std::find_if(vCards.begin(), vCards.end(), [](uint8_t& nCard) {
-				return TT_PARSE_VALUE(nCard) > OTHER_DAO_CARD_COUNT;
+				auto nValue = TT_PARSE_VALUE(nCard);
+				return nValue != 14 && TT_PARSE_VALUE(nCard) > OTHER_DAO_CARD_COUNT;
 			}) == vCards.end()) {
-				//TODO NOTHING
-			}
-			else {
 				for (auto& ref : vCards) {
 					if (TT_PARSE_VALUE(ref) == 14) {
 						ref = TT_MAKE_CARD(TT_PARSE_TYPE(ref), 1);
@@ -110,6 +108,9 @@ public:
 				std::sort(vCards.begin(), vCards.end(), [](uint8_t nCard_1, uint8_t nCard_2) {
 					return nCard_1 > nCard_2;
 				});
+			}
+			else {
+				//TODO NOTHING
 			}
 		}
 		uint8_t needJokerCnt = 0;
@@ -144,7 +145,12 @@ public:
 			}
 			else {
 				if (vCards.size()) {
-					IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(flushType, TT_PARSE_VALUE(vCards[0]) + 1));
+					if (TT_PARSE_VALUE(vCards[0]) == OTHER_DAO_CARD_COUNT) {
+						IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(flushType, TT_PARSE_VALUE(vCards[vCards.size() - 1]) - 1));
+					}
+					else {
+						IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(flushType, TT_PARSE_VALUE(vCards[0]) + 1));
+					}
 				}
 				else {
 					IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(flushType, 14));
@@ -152,7 +158,14 @@ public:
 			}
 		}
 
-		nWeight = (TT_PARSE_VALUE(vCards[0]) << 3) | flushType;
+		nWeight = TT_PARSE_VALUE(vCards[0]);
+		if (nWeight == 14) {
+			nWeight = 15;
+		}
+		else if (nWeight == OTHER_DAO_CARD_COUNT) {
+			nWeight = 14;
+		}
+		nWeight = (nWeight << 3) | flushType;
 		cardType = Thirteen_StraightFlush;
 		return true;
 	}
@@ -337,11 +350,13 @@ public:
 			}
 			vCards.push_back(ref);
 		}
+		bool is12345 = false;
 		if (vCards.size() && TT_PARSE_VALUE(vCards[0]) == 14) {
 			if (std::find_if(vCards.begin(), vCards.end(), [](uint8_t& nCard) {
 				auto nValue = TT_PARSE_VALUE(nCard);
 				return nValue != 14 && nValue > OTHER_DAO_CARD_COUNT;
 			}) == vCards.end()) {
+				is12345 = true;
 				for (auto& ref : vCards) {
 					if (TT_PARSE_VALUE(ref) == 14) {
 						ref = TT_MAKE_CARD(TT_PARSE_TYPE(ref), 1);
@@ -387,7 +402,12 @@ public:
 			}
 			else {
 				if (vCards.size()) {
-					IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(ePoker_Sword, TT_PARSE_VALUE(vCards[0]) + 1));
+					if (TT_PARSE_VALUE(vCards[0]) == OTHER_DAO_CARD_COUNT) {
+						IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(ePoker_Sword, TT_PARSE_VALUE(vCards[vCards.size() - 1]) - 1));
+					}
+					else {
+						IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(ePoker_Sword, TT_PARSE_VALUE(vCards[0]) + 1));
+					}
 				}
 				else {
 					IPeerCard::addCardToVecAsc(vCards, TT_MAKE_CARD(ePoker_Sword, 14));
@@ -396,6 +416,24 @@ public:
 		}
 
 		nWeight = TT_PARSE_VALUE(vCards[0]);
+		if (nWeight == 14) {
+			nWeight = 15;
+		}
+		else if (nWeight == OTHER_DAO_CARD_COUNT) {
+			nWeight = 14;
+		}
+
+		if (is12345) {
+			for (auto& ref : vCards) {
+				if (TT_PARSE_VALUE(ref) == 1) {
+					ref = TT_MAKE_CARD(TT_PARSE_TYPE(ref), 14);
+				}
+			}
+			std::sort(vCards.begin(), vCards.end(), [](uint8_t nCard_1, uint8_t nCard_2) {
+				return nCard_1 > nCard_2;
+			});
+		}
+
 		for (auto& ref : vCards) {
 			uint8_t nHuaWeight = 0;
 			if (std::find(vecCards.begin(), vecCards.end(), ref) == vecCards.end()) {

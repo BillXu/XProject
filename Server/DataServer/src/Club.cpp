@@ -9,6 +9,7 @@
 #include "AsyncRequestQuene.h"
 #include "Utility.h"
 #include "log4z.h"
+#define INCREASE_MEMBER_LIMIT_PER10_DIAMOND 1000
 
 CClub::CClub() {
 	m_stBaseData.zeroReset();
@@ -94,8 +95,9 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 		Json::Value jsMsg, jsMembers;
 		jsMsg["clubID"] = m_stBaseData.nClubID;
 		jsMsg["creator"] = m_stBaseData.nCreatorUID;
-		getClubMemberData()->memberDataToJson(jsMembers);
-		jsMsg["members"] = jsMembers;
+		//getClubMemberData()->memberDataToJson(jsMembers);
+		//jsMsg["members"] = jsMembers;
+		jsMsg["level"] = getClubMemberData()->getMemberLevel(recvValue["uid"].isUInt() ? recvValue["uid"].asUInt() : 0);
 		jsMsg["createType"] = m_stBaseData.nCreateRoomType;
 		jsMsg["searchLimit"] = m_stBaseData.nSearchLimit;
 		jsMsg["createFlag"] = m_stBaseData.nCreateFlag;
@@ -126,6 +128,83 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 		jsMsg["ret"] = 0;
 		jsMsg["clubID"] = getClubID();
 		sendMsgToClient(jsMsg, nmsgType, nSenderID);
+		return true;
+	}
+
+	if (MSG_CLUB_INFO_UPDATE_MEMBER_LIMIT == nmsgType) {
+		Json::Value jsMsg;
+		uint32_t nUserID = recvValue["uid"].isUInt() ? recvValue["uid"].asUInt() : 0;
+		if (nUserID == 0) {
+			jsMsg["ret"] = 1;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			LOGFMTE("Update club member limit error, userID is miss, clubID = %u", getClubID());
+			return true;
+		}
+		if (getClubMemberData()->checkUpdateLevel(nUserID, eClubUpdateLevel_MemberLimit) == false) {
+			jsMsg["ret"] = 2;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			LOGFMTE("Update club member limit error, user level is not enough, clubID = %u, userID = %u", getClubID(), nUserID);
+			return true;
+		}
+		uint32_t nAmount = recvValue["amount"].isUInt() ? recvValue["amount"].asUInt() : 0;
+		if (nAmount == 0) {
+			jsMsg["ret"] = 3;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			LOGFMTE("Update club member limit error, amount is miss, clubID = %u, userID = %u", getClubID(), nUserID);
+			return true;
+		}
+		uint32_t nMemberAmount = 10 * nAmount;
+		if (getMemberLimit() + getTempMemberLimit() + nMemberAmount > 500) {
+			jsMsg["ret"] = 4;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			LOGFMTE("Update club member limit error, amount is error, clubID = %u, userID = %u", getClubID(), nUserID);
+			return true;
+		}
+		uint32_t nDiamond = nAmount * INCREASE_MEMBER_LIMIT_PER10_DIAMOND;
+		addTempMemberLimit((uint16_t)nMemberAmount);
+		auto pApp = getClubMgr()->getSvrApp();
+		Json::Value jsReq;
+		jsReq["targetUID"] = nUserID;
+		jsReq["diamond"] = nDiamond;
+		jsReq["clubID"] = getClubID();
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_club_Update_Member_Limit_check_Diamond, jsReq, [pApp, nUserID, nMemberAmount, nDiamond, nAmount, nmsgType, nSenderID, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			clearTempMemberLimit((uint16_t)nMemberAmount);
+			Json::Value jsRet;
+			if (isTimeOut)
+			{
+				LOGFMTE(" request apply Update club member limit time out uid = %u, clubID = %u, can not Update club member limit", nUserID, getClubID());
+				jsRet["ret"] = 7;
+				sendMsgToClient(jsRet, nmsgType, nSenderID);
+				return;
+			}
+
+			uint8_t nReqRet = retContent["ret"].asUInt();
+			uint8_t nRet = 0;
+			do {
+				if (0 != nReqRet)
+				{
+					nRet = 5;
+					break;
+				}
+
+				addMemberLimit((uint16_t)nMemberAmount);
+				jsRet["memberLimit"] = getMemberLimit();
+				jsRet["clubID"] = getClubID();
+
+				Json::Value jsConsumDiamond;
+				jsConsumDiamond["playerUID"] = nUserID;
+				jsConsumDiamond["diamond"] = nDiamond;
+				jsConsumDiamond["reason"] = 1;
+				jsConsumDiamond["clubID"] = getClubID();
+				pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Consume_Diamond, jsConsumDiamond);
+				LOGFMTD("user uid = %u add member limit do comuse diamond = %u club id = %u member amount = %u", nUserID, nDiamond, getClubID(), nMemberAmount);
+
+			} while (0);
+
+			jsRet["ret"] = nRet;
+			sendMsgToClient(jsRet, nmsgType, nSenderID);
+		});
 		return true;
 	}
 
@@ -546,6 +625,11 @@ void CClub::addCreatedLeague(uint32_t nLeagueID) {
 	m_bLeagueDataDirty = true;
 }
 
+void CClub::addMemberLimit(uint16_t nTemp) {
+	m_stBaseData.nMemberLimit += nTemp;
+	m_bLevelInfoDirty = true;
+}
+
 uint32_t CClub::getClubID() {
 	return m_stBaseData.nClubID;
 }
@@ -556,6 +640,23 @@ uint32_t CClub::getCreatorUID() {
 
 uint16_t CClub::getMemberLimit() {
 	return m_stBaseData.nMemberLimit;
+}
+
+uint16_t CClub::getTempMemberLimit() {
+	return m_stBaseData.nTempMemberLimit;
+}
+
+void CClub::addTempMemberLimit(uint16_t nTemp) {
+	m_stBaseData.nTempMemberLimit += nTemp;
+}
+
+void CClub::clearTempMemberLimit(uint16_t nTemp) {
+	if (nTemp < m_stBaseData.nTempMemberLimit) {
+		m_stBaseData.nTempMemberLimit -= nTemp;
+	}
+	else {
+		m_stBaseData.nTempMemberLimit = 0;
+	}
 }
 
 uint32_t CClub::getFoundation() {

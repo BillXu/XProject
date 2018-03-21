@@ -109,4 +109,6 @@ enum eClubUpdateLevelNeed
 	eClubUpdateLevel_FireFromLeague = eClubMemberLevel_Creator,
 	eClubUpdateLevel_DismissLeague = eClubMemberLevel_Creator,
 	eClubUpdateLevel_QuitLeague = eClubMemberLevel_Creator,
+	eClubUpdateLevel_MemberLimit = eClubMemberLevel_None,
+	eClubUpdateLevel_MemberRemark = eClubMemberLevel_Creator,
 };

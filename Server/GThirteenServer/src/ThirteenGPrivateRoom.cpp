@@ -88,6 +88,7 @@ bool ThirteenGPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 		pStay->nSessionID = pEnterRoomPlayer->nSessionID;
 		pEnterRoomPlayer->nChip = pStay->nChip;
 		pStay->nState = eNet_Online;
+		pStay->nEnterClubID = pEnterRoomPlayer->nClubID;
 
 		uint16_t nPointerIdx = pStay->nCurInIdx;
 		if (nPointerIdx == (uint16_t)-1) {
@@ -116,6 +117,7 @@ bool ThirteenGPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 		/*pStay->nCurInIdx = -1;
 		pStay->nState = eNet_Online;*/
 		pStay->nUserUID = pEnterRoomPlayer->nUserUID;
+		pStay->nEnterClubID = pEnterRoomPlayer->nClubID;
 		/*pStay->bNeedDragIn = true;
 		pStay->bLeaved = true;
 		pStay->bAutoStandup = false;
@@ -438,6 +440,7 @@ void ThirteenGPrivateRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)
 						jsMsg["idx"] = 0;
 						jsMsg["min"] = ((ThirteenRoom*)getCoreRoom())->getMinDragIn();
 						jsMsg["max"] = ((ThirteenRoom*)getCoreRoom())->getMaxDragIn();
+						jsMsg["enterClubID"] = stg->nEnterClubID;
 						if (getLeagueID()) {
 							if (getDragInClubID(stg->nUserUID)) {
 								Json::Value jsClubs;
@@ -543,7 +546,7 @@ void ThirteenGPrivateRoom::update(float fDelta) {
 			m_fWaitTime += fDelta;
 		}
 
-		if (vWait.size() > 15) {
+		if (vWait.size() > 7) {
 			dispatcherPlayers(vWait);
 			m_fWaitTime = 0;
 		}
@@ -759,6 +762,7 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 							jsMsg["idx"] = 0;
 							jsMsg["min"] = ((ThirteenRoom*)getCoreRoom())->getMinDragIn();
 							jsMsg["max"] = ((ThirteenRoom*)getCoreRoom())->getMaxDragIn();
+							jsMsg["enterClubID"] = sPlayer->nEnterClubID;
 							if (getLeagueID()) {
 								if (getDragInClubID(sPlayer->nUserUID)) {
 									Json::Value jsClubs;
@@ -899,6 +903,8 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 			jsMsg["idx"] = nIdx;
 			auto recorder = vRecorder.at(nIdx);
 			recorder->toJson(jsDetail);
+			jsMsg["bankerUID"] = recorder->getBankerUID();
+			jsMsg["rotBanker"] = recorder->isRotBanker() ? 1 : 0;
 			jsMsg["detail"] = jsDetail;
 			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
 		}
@@ -1029,6 +1035,8 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 			jsReq["clubID"] = nClubID;
 			jsReq["amount"] = nAmount;
 			jsReq["leagueID"] = getLeagueID();
+			jsReq["roomName"] = getOpts()["name"];
+			jsReq["roomLevel"] = getOpts()["level"];
 			auto pApp = m_pRoomMgr->getSvrApp();
 			pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->nUserUID, eAsync_player_apply_DragIn, jsReq, [pApp, this, pPlayer, nSessionID, nAmount, nClubID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 			{
@@ -1121,6 +1129,12 @@ bool ThirteenGPrivateRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t 
 	auto stg = (stgStayPlayer*)isEnterByUserID(nPlayerID);
 	if (stg) {
 		stg->nSessionID = nSessinID;
+		if (isRoomFull() && stg->nState == eNet_Offline && stg->bLeaved) {
+			return true;
+		}
+		else {
+			stg->nState = eNet_Online;
+		}
 		if (stg->nCurInIdx != (uint16_t)-1 && stg->nCurInIdx < m_vPRooms.size()) {
 			m_pRoom = m_vPRooms[stg->nCurInIdx];
 			return ThirteenPrivateRoom::onPlayerSetNewSessionID(nPlayerID, nSessinID);

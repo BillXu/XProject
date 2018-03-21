@@ -50,6 +50,7 @@ public:
 	bool groupCardTypeToJson(Json::Value& js);
 	bool groupCardWeightToJson(Json::Value& js);
 	void getHoldCards(std::vector<uint8_t>& vHoldCards);
+	bool checkSetDaoCards(std::vector<uint8_t>& vCards);
 
 protected:
 	bool autoSetDao(VEC_CARD& vCards, uint8_t nIdx);

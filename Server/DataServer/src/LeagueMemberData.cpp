@@ -178,6 +178,8 @@ bool CLeagueMemberData::addMember(uint32_t nMemberCID, uint8_t nLevel) {
 		stmbd.nLevel = nLevel;
 		stmbd.nJoinTime = time(NULL);
 		stmbd.nQuitTime = 0;
+		stmbd.nIntegration = 0;
+		stmbd.nInitialIntegration = 0;
 
 		if (std::find(m_vMemberAddCIDs.begin(), m_vMemberAddCIDs.end(), nMemberCID) == m_vMemberAddCIDs.end()) {
 			m_vMemberAddCIDs.push_back(nMemberCID);

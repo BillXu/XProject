@@ -9,6 +9,7 @@ public:
 		uint32_t nSessionID;
 		uint32_t nUserUID;
 		uint32_t nClubID = 0;
+		uint32_t nEnterClubID = 0;
 		int32_t nChip;
 		int32_t nAllWrag = 0;
 		bool isSitdown = false;
@@ -39,6 +40,7 @@ public:
 	void onPlayerWaitDragIn(uint32_t nUserUID)override;
 	void onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
+	bool canPlayerSitDown(uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
@@ -51,6 +53,7 @@ public:
 	uint32_t getClubID()override;
 	uint32_t getLeagueID()override;
 	uint32_t getDragInClubID(uint32_t nUserID)override;
+	uint32_t getEnterClubID(uint32_t nUserID)override;
 	uint16_t getPlayerCnt()override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
 	void doRoomGameOver(bool isDismissed)override;

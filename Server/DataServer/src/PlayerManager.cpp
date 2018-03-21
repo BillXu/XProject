@@ -400,6 +400,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_club_Update_Member_Limit_check_Diamond:
 	case eAsync_thirteen_delay_check_Diamond:
 	case eAsync_thirteen_reput_check_Diamond:
 	{

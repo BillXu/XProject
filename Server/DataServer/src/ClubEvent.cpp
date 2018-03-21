@@ -523,7 +523,11 @@ bool CClubEvent::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqC
 		sted.nPostTime = time(NULL);
 		sted.nEventType = eClubEventType_AppcationEntry;
 		sted.nLevel = getEventLevel(eClubEventType_AppcationEntry);
-		sted.jsDetail = jsReqContent;
+		Json::Value jsDetail;
+		jsDetail = jsReqContent;
+		auto cRemark = getClub()->getClubMemberData()->getMemberRemark(nUserID);
+		jsDetail["remark"] = cRemark == nullptr ? "" : cRemark;
+		sted.jsDetail = jsDetail;
 		m_mAllEvents[sted.nEventID] = sted;
 		m_vAddIDs.push_back(sted.nEventID);
 		jsResult["ret"] = 0;

@@ -202,6 +202,22 @@ void ThirteenPeerCard::getHoldCards(std::vector<uint8_t>& vHoldCards)
 	vHoldCards.assign(m_vHoldCards.begin(), m_vHoldCards.end());
 }
 
+bool ThirteenPeerCard::checkSetDaoCards(std::vector<uint8_t>& vCards) {
+	VEC_CARD vHoldCards;
+	getHoldCards(vHoldCards);
+	if (vCards.size() != vHoldCards.size()) {
+		return false;
+	}
+	for (auto& ref : vCards) {
+		auto it = std::find(vHoldCards.begin(), vHoldCards.end(), ref);
+		if (it == vHoldCards.end()) {
+			return false;
+		}
+		vHoldCards.erase(it);
+	}
+	return true;
+}
+
 ThirteenPeerCard::stGroupCard::stGroupCard()
 {
 	reset();

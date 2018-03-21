@@ -13,6 +13,7 @@ public:
 	virtual void onGameEnd( IGameRoom* pRoom ){}
 	virtual void doPlayerEnter(IGameRoom* pRoom, uint32_t nUserUID) {}
 	virtual void onPlayerWillSitDown(IGameRoom* pRoom, uint32_t nUserUID) {}
+	virtual bool canPlayerSitDown(uint32_t nUserUID) { return true; }
 	virtual void onPlayerSitDown(IGameRoom* pRoom,IGamePlayer* pPlayer ){ }
 	virtual void onPlayerWillStandUp(IGameRoom* pRoom,IGamePlayer* pPlayer) {};
 	virtual void onPlayerStandedUp( IGameRoom* pRoom,uint32_t nUserUID) {} ;
@@ -31,4 +32,5 @@ public:
 	virtual void onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin) {}
 	virtual void onPlayerAutoStandUp(uint32_t nUserUID, bool bSwitch = true) {}
 	virtual void onPlayerAutoLeave(uint32_t nUserUID, bool bSwitch = true) {}
+	virtual uint32_t getEnterClubID(uint32_t nUserUID) { return 0; }
 };

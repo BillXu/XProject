@@ -158,6 +158,16 @@ void ThirteenRoom::onStartGame()
 */
 void ThirteenRoom::onGameEnd()
 {
+	auto pPlayer = getPlayerByIdx(getBankerIdx());
+	uint32_t nBankerUID = 0;
+	if (pPlayer) {
+		nBankerUID = pPlayer->getUserUID();
+	}
+	getCurRoundRecorder()->setBankerUID(nBankerUID);
+	if (hasRotBanker()) {
+		getCurRoundRecorder()->signRotBanker();
+	}
+	
 	// find playing players ;
 	std::vector<ThirteenPlayer*> vActivePlayers;
 	auto nSeatCnt = getSeatCnt();
@@ -338,6 +348,7 @@ void ThirteenRoom::onGameEnd()
 	}
 
 	//最后算正常每道的输赢
+	std::map<uint8_t, std::vector<uint8_t>> vShowCards;
 	for (uint8_t nDao = DAO_HEAD; nDao < DAO_MAX; nDao++) {
 		for (uint8_t nWinIdx = 0; nWinIdx < nSeatCnt; nWinIdx++) {
 			for (auto& nLoseIdx : result[nDao][nWinIdx]) {
@@ -352,10 +363,24 @@ void ThirteenRoom::onGameEnd()
 					if (pLoser) {
 						int32_t nWinCoin = 0;
 						if (pWiner->hasShowCards()) {
+							std::vector<uint8_t> vShowTemp;
+							if (vShowCards.count(nWinIdx)) {
+								vShowTemp.assign(vShowCards[nWinIdx].begin(), vShowCards[nWinIdx].end());
+							}
+							else {
+								vShowCards[nWinIdx] = vShowTemp;
+							}
+							if (std::find(vShowTemp.begin(), vShowTemp.end(), nLoseIdx) != vShowTemp.end()) {
+								continue;
+							}
+							vShowCards[nWinIdx].push_back(nLoseIdx);
 							auto pTemp = pWiner;
 							pWiner = pLoser;
 							pLoser = pTemp;
-							nWinCoin = getWinCoin(nLoseIdx, WIN_SHUI_TYPE_SHOWCARDS, nDao);
+							nWinCoin = getWinCoin(nLoseIdx, WIN_SHUI_TYPE_SHOWCARDS);
+						}
+						else if (pLoser->hasShowCards()) {
+							continue;
 						}
 						else {
 							nWinCoin = getWinCoin(nWinIdx, WIN_SHUI_TYPE_NONE, nDao);
@@ -452,6 +477,7 @@ void ThirteenRoom::onGameDidEnd() {
 				jsMsg["idx"] = ref->getIdx();
 				jsMsg["min"] = getMinDragIn();
 				jsMsg["max"] = getMaxDragIn();
+				jsMsg["enterClubID"] = getDelegate()->getEnterClubID(ref->getUserUID());
 				if (isLeagueRoom()) {
 					if (getDelegate() && getDelegate()->getDragInClubID(ref->getUserUID())) {
 						Json::Value jsClubs;
@@ -549,7 +575,12 @@ IPoker* ThirteenRoom::getPoker()
 bool ThirteenRoom::canPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx) {
 	if (isClubRoom()) {
 		if (pEnterRoomPlayer->nChip < getMinDragIn()) {
-			return false;
+			if (getDelegate()) {
+				return getDelegate()->canPlayerSitDown(pEnterRoomPlayer->nUserUID);
+			}
+			else {
+				return false;
+			}
 		}
 	}
 	return true;
@@ -567,6 +598,7 @@ bool ThirteenRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t n
 				jsMsg["idx"] = nIdx;
 				jsMsg["min"] = getMinDragIn();
 				jsMsg["max"] = getMaxDragIn();
+				jsMsg["enterClubID"] = getDelegate()->getEnterClubID(pPlayer->getUserUID());
 				if (isLeagueRoom()) {
 					if (getDelegate() && getDelegate()->getDragInClubID(pPlayer->getUserUID())) {
 						Json::Value jsClubs;
@@ -981,6 +1013,7 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		jsMsg["idx"] = pPlayer->getIdx();
 		jsMsg["min"] = getMinDragIn();
 		jsMsg["max"] = getMaxDragIn();
+		jsMsg["enterClubID"] = getDelegate()->getEnterClubID(pPlayer->getUserUID());
 		if (isLeagueRoom()) {
 			if (getDelegate() && getDelegate()->getDragInClubID(pPlayer->getUserUID())) {
 				Json::Value jsClubs;
@@ -1089,6 +1122,8 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		jsReq["clubID"] = nClubID;
 		jsReq["amount"] = nAmount;
 		jsReq["leagueID"] = isLeagueRoom();
+		jsReq["roomName"] = getOpts()["name"];
+		jsReq["roomLevel"] = getOpts()["level"];
 		auto pApp = getRoomMgr()->getSvrApp();
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_player_apply_DragIn, jsReq,[pApp, this, pPlayer, nSessionID, nAmount, nClubID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
@@ -1209,10 +1244,10 @@ bool ThirteenRoom::onPlayerSetDao(uint8_t nIdx, IPeerCard::VEC_CARD vCards) {
 		return false;
 	}
 	auto pPlayer = (ThirteenPlayer*)getPlayerByIdx(nIdx);
-	if (pPlayer && isPlayerCanAct(nIdx) && pPlayer->hasDetermined() == false) {
+	auto pCard = pPlayer->getPlayerCard();
+	if (pPlayer && isPlayerCanAct(nIdx) && pPlayer->hasDetermined() == false && pCard->checkSetDaoCards(vCards)) {
 		ThirteenPeerCard::VEC_CARD vTemp;
 		uint8_t nCurIdx = 0;
-		auto pCard = pPlayer->getPlayerCard();
 		for (uint8_t nDao = DAO_HEAD; nDao < DAO_MAX; nDao++) {
 			vTemp.clear();
 			vTemp.assign(vCards.begin() + (nDao > 0 ? 1 : 0) * HEAD_DAO_CARD_COUNT + (nDao > 0 ? nDao - 1 : 0) * OTHER_DAO_CARD_COUNT, vCards.begin() + HEAD_DAO_CARD_COUNT + OTHER_DAO_CARD_COUNT * nDao);
@@ -1405,6 +1440,21 @@ uint32_t ThirteenRoom::isLeagueRoom() {
 }
 
 bool ThirteenRoom::hasRotBanker() {
+	/*if (m_bRotBanker) {
+		return true;
+	}
+	else {
+		for (auto& ref : m_vPlayers) {
+			if (ref && ref->haveState(eRoomPeer_StayThisRound) && ((ThirteenPlayer*)ref)->hasRotBanker() == false) {
+				return false;
+			}
+		}
+		return true;
+	}*/
+	return m_bRotBanker;
+}
+
+bool ThirteenRoom::isFinishRotBanker() {
 	if (m_bRotBanker) {
 		return true;
 	}

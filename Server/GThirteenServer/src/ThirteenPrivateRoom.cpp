@@ -500,6 +500,13 @@ uint32_t ThirteenPrivateRoom::getDragInClubID(uint32_t nUserID) {
 	return 0;
 }
 
+uint32_t ThirteenPrivateRoom::getEnterClubID(uint32_t nUserID) {
+	if (isEnterByUserID(nUserID)) {
+		return isEnterByUserID(nUserID)->nEnterClubID;
+	}
+	return 0;
+}
+
 uint16_t ThirteenPrivateRoom::getPlayerCnt() {
 	uint16_t nCnt = 0;
 	for (auto ref : m_mStayPlayers) {
@@ -514,6 +521,7 @@ bool ThirteenPrivateRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t n
 	auto st = isEnterByUserID(nPlayerID);
 	if (st) {
 		st->nSessionID = nSessinID;
+		st->nState = eNet_Online;
 	}
 	return IPrivateRoom::onPlayerSetNewSessionID(nPlayerID, nSessinID);
 }
@@ -597,8 +605,10 @@ uint32_t ThirteenPrivateRoom::isClubRoom() {
 }
 
 bool ThirteenPrivateRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) {
+	//LOGFMTE("player = %u, net state changed to %u", nPlayerID, nState);
 	auto st = isEnterByUserID(nPlayerID);
 	if (st) {
+		//LOGFMTE("player = %u, net state changed to %u, session = %u", nPlayerID, nState, st->nSessionID);
 		st->nState = nState;
 	}
 	return IPrivateRoom::onPlayerNetStateRefreshed(nPlayerID, nState);
@@ -622,12 +632,14 @@ bool ThirteenPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
 		pEnterRoomPlayer->nChip = m_mStayPlayers[pEnterRoomPlayer->nUserUID]->nChip;
 		sPlayer->nSessionID = pEnterRoomPlayer->nSessionID;
 		sPlayer->nState = eNet_Online;
+		sPlayer->nEnterClubID = pEnterRoomPlayer->nClubID;
 	}
 	else {
 		stStayPlayer* stp = new stStayPlayer();
 		stp->nUserUID = pEnterRoomPlayer->nUserUID;
 		stp->nChip = 0;
 		stp->nSessionID = pEnterRoomPlayer->nSessionID;
+		stp->nEnterClubID = pEnterRoomPlayer->nClubID;
 		m_mStayPlayers[stp->nUserUID] = stp;
 	}
 	if (m_pRoom->onPlayerEnter(pEnterRoomPlayer))
@@ -635,6 +647,14 @@ bool ThirteenPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
 
 	}
 	return true;
+}
+
+bool ThirteenPrivateRoom::canPlayerSitDown(uint32_t nUserUID) {
+	auto stg = isEnterByUserID(nUserUID);
+	if (stg) {
+		return stg->nChip >= ((ThirteenRoom*)getCoreRoom())->getMaxLose();
+	}
+	return false;
 }
 
 void ThirteenPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer) {
@@ -840,6 +860,8 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 		jsMsg["idx"] = nIdx;
 		auto recorder = vRecorder.at(nIdx);
 		recorder->toJson(jsDetail);
+		jsMsg["bankerUID"] = recorder->getBankerUID();
+		jsMsg["rotBanker"] = recorder->isRotBanker() ? 1 : 0;
 		jsMsg["detail"] = jsDetail;
 		sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
 	}
