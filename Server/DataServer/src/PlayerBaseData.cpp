@@ -131,6 +131,14 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 {
 	if ( MSG_PLAYER_UPDATE_INFO == nmsgType )
 	{
+		auto gd = (CPlayerGameData*)getPlayer()->getComponent(ePlayerComponent_PlayerGameData);
+		if (gd->canRemovePlayer() == false) {
+			Json::Value jsmsg;
+			jsmsg["ret"] = 1;
+			sendMsg(jsmsg, nmsgType);
+			return true;
+		}
+
 		sprintf_s(m_stBaseData.cHeadiconUrl, "%s", recvValue["headIcon"].asCString());
 		sprintf_s(m_stBaseData.cName, "%s", recvValue["name"].asCString());
 		m_stBaseData.nSex = recvValue["sex"].asUInt();
@@ -243,17 +251,18 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 			LOGFMTE("player apply drag in amount is too much ? uid = %u, clubID = %u, amountReal = %u ", getPlayer()->getUserUID(), nClubID, nReal);
 			return true;
 		}
+		uint32_t nRoomID = jsReqContent["roomID"].asUInt();
 		auto pApp = getPlayer()->getPlayerMgr()->getSvrApp();
 		Json::Value jsReq;
 		jsReq["clubID"] = nClubID;
 		jsReq["uid"] = getPlayer()->getUserUID();
 		jsReq["amount"] = nAmount;
-		jsReq["roomID"] = jsReqContent["roomID"];
+		jsReq["roomID"] = nRoomID;
 		jsReq["port"] = nSenderPort;
 		jsReq["leagueID"] = jsReqContent["leagueID"];
 		jsReq["roomName"] = jsReqContent["roomName"];
 		jsReq["roomLevel"] = jsReqContent["roomLevel"];
-		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_apply_DragIn, jsReq, [pApp, nReqSerial, nSenderPort, nSenderID, this, nReal](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_apply_DragIn, jsReq, [pApp, nReqSerial, nRoomID, nSenderPort, nSenderID, this, nReal](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			Json::Value jsRet;
 			if (isTimeOut)
@@ -272,6 +281,9 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 					nRet = 8;
 					break;
 				}
+
+				auto gd = (CPlayerGameData*)getPlayer()->getComponent(ePlayerComponent_PlayerGameData);
+				gd->addDraginedRoom(CPlayerGameData::stRoomEntry(nRoomID, (eMsgPort)nSenderPort));
 			} while (0);
 
 			jsRet["ret"] = nRet;

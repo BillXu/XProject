@@ -114,6 +114,27 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 	return true;
 }
 
+void CPlayerGameData::addDraginedRoom(stRoomEntry tRoom) {
+	for (auto& ref : m_vDraginedRooms) {
+		if (ref.nRoomID == tRoom.nRoomID && tRoom.nSvrPort == ref.nSvrPort) {
+			return;
+		}
+	}
+	m_vDraginedRooms.push_back(tRoom);
+}
+
+void CPlayerGameData::removeDraginedRoom(uint32_t nRoomID, eMsgPort nSvrPort) {
+	auto it = std::find_if(m_vDraginedRooms.begin(), m_vDraginedRooms.end(), [nRoomID, nSvrPort](stRoomEntry& str) {
+		return str.nRoomID == nRoomID && str.nSvrPort == nSvrPort;
+	});
+	while (it != m_vDraginedRooms.end()) {
+		m_vDraginedRooms.erase(it);
+		it = std::find_if(m_vDraginedRooms.begin(), m_vDraginedRooms.end(), [nRoomID, nSvrPort](stRoomEntry& str) {
+			return str.nRoomID == nRoomID && str.nSvrPort == nSvrPort;
+		});
+	}
+}
+
 void CPlayerGameData::setStayInRoom( stRoomEntry tRoom )
 {
 	m_tStayRoom = tRoom;
@@ -179,7 +200,7 @@ void CPlayerGameData::onPlayerOtherDeviceLogin(uint32_t nOldSessionID, uint32_t 
 
 bool CPlayerGameData::canRemovePlayer()
 {
-	return getStayInRoom().isEmpty() && m_vCreatedRooms.empty();
+	return getStayInRoom().isEmpty() && m_vCreatedRooms.empty() && m_vDraginedRooms.empty();
 }
 
 void CPlayerGameData::adminVisitInfo(Json::Value& jsInfo)

@@ -401,6 +401,10 @@ bool ThirteenPrivateRoom::doDeleteRoom() {
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
 
+	for (auto& ref : m_mStayPlayers) {
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_player_DragInRoom_Closed, jsReqInfo);
+	}
+
 	//auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	getRoomRecorder()->doSaveRoomRecorder(pAsync);
 	if (m_nLeagueID) {

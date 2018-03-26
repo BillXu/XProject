@@ -365,6 +365,10 @@ bool ThirteenGPrivateRoom::doDeleteRoom()
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
 
+	for (auto& ref : m_mStayPlayers) {
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_player_DragInRoom_Closed, jsReqInfo);
+	}
+
 	for (auto ref : m_mStayPlayers) {
 		auto stg = (stgStayPlayer*)ref.second;
 		stg->nState = eNet_Offline;
@@ -1196,6 +1200,12 @@ void ThirteenGPrivateRoom::onPlayerAutoLeave(uint32_t nUserUID, bool bSwitch) {
 }
 
 void ThirteenGPrivateRoom::doRoomGameOver(bool isDismissed) {
+	if (eState_RoomOvered == m_nPrivateRoomState)  // avoid opotion  loop invoke this function ;
+	{
+		LOGFMTE("already gave over , why invoker again room id = %u", getRoomID());
+		return;
+	}
+
 	getRoomRecorder()->setPlayerCnt(getRoomPlayerCnt());
 	getRoomRecorder()->setRotBankerPool(m_nRotBankerPool);
 	getRoomRecorder()->setDuration(m_tCreateTimeLimit.getInterval());
@@ -1220,11 +1230,6 @@ void ThirteenGPrivateRoom::doRoomGameOver(bool isDismissed) {
 		}
 	}
 
-	if (eState_RoomOvered == m_nPrivateRoomState)  // avoid opotion  loop invoke this function ;
-	{
-		LOGFMTE("already gave over , why invoker again room id = %u", getRoomID());
-		return;
-	}
 	//doSendRoomGameOverInfoToClient(isDismissed);
 	// tell client closed room ;
 	Json::Value jsDoClosed;

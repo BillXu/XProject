@@ -125,6 +125,7 @@ enum eAsyncReq
 	eAsync_player_do_Rot_Banker, //玩家抢庄
 	eAsync_player_League_Push_Event, //玩家收到联盟推送请求
 	eAsync_player_club_decline_DragIn, //玩家收到俱乐部拒绝带入消息
+	eAsync_player_DragInRoom_Closed, //玩家带入房间结束
 	eAsync_thirteen_delay_check_Diamond, //十三水延时摆牌检测
 	eAsync_thirteen_reput_check_Diamond, //十三水重新摆牌检测
 	eAsync_Club_AddCoin, //俱乐部添加金币

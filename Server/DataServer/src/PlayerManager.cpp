@@ -400,6 +400,18 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_player_DragInRoom_Closed:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			auto gd = (CPlayerGameData*)pPlayer->getComponent(ePlayerComponent_PlayerGameData);
+			uint32_t nRoomID = jsReqContent["roomID"].asUInt();
+			auto nPort = jsReqContent["port"].asUInt();
+			gd->removeDraginedRoom(nRoomID, (eMsgPort)nPort);
+		}
+	}
+	break;
 	case eAsync_club_Update_Member_Limit_check_Diamond:
 	case eAsync_thirteen_delay_check_Diamond:
 	case eAsync_thirteen_reput_check_Diamond:
