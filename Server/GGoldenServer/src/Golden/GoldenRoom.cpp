@@ -513,7 +513,19 @@ bool GoldenRoom::onPlayerPass(uint8_t nIdx) {
 				flag = false;
 			}
 			else {
-				pPlayer->setState(eRoomPeer_GiveUp);
+				uint8_t aliveCnt = 0;
+				for (auto& ref : m_vPlayers) {
+					if (ref && ref->haveState(eRoomPeer_CanAct)) {
+						aliveCnt++;
+					}
+				}
+				if (aliveCnt < 2) {
+					jsMsg["ret"] = 4;//最后一个玩家不能弃牌
+					flag = false;
+				}
+				else {
+					pPlayer->setState(eRoomPeer_GiveUp);
+				}
 			}
 		}
 		else {
