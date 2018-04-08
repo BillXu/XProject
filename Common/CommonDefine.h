@@ -33,6 +33,26 @@ enum ePayChannel
 	ePay_Max,
 };
 
+enum eClubPrivilige
+{
+	eClubPrivilige_Forbid, // can not enter room 
+	eClubPrivilige_Normal,
+	eClubPrivilige_Manager,
+	eClubPrivilige_Creator,
+	eClubPrivilige_Max,
+};
+
+enum eClubEvent
+{
+	eClubEvent_ApplyJoin,// some body apply to join club , { uid : 23, respUID : 11 }
+	eClubEvent_Joined, // { uid  : 23 }
+	eClubEvent_Kick, // { uid : 23 , mgrUID : 23 }
+	eClubEvent_Leave, // { uid : 23 }
+	eClubEvent_UpdatePrivlige, // { uid : 23 , privilige : eClubPrivilige }
+	eClubEvent_RespInvite,// { uid : 234 , nIsAgree : 0 }
+	eClubEvent_Max,
+};
+
 enum ePayRoomCardType
 {
 	ePayType_None,
