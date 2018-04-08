@@ -8,6 +8,7 @@ enum eMsgPort
 	ID_MSG_PORT_VERIFY,
 	ID_MSG_PORT_RECORDER_DB,
 	ID_MSG_PORT_DATA,
+	ID_MSG_PORT_CLUB = ID_MSG_PORT_DATA,
 	ID_MSG_PORT_DB,
 	ID_MSG_PORT_MJ,
 	ID_MSG_PORT_BI_JI,
@@ -307,9 +308,75 @@ enum eMsgType
 	// svr: { idx : 0 , isTiLaChuai : 0 }
 
 	MSG_DDZ_MAX = 1500,
-	
-		
-		
+
+	    // club msg 
+	MSG_CLUB_MSG = 2800,
+	MSG_CLUB_CREATE_CLUB,
+	// client : { name : "23",opts : {} }
+	// svr : { ret : 0 , clubID : 2 } 
+	// ret : 0 success , 1 condition is not meet ;
+
+	MSG_CLUB_DISMISS_CLUB,
+	// client : { clubID : 23 }
+	// svr : { ret : 0 }
+	// ret : 0 , 1 invalid privilige , 4 player is null;
+
+	MSG_CLUB_SET_STATE,
+	// client: { clubID : 23 , isPause : 0 }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 invalid privilige 
+
+	MSG_CLUB_APPLY_JOIN, 
+    // client : { clubID : 23 }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 already in club , 2 already applyed , do not apply again , 3 memeber cnt  reach limit , 4 player is null ;
+	MSG_CLUB_KICK_PLAYER,
+	// client : { clubID : 23 , kickUID : 23 }
+	// svr : { ret : 0 }
+	// ret : 0 success ,1  kickUID not in club , 2 you are not mangager , 4 you do not login , invalid player 
+	MSG_CLUB_PLAYER_LEAVE,
+	// client : { clubID : 0 }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 you are not in club ,4 you do not login , invalid player  ;
+	MSG_CLUB_SET_ROOM_OPTS,
+	// client : { clubID : 0 , opts : { }  }
+	// svr : { ret :0 }
+	// ret : 0 success , 1 privilige too low ,4 you do not login , invalid player  ; .
+	// opts : create room opts ;
+	MSG_CLUB_UPDATE_PRIVILIGE,
+	// client : { clubID : 0 , playerUID : 234 , privilige : eClubPrivilige }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 privilige invalid, 2 mgr cnt reach limit ,  3 player not in club , 4 you do not login , invalid player , 5 the same privilige ;
+	MSG_CLUB_REQ_EVENTS,
+	// client : { clubID : 23, clientMaxEventID : 23, state : eEventState   }
+	// svr : { ret : 0 ,pageIdx : 0 , vEvents : [ { eventID : 8 , type : eClubEvent , state : eEventState , time : 23452 ,detail : {} } ] }
+	// ret : 0 success , 4 ,you do not login , invalid player , 1 privilige invalid 
+	// ps : if vEvents's size less then 10 , means last page ;
+	MSG_CLUB_PROCESS_EVENT,
+	// client : { clubID : 23 , eventID : 23 ,  detial : {} }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 event not exsit , 2 already processed ,3 invalid privilige , 4 you are not login, 5 invalid detail ;
+	MSG_CLUB_REQ_INFO,
+	// client : { clubID : 23 }
+	// svr : { name : 2 , opts : {} }
+	MSG_CLUB_REQ_ROOMS,
+	// client : { clubID : 0 }
+	// svr : { fullRooms : [ 12,12], emptyRooms : [2,4]  }
+
+	MSG_CLUB_REQ_PLAYERS,
+	// client : { clubID : 10  }
+	// svr : { pageIdx : 0 ,players : [ { uid : 235, privilige : eClubPrivilige  } .... ] } 
+	// ret : 0 , players's size < 10 means last page;
+	MSG_CLUB_INVITE_JOIN,
+	// client : { clubID : 3, invites : [ 23,45,2] }
+	// svr : { ret : 0 }
+	// ret : 0 , 1 invalid privilige 
+	MSG_CLUB_RESPONE_INVITE,
+	// client : { clubID : 3 , nIsAgree : 0  }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 member cnt reach limit , 2 invitation time out ;
+	MSG_CLUB_MSG_END = 2900,
+
 	// mj specail msg ;
 	MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD,  // 有人出了一张牌，等待需要这张牌的玩家 操作，可以 碰，杠，胡
 	// svr : { invokerIdx : 2,cardNum : 32 , acts : [type0, type 1 , ..] }  ;
