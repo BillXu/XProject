@@ -17,6 +17,8 @@ CClub::CClub() {
 	m_bBaseDataDirty = false;
 	m_bMoneyDataDirty = false;
 	m_bUseFulDataDirty = false;
+	m_bLevelInfoDirty = false;
+	m_bLeagueDataDirty = false;
 	for (int i = eClubComponent_None; i < eClubComponent_Max; ++i)
 	{
 		m_vAllComponents[i] = NULL;
@@ -341,8 +343,6 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 		jsMsg["ret"] = 0;
 		jsMsg["clubID"] = getClubID();
 		sendMsgToClient(jsMsg, nmsgType, nSenderID);
-		return true;
-
 		return true;
 	}
 

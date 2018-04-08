@@ -597,6 +597,7 @@ bool ThirteenPeerCard::setFuLu(VEC_CARD& vCards, uint8_t nIdx) {
 		}
 		if (nSameCnt == 3) {
 			if (nSame3) {
+				vSame2.push_back(tValue);
 				//continue;
 			}
 			else {

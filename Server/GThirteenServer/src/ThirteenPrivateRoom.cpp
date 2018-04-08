@@ -402,6 +402,7 @@ bool ThirteenPrivateRoom::doDeleteRoom() {
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
 
 	for (auto& ref : m_mStayPlayers) {
+		jsReqInfo["targetUID"] = ref.second->nUserUID;
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_player_DragInRoom_Closed, jsReqInfo);
 	}
 

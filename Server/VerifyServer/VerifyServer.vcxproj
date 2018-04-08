@@ -102,6 +102,7 @@
     <ClCompile Include="src\httpServer\request_handler.cpp" />
     <ClCompile Include="src\httpServer\request_parser.cpp" />
     <ClCompile Include="src\httpServer\server.cpp" />
+    <ClCompile Include="src\PushMessageTask.cpp" />
     <ClCompile Include="src\TaskPoolModule.cpp" />
     <ClCompile Include="src\WeChatOrderTask.cpp" />
     <ClCompile Include="src\HMAC_SHA1.cpp" />
@@ -133,6 +134,7 @@
     <ClInclude Include="src\httpServer\request_parser.hpp" />
     <ClInclude Include="src\httpServer\server.hpp" />
     <ClInclude Include="src\IVerifyTask.h" />
+    <ClInclude Include="src\PushMessageTask.h" />
     <ClInclude Include="src\TaskPoolModule.h" />
     <ClInclude Include="src\WeChatOrderTask.h" />
     <ClInclude Include="src\HMAC_SHA1.h" />

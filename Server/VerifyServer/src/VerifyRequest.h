@@ -1,5 +1,6 @@
 #pragma once
 #include <list>
+#include <vector>
 #include "NativeTypes.h"
 //#include "RakNetTypes.h"
 #define MAX_VERIFY_STR_LEN 1024*8
@@ -44,3 +45,14 @@ struct stShopItemOrderRequest
 };
 
 typedef std::list<stShopItemOrderRequest*> LIST_ORDER_REQUEST ;
+
+// message
+struct stPushMessageRequest
+{
+	uint8_t nType = 0; //0 uid, 1 clubID
+	std::vector<uint32_t> vReceivers;
+	uint8_t nLevel = 0;
+	char cContent[200];
+};
+
+typedef std::list<stPushMessageRequest*> LIST_MESSAGE_REQUEST;

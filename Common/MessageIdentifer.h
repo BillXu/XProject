@@ -857,6 +857,10 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	//client : targetID: leagueID, {uid : 123, clubID : 123}
 	//svr : {ret : 0, clubID : 123, leagueID : 123, detail : [{type : 0, amount : 0}, ...]}
 
+	MSG_CLUB_SYSTEM_AUTO_ADD_PLAYER, //服务器自动接收玩家加入俱乐部——慎用
+	//client : targetID: clubID, {uid : 123}
+	//svr : {}
+
 	MSG_CLUB_MESSAGE_END = 2500,
 
 	MSG_PLAYER_RESET_PASSWORD, //玩家重置密码

@@ -34,6 +34,35 @@ void CClubEvent::reset() {
 }
 
 bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID) {
+	if (MSG_CLUB_SYSTEM_AUTO_ADD_PLAYER == nmsgType) {
+		uint32_t nMemberID = recvValue["uid"].isUInt() ? recvValue["uid"].asUInt() : 0;
+		if (nMemberID == 0) {
+			LOGFMTE("User apply auto join club error, userID is missing, sessionID = %u, clubID = %u", nSenderID, getClub()->getClubID());
+			//Json::Value jsResult;
+			//jsResult["ret"] = 1;
+			//sendMsgToClient(jsResult, nmsgType, nSenderID);
+			return true;
+		}
+		if (getClub()->getClubMemberData()->addMember(nMemberID)) {
+			stEventData sted;
+			sted.nEventID = getClub()->getClubMgr()->generateEventID();
+			sted.nDisposerUID = 0;
+			sted.nState = eClubEventState_Accede;
+			sted.nPostTime = time(NULL);
+			sted.nEventType = eClubEventType_AppcationJoin;
+			sted.nLevel = getEventLevel(eClubEventType_AppcationJoin);
+			sted.jsDetail = recvValue;
+			m_mAllEvents[sted.nEventID] = sted;
+			m_vAddIDs.push_back(sted.nEventID);
+			Json::Value jsMsg;
+			jsMsg["targetUID"] = nMemberID;
+			jsMsg["clubID"] = getClub()->getClubID();
+			jsMsg["agentID"] = 0;
+			getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nMemberID, eAsync_Club_Join, jsMsg);
+		}
+		return true;
+	}
+
 	if (MSG_CLUB_EVENT_ENTRY_UPDATE == nmsgType) {
 		Json::Value jsMsg;
 		jsMsg["clubID"] = getClub()->getClubID();
@@ -240,7 +269,7 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 			getClub()->getClubMemberData()->pushAsyncRequestToAll(ID_MSG_PORT_DATA, eAsync_Club_Dismiss, jsMsg);
 			Json::Value jsResult;
 			jsResult["ret"] = 0;
-			jsMsg["clubID"] = getClub()->getClubID();
+			jsResult["clubID"] = getClub()->getClubID();
 			sendMsgToClient(jsResult, nmsgType, nSenderID);
 		}
 		else {
@@ -295,6 +324,7 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 
 	if (MSG_CLUB_EVENT_JOIN == nmsgType) {
 		Json::Value jsMsg, jsEvents;
+		uint8_t i = 0;
 		for (auto& ref : m_mAllEvents) {
 			auto& data = ref.second;
 			if (data.nEventType == eClubEventType_AppcationJoin) {
@@ -305,6 +335,9 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 				jsEvent["disposer"] = data.nDisposerUID;
 				jsEvent["detail"] = data.jsDetail;
 				jsEvents[jsEvents.size()] = jsEvent;
+				if (++i >= ENTRY_RECORDER_LIST_LIMIT) {
+					break;
+				}
 			}
 		}
 		jsMsg["ret"] = 0;
@@ -674,6 +707,10 @@ void CClubEvent::readEventFormDB(uint32_t nOffset) {
 
 		// not finish , go on read 
 		auto nSize = m_mAllEvents.size();
+		if (nSize > 599) {
+			doProcessAfterReadDB();
+			return;
+		}
 		readEventFormDB(nSize);
 	});
 }

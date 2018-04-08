@@ -104,6 +104,7 @@ public:
 			nIntegration = 0;
 			nCreateRoomType = eClubCreateRoom_All;
 			nSearchLimit = eClubSearchLimit_None;
+			nCreateFlag = 0;
 			vJoinedLeague.clear();
 			vCreatedLeague.clear();
 		}

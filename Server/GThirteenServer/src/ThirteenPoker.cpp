@@ -27,23 +27,23 @@ void ThirteenPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 {
 	//return;
 	//	ºÚÌÒA K Q 10 9 8 Ã·»¨8 ºìÌÒ8 ·½¿é8
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 14));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Club, 2));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 3));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 4));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Club, 5));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 10));
 
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Club, 4));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 5));
 	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Club, 6));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 7));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Club, 8));
-
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 9));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Club, 10));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 11));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 6));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 6));
 	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Club, 12));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 13));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Heart, 12));
 
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 14));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 3));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 8));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 9));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 12));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 13));
+
+	/*vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 14));
 	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 2));
 	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 3));
 
@@ -57,7 +57,7 @@ void ThirteenPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 10));
 	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 11));
 	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Diamond, 12));
-	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 13));
+	vMakedCards.push_back(TT_MAKE_CARD(ePoker_Sword, 13));*/
 
 }
 
