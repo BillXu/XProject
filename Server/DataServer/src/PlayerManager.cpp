@@ -121,7 +121,7 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 	// new 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,headIcon FROM playerbasedata where userUID = %u", nReqUID );
+	sprintf_s(pBuffer, "SELECT nickName,sex,headIcon , unix_timestamp(loginTime) as lt FROM playerbasedata where userUID = %u", nReqUID );
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, nReqUID,eAsync_DB_Select, jssql, [nReqUID,this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
@@ -141,6 +141,8 @@ bool CPlayerBrifDataCacher::sendPlayerDataProfile(uint32_t nReqUID ,bool isDetai
 			jsBrifData["name"] = jsRow["nickName"];
 			jsBrifData["headIcon"] = jsRow["headIcon"];
 			jsBrifData["sex"] = jsRow["sex"];
+			jsBrifData["lastLoginTime"] = jsRow["lt"];
+			jsBrifData["isOnline"] = 0;
 		}
 		else
 		{
@@ -178,6 +180,10 @@ void CPlayerBrifDataCacher::visitBrifData(Json::Value& jsBrifData, CPlayer* pPla
 	jsBrifData["ip"] = pPlayer->getIp();
 	jsBrifData["J"] = pPlayer->getBaseData()->getGPS_J();
 	jsBrifData["W"] = pPlayer->getBaseData()->getGPS_W();
+
+	auto gd = (CPlayerGameData*)pPlayer->getComponent(ePlayerComponent_PlayerGameData);
+	jsBrifData["isInRoom"] = gd->getStayInRoom().isEmpty() ? 0 : 1;
+	jsBrifData["isOnline"] = 1;
 }
 
 void CPlayerBrifDataCacher::checkState()

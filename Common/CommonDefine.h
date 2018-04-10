@@ -34,6 +34,33 @@ enum ePayChannel
 	ePay_Max,
 };
 
+enum eClubPrivilige
+{
+	eClubPrivilige_Forbid, // can not enter room 
+	eClubPrivilige_Normal,
+	eClubPrivilige_Manager,
+	eClubPrivilige_Creator,
+	eClubPrivilige_Max,
+};
+
+enum eClubEvent
+{
+	eClubEvent_ApplyJoin,// some body apply to join club , { uid : 23, respUID : 11, isAgree : 0  }, when processed , contain key : respUID : 11, isAgree 
+	eClubEvent_Kick, // { uid : 23 , mgrUID : 23 }
+	eClubEvent_Leave, // { uid : 23 }
+	eClubEvent_UpdatePrivlige, // { uid : 23 , privilige : eClubPrivilige }
+	eClubEvent_RespInvite,// { uid : 234 , nIsAgree : 0 }
+	eClubEvent_Max,
+};
+
+enum eEventState
+{
+	eEventState_WaitProcesse,
+	eEventState_Processed,
+	eEventState_TimeOut,
+	eEventState_Max,
+};
+
 enum ePayRoomCardType
 {
 	ePayType_None,
@@ -322,6 +349,13 @@ enum eMailType
 	eMail_GiveBack_Diamond, // { diamond : 23 , roomID :23, reason : 0  } 
 	eMail_Consume_Emoji, // { roomID :23, cnt : 0 }
 	eMail_Agent_AddEmojiCnt, // { agentID : 23 ,addCnt : 23 }
+	// club 
+	eMail_ResponeClubApplyJoin,// { clubID : 23 , clubName : "abc", nIsAgree : 0  }
+	eMail_ClubInvite , //  { clubID : 23 , clubName : "abc"  }
+	eMail_ClubBeKick, // { clubID : 23 , clubName : "abc"  }
+	eMail_ClubDismiss, // { clubID : 23 , clubName : "abc"  }
+	eMail_ClubJoin, // { clubID : 23 } , sys pro
+	eMail_ClubLeave, // { clubID : 23 } , sys pro
 
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;

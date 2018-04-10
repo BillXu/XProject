@@ -50,6 +50,8 @@ public:
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
 	GameRoom* getCoreRoom();
 	uint16_t getPlayerCnt()override;
+	bool isClubRoom() { return m_nClubID > 0; }
+	uint32_t getClubID() { return m_nClubID; }
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();
@@ -62,6 +64,7 @@ protected:
 protected:
 	IGameRoomManager* m_pRoomMgr;
 	uint32_t m_nOwnerUID;
+	uint32_t m_nClubID;
 	ePayRoomCardType m_nPayType;
 	bool m_isEnableWhiteList;
 

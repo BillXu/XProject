@@ -809,6 +809,19 @@ void NNRoom::onTimeOutPlayerAutoBet()
 	}
 }
 
+void NNRoom::onTimeOutPlayerAutoRobBanker()
+{
+	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+	{
+		auto pPlayer = (NNPlayer*)getPlayerByIdx(nIdx);
+		if ( nullptr == pPlayer || pPlayer->haveState(eRoomPeer_CanAct) == false || pPlayer->isRobotBanker() )
+		{
+			continue;
+		}
+		onPlayerRobotBanker(nIdx, 0);
+	}
+}
+
 void NNRoom::invokerTuoGuanAction(uint8_t nTargetIdx)
 {
 	auto nState = getCurState()->getStateID();

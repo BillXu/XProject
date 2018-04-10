@@ -12,8 +12,7 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		auto pRoom = (NNRoom*)getRoom();
 		pRoom->doStartRobotBanker();
-		setStateDuringTime(999999999);
-		m_isCheckTuoGuan = false;
+		setStateDuringTime(9);
 		m_isAnimateion = false;
 	}
 
@@ -49,9 +48,8 @@ public:
 
 	void update(float fDeta)override
 	{
-		IGameRoomState::update(fDeta);
 		auto pRoom = (NNRoom*)getRoom();
-		if ( false == m_isAnimateion && pRoom->isAllPlayerRobotedBanker())
+		if (false == m_isAnimateion && pRoom->isAllPlayerRobotedBanker())
 		{
 			m_isAnimateion = true;
 			auto nCandianateCnt = pRoom->doProduceNewBanker();
@@ -59,19 +57,24 @@ public:
 			setStateDuringTime(((uint8_t)fT) > 2 ? 2 : fT);
 		}
 
-		if (false == m_isCheckTuoGuan)
-		{
-			m_isCheckTuoGuan = true;
-			pRoom->invokerTuoGuanAction();
-		}
+		pRoom->invokerTuoGuanAction();
+		IGameRoomState::update(fDeta);
 	}
 
 	void onStateTimeUp()
 	{
-		getRoom()->goToState(eRoomState_DoBet);
+		if ( m_isAnimateion )
+		{
+			getRoom()->goToState(eRoomState_DoBet);
+		}
+		else
+		{
+			auto pRoom = (NNRoom*)getRoom();
+			pRoom->onTimeOutPlayerAutoRobBanker();
+		}
+
 	}
 
 protected:
-	bool m_isCheckTuoGuan;
 	bool m_isAnimateion;
 };

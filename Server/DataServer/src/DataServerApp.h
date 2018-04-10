@@ -16,6 +16,7 @@ public:
 		eMod_PlayerMgr = eMod_None,
 		eMod_Shop,
 		eMod_Mail,
+		eMod_Club,
 		eMod_Max,
 	};
 public:

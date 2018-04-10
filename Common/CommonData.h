@@ -2,6 +2,7 @@
 #pragma pack(push)
 #pragma pack(1)
 #include "CommonDefine.h"
+#include <vector>
 // base data about 
 struct stPlayerBrifData
 {
@@ -24,7 +25,16 @@ struct stPlayerDetailData
 struct stServerBaseData
 	:public stPlayerDetailData
 {
-
+	std::vector<uint32_t> vJoinedClubIDs;
+	void reset()
+	{
+		vJoinedClubIDs.clear();
+		dfJ = 0;
+		dfW = 0;
+		nUserUID = 0;
+		memset(cName,0,sizeof(cName));
+		memset(cHeadiconUrl, 0, sizeof(cHeadiconUrl));
+	}
 };
 
 #pragma pack(pop)
