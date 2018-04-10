@@ -47,7 +47,7 @@ public:
 		return m_nWaiBaoOffset;
 	}
 
-	int32_t addSingleOffset(int32_t nOffset)
+	virtual int32_t addSingleOffset(int32_t nOffset, bool canBeMinus = true)
 	{
 		m_nCurOffset += nOffset;
 		m_nChips += nOffset;

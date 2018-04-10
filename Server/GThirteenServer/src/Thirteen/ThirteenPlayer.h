@@ -32,6 +32,8 @@ public:
 	void signAutoLeave() { m_bAutoLeave = true; }
 	void clearAutoLeave() { m_bAutoLeave = false; }
 	bool isAutoLeave() { return m_bAutoLeave; }
+
+	int32_t addSingleOffset(int32_t nOffset, bool canBeMinus = true)override;
 protected:
 	ThirteenPeerCard m_tPeerCard;
 	bool m_bDetermined;

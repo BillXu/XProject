@@ -72,7 +72,7 @@ public:
 	void setPlayerCnt(uint32_t nCnt) { m_nPlayerCnt = nCnt; }
 	void setClubID(uint32_t nClubID) { m_nClubID = nClubID; }
 	void setLeagueID(uint32_t nLeagueID) { m_nLeagueID = nLeagueID; }
-	void setRotBankerPool(uint32_t nCoin) { m_nRotBankerPool = nCoin; }
+	void setRotBankerPool(int32_t nCoin) { m_nRotBankerPool = nCoin; }
 	void addRotBankerPool(uint32_t nUserID, uint32_t nAmount);
 	void setDuration(int32_t nDuration) { m_nDuration = nDuration; }
 	void doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene  );
@@ -86,7 +86,7 @@ protected:
 	uint32_t m_nPlayerCnt;
 	uint32_t m_nClubID;
 	uint32_t m_nLeagueID;
-	uint32_t m_nRotBankerPool;
+	int32_t m_nRotBankerPool;
 	uint16_t m_nCurRoundIdx;
 	int32_t m_nDuration;
 	Json::Value m_jsOpts;

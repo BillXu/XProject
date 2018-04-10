@@ -13,7 +13,9 @@
 #include <assert.h>
 #include "PlayerGameData.h"
 #include "Utility.h"
+#include "MailModule.h"
 #pragma warning( disable : 4996 )
+#define CONSUME_UPDATE_PLAYER_INFO 100
 CPlayerBaseData::CPlayerBaseData(CPlayer* player )
 	:IPlayerComponent(player)
 {
@@ -139,6 +141,33 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 			return true;
 		}
 
+
+		/*uint32_t nDiamond = CONSUME_UPDATE_PLAYER_INFO;
+		if (getPlayer()->isPlayerReady()) {
+			if (getPlayer()->getBaseData()->getDiamoned() < nDiamond) {
+				Json::Value jsmsg;
+				jsmsg["ret"] = 2;
+				sendMsg(jsmsg, nmsgType);
+				return true;
+			}
+		}
+		else {
+			Json::Value jsmsg;
+			jsmsg["ret"] = 3;
+			sendMsg(jsmsg, nmsgType);
+			return true;
+		}
+
+		uint32_t nUserUID = getPlayer()->getUserUID();
+		Json::Value jsMailArg;
+		jsMailArg["diamond"] = nDiamond;
+		jsMailArg["roomID"] = 0;
+		jsMailArg["reason"] = 2;
+
+		auto pMailModule = ((DataServerApp*)(getPlayer()->getPlayerMgr()->getSvrApp()))->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Consume_Diamond, jsMailArg, eMailState_WaitSysAct);*/
+
+
 		sprintf_s(m_stBaseData.cHeadiconUrl, "%s", recvValue["headIcon"].asCString());
 		sprintf_s(m_stBaseData.cName, "%s", recvValue["name"].asCString());
 		m_stBaseData.nSex = recvValue["sex"].asUInt();
@@ -146,6 +175,46 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		Json::Value jsmsg;
 		jsmsg["ret"] = 0;
 		sendMsg(jsmsg, nmsgType);
+		return true;
+	}
+	else if (MSG_PLAYER_RESET_NAME == nmsgType) {
+		Json::Value jsMsg;
+		auto gd = (CPlayerGameData*)getPlayer()->getComponent(ePlayerComponent_PlayerGameData);
+		if (gd->canRemovePlayer() == false) {
+			jsMsg["ret"] = 1;
+			sendMsg(jsMsg, nmsgType);
+			return true;
+		}
+
+		//auto bd = (CPlayerGameData*)getPlayer()->getComponent(ePlayerComponent_BaseData);
+		uint32_t nDiamond = CONSUME_UPDATE_PLAYER_INFO;
+		if (getPlayer()->isPlayerReady()) {
+			if (getPlayer()->getBaseData()->getDiamoned() < nDiamond) {
+				jsMsg["ret"] = 2;
+				sendMsg(jsMsg, nmsgType);
+				return true;
+			}
+		}
+		else {
+			jsMsg["ret"] = 3;
+			sendMsg(jsMsg, nmsgType);
+			return true;
+		}
+
+		uint32_t nUserUID = getPlayer()->getUserUID();
+		Json::Value jsMailArg;
+		jsMailArg["diamond"] = nDiamond;
+		jsMailArg["roomID"] = 0;
+		jsMailArg["reason"] = 2;
+
+		auto pMailModule = ((DataServerApp*)(getPlayer()->getPlayerMgr()->getSvrApp()))->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_Consume_Diamond, jsMailArg, eMailState_WaitSysAct);
+
+		sprintf_s(m_stBaseData.cName, "%s", recvValue["name"].asCString());
+		m_stBaseData.nSex = recvValue["sex"].asUInt();
+		m_bPlayerInfoDirty = true;
+		jsMsg["ret"] = 0;
+		sendMsg(jsMsg, nmsgType);
 		return true;
 	}
 	else if ( MSG_PLAYER_UPDATE_GPS == nmsgType )

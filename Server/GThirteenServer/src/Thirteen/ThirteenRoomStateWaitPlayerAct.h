@@ -356,7 +356,7 @@ public:
 			}
 			if (pRoom->onPlayerSetDao(pPlayer->getIdx(), vCards)) {
 				if (jsmsg["showCards"].isNull() == false && jsmsg["showCards"].isUInt() && jsmsg["showCards"].asUInt()) {
-					if (pRoom->isCanMingPai() == false) {
+					if (pRoom->isCanMingPai() == false || pRoom->isPlayerCanMingPai(pPlayer->getIdx()) == false) {
 						jsRet["ret"] = 3;
 						pRoom->sendMsgToPlayer(jsRet, MSG_ROOM_THIRTEEN_GAME_SHOW_CARDS, nSessionID);
 						LOGFMTE("this room can not show cards? room id = %u, session id = %u", pRoom->getRoomID(), nSessionID);

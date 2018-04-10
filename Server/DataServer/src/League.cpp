@@ -164,6 +164,40 @@ bool CLeague::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqCont
 }
 
 bool CLeague::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID) {
+	if (eAsync_League_T_Player_Check == nRequestType) {
+		Json::Value jsReq;
+		jsReq = jsReqContent;
+		jsReq["clubID"] = getCreatorCID();
+		auto pApp = getLeagueMgr()->getSvrApp();
+		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, getCreatorCID(), eAsync_Club_League_T_Player_Check, jsReq, [pApp, nSenderID, nReqSerial, nSenderPort, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		{
+			Json::Value jsRet;
+			if (isTimeOut)
+			{
+				LOGFMTE(" request of league club time out uid = %u , can not check T player ", jsUserData["uid"].asUInt());
+				jsRet["ret"] = 7;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getLeagueID());
+				return;
+			}
+
+			uint8_t nReqRet = retContent["ret"].asUInt();
+			uint8_t nRet = 0;
+			do {
+				if (0 != nReqRet)
+				{
+					nRet = 3;
+					break;
+				}
+
+
+			} while (0);
+
+			jsRet["ret"] = nRet;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getLeagueID());
+		}, jsReq);
+		return true;
+	}
+
 	for (int i = eLeagueComponent_None; i < eLeagueComponent_Max; ++i)
 	{
 		ILeagueComponent* p = m_vAllComponents[i];

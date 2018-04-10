@@ -11,7 +11,7 @@
 #include "IGameRoomDelegate.h"
 #include "IGameRoomManager.h"
 #include "ISeverApp.h"
-#define BASE_DRAGIN_RATIO 200
+#define BASE_DRAGIN_RATIO 100
 #define GAME_AUTO_PICK_OUT_TIME 180
 #define GAME_SHWO_CARDS_EXTRA_SHUI 10
 #define GAME_ROT_BANKE_RATIO 2
@@ -223,6 +223,7 @@ void ThirteenRoom::onGameEnd()
 	}
 
 	// caculate coin
+	bool bMinus = isClubRoom() == 0;
 	// 先找全垒打
 	// 两个人没有全垒打
 	uint8_t nQLDIdx = -1;
@@ -272,11 +273,11 @@ void ThirteenRoom::onGameEnd()
 						getBankerIdx() == ref->getIdx())) {
 					nLoseTemp *= GAME_ROT_BANKE_RATIO;
 				}
-				ref->addSingleOffset(-1 * nLoseTemp);
+				nLoseTemp = ref->addSingleOffset(-1 * nLoseTemp, bMinus);
 				nWinCoin += nLoseTemp;
 			}
 		}
-		pWinPlayer->addSingleOffset(nWinCoin);
+		pWinPlayer->addSingleOffset(nWinCoin, bMinus);
 	}
 	
 	//再找打枪
@@ -326,9 +327,9 @@ void ThirteenRoom::onGameEnd()
 					int32_t nLoseCoin = getWinCoin(i, WIN_SHUI_TYPE_SHOOT);
 					for (auto& loseIdx : vShoot[i]) {
 						auto nLoseTemp = nLoseCoin;
-						auto pLoser = getPlayerByIdx(loseIdx);
+						auto pLoser = (ThirteenPlayer*)getPlayerByIdx(loseIdx);
 						if (pLoser) {
-							if (pWinPlayer->hasShowCards() || ((ThirteenPlayer*)pLoser)->hasShowCards()) {
+							if (pWinPlayer->hasShowCards() || pLoser->hasShowCards()) {
 								nLoseTemp += GAME_SHWO_CARDS_EXTRA_SHUI * getBaseScore();
 							}
 							if (hasRotBanker() &&
@@ -337,11 +338,11 @@ void ThirteenRoom::onGameEnd()
 								nLoseTemp *= GAME_ROT_BANKE_RATIO;
 							}
 
-							pLoser->addSingleOffset(-1 * nLoseTemp);
+							nLoseTemp = pLoser->addSingleOffset(-1 * nLoseTemp, bMinus);
 							nWinCoin += nLoseTemp;
 						}
 					}
-					pWinPlayer->addSingleOffset(nWinCoin);
+					pWinPlayer->addSingleOffset(nWinCoin, bMinus);
 				}
 			}
 		}
@@ -395,8 +396,8 @@ void ThirteenRoom::onGameEnd()
 							nWinCoin *= GAME_ROT_BANKE_RATIO;
 						}
 
-						pLoser->addSingleOffset(-1 * nWinCoin);
-						pWiner->addSingleOffset(nWinCoin);
+						nWinCoin = pLoser->addSingleOffset(-1 * nWinCoin, bMinus);
+						pWiner->addSingleOffset(nWinCoin, bMinus);
 					}
 				}
 			}
@@ -469,7 +470,7 @@ void ThirteenRoom::onGameEnd()
 void ThirteenRoom::onGameDidEnd() {
 	if (isClubRoom() && isRoomGameOver() == false) {
 		for (auto& ref : m_vPlayers) {
-			if (ref && ref->getChips() < getMaxLose() && ref->haveState(eRoomPeer_WaitDragIn) == false) {
+			if (ref && ref->getChips() < getDragInNeed() && ref->haveState(eRoomPeer_WaitDragIn) == false) {
 				ref->setState(eRoomPeer_WaitDragIn);
 				getDelegate()->onPlayerWaitDragIn(ref->getUserUID());
 				Json::Value jsMsg;
@@ -590,7 +591,7 @@ bool ThirteenRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t n
 	if (GameRoom::doPlayerSitDown(pEnterRoomPlayer, nIdx)) {
 		if (isClubRoom()) {
 			auto pPlayer = getPlayerByIdx(nIdx);
-			if (pPlayer->getChips() < getMaxLose()) {
+			if (pPlayer->getChips() < getDragInNeed()) {
 				pPlayer->setState(eRoomPeer_WaitDragIn);
 				getDelegate()->onPlayerWaitDragIn(pPlayer->getUserUID());
 				Json::Value jsMsg;
@@ -849,6 +850,171 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 {
 	if ( GameRoom::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID) )
 	{
+		return true;
+	}
+
+	if (MSG_CLUB_ROOM_T_PLAYER_CHECK == nMsgType) {
+		Json::Value jsRet;
+		uint32_t nIdx = prealMsg["idx"].asUInt();
+		jsRet["idx"] = nIdx;
+		auto tPlayer = getPlayerByIdx(nIdx);
+		uint32_t nUserID = getPlayerBySessionID(nSessionID) == nullptr ? 0 : getPlayerBySessionID(nSessionID)->getUserUID();
+		if (nUserID == 0) {
+			nUserID = getStandPlayerBySessionID(nSessionID) == nullptr ? 0 : getStandPlayerBySessionID(nSessionID)->nUserUID;
+		}
+		if (nUserID && tPlayer && getDelegate()) {
+			uint32_t nClubID = getDelegate()->getDragInClubID(tPlayer->getUserUID());
+			if (nClubID) {
+				Json::Value jsMsg;
+				jsMsg["uid"] = nUserID;
+				jsMsg["tuid"] = tPlayer->getUserUID();
+				jsMsg["clubID"] = nClubID;
+				jsMsg["leagueID"] = isLeagueRoom();
+				getRoomMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_Club_T_Player_Check, jsMsg, [this, nUserID, nSessionID, nMsgType, jsRet](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+				{
+					Json::Value jsResult;
+					jsResult = jsRet;
+					if (isTimeOut)
+					{
+						LOGFMTE("inform player T other in club error,time out room id = %u , uid = %u", getRoomID(), nUserID);
+						jsResult["ret"] = 7;
+						sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+						return;
+					}
+
+					if (retContent["ret"].asUInt() != 0)
+					{
+						LOGFMTE("inform player T other in club error, request error, room id = %u , uid = %u", getRoomID(), nUserID);
+						jsResult["ret"] = 3;
+						sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+						return;
+					}
+					jsResult["ret"] = 0;
+					sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+				});
+			}
+			else {
+				jsRet["ret"] = 2;
+				sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			}
+		}
+		else {
+			jsRet["ret"] = 1;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+		}
+		return true;
+	}
+
+	if (MSG_CLUB_ROOM_T_PLAYER == nMsgType) {
+		Json::Value jsRet;
+		uint32_t nIdx = prealMsg["idx"].asUInt();
+		jsRet["idx"] = nIdx;
+		auto tPlayer = getPlayerByIdx(nIdx);
+		uint32_t nUserID = getPlayerBySessionID(nSessionID) == nullptr ? 0 : getPlayerBySessionID(nSessionID)->getUserUID();
+		if (nUserID == 0) {
+			nUserID = getStandPlayerBySessionID(nSessionID) == nullptr ? 0 : getStandPlayerBySessionID(nSessionID)->nUserUID;
+		}
+		if (nUserID && tPlayer && getDelegate()) {
+			uint32_t nClubID = getDelegate()->getDragInClubID(tPlayer->getUserUID());
+			if (nClubID) {
+				Json::Value jsMsg;
+				jsMsg["uid"] = nUserID;
+				jsMsg["tuid"] = tPlayer->getUserUID();
+				jsMsg["clubID"] = nClubID;
+				jsMsg["leagueID"] = isLeagueRoom();
+				getRoomMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_Club_T_Player_Check, jsMsg, [this, nUserID, nSessionID, nMsgType, jsRet, tPlayer](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+				{
+					Json::Value jsResult;
+					jsResult = jsRet;
+					if (isTimeOut)
+					{
+						LOGFMTE("inform player T other in club error,time out room id = %u , uid = %u", getRoomID(), nUserID);
+						jsResult["ret"] = 7;
+						sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+						return;
+					}
+
+					if (retContent["ret"].asUInt() != 0)
+					{
+						LOGFMTE("inform player T other in club error, request error, room id = %u , uid = %u", getRoomID(), nUserID);
+						jsResult["ret"] = 3;
+						sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+						return;
+					}
+					
+					Json::Value jsLeave;
+					sendMsgToPlayer(jsLeave, MSG_ROOM_PLAYER_LEAVE, tPlayer->getSessionID());
+					if (getDelegate()) {
+						getDelegate()->onPlayerTOut(tPlayer->getUserUID());
+					}
+					doPlayerLeaveRoom(tPlayer->getUserUID());
+					jsResult["ret"] = 0;
+					sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+				});
+			}
+			else {
+				jsRet["ret"] = 2;
+				sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			}
+		}
+		else {
+			jsRet["ret"] = 1;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+		}
+		return true;
+	}
+
+	if (MSG_CLUB_ROOM_T_STAND_PLAYER == nMsgType) {
+		Json::Value jsRet;
+		uint32_t nIdx = prealMsg["idx"].asUInt();
+		jsRet["idx"] = nIdx;
+		auto tPlayer = getPlayerByIdx(nIdx);
+		uint32_t nUserID = getPlayerBySessionID(nSessionID) == nullptr ? 0 : getPlayerBySessionID(nSessionID)->getUserUID();
+		if (nUserID == 0) {
+			nUserID = getStandPlayerBySessionID(nSessionID) == nullptr ? 0 : getStandPlayerBySessionID(nSessionID)->nUserUID;
+		}
+		if (nUserID && tPlayer && getDelegate()) {
+			uint32_t nClubID = getDelegate()->getDragInClubID(tPlayer->getUserUID());
+			if (nClubID) {
+				Json::Value jsMsg;
+				jsMsg["uid"] = nUserID;
+				jsMsg["tuid"] = tPlayer->getUserUID();
+				jsMsg["clubID"] = nClubID;
+				jsMsg["leagueID"] = isLeagueRoom();
+				getRoomMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_Club_T_Player_Check, jsMsg, [this, nUserID, nSessionID, nMsgType, jsRet, tPlayer](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+				{
+					Json::Value jsResult;
+					jsResult = jsRet;
+					if (isTimeOut)
+					{
+						LOGFMTE("inform player T other in club error,time out room id = %u , uid = %u", getRoomID(), nUserID);
+						jsResult["ret"] = 7;
+						sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+						return;
+					}
+
+					if (retContent["ret"].asUInt() != 0)
+					{
+						LOGFMTE("inform player T other in club error, request error, room id = %u , uid = %u", getRoomID(), nUserID);
+						jsResult["ret"] = 3;
+						sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+						return;
+					}
+
+					doPlayerStandUp(tPlayer->getUserUID());
+					jsResult["ret"] = 0;
+					sendMsgToPlayer(jsResult, nMsgType, nSessionID);
+				});
+			}
+			else {
+				jsRet["ret"] = 2;
+				sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			}
+		}
+		else {
+			jsRet["ret"] = 1;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+		}
 		return true;
 	}
 
@@ -1387,6 +1553,20 @@ bool ThirteenRoom::isCanMingPai() {
 	return m_jsOpts["mingPai"].asUInt() ? true : false;
 }
 
+bool ThirteenRoom::isPlayerCanMingPai(uint8_t nIdx) {
+	auto pPlayer = getPlayerByIdx(nIdx);
+	if (pPlayer) {
+		uint8_t nCoin = 0;
+		if (isClubRoom()) {
+			return pPlayer->getChips() + nCoin >= getMaxLose();
+		}
+		else {
+			return pPlayer->getChips() >= (int32_t)nCoin;
+		}
+	}
+	return false;
+}
+
 bool ThirteenRoom::isCanRotBanker() {
 	if (m_jsOpts["rotBanker"].isNull() || m_jsOpts["rotBanker"].isUInt() == false) {
 		return false;
@@ -1527,6 +1707,10 @@ uint32_t ThirteenRoom::getMaxDragIn() {
 
 uint32_t ThirteenRoom::getMinDragIn() {
 	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO;
+}
+
+uint32_t ThirteenRoom::getDragInNeed() {
+	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO / 2;
 }
 
 uint8_t ThirteenRoom::getWinShui(uint8_t nIdx, uint8_t nWinType, uint8_t nDaoIdx) {
@@ -1680,7 +1864,7 @@ uint8_t ThirteenRoom::doProduceNewBanker()
 
 bool ThirteenRoom::checkDragInAmount(uint32_t nAmount) {
 	if (nAmount > 0) {
-		uint32_t nMin = getBaseScore() * 200;
+		uint32_t nMin = getMinDragIn();
 		if (nAmount < nMin) {
 			return false;
 		}

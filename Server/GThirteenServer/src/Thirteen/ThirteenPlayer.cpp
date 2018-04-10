@@ -61,3 +61,18 @@ bool ThirteenPlayer::recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerR
 	pRecorder->setTypes(vType);
 	return true;
 }
+
+/*
+	return real offset value by abs(uint)
+*/
+int32_t ThirteenPlayer::addSingleOffset(int32_t nOffset, bool canBeMinus) {
+	if (canBeMinus == false && nOffset < 0 && getChips() < -1 * nOffset) {
+		int32_t nReal = getChips() > 0 ? -1 * getChips() : 0;
+		IGamePlayer::addSingleOffset(nReal);
+		return -1 * nReal;
+	}
+	else {
+		IGamePlayer::addSingleOffset(nOffset);
+		return nOffset < 0 ? -1 * nOffset : nOffset;
+	}
+}

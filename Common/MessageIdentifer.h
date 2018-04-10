@@ -861,12 +861,31 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	//client : targetID: clubID, {uid : 123}
 	//svr : {}
 
+	MSG_CLUB_ROOM_T_PLAYER_CHECK, //用于客户端显示按钮T人
+	//client : targetID: roomID {idx : 0}
+	//svr : {idx : 0, ret : 0}
+	//ret : 1, player is null	2, club is error	3, level is not enough	7, time out
+
+	MSG_CLUB_ROOM_T_PLAYER, //实际操作T人
+	//client : targetID: roomID {idx : 0}
+	//svr : {idx : 0, ret : 0}
+	//ret : 1, player is null	2, club is error	3, level is not enough	7, time out
+
+	MSG_CLUB_ROOM_T_STAND_PLAYER, //实际操作强制站起
+	//client : targetID: roomID {idx : 0}
+	//svr : {idx : 0, ret : 0}
+	//ret : 1, player is null	2, club is error	3, level is not enough	7, time out
+
 	MSG_CLUB_MESSAGE_END = 2500,
 
 	MSG_PLAYER_RESET_PASSWORD, //玩家重置密码
 	//client : {number : 11111111, password : "123456"}
 	//DATASERVER消息 targetID 发玩家ID
 	//svr : {ret : 0} 0成功，大于0失败
+
+	MSG_PLAYER_RESET_NAME, //玩家修改昵称
+	//client : {name : "lucy", sex : 1}
+	//svr : {ret : 0}
 
 
 

@@ -14,6 +14,7 @@ public:
 		int32_t nAllWrag = 0;
 		bool isSitdown = false;
 		bool isDragIn = false;
+		bool isTOut = false;
 		uint32_t isJoin = 0;
 		eNetState nState = eNet_Online;
 		uint8_t nOffLineGame = 0;
@@ -43,6 +44,7 @@ public:
 	bool canPlayerSitDown(uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
+	void onPlayerTOut(uint32_t nUserUID)override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	virtual bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount);
 	virtual bool onPlayerDeclineDragIn(uint32_t nUserID);
@@ -76,7 +78,7 @@ protected:
 	MAP_UID_PLAYERS m_mStayPlayers;
 	uint32_t m_nClubID = 0;
 	uint32_t m_nLeagueID = 0;
-	uint32_t m_nRotBankerPool = 0;
+	int32_t m_nRotBankerPool = 0;
 	//std::vector<GameRoom*> m_vPRooms;
 
 	std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;

@@ -180,6 +180,61 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 }
 
 bool CClubMemberData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult) {
+	if (eAsync_Club_League_T_Player_Check == nRequestType) {
+		uint32_t nUserID = jsReqContent["uid"].asUInt();
+		uint32_t nMemberUID = jsReqContent["tuid"].asUInt();
+
+		if (isNotJoin(nUserID)) {
+			jsResult["ret"] = 1;
+			return true;
+		}
+
+		if (checkUpdateLevel(nUserID, eClubMemberLevel_Creator) == false || checkUpdateLevel(nUserID, getMemberLevel(nMemberUID), false) == false) {
+			jsResult["ret"] = 2;
+			return true;
+		}
+
+		jsResult["ret"] = 0;
+		return true;
+	}
+	
+	if (eAsync_Club_T_Player_Check == nRequestType) {
+		uint32_t nUserID = jsReqContent["uid"].asUInt();
+		uint32_t nMemberUID = jsReqContent["tuid"].asUInt();
+		uint32_t nLeagueID = jsReqContent["leagueID"].asUInt();
+
+		if (isNotJoin(nMemberUID)) {
+			jsResult["ret"] = 1;
+			return true;
+		}
+
+		if (checkUpdateLevel(nUserID, getMemberLevel(nMemberUID), false) == false) {
+			if (nLeagueID == 0) {
+				jsResult["ret"] = 2;
+				return true;
+			}
+			return false;
+		}
+
+		jsResult["ret"] = 0;
+		return true;
+
+
+
+		/*if (isNotJoin(nUserID) || isNotJoin(nMemberUID)) {
+			jsResult["ret"] = 1;
+			return true;
+		}
+
+		if (checkUpdateLevel(nUserID, getMemberLevel(nMemberUID), false) == false) {
+			jsResult["ret"] = 2;
+			return true;
+		}
+
+		jsResult["ret"] = 0;
+		return true;*/
+	}
+
 	if (eAsync_club_League_Push_Event == nRequestType) {
 		auto nLeagueID = jsReqContent["leagueID"].asUInt();
 		auto nType = jsReqContent["type"].asUInt();
@@ -256,6 +311,55 @@ bool CClubMemberData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 			return true;
 		}
 		jsResult["ret"] = 0;
+		return true;
+	}
+	return false;
+}
+
+bool CClubMemberData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID) {
+	if (eAsync_Club_T_Player_Check == nRequestType) {
+		auto nLeagueID = jsReqContent["leagueID"].asUInt();
+		if (nLeagueID == 0) {
+			return false;
+		}
+		else {
+			auto nUserID = jsReqContent["uid"].asUInt();
+			//auto pAsync = getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue();
+			auto pApp = getClub()->getClubMgr()->getSvrApp();
+			Json::Value jsReq;
+			jsReq = jsReqContent;
+			//jsReq["leagueID"] = nLeagueID;
+			//jsReq["clubID"] = getClub()->getClubID();
+			//jsReq["uid"] = nUserID;
+			//jsReq["tuid"] = jsReqContent["tuid"];
+			//getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nLeagueID, eAsync_league_CreateRoom_Check, );
+			pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nLeagueID, eAsync_League_T_Player_Check, jsReq, [pApp, nSenderID, nReqSerial, nSenderPort, this, nLeagueID, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+			{
+				Json::Value jsRet;
+				if (isTimeOut)
+				{
+					LOGFMTE(" request of league time out uid = %u , can not check T player ", nUserID);
+					jsRet["ret"] = 7;
+					pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getClub()->getClubID());
+					return;
+				}
+
+				uint8_t nReqRet = retContent["ret"].asUInt();
+				uint8_t nRet = 0;
+				do {
+					if (0 != nReqRet)
+					{
+						nRet = 3;
+						break;
+					}
+
+
+				} while (0);
+
+				jsRet["ret"] = nRet;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, getClub()->getClubID());
+			});
+		}
 		return true;
 	}
 	return false;
@@ -354,9 +458,14 @@ void CClubMemberData::memberDataToJson(Json::Value& jsData) {
 	}
 }
 
-bool CClubMemberData::checkUpdateLevel(uint32_t nMemberID, uint8_t nLevelRequired) {
+bool CClubMemberData::checkUpdateLevel(uint32_t nMemberID, uint8_t nLevelRequired, bool canEquals) {
 	//LOGFMTE("level = %u, rLevel = %u", getMemberLevel(nMemberID), nLevelRequired);
-	return getMemberLevel(nMemberID) >= nLevelRequired;
+	if (canEquals) {
+		return getMemberLevel(nMemberID) >= nLevelRequired;
+	}
+	else {
+		return getMemberLevel(nMemberID) > nLevelRequired;
+	}
 }
 
 uint8_t CClubMemberData::getMemberLevel(uint32_t nMemberID) {

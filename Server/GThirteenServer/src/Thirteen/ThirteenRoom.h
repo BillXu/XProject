@@ -49,6 +49,7 @@ public:
 	uint8_t getMultiple();
 	uint8_t getPutCardsTime();
 	bool isCanMingPai();
+	bool isPlayerCanMingPai(uint8_t nIdx);
 	bool isCanRotBanker();
 	bool isPlayerCanRotBanker(uint8_t nIdx);
 	uint8_t getOpenCnt();
@@ -62,6 +63,7 @@ public:
 	uint32_t getMaxLose();
 	uint32_t getMaxDragIn();
 	uint32_t getMinDragIn();
+	uint32_t getDragInNeed();
 	bool isRoomWaiting() { return m_bIsWaiting; }
 	void signIsWaiting() { m_bIsWaiting = true; }
 	void clearIsWaiting() { m_bIsWaiting = false; }

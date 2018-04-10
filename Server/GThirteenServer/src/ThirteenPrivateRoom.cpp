@@ -111,6 +111,11 @@ uint8_t ThirteenPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlay
 		return 7;
 	}
 
+	auto sPlayer = isEnterByUserID(pEnterRoomPlayer->nUserUID);
+	if (sPlayer && sPlayer->isTOut) {
+		return 11;
+	}
+
 	return IPrivateRoom::checkPlayerCanEnter(pEnterRoomPlayer);
 }
 
@@ -657,7 +662,7 @@ bool ThirteenPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
 bool ThirteenPrivateRoom::canPlayerSitDown(uint32_t nUserUID) {
 	auto stg = isEnterByUserID(nUserUID);
 	if (stg) {
-		return stg->nChip >= ((ThirteenRoom*)getCoreRoom())->getMaxLose();
+		return stg->nChip >= ((ThirteenRoom*)getCoreRoom())->getDragInNeed();
 	}
 	return false;
 }
@@ -689,6 +694,13 @@ void ThirteenPrivateRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID) 
 	jsReqLeave["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
+}
+
+void ThirteenPrivateRoom::onPlayerTOut(uint32_t nUserUID) {
+	auto sPlayer = isEnterByUserID(nUserUID);
+	if (sPlayer) {
+		sPlayer->isTOut = true;
+	}
 }
 
 bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) {

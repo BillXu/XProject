@@ -186,7 +186,7 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	// do save sql  room recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,time,duration,roomType,joinAmount,clubID,leagueID,rotBankerPool,opts ) values (%u,%u,%u,now(),%d,%u,%u,%u,%u,%u,", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nDuration, m_nRoomType, m_nPlayerCnt, m_nClubID, m_nLeagueID, m_nRotBankerPool );
+	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,time,duration,roomType,joinAmount,clubID,leagueID,rotBankerPool,opts ) values (%u,%u,%u,now(),%d,%u,%u,%u,%u,%d,", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nDuration, m_nRoomType, m_nPlayerCnt, m_nClubID, m_nLeagueID, m_nRotBankerPool );
 	std::ostringstream ss;
 	ss << pBuffer << "'" << strOpts << "' ) ;";
 	jssql["sql"] = ss.str();

@@ -234,6 +234,11 @@ uint8_t ThirteenGPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPla
 		return 10;
 	}
 
+	auto sPlayer = isEnterByUserID(pEnterRoomPlayer->nUserUID);
+	if (sPlayer && sPlayer->isTOut) {
+		return 11;
+	}
+
 	/*if (std::count_if(m_mStayPlayers.begin(), m_mStayPlayers.end(), [](MAP_UID_PLAYERS::value_type ref) {
 		auto sref = (stgStayPlayer*)ref.second;
 		return sref->nState != eNet_Offline;
@@ -438,7 +443,7 @@ void ThirteenGPrivateRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)
 				jsRoomPlayerSitDown["state"] = eRoomPeer_WaitNextGame;
 				sendMsgToPlayer(jsRoomPlayerSitDown, MSG_ROOM_SIT_DOWN, stg->nSessionID);
 				if (isClubRoom()) {
-					if (stg->nChip < ((ThirteenRoom*)getCoreRoom())->getMaxLose()) {
+					if (stg->nChip < ((ThirteenRoom*)getCoreRoom())->getDragInNeed()) {
 						onPlayerWaitDragIn(stg->nUserUID);
 						Json::Value jsMsg;
 						jsMsg["ret"] = 0;
@@ -760,7 +765,7 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 					jsRoomPlayerSitDown["state"] = eRoomPeer_WaitNextGame;
 					sendMsgToPlayer(jsRoomPlayerSitDown, MSG_ROOM_SIT_DOWN, nSessionID);
 					if (isClubRoom()) {
-						if (sPlayer->nChip < ((ThirteenRoom*)getCoreRoom())->getMaxLose()) {
+						if (sPlayer->nChip < ((ThirteenRoom*)getCoreRoom())->getDragInNeed()) {
 							onPlayerWaitDragIn(sPlayer->nUserUID);
 							Json::Value jsMsg;
 							jsMsg["ret"] = 0;

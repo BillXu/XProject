@@ -217,7 +217,7 @@ bool CClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsRe
 			auto pClub = getClubByClubID(nClubID);
 			if (pClub == nullptr)
 			{
-				jsResult["ret"] = 1; // can not find target player ;
+				//jsResult["ret"] = 1; // can not find target player ;
 				return false;
 			}
 			else
