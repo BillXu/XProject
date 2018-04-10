@@ -31,6 +31,8 @@ public:
 	bool isPlayerReady()override { return m_isReadingDB == false; }
 	double getGPS_J() { return m_stBaseData.dfJ; }
 	double getGPS_W() { return m_stBaseData.dfW; }
+	void onLeaveClub( uint32_t nClubID );
+	void onJoinClub( uint32_t nClubID );
 private:
 	stServerBaseData m_stBaseData ;
 	bool m_bMoneyDataDirty;

@@ -46,7 +46,7 @@ class IGameRoomRecorder
 {
 public:
 	virtual ~IGameRoomRecorder(){}
-	virtual void init(uint32_t nSieralNum, uint32_t nRoomID,uint32_t nRoomType,uint32_t nCreaterUID, Json::Value& jsOpts );
+	virtual void init(uint32_t nSieralNum, uint32_t nRoomID,uint32_t nRoomType,uint32_t nCreaterUID, uint32_t nClubID , Json::Value& jsOpts );
 	void addSingleRoundRecorder(std::shared_ptr<ISingleRoundRecorder>& ptrSingleRecorder);
 	std::shared_ptr<ISingleRoundRecorder> getSingleRoundRecorder(uint16_t nRoundUIdx);
 	uint32_t getSieralNum();
@@ -57,6 +57,7 @@ protected:
 	uint32_t m_nRoomType;
 	uint32_t m_nSieralNum;
 	uint32_t m_nCreaterUID;
+	uint32_t m_nClubID;
 	Json::Value m_jsOpts;
 	std::map<uint16_t, std::shared_ptr<ISingleRoundRecorder>> m_vAllRoundRecorders;  // roundIdx : SingleRoundRecorder ;
 };

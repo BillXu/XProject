@@ -60,6 +60,11 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	}
 	
 	m_nOwnerUID = vJsOpts["uid"].asUInt();
+	m_nClubID = 0;
+	if (vJsOpts["clubID"].isNull() == false)
+	{
+		m_nClubID = vJsOpts["clubID"].asUInt();
+	}
 	m_nRoundLevel = vJsOpts["level"].asUInt();
 	m_isEnableWhiteList = vJsOpts["enableWhiteList"].isNull() == false && vJsOpts["enableWhiteList"].asUInt() == 1;
 	m_nLeftRounds = getInitRound(m_nRoundLevel);
@@ -74,20 +79,23 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_isOpen = false;
 
 	// start auto dismiss timer ;
-	m_tAutoDismissTimer.reset();
-	m_tAutoDismissTimer.setInterval(TIME_AUTO_DISMISS);
+	if (isClubRoom() == false)
+	{
+		m_tAutoDismissTimer.reset();
+		m_tAutoDismissTimer.setInterval(TIME_AUTO_DISMISS);
 #ifdef _DEBUG
-	m_tAutoDismissTimer.setInterval( 60*5 );
+		m_tAutoDismissTimer.setInterval(60 * 5);
 #endif // _DEBUG
 
-	m_tAutoDismissTimer.setIsAutoRepeat(false);
-	m_tAutoDismissTimer.setCallBack([this](CTimer*p, float f) {
-		m_tInvokerTime = 0;
-		m_nApplyDismissUID = 0;
-		LOGFMTI("system auto dismiss room id = %u , owner id = %u",getRoomID(), m_nOwnerUID );
-		doRoomGameOver(true);
-	});
-	m_tAutoDismissTimer.start();
+		m_tAutoDismissTimer.setIsAutoRepeat(false);
+		m_tAutoDismissTimer.setCallBack([this](CTimer*p, float f) {
+			m_tInvokerTime = 0;
+			m_nApplyDismissUID = 0;
+			LOGFMTI("system auto dismiss room id = %u , owner id = %u", getRoomID(), m_nOwnerUID);
+			doRoomGameOver(true);
+		});
+		m_tAutoDismissTimer.start();
+	}
 	return true;
 }
 
@@ -402,11 +410,12 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			jsArrayUIDs[jsArrayUIDs.size()] = p->getUserUID();
 		}
 		jsMsg["players"] = jsArrayUIDs;
+		jsMsg["leftRound"] = m_nLeftRounds;
 		sendMsgToPlayer(jsMsg, nMsgType, nSessionID );
 	}
 	break;
 	default:
-		if (m_pRoom && m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID) )
+		if ( m_pRoom && m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID) )
 		{
 			m_tAutoDismissTimer.clearTime(); // recieved client msg , auto reset timer ticket count , count from 0 again ;
 		}
@@ -542,6 +551,15 @@ void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 	{
 		m_nPrivateRoomState = eState_Started;
 	}
+
+	if ( isClubRoom() )
+	{
+		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+		Json::Value jsReq;
+		jsReq["clubID"] = m_nClubID;
+		jsReq["roomID"] = getRoomID();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_ClubRoomStart, jsReq);
+	}
 }
 
 bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
@@ -608,13 +626,23 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	if ( isDismissed && isAlreadyComsumedDiamond && isOneRoundNormalEnd() == false )
 	{
 		Json::Value jsReq;
-		jsReq["targetUID"] = m_nOwnerUID;
 		jsReq["diamond"] = getDiamondNeed(m_nRoundLevel, getPayType());
-		jsReq["roomID"] = getRoomID();
-		jsReq["reason"] = 1;
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_GiveBackDiamond, jsReq);
-		LOGFMTD( "room id = %u dissmiss give back uid = %u diamond = %u",getRoomID(),m_nOwnerUID,jsReq["diamond"].asUInt() );
+		if ( isClubRoom() )
+		{
+			jsReq["clubID"] = m_nClubID;
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_ClubGiveBackDiamond, jsReq);
+			LOGFMTD("room id = %u dissmiss give back clubId = %u diamond = %u", getRoomID(), m_nClubID, jsReq["diamond"].asUInt());
+		}
+		else
+		{
+			jsReq["targetUID"] = m_nOwnerUID;
+			jsReq["roomID"] = getRoomID();
+			jsReq["reason"] = 1;
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_GiveBackDiamond, jsReq);
+			LOGFMTD("room id = %u dissmiss give back uid = %u diamond = %u", getRoomID(), m_nOwnerUID, jsReq["diamond"].asUInt());
+		}
+
 	}
 
 	// find big wineer and pay room card 
@@ -626,6 +654,15 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	m_nPrivateRoomState = eState_RoomOvered;
 	// delete self
 	m_pRoomMgr->deleteRoom(getRoomID());
+
+	if ( isClubRoom() )
+	{
+		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+		Json::Value jsReq;
+		jsReq["clubID"] = m_nClubID;
+		jsReq["roomID"] = getRoomID();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_ClubRoomGameOvered, jsReq);
+	}
 }
 
 GameRoom* IPrivateRoom::getCoreRoom()

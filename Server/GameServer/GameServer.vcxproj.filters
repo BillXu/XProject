@@ -61,6 +61,12 @@
     <ClInclude Include="..\DataServer\src\DataServerApp.h">
       <Filter>src\App</Filter>
     </ClInclude>
+    <ClInclude Include="..\DataServer\src\Club.h">
+      <Filter>src\App</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DataServer\src\ClubManager.h">
+      <Filter>src\App</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ConfigManager.cpp">
@@ -100,6 +106,12 @@
       <Filter>src\App</Filter>
     </ClCompile>
     <ClCompile Include="..\DataServer\src\DataServerApp.cpp">
+      <Filter>src\App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\Club.cpp">
+      <Filter>src\App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DataServer\src\ClubManager.cpp">
       <Filter>src\App</Filter>
     </ClCompile>
   </ItemGroup>

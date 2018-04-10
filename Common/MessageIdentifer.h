@@ -41,7 +41,9 @@ enum eMsgType
 
 	MSG_REQUEST_PLAYER_DATA, // request player brif data 
 	// client : { nReqID : 23  isDetail : 0 }
-	// svr : { uid : 23 , name : "hello" , headIcon : "http://weshg.wx.com",sex : 1 , ip : "1.0.0.1" , J : 23.0002, W : 232.234}  // J , W : GPS positon , maybe null ;
+	// svr : { uid : 23 , name : "hello" , headIcon : "http://weshg.wx.com",sex : 1 , ip : "1.0.0.1" , J : 23.0002, W : 232.234, isInRoom : 0 ,isOnline : 0 ,lastLoginTime : 2345234 }  // J , W : GPS positon , maybe null ;
+	// isInRoom : only when player is online , have this key .
+	// loginTime : only when player is offline , have this key .
 	MSG_PLAYER_OTHER_LOGIN,  // more than one place login , prelogin need disconnect ; client recived must disconnect from server
 	// svr : null 
 	MSG_PLAYER_BASE_DATA,
@@ -92,6 +94,10 @@ enum eMsgType
 	MSG_ROOM_INTERACT_EMOJI,
 	// svr : { invokerIdx : 1 ,targetIdx : 0 , emoji : 23 } 
 
+	MSG_REQUEST_JOINED_CLUBS,
+	// client : {}
+	// svr : { clubs : [ 23,1,23 ] } 
+
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
 	// payType : 0 the room owner pay cards , 1 AA pay card type , 2 big winer pay cards 
@@ -103,7 +109,7 @@ enum eMsgType
 
 	MSG_ENTER_ROOM,
 	// client : { roomID : 23, uid : 23 }
-	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error, 7 arg not allow enter , 8 dianmond not enough;
+	// svr: { roomID : 23 , ret : 0 } // ret : 0 success , 1 can not find room , 2 you already in other room ;3, room is full , 4, uid error ,5 , can not enter room , 6 unknown error, 7 arg not allow enter , 8 dianmond not enough, 9 can not enter club room;
 	MSG_ROOM_CHANGE_STATE,
 	// svr : { lastState : 23 , newState : 23 }
 	MSG_ROOM_INFO, 
@@ -208,7 +214,7 @@ enum eMsgType
 
 	MSG_REQ_ROOM_ITEM_INFO,
 	// client : { roomID : 23 }
-	// svr : { state : 2 ,isOpen : 0 , roomID: 23, opts: {} , players: [23,234,23 ..] }
+	// svr : { state : 2 ,isOpen : 0 ,leftRound : 2 , roomID: 23, opts: {} , players: [23,234,23 ..] }
 
 	MSG_NN_PLAYER_UPDATE_TUO_GUAN,
 	// client : { isTuoGuan : 0  }
@@ -314,7 +320,7 @@ enum eMsgType
 	MSG_CLUB_CREATE_CLUB,
 	// client : { name : "23",opts : {} }
 	// svr : { ret : 0 , clubID : 2 } 
-	// ret : 0 success , 1 condition is not meet ;
+	// ret : 0 success , 1 condition is not meet , 2 name duplicate;
 
 	MSG_CLUB_DISMISS_CLUB,
 	// client : { clubID : 23 }
@@ -358,10 +364,11 @@ enum eMsgType
 	// ret : 0 success , 1 event not exsit , 2 already processed ,3 invalid privilige , 4 you are not login, 5 invalid detail ;
 	MSG_CLUB_REQ_INFO,
 	// client : { clubID : 23 }
-	// svr : { name : 2 , opts : {} }
+	// svr : {  inviteCnt : 23 , notice : "this is notice" name : 2 , creator : 23, mgrs : [23,23,52], clubID : 23,diamond : 23 , state : 0, curCnt : 23, capacity : 23 , maxEventID : 23 ,opts : {} }
+	// state : 0 normal , 1 pause ;
 	MSG_CLUB_REQ_ROOMS,
 	// client : { clubID : 0 }
-	// svr : { fullRooms : [ 12,12], emptyRooms : [2,4]  }
+	// svr : { clubID : 234, name : 23, fullRooms : [ 12,12], emptyRooms : [2,4]  }
 
 	MSG_CLUB_REQ_PLAYERS,
 	// client : { clubID : 10  }
@@ -375,6 +382,18 @@ enum eMsgType
 	// client : { clubID : 3 , nIsAgree : 0  }
 	// svr : { ret : 0 }
 	// ret : 0 success , 1 member cnt reach limit , 2 invitation time out ;
+	MSG_CLUB_REQ_INVITATIONS ,
+	// client : { clubID : 3 }
+	// svr : { ret : 0 , invitations : [ 23,23,42] } ;
+	MSG_CLUB_UPDATE_NOTICE,
+	// client : { clubID : 23 , notice : "hello hapyy join" }
+	// svr : { ret : 0 , notice : "hello" }
+	// ret : 0 , 1 invalid privilige
+	MSG_CLUB_UPDATE_NAME,
+	// client : { clubID : 23 , name : "hello hapyy join" }
+	// svr : { ret : 0 , name : "hello" }
+	// ret : 0 , 1 invalid privilige , 2 new name is the same as old name , 3 duplicate name 
+
 	MSG_CLUB_MSG_END = 2900,
 
 	// mj specail msg ;

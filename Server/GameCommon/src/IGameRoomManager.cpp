@@ -6,6 +6,7 @@
 #include "stEnterRoomData.h"
 #include <ctime>
 #include <algorithm>
+#include "IPrivateRoom.h"
 #define MAX_CREATE_ROOM_CNT 10
 IGameRoomManager::~IGameRoomManager()
 {
@@ -165,6 +166,66 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		jsResult["ret"] = 0;
 	}
 	break;
+	case eAsync_ClubCreateRoom:
+	{
+		jsResult["ret"] = 0;
+		if (false == isCanCreateRoom())
+		{
+			LOGFMTE(" svr maintenance , can not create room ,please create later");
+			jsResult["ret"] = 2;
+			break;
+		}
+
+		uint32_t nClubID = jsReqContent["clubID"].asUInt();
+		uint32_t nClubDiamond = jsReqContent["diamond"].asUInt();
+		auto nRoomType = jsReqContent["gameType"].asUInt();
+		auto nLevel = jsReqContent["level"].asUInt();
+
+		uint8_t nPayType = jsReqContent["payType"].asUInt();
+		if (nPayType > ePayType_Max)
+		{
+			Assert(0, "invalid pay type value ");
+			nPayType = ePayType_RoomOwner;
+		}
+		auto nDiamondNeed = 0;
+		if ( nPayType == ePayType_RoomOwner && false == isCreateRoomFree() )
+		{
+			nDiamondNeed = getDiamondNeed(nRoomType, nLevel, (ePayRoomCardType)nPayType);
+		}
+
+		if ( nClubDiamond < nDiamondNeed)
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+
+		// do create room ;
+		auto pRoom = createRoom(nRoomType);
+		if ( !pRoom )
+		{
+			jsResult["ret"] = 3;
+			LOGFMTE("game room type is null , club id = %u create room failed", nClubID );
+			break;
+		}
+
+		auto nNewRoomID = generateRoomID();
+		if ( nNewRoomID == 0 )
+		{
+			jsResult["ret"] = 4;
+			LOGFMTE("game room type is null , club id = %u create room failed", nClubID);
+			delete pRoom;
+			pRoom = nullptr;
+			break;
+		}
+
+		Json::Value jscreateOpts = jsReqContent;
+		pRoom->init(this, generateSieralID(), nNewRoomID, jsReqContent["seatCnt"].asUInt(), jscreateOpts);
+		m_vRooms[pRoom->getRoomID()] = pRoom;
+		
+		jsResult["roomID"] = nNewRoomID;
+		jsResult["diamondFee"] = nDiamondNeed;
+	}
+	break;
 	default:
 		return false ;
 	}
@@ -209,99 +270,141 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 	{
 		auto nRoomID = prealMsg["roomID"].asUInt();
 		auto nUserID = prealMsg["uid"].asUInt();
-		// request enter room info 
-		Json::Value jsReq;
-		jsReq["targetUID"] = nUserID;
-		jsReq["roomID"] = nRoomID;
-		jsReq["sessionID"] = nSenderID;
-		jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
-		auto pAsync = getSvrApp()->getAsynReqQueue();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync,nRoomID,nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		// request enter room info
+		auto pCheckEnterRoomInfo = [this]( uint32_t nRoomID, uint32_t nUserID, uint32_t nSenderID )
 		{
-			if (isTimeOut)
+			Json::Value jsReq;
+			jsReq["targetUID"] = nUserID;
+			jsReq["roomID"] = nRoomID;
+			jsReq["sessionID"] = nSenderID;
+			jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
+			auto pAsync = getSvrApp()->getAsynReqQueue();
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync, nRoomID, nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 			{
-				LOGFMTE(" request time out uid = %u , can not enter room ", nUserID );
+				if (isTimeOut)
+				{
+					LOGFMTE(" request time out uid = %u , can not enter room ", nUserID);
+					Json::Value jsRet;
+					jsRet["ret"] = 5;
+					sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+					return;
+				}
+
+				uint8_t nReqRet = retContent["ret"].asUInt();
+				uint8_t nRet = 0;
+				do
+				{
+					if (1 == nReqRet)
+					{
+						nRet = 2;
+						break;
+					}
+
+					if (2 == nReqRet)
+					{
+						nRet = 4;
+						break;
+					}
+
+					if (0 != nReqRet)
+					{
+						nRet = 6;
+						break;
+					}
+
+					auto pRoom = getRoomByID(nRoomID);
+					if (nullptr == pRoom)
+					{
+						nRet = 1;
+						break;
+					}
+
+					auto nStatyRoomID = retContent["stayRoomID"].asUInt();
+					bool isAlreadyInThisRoom = nStatyRoomID == nRoomID;
+					if (isAlreadyInThisRoom == false && pRoom->isRoomFull())
+					{
+						nRet = 3;
+						break;
+					}
+
+					stEnterRoomData tInfo;
+					tInfo.nUserUID = retContent["uid"].asUInt();
+					tInfo.nSessionID = nSenderID;
+					tInfo.nDiamond = retContent["diamond"].asUInt();
+					tInfo.nChip = retContent["coin"].asUInt();
+
+					nRet = pRoom->checkPlayerCanEnter(&tInfo);
+					if (isAlreadyInThisRoom == false && nRet)
+					{
+						break;
+					}
+
+					if (pRoom->onPlayerEnter(&tInfo))
+					{
+						pRoom->sendRoomInfo(tInfo.nSessionID);
+					}
+
+				} while (0);
+
 				Json::Value jsRet;
-				jsRet["ret"] = 5;
-				sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID,nSenderID,ID_MSG_PORT_CLIENT);
-				return;
-			}
-
-			uint8_t nReqRet = retContent["ret"].asUInt();
-			uint8_t nRet = 0;
-			do
-			{
-				if ( 1 == nReqRet)
+				if (nRet)
 				{
-					nRet = 2;
-					break;
+					jsRet["ret"] = nRet;
+					sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+
+					if (nReqRet == 0) // must reset stay in room id ;
+					{
+						Json::Value jsReqLeave;
+						jsReqLeave["targetUID"] = nUserID;
+						jsReqLeave["roomID"] = nRoomID;
+						jsReqLeave["port"] = getSvrApp()->getLocalSvrMsgPortType();
+						pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
+					}
+					return;
 				}
-
-				if ( 2 == nReqRet)
-				{
-					nRet = 4;
-					break;
-				}
-
-				if ( 0 != nReqRet )
-				{
-					nRet = 6;
-					break;
-				}
-
-				auto pRoom = getRoomByID(nRoomID);
-				if (nullptr == pRoom)
-				{
-					nRet = 1;
-					break;
-				}
-
-				auto nStatyRoomID = retContent["stayRoomID"].asUInt();
-				bool isAlreadyInThisRoom = nStatyRoomID == nRoomID;
-				if ( isAlreadyInThisRoom == false && pRoom->isRoomFull())
-				{
-					nRet = 3;
-					break;
-				}
-
-				stEnterRoomData tInfo;
-				tInfo.nUserUID = retContent["uid"].asUInt();
-				tInfo.nSessionID = nSenderID;
-				tInfo.nDiamond = retContent["diamond"].asUInt();
-				tInfo.nChip = retContent["coin"].asUInt();
-
-				nRet = pRoom->checkPlayerCanEnter(&tInfo);
-				if ( isAlreadyInThisRoom == false &&  nRet )
-				{
-					break;
-				}
-
-				if (pRoom->onPlayerEnter(&tInfo))
-				{
-					pRoom->sendRoomInfo(tInfo.nSessionID);
-				}
-				
-			} while (0);
-
-			Json::Value jsRet;
-			if (nRet)
-			{
-				jsRet["ret"] = nRet;
+				jsRet["ret"] = 0;
 				sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+			}, nUserID);
+		};
 
-				if ( nReqRet == 0 ) // must reset stay in room id ;
+		auto pRoom = dynamic_cast<IPrivateRoom*>(getRoomByID(nRoomID));
+		if ( pRoom && pRoom->isClubRoom() )
+		{
+			// check club members 
+			Json::Value jsReq;
+			jsReq["clubID"] = pRoom->getClubID();
+			jsReq["uid"] = nUserID;
+			auto pAsync = getSvrApp()->getAsynReqQueue();
+			pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, pRoom->getClubID(), eAsync_ClubCheckMember, jsReq, [ pCheckEnterRoomInfo,nRoomID, nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+			{
+				if (isTimeOut)
 				{
-					Json::Value jsReqLeave;
-					jsReqLeave["targetUID"] = nUserID;
-					jsReqLeave["roomID"] = nRoomID;
-					jsReqLeave["port"] = getSvrApp()->getLocalSvrMsgPortType();
-					pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
+					LOGFMTE(" request check club time out uid = %u , can not enter room ", nUserID);
+					Json::Value jsRet;
+					jsRet["ret"] = 5;
+					sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+					return;
 				}
-				return ;
-			}
-			jsRet["ret"] = 0;
-			sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
-		},nUserID);
+
+				uint8_t nRet = retContent["ret"].asUInt();
+				if (nRet)
+				{
+					Json::Value jsRet;
+					jsRet["ret"] = 9;
+					sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
+					LOGFMTE("club member check failed ret = %u uid = %u , can not enter room ", nRet, nUserID);
+					return;
+				}
+				else
+				{
+					pCheckEnterRoomInfo(nRoomID, nUserID, nSenderID);
+				}
+			}, nUserID);
+		}
+		else
+		{
+			pCheckEnterRoomInfo(nRoomID,nUserID,nSenderID);
+		}
 	}
 	break;
 	case MSG_CREATE_ROOM:

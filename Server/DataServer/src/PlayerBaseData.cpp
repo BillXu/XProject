@@ -16,8 +16,8 @@
 CPlayerBaseData::CPlayerBaseData(CPlayer* player )
 	:IPlayerComponent(player)
 {
+	m_stBaseData.reset();
 	m_eType = ePlayerComponent_BaseData ;
-	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
 	m_nTmpCoin = 0;
@@ -31,7 +31,7 @@ CPlayerBaseData::~CPlayerBaseData()
 
 void CPlayerBaseData::init()
 {
-	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
+	m_stBaseData.reset();
 	m_stBaseData.nUserUID = getPlayer()->getUserUID() ;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
@@ -42,12 +42,12 @@ void CPlayerBaseData::init()
 
 void CPlayerBaseData::reset()
 {
+	m_stBaseData.reset();
 	m_bMoneyDataDirty = false;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
 	m_nTmpCoin = 0;
 	m_nTmpDiamond = 0;
-	memset(&m_stBaseData,0,sizeof(m_stBaseData)) ;
 }
 
 void CPlayerBaseData::onPlayerLogined()
@@ -61,7 +61,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_stBaseData.nUserUID = getPlayer()->getUserUID();
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,clubs FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -86,6 +86,16 @@ void CPlayerBaseData::onPlayerLogined()
 		m_stBaseData.nDiamoned = jsRow["diamond"].asUInt();
 		m_stBaseData.nEmojiCnt = jsRow["emojiCnt"].asUInt();
 		m_stBaseData.nSex = jsRow["sex"].asUInt();
+
+		Json::Value jsClubs;
+		Json::Reader jsR;
+		if (jsR.parse(jsRow["clubs"].asString(), jsClubs))
+		{
+			for (uint16_t nIdx = 0; nIdx < jsClubs.size(); ++nIdx)
+			{
+				m_stBaseData.vJoinedClubIDs.push_back(jsClubs[nIdx].asUInt());
+			}
+		}
 
 		modifyMoney(m_nTmpCoin);
 		modifyMoney(m_nTmpDiamond,true);
@@ -128,6 +138,18 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		sendMsg(jsmsg, nmsgType);
 		return true;
 	}
+	else if ( MSG_REQUEST_JOINED_CLUBS == nmsgType )
+	{
+		Json::Value jsmsg;
+		Json::Value jsArrayClub;
+		for (auto& ref : m_stBaseData.vJoinedClubIDs)
+		{
+			jsArrayClub[jsArrayClub.size()] = ref;
+		}
+		jsmsg["clubs"] = jsArrayClub;
+		sendMsg(jsmsg, nmsgType);
+		return true;
+	}
 
 	return false ;
 }
@@ -149,6 +171,13 @@ void CPlayerBaseData::sendBaseDataToClient()
 	jsBaseData["coin"] = getCoin();
 	jsBaseData["emojiCnt"] = getEmojiCnt();
 	jsBaseData["ip"] = getPlayer()->getIp();
+
+	Json::Value jsArrayClub;
+	for (auto& ref : m_stBaseData.vJoinedClubIDs)
+	{
+		jsArrayClub[jsArrayClub.size()] = ref;
+	}
+	jsBaseData["clubs"] = jsArrayClub;
 
 	auto pStay = ((CPlayerGameData*)getPlayer()->getComponent(ePlayerComponent_PlayerGameData))->getStayInRoom();
 	if (pStay.isEmpty() == false)
@@ -172,9 +201,17 @@ void CPlayerBaseData::timerSave()
 	{
 		m_bPlayerInfoDirty = false;
 
+		Json::Value jsArrayClub;
+		for (auto& ref : m_stBaseData.vJoinedClubIDs)
+		{
+			jsArrayClub[jsArrayClub.size()] = ref;
+		}
+		Json::StyledWriter jsw;
+		auto strClubs = jsw.write(jsArrayClub);
+
 		Json::Value jssql;
-		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, "update playerbasedata set nickName = '%s' ,sex = %u , headIcon = '%s' where userUID = %u ;", getPlayerName(),getSex(),getHeadIcon(), getPlayer()->getUserUID());
+		char pBuffer[1024] = { 0 };
+		sprintf_s(pBuffer, "update playerbasedata set nickName = '%s' ,sex = %u , headIcon = '%s',clubs = '%s' where userUID = %u ;", getPlayerName(),getSex(),getHeadIcon(), strClubs.c_str(),getPlayer()->getUserUID());
 		std::string str = pBuffer;
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -244,5 +281,31 @@ bool CPlayerBaseData::modifyEmojiCnt(int32_t nOffset)
 	m_stBaseData.nEmojiCnt += nOffset;
 	m_bMoneyDataDirty = true;
 	return true;
+}
+
+void CPlayerBaseData::onLeaveClub(uint32_t nClubID)
+{
+	auto iter = std::find(m_stBaseData.vJoinedClubIDs.begin(), m_stBaseData.vJoinedClubIDs.end(),nClubID);
+	if ( iter != m_stBaseData.vJoinedClubIDs.end() )
+	{
+		m_stBaseData.vJoinedClubIDs.erase(iter);
+		m_bPlayerInfoDirty = true;
+	}
+	else
+	{
+		LOGFMTE("player not in club = %u , uid = %u, how to leave", nClubID, m_stBaseData.nUserUID);
+	}
+}
+
+void CPlayerBaseData::onJoinClub(uint32_t nClubID)
+{
+	auto iter = std::find(m_stBaseData.vJoinedClubIDs.begin(), m_stBaseData.vJoinedClubIDs.end(), nClubID);
+	if (iter != m_stBaseData.vJoinedClubIDs.end())
+	{
+		LOGFMTE( "why add twice club = %u , uid = %u",nClubID,m_stBaseData.nUserUID );
+		return;
+	}
+	m_stBaseData.vJoinedClubIDs.push_back(nClubID);
+	m_bPlayerInfoDirty = true;
 }
 

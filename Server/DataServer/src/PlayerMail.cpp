@@ -147,6 +147,18 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 		}
 	}
 	break;
+	case eMail_ClubJoin:
+	{
+		uint32_t nClubID = pMail->jsDetail["clubID"].asUInt();
+		getPlayer()->getBaseData()->onJoinClub( nClubID );
+	}
+	break;
+	case eMail_ClubLeave:
+	{
+		uint32_t nClubID = pMail->jsDetail["clubID"].asUInt();
+		getPlayer()->getBaseData()->onLeaveClub( nClubID );
+	}
+	break;
 	default:
 		return false;
 	}
