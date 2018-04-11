@@ -46,6 +46,9 @@
     <ClCompile Include="src\ThirteenGPrivateRoom.cpp">
       <Filter>src\Thirteen</Filter>
     </ClCompile>
+    <ClCompile Include="src\ThirteenWPrivateRoom.cpp">
+      <Filter>src\Thirteen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\PokerServer.h">
@@ -100,6 +103,9 @@
       <Filter>src\Thirteen\state</Filter>
     </ClInclude>
     <ClInclude Include="src\ThirteenGPrivateRoom.h">
+      <Filter>src\Thirteen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThirteenWPrivateRoom.h">
       <Filter>src\Thirteen</Filter>
     </ClInclude>
   </ItemGroup>

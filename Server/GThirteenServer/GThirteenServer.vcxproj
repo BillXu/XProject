@@ -95,6 +95,7 @@
     <ClInclude Include="src\PokerServer.h" />
     <ClInclude Include="src\ThirteenPrivateRoom.h" />
     <ClInclude Include="src\RoomManager.h" />
+    <ClInclude Include="src\ThirteenWPrivateRoom.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateDistributeCard.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateGameEnd.h" />
     <ClInclude Include="src\Thirteen\ThirteenRoomStateRobBanker.h" />
@@ -116,6 +117,7 @@
     <ClCompile Include="src\PokerServer.cpp" />
     <ClCompile Include="src\ThirteenPrivateRoom.cpp" />
     <ClCompile Include="src\RoomManager.cpp" />
+    <ClCompile Include="src\ThirteenWPrivateRoom.cpp" />
     <ClCompile Include="src\Thirteen\ThirteenRoom.cpp" />
     <ClCompile Include="src\Thirteen\ThirteenPlayer.cpp" />
     <ClCompile Include="src\Thirteen\ThirteenPeerCard.cpp" />
