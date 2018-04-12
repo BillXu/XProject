@@ -67,5 +67,6 @@ enum ROOM_OVER_TYPE
 {
 	ROOM_OVER_TYPE_TIME, //时间
 	ROOM_OVER_TYPE_ROUND, //游戏局数
+	ROOM_OVER_TYPE_MTT, //比赛张决一胜负
 	ROOM_OVER_TYPE_MAX, //最大值
 };

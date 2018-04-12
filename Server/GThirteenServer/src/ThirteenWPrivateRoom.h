@@ -35,4 +35,7 @@ public:
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
 	uint16_t getPlayerCnt()override;
+
+protected:
+	uint32_t m_nStartTime = 0;
 };

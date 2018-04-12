@@ -1,6 +1,7 @@
 #include "RoomManager.h"
 #include "ThirteenPrivateRoom.h"
 #include "ThirteenGPrivateRoom.h"
+#include "ThirteenWPrivateRoom.h"
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include "stEnterRoomData.h"
@@ -19,6 +20,15 @@ IGameRoom* RoomManager::createGRoom(uint8_t nGameType) {
 	if (eGame_Thirteen == nGameType)
 	{
 		return new ThirteenGPrivateRoom();
+	}
+	LOGFMTE("unknown game type = %u , can not create private room", nGameType);
+	return nullptr;
+}
+
+IGameRoom* RoomManager::createWRoom(uint8_t nGameType) {
+	if (eGame_Thirteen == nGameType)
+	{
+		return new ThirteenWPrivateRoom();
 	}
 	LOGFMTE("unknown game type = %u , can not create private room", nGameType);
 	return nullptr;
@@ -72,13 +82,20 @@ IGameRoom* RoomManager::doPlayerCreateRoom(Json::Value& prealMsg, uint32_t nDiam
 	auto nRoomType = prealMsg["gameType"].asUInt();
 	auto nUserID = prealMsg["uid"].asUInt();
 	auto nLevel = prealMsg["level"].asUInt();
+	bool bWTT = prealMsg["wtt"].isUInt() ? prealMsg["wtt"].asBool() : false;
 	IGameRoom* pRoom = nullptr;
-	if (isGRoom(nLevel)) {
-		pRoom = createGRoom(nRoomType);
+	if (bWTT) {
+		pRoom = createWRoom(nRoomType);
 	}
 	else {
-		pRoom = createRoom(nRoomType);
+		if (isGRoom(nLevel)) {
+			pRoom = createGRoom(nRoomType);
+		}
+		else {
+			pRoom = createRoom(nRoomType);
+		}
 	}
+	
 	//auto pRoom = createRoom(nRoomType);
 	if (!pRoom)
 	{
