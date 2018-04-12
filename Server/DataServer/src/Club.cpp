@@ -149,9 +149,8 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 
 		} while (0);
 
-		Json::Value js;
-		js["ret"] = nRet;
-		sendMsg(js, nMsgType, nTargetID, nSenderID);
+		prealMsg["ret"] = nRet;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
 		if ( nRet == 0 )
 		{
 			deleteMember(nKickUID);
@@ -169,6 +168,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			Json::Value js;
 			js["clubID"] = getClubID();
 			js["clubName"] = m_strName;
+			js["mgrID"] = nMgrUID;
 			postMail(nKickUID, eMail_ClubBeKick, js, eMailState_SysProcessed);
 		}
 	}
@@ -311,6 +311,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		p->nTime = time(nullptr);
 		p->jsEventDetail["uid"] = nCandinatePlayerUID;
 		p->jsEventDetail["privilige"] = nPrivilige;
+		p->jsEventDetail["actUID"] = nTargetID;
 		addEvent(p);
 	}
 	break;
@@ -413,7 +414,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 				break;
 			}
 
-			if ( pit->second == nullptr || pit->second->nState == eEventState_WaitProcesse )
+			if ( pit->second == nullptr || pit->second->nState != eEventState_WaitProcesse )
 			{
 				nRet = 2;
 				break;
@@ -427,7 +428,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			}
 
 			auto pmem = getMember( pPlayer->getUserUID() );
-			if ( pmem == nullptr || pmem->ePrivilige >= eClubPrivilige_Manager)
+			if ( pmem == nullptr || pmem->ePrivilige < eClubPrivilige_Manager)
 			{
 				nRet = 3;
 				break;
@@ -616,6 +617,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			Json::Value js;
 			js["clubID"] = getClubID();
 			js["clubName"] = m_strName;
+			js["mgrID"] = nTargetID;
 			postMail(pI->nUserUID, eMail_ClubInvite, js, eMailState_WaitPlayerAct );
 		}
 	}
@@ -850,6 +852,12 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		m_strName = strNewName;
 		m_isClubInfoDirty = true;
 		prealMsg["ret"] = 0;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+	}
+	break;
+	case MSG_CLUB_UPDATE_DIAMOND:
+	{
+		prealMsg["diamond"] = getDiamond();
 		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
 	}
 	break;
@@ -1102,6 +1110,17 @@ void Club::onWillDismiss()
 		LOGFMTD( "dismiss clubid = %u remove uid = %u", getClubID(), iter->second->nPlayerUID );
 		deleteMember( iter->second->nPlayerUID );
 	} while ( 1 );
+
+	// dissmiss room
+	auto nRoomType = m_jsCreateRoomOpts["gameType"].asUInt();
+	for ( auto& ref : m_vEmptyRooms )
+	{
+		Json::Value js;
+		js["roomID"] = ref;
+		m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest( getTargetPortByGameType(nRoomType), 0, eAsync_ClubDismissRoom, js );
+	}
+
+	m_vEmptyRooms.clear();
 }
 
 void Club::update(float fDeta)
@@ -1217,6 +1236,11 @@ void Club::updateDiamond(int32_t nDiamond)
 	m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Update, jssql);
 }
 
+bool Club::canDismiss()
+{
+	return m_vFullRooms.empty();
+}
+
 void Club::readClubDetail()
 {
 	// read max event id  ;
@@ -1280,6 +1304,10 @@ void Club::readClubEvents( uint32_t nAlreadyCnt )
 			p->nEventType = (eClubEvent)jsRow["eventType"].asUInt();
 			p->nTime = jsRow["nTime"].asUInt();
 			p->nState = jsRow["nState"].asUInt();
+
+			Json::Reader jsr;
+			jsr.parse(jsRow["jsDetail"].asString(), p->jsEventDetail);
+
 			m_vEvents[nEventID] = p;
 		}
 

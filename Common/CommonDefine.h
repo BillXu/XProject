@@ -48,7 +48,7 @@ enum eClubEvent
 	eClubEvent_ApplyJoin,// some body apply to join club , { uid : 23, respUID : 11, isAgree : 0  }, when processed , contain key : respUID : 11, isAgree 
 	eClubEvent_Kick, // { uid : 23 , mgrUID : 23 }
 	eClubEvent_Leave, // { uid : 23 }
-	eClubEvent_UpdatePrivlige, // { uid : 23 , privilige : eClubPrivilige }
+	eClubEvent_UpdatePrivlige, // { uid : 23 , privilige : eClubPrivilige , actUID : 234 }
 	eClubEvent_RespInvite,// { uid : 234 , nIsAgree : 0 }
 	eClubEvent_Max,
 };
@@ -351,8 +351,8 @@ enum eMailType
 	eMail_Agent_AddEmojiCnt, // { agentID : 23 ,addCnt : 23 }
 	// club 
 	eMail_ResponeClubApplyJoin,// { clubID : 23 , clubName : "abc", nIsAgree : 0  }
-	eMail_ClubInvite , //  { clubID : 23 , clubName : "abc"  }
-	eMail_ClubBeKick, // { clubID : 23 , clubName : "abc"  }
+	eMail_ClubInvite , //  { clubID : 23 , clubName : "abc",mgrID : 23  }
+	eMail_ClubBeKick, // { clubID : 23 , clubName : "abc",mgrID : 23  }
 	eMail_ClubDismiss, // { clubID : 23 , clubName : "abc"  }
 	eMail_ClubJoin, // { clubID : 23 } , sys pro
 	eMail_ClubLeave, // { clubID : 23 } , sys pro
@@ -375,6 +375,7 @@ enum eMailState
 	eMailState_WaitPlayerAct,
 	eMailState_SysProcessed,
 	eMailState_Delete,
+	eMailState_PlayerProcessed,
 	eMailState_Max,
 };
 

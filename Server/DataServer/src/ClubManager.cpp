@@ -21,6 +21,18 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		return false;
 	}
 
+	if ( MSG_CLUB_CHECK_NAME == nMsgType)
+	{
+		uint8_t nRet = 0;
+		if ( isNameDuplicate( prealMsg["name"].asString() ) )
+		{
+			nRet = 1;
+		}
+		prealMsg["ret"] = nRet;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+		return true;
+	}
+
 	if ( MSG_CLUB_CREATE_CLUB == nMsgType )
 	{
 		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
@@ -92,6 +104,12 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 			}
 			pClub = iter->second;
 
+			if ( !pClub->canDismiss() )
+			{
+				nRet = 3;
+				break;
+			}
+
 			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
 			if (pPlayer == nullptr || pPlayer->getSessionID() != nSenderID)
 			{
@@ -101,7 +119,7 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 			nUserID = pPlayer->getUserUID();
 			if ( pClub->getCreatorUID() != pPlayer->getUserUID() )
 			{
-				nRet = 2;
+				nRet = 1;
 				break;
 			}
 

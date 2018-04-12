@@ -588,7 +588,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
 
 		auto p = getPlayerByUserUID(nUserUID);
-		if (p == nullptr || p->isPlayerReady() == false)
+		if ( p && p->isPlayerReady() == false)
 		{
 			jsResult["ret"] = 2;
 			break;

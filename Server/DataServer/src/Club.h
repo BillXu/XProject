@@ -52,6 +52,7 @@ public:
 	void updateDiamond(int32_t nDiamond);
 	bool isPasuseState() { return 1 == m_nState; }
 	std::string getName() { return m_strName; }
+	bool canDismiss();
 protected:
 	void readClubEvents( uint32_t nAlreadyCnt );
 	void readClubMemebers( uint32_t nAlreadyCnt );

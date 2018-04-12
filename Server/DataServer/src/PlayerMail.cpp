@@ -54,8 +54,93 @@ bool CPlayerMailComponent::onRecievedMail( uint32_t nMailID, eMailType emailType
 	jsTellClient["type"] = emailType;
 	jsTellClient["state"] = nState;
 	jsTellClient["detail"] = jsMailDetail;
+	jsTellClient["time"] = nPostTime;
 	sendMsg(jsTellClient, MSG_NEW_MAIL);
+
+	informMaxMailID();
 	return true;
+}
+
+bool CPlayerMailComponent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)
+{
+	switch (nmsgType)
+	{
+	case MSG_PLAYER_REQ_MAILS:
+	{
+		uint32_t nClientMaxMailID = recvValue["clientMaxMailID"].asUInt();
+
+		uint8_t nPage = 0;
+		Json::Value jsArrayM;
+		for (auto& ref : m_vMails)
+		{
+			if ( ref.first <= nClientMaxMailID)
+			{
+				continue;
+			}
+
+			Json::Value jsMail;
+			jsMail["mailID"] = ref.second->nMailID;
+			jsMail["type"] = ref.second->nMailType;
+			jsMail["state"] = ref.second->nState;
+			jsMail["detail"] = ref.second->jsDetail;
+			jsMail["time"] = ref.second->nPostTime;
+			jsArrayM[jsArrayM.size()] = jsMail;
+			if ( jsMail.size() == 10 )
+			{
+				Json::Value jsmsg;
+				jsmsg["pageIdx"] = nPage++;
+				jsmsg["mails"] = jsArrayM;
+				sendMsg(jsmsg, nmsgType);
+				jsArrayM.clear();
+			}
+		}
+
+		Json::Value jsmsg;
+		jsmsg["pageIdx"] = nPage;
+		jsmsg["mails"] = jsArrayM;
+		sendMsg(jsmsg, nmsgType);
+	}
+	break;
+	case MSG_PLAYER_PROCESS_MAIL:
+	{
+		// client : { mailID : 23 , state : eMailState, arg : {}  } . arg : can be null , depend on mail type and process type ;
+		uint32_t nMailID = recvValue["mailID"].asUInt();
+		uint32_t state = recvValue["state"].asUInt();
+		auto iterMail = m_vMails.find(nMailID);
+		if (iterMail == m_vMails.end())
+		{
+			recvValue["ret"] = 1;
+			sendMsg(recvValue, nmsgType);
+			break;
+		}
+
+		if ( iterMail->second->nState == state )
+		{
+			recvValue["ret"] = 2;
+			sendMsg(recvValue, nmsgType);
+			break;
+		}
+		recvValue["ret"] = 0;
+		sendMsg(recvValue, nmsgType);
+		iterMail->second->nState = (eMailState)state;
+		std::vector<uint32_t> v;
+		v.push_back(nMailID);
+		updateMailsStateToDB(v, iterMail->second->nState);
+		if ( eMailState_Delete == state )
+		{
+			m_vMails.erase(iterMail);
+		}
+	}
+	break;
+	default:
+		return false ;
+	}
+	return true;
+}
+
+void CPlayerMailComponent::onPlayerOtherDeviceLogin(uint32_t nOldSessionID, uint32_t nNewSessionID)
+{
+	informMaxMailID();
 }
 
 bool CPlayerMailComponent::doProcessMail(stMail* pMail)
@@ -248,6 +333,8 @@ void CPlayerMailComponent::doProcessMailAfterReadDB()
 	{
 		updateMailsStateToDB(vUpdateStateMails,eMailState_SysProcessed);
 	}
+
+	informMaxMailID();
 }
 
 void CPlayerMailComponent::updateMailsStateToDB(std::vector<uint32_t>& vMailIDs, eMailState eNewState)
@@ -264,4 +351,17 @@ void CPlayerMailComponent::updateMailsStateToDB(std::vector<uint32_t>& vMailIDs,
 	jsReq["sql"] = ss.str();
 	auto asyq = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	asyq->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jsReq);
+}
+
+void CPlayerMailComponent::informMaxMailID()
+{
+	uint32_t nMaxmailID = 0;
+	if (m_vMails.empty() == false)
+	{
+		nMaxmailID = m_vMails.rbegin()->first;
+	}
+
+	Json::Value js;
+	js["maxMailID"] = nMaxmailID;
+	sendMsg(js, MSG_PLAYER_RECIEVED_NEW_MAIL);
 }

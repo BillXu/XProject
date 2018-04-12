@@ -99,6 +99,19 @@ enum eMsgType
 	// client : {}
 	// svr : { clubs : [ 23,1,23 ] } 
 
+	MSG_PLAYER_RECIEVED_NEW_MAIL,
+	// svr : { maxMailID : 23 }
+
+	MSG_PLAYER_REQ_MAILS,
+	// client : { clientMaxMailID : 23   }
+	// svr : { pageIdx : 1 , mails : [ { mailID : 234 , type : 0 ,state : 0 ,time : 234523, detail : { } }, ....  ] } 
+	// 10 cnt per page ,if mails size < 10 , means end ;
+	
+	MSG_PLAYER_PROCESS_MAIL,
+	// client : { mailID : 23 , state : eMailState, arg : {}  } . arg : can be null , depend on mail type and process type ;
+	// svr : { ret : 0 ,mailID : 23 ,state : eMailState }
+	// ret : 0 success , 1 mail state error , 2 arg invliad ;
+
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
 	// payType : 0 the room owner pay cards , 1 AA pay card type , 2 big winer pay cards 
@@ -326,7 +339,7 @@ enum eMsgType
 	MSG_CLUB_DISMISS_CLUB,
 	// client : { clubID : 23 }
 	// svr : { ret : 0 }
-	// ret : 0 , 1 invalid privilige , 4 player is null;
+	// ret : 0 , 1 invalid privilige ,3 still have playing room , can not dissmiss , 4 player is null;
 
 	MSG_CLUB_SET_STATE,
 	// client: { clubID : 23 , isPause : 0 }
@@ -394,6 +407,14 @@ enum eMsgType
 	// client : { clubID : 23 , name : "hello hapyy join" }
 	// svr : { ret : 0 , name : "hello" }
 	// ret : 0 , 1 invalid privilige , 2 new name is the same as old name , 3 duplicate name 
+
+	MSG_CLUB_CHECK_NAME, // check if the name is duplicate 
+	// client : { name : 234 }
+	// svr : { ret : 0 } // ret : 0 ok , 1 duplicate 
+
+	MSG_CLUB_UPDATE_DIAMOND, 
+	// client : { clubID : 23 }
+	// svr : { ret : 0 ,clubID : 23, diamond : 23 }
 
 	MSG_CLUB_MSG_END = 2900,
 

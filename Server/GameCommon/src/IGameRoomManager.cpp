@@ -226,6 +226,12 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		jsResult["diamondFee"] = nDiamondNeed;
 	}
 	break;
+	case eAsync_ClubDismissRoom:
+	{
+		uint32_t nRoomID = jsReqContent["roomID"].asUInt();
+		deleteRoom(nRoomID);
+	}
+	break;
 	default:
 		return false ;
 	}
