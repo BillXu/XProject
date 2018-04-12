@@ -10,6 +10,7 @@
 #include "Utility.h"
 #include "log4z.h"
 #define INCREASE_MEMBER_LIMIT_PER10_DIAMOND 1000
+#define MAX_MEMBER_LIMIT 990
 
 CClub::CClub() {
 	m_stBaseData.zeroReset();
@@ -156,7 +157,7 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 			return true;
 		}
 		uint32_t nMemberAmount = 10 * nAmount;
-		if (getMemberLimit() + getTempMemberLimit() + nMemberAmount > 500) {
+		if (getMemberLimit() + getTempMemberLimit() + nMemberAmount > MAX_MEMBER_LIMIT) {
 			jsMsg["ret"] = 4;
 			sendMsgToClient(jsMsg, nmsgType, nSenderID);
 			LOGFMTE("Update club member limit error, amount is error, clubID = %u, userID = %u", getClubID(), nUserID);
