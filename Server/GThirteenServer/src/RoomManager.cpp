@@ -4,7 +4,7 @@
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include "stEnterRoomData.h"
-#define MAX_CREATE_ROOM_CNT 10
+#define MAX_CREATE_ROOM_CNT 100
 IGameRoom* RoomManager::createRoom(uint8_t nGameType)
 {
 	if (eGame_Thirteen == nGameType )
