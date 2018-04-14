@@ -70,7 +70,7 @@ public:
 	uint16_t getMaxCnt() { return m_nMaxCnt; }
 
 protected:
-	bool initMaxPlayerCnt();
+	virtual bool initMaxPlayerCnt();
 	bool packTempRoomInfoToPlayer(stEnterRoomData* pEnterRoomPlayer);
 	bool setCoreRoomBySessionID(uint32_t nSessionID);
 	bool setCoreRoomByUserID(uint32_t nUserID);

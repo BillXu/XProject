@@ -1,30 +1,31 @@
 #pragma once
 #include "ThirteenGPrivateRoom.h"
 class ThirteenWPrivateRoom
-	:public ThirteenGPrivateRoom {
+	:public IPrivateRoom {
 public:
 	struct stwStayPlayer
-		:public stgStayPlayer
 	{
-		uint32_t tOutTime;
-		uint32_t nOutGIdx;
+		uint32_t nSessionID = 0;
+		uint32_t nUserUID;
+		uint32_t nClubID = 0;
+		int32_t nChip = 0;
+		uint32_t nRebuyTime = 0;
+		bool bJoin = false;
+		bool bHadBeenJoined = false;
+		uint32_t nCurInIdx = -1;
+		uint32_t tOutTime = 0; //淘汰时间
+		uint32_t nOutGIdx = 0; //淘汰回合
 
-		stwStayPlayer() {
-			tOutTime = 0;
-			nOutGIdx = 0;
-			nState = eNet_Offline;
-		}
-
-		void reset() override {
-			stwStayPlayer::reset();
+		void reset(){
 			tOutTime = 0;
 			nOutGIdx = 0;
 		}
 	};
-
+	typedef std::map<uint32_t, stwStayPlayer*> MAP_UID_PLAYERS;
 public:
 	~ThirteenWPrivateRoom();
 	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
+	void setCurrentPointer(IGameRoom* pRoom)override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;
@@ -37,5 +38,28 @@ public:
 	uint16_t getPlayerCnt()override;
 
 protected:
+	bool initMaxPlayerCnt()override;
+	bool packTempRoomInfoToPlayer(stEnterRoomData* pEnterRoomPlayer);
+	bool enterRoomToWatch(stEnterRoomData* pEnterRoomPlayer); //返回是否需要发送房间信息
+	stwStayPlayer* isEnterBySession(uint32_t nSessionID);
+	stwStayPlayer* isEnterByUserID(uint32_t nUserID);
+
+protected:
+	bool m_isForbitEnterRoomWhenStarted;
+	uint8_t m_nAutoOpenCnt;
+	uint32_t m_nClubID = 0;
+	uint32_t m_nLeagueID = 0;
 	uint32_t m_nStartTime = 0;
+	bool m_bNeedVerify = false;
+	uint32_t m_nInitialCoin = 0;
+	uint32_t m_nRiseBlindTime = 0;
+	uint8_t m_nRebuyLevel = 0;
+	uint32_t m_nRebuyTime = 0;
+	uint32_t m_nEnterFee = 0;
+	uint8_t m_nDelayEnterLevel = 0;
+	uint16_t m_nMaxCnt = 0;
+
+	MAP_UID_PLAYERS m_mStayPlayers;
+	std::vector<GameRoom*> m_vPRooms;
+	std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;
 };
