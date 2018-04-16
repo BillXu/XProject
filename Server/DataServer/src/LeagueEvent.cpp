@@ -648,9 +648,9 @@ void CLeagueEvent::timerSave() {
 			sprintf_s(pBuffer, "insert into leagueevent (eventID, leagueID, postTime, eventType, level, state, disposerUID, detail) values (%u, %u, from_unixtime( %u ), %u, %u, %u, %u,", info.nEventID, getLeague()->getLeagueID(), info.nPostTime, info.nEventType, info.nLevel, info.nState, info.nDisposerUID);
 		}
 		else {
-			sprintf_s(pBuffer, "insert into clubevent (eventID, leagueID, postTime, eventType, level, state, detail) values (%u, %u, from_unixtime( %u ), %u, %u, %u,", info.nEventID, getLeague()->getLeagueID(), info.nPostTime, info.nEventType, info.nLevel, info.nState);
+			sprintf_s(pBuffer, "insert into leagueevent (eventID, leagueID, postTime, eventType, level, state, detail) values (%u, %u, from_unixtime( %u ), %u, %u, %u,", info.nEventID, getLeague()->getLeagueID(), info.nPostTime, info.nEventType, info.nLevel, info.nState);
 		}
-		//sprintf_s(pBuffer, "insert into clubevent (eventID, clubID, postTime, eventType, level, state, detail) values (%u, %u, %u, %u, %u, %u,", info.nEventID, getClub()->getClubID(), info.nPostTime, info.nEventType, info.nLevel, info.nState);
+		//sprintf_s(pBuffer, "insert into leagueevent (eventID, clubID, postTime, eventType, level, state, detail) values (%u, %u, %u, %u, %u, %u,", info.nEventID, getClub()->getClubID(), info.nPostTime, info.nEventType, info.nLevel, info.nState);
 		std::ostringstream ssSql;
 		ssSql << pBuffer << " ' " << jsDetail << " ' );";
 		jssql["sql"] = ssSql.str();
@@ -671,7 +671,7 @@ void CLeagueEvent::timerSave() {
 			sprintf_s(pBuffer, "update leagueevent set state = %u, disposerUID = %u where eventID = %u;", info.nState, info.nDisposerUID, nDirtyUID);
 		}
 		else {
-			sprintf_s(pBuffer, "update clubevent set state = %u where eventID = %u;", info.nState, nDirtyUID);
+			sprintf_s(pBuffer, "update leagueevent set state = %u where eventID = %u;", info.nState, nDirtyUID);
 		}
 
 		std::string str = pBuffer;

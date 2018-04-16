@@ -36,6 +36,7 @@ void CClubEvent::reset() {
 bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID) {
 	if (MSG_CLUB_SYSTEM_AUTO_ADD_PLAYER == nmsgType) {
 		uint32_t nMemberID = recvValue["uid"].isUInt() ? recvValue["uid"].asUInt() : 0;
+		auto cName = recvValue["name"].asCString();
 		if (nMemberID == 0) {
 			LOGFMTE("User apply auto join club error, userID is missing, sessionID = %u, clubID = %u", nSenderID, getClub()->getClubID());
 			//Json::Value jsResult;
@@ -43,7 +44,7 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 			//sendMsgToClient(jsResult, nmsgType, nSenderID);
 			return true;
 		}
-		if (getClub()->getClubMemberData()->addMember(nMemberID)) {
+		if (getClub()->getClubMemberData()->addMember(nMemberID, cName)) {
 			stEventData sted;
 			sted.nEventID = getClub()->getClubMgr()->generateEventID();
 			sted.nDisposerUID = 0;
@@ -415,7 +416,7 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 		}
 		uint8_t nState = recvValue["state"].asUInt();
 
-		treatEvent(nEventID, nPlayerID, nState, nSenderID);
+		treatEvent(nEventID, nPlayerID, nState, nSenderID, recvValue);
 		return true;
 		/*auto& itEvent = m_mAllEvents.find(nEventID);
 		if (itEvent == m_mAllEvents.end()) {
@@ -754,7 +755,7 @@ bool CClubEvent::eventIsDirty(uint32_t nEventID) {
 		std::find(m_vAddIDs.begin(), m_vAddIDs.end(), nEventID) == m_vAddIDs.end();
 }
 
-uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nState, uint32_t nSenderID) {
+uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nState, uint32_t nSenderID, Json::Value& recvValue) {
 	uint8_t nRet = 0;
 	auto& itEvent = m_mAllEvents.find(nEventID);
 	if (itEvent == m_mAllEvents.end()) {
@@ -798,8 +799,9 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 	if (nState == eClubEventState_Accede) {
 		switch (itEvent->second.nEventType) {
 		case eClubEventType_AppcationJoin: {
+			auto cName = recvValue["name"].asCString();
 			uint32_t nMemberUID = itEvent->second.jsDetail["uid"].asUInt();
-			if (getClub()->getClubMemberData()->addMember(nMemberUID) == false) {
+			if (getClub()->getClubMemberData()->addMember(nMemberUID, cName) == false) {
 				LOGFMTE("User apply treat club event error, club refused could be full? eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
 				Json::Value jsResult;
 				jsResult["eventID"] = nEventID;

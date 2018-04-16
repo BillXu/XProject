@@ -43,6 +43,7 @@ public:
 	void removeJoinedClub(uint32_t nClubID);
 	void removeCreatedClub(uint32_t nClubID);
 	void dismissClub(uint32_t nClubID);
+	void checkClubName();
 
 	void addGameWin(bool isWin);
 

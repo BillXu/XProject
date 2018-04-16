@@ -1,5 +1,6 @@
 #include "ClubManager.h"
 #include "Club.h"
+#include "ClubMemberData.h"
 #include "log4z.h"
 #include "ClubDefine.h"
 #include "AsyncRequestQuene.h"
@@ -469,6 +470,7 @@ void CClubManager::createClub(CPlayer* pPlayer, const Json::Value& jsReqContent)
 
 	pClub->init(this);
 	pClub->insertIntoDB();
+	pClub->getClubMemberData()->addMember(pPlayer->getUserUID(), pPlayer->getBaseData()->getPlayerName(), eClubMemberLevel_Creator);
 	m_vAllClubs[nClubID] = pClub;
 
 	pPlayer->getBaseData()->addCreatedClub(nClubID);

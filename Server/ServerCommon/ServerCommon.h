@@ -146,6 +146,7 @@ enum eAsyncReq
 	eAsync_club_Update_Member_Limit_check_Diamond, //十三水增加人员上限钻石消耗验证
 	eAsync_Club_T_Player_Check, //俱乐部房间内T人检测权限
 	eAsync_Club_League_T_Player_Check, //联盟房间内T人检查归属俱乐部权限
+	eAsync_Club_Member_Name_Check, //俱乐部检测玩家名字
 	eAsync_League_T_Player_Check, //联盟房间内T人检查权限
 	eAsync_League_AddIntegration, //联盟发放积分
 	eAsync_league_JoinLeague, //玩家申请加入联盟
