@@ -365,6 +365,14 @@ bool ThirteenPrivateRoom::onPlayerDeclineDragIn(uint32_t nUserID) {
 	return true;
 }
 
+bool ThirteenPrivateRoom::hasTreatedThisEvent(uint32_t nEventID) {
+	if (std::find(m_vTreatedEvent.begin(), m_vTreatedEvent.end(), nEventID) == m_vTreatedEvent.end()) {
+		m_vTreatedEvent.push_back(nEventID);
+		return false;
+	}
+	return true;
+}
+
 bool ThirteenPrivateRoom::onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount) {
 	if (nAmount == 0) {
 		return false;

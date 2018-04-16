@@ -1687,7 +1687,7 @@ uint32_t ThirteenRoom::getMaxLose() {
 		nMaxLose *= 2;
 	}
 
-	for (uint8_t i = 0; i < getSeatCnt(); i++) {
+	for (uint8_t i = 1; i < getSeatCnt(); i++) {
 		uint32_t nTemp = 3 + 10 + 5 + GAME_WIN_SHOOT_EXTRA;
 		/*if (isCanMingPai()) {
 			nTemp += 10;
@@ -1698,7 +1698,7 @@ uint32_t ThirteenRoom::getMaxLose() {
 		nMaxLose += nTemp;
 	}
 	//nMaxLose += (3 + 10 + 5 + 6) * 2;
-	return nMaxLose;
+	return nMaxLose * getBaseScore();
 }
 
 uint32_t ThirteenRoom::getMaxDragIn() {

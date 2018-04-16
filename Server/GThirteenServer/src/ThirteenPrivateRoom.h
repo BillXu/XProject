@@ -48,6 +48,7 @@ public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	virtual bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount);
 	virtual bool onPlayerDeclineDragIn(uint32_t nUserID);
+	bool hasTreatedThisEvent(uint32_t nEventID);
 	bool doDeleteRoom()override;
 	bool isRoomGameOver()override;
 	std::shared_ptr<IGameRoomRecorder> getRoomRecorder()override;
@@ -82,4 +83,5 @@ protected:
 	//std::vector<GameRoom*> m_vPRooms;
 
 	std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;
+	std::vector<uint32_t> m_vTreatedEvent;
 };

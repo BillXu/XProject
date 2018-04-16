@@ -325,6 +325,10 @@ bool RoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 		auto nClubID = jsReqContent["clubID"].asUInt();
 		auto pRoom = (ThirteenPrivateRoom*)getRoomByID(nRoomID);
 		if (pRoom) {
+			auto nEventID = jsReqContent["eventID"].asUInt();
+			if (pRoom->hasTreatedThisEvent(nEventID)) {
+				return true;
+			}
 			pRoom->onPlayerDeclineDragIn(nUID);
 		}
 		return true;
@@ -357,6 +361,13 @@ bool RoomManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 		if (pRoom == nullptr) {
 			Json::Value jsRet;
 			jsRet["ret"] = 1;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, nRoomID);
+			return true;
+		}
+		auto nEventID = jsReqContent["eventID"].asUInt();
+		if (pRoom->hasTreatedThisEvent(nEventID)) {
+			Json::Value jsRet;
+			jsRet["ret"] = 8;
 			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsRet, nRoomID);
 			return true;
 		}

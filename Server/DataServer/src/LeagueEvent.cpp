@@ -573,6 +573,7 @@ bool CLeagueEvent::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqS
 		jsMsg["roomID"] = nRoomID;
 		jsMsg["uid"] = nUID;
 		jsMsg["clubID"] = nClubID;
+		jsMsg["eventID"] = jsReqContent["eventID"];
 		pApp->getAsynReqQueue()->pushAsyncRequest(nPort, nRoomID, eAsync_club_agree_DragIn, jsMsg, [this, nRoomID, nClubID, nSenderID, nSenderPort, nReqSerial, nAmount, pApp](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
 			Json::Value jsRet;
 			if (isTimeOut) {
