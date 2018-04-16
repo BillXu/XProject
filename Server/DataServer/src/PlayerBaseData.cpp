@@ -118,6 +118,7 @@ void CPlayerBaseData::onPlayerLogined()
 		m_nTmpCoin = 0;
 		m_nTmpDiamond = 0;
 		sendBaseDataToClient();
+		checkClubName();
 	}
 	);
 
@@ -127,6 +128,7 @@ void CPlayerBaseData::onPlayerLogined()
 void CPlayerBaseData::onPlayerOtherDeviceLogin(uint32_t nOldSessionID, uint32_t nNewSessionID)
 {
 	sendBaseDataToClient();
+	checkClubName();
 }
 
 bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort )
@@ -175,6 +177,7 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		Json::Value jsmsg;
 		jsmsg["ret"] = 0;
 		sendMsg(jsmsg, nmsgType);
+		checkClubName();
 		return true;
 	}
 	else if (MSG_PLAYER_RESET_NAME == nmsgType) {
@@ -215,6 +218,8 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		m_bPlayerInfoDirty = true;
 		jsMsg["ret"] = 0;
 		sendMsg(jsMsg, nmsgType);
+
+		checkClubName();
 		return true;
 	}
 	else if ( MSG_PLAYER_UPDATE_GPS == nmsgType )
@@ -545,6 +550,20 @@ void CPlayerBaseData::removeCreatedClub(uint32_t nClubID) {
 void CPlayerBaseData::dismissClub(uint32_t nClubID) {
 	removeJoinedClub(nClubID);
 	removeCreatedClub(nClubID);
+}
+
+void CPlayerBaseData::checkClubName() {
+	Json::Value jsMsg;
+	jsMsg["uid"] = m_stBaseData.nUserUID;
+	jsMsg["name"] = m_stBaseData.cName;
+	for (auto& ref : m_stBaseData.vJoinedClub) {
+		jsMsg["clubID"] = ref;
+		getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, ref, eAsync_Club_Member_Name_Check, jsMsg);
+	}
+	for (auto& ref : m_stBaseData.vCreatedClub) {
+		jsMsg["clubID"] = ref;
+		getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, ref, eAsync_Club_Member_Name_Check, jsMsg);
+	}
 }
 
 void CPlayerBaseData::addGameWin(bool isWin) {

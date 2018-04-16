@@ -686,8 +686,6 @@ void CClub::insertIntoDB() {
 	sprintf_s(pBuffer, sizeof(pBuffer), "insert into club ( clubID,creator,name,headIcon,createTime,region,state,memberLimit,foundation,integration,description,createRoomType,searchLimit ) values ( %u,%u,'%s','%s',from_unixtime( %u ),'%s',%u,%u,%u,%u,'%s',%u,%u )", m_stBaseData.nClubID, m_stBaseData.nCreatorUID, m_stBaseData.cName, m_stBaseData.cHeadiconUrl, m_stBaseData.nCreateTime, m_stBaseData.cRegion, m_stBaseData.nState, m_stBaseData.nMemberLimit, m_stBaseData.nFoundation, m_stBaseData.nIntegration, m_stBaseData.cDescription, m_stBaseData.nCreateRoomType, m_stBaseData.nSearchLimit);
 	jssql["sql"] = pBuffer;
 	getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, m_stBaseData.nClubID, eAsync_DB_Add, jssql);
-
-	getClubMemberData()->addMember(m_stBaseData.nCreatorUID, eClubMemberLevel_Creator);
 }
 
 bool CClub::dismissClub() {

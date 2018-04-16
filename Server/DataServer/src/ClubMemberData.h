@@ -11,14 +11,20 @@ public:
 		uint8_t nLevel;
 		uint32_t nJoinTime;
 		uint32_t nQuitTime;
+		char cName[MAX_LEN_CHARACTER_NAME];
 		char cRemark[MAX_LEN_CLUB_NAME];
 
 		stMemberBaseData() {
 			memset(cRemark, 0, sizeof(cRemark));
+			memset(cName, 0, sizeof(cName));
 		}
 
 		void setRemark(const char* remark) {
 			sprintf_s(cRemark, "%s", remark);
+		}
+
+		void setName(const char* name) {
+			sprintf_s(cName, "%s", name);
 		}
 	};
 	typedef std::map<uint32_t, stMemberBaseData> MAP_ID_MEMBERS;
@@ -32,7 +38,7 @@ public:
 	bool onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort, uint32_t nSenderID)override;
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)override;
 	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID)override;
-	bool addMember(uint32_t nMemberUID, uint8_t nLevel = eClubMemberLevel_None);
+	bool addMember(uint32_t nMemberUID, const char* cName, uint8_t nLevel = eClubMemberLevel_None);
 	bool isNotJoin(uint32_t uMemberUID);
 	uint16_t getMemberCnt();
 	void memberDataToJson(Json::Value& jsData);
@@ -43,6 +49,7 @@ public:
 	void pushAsyncRequestToAll(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData);
 	void pushAsyncRequestToLevelNeed(eMsgPort nPortID, eAsyncReq nReqType, Json::Value& jsData, uint8_t nLevel = eClubMemberLevel_None);
 	bool fireMember(uint32_t nMemberUID);
+	void checkMemberName(uint32_t nMemberUID, const char* cName);
 
 protected:
 	void readMemberFormDB(uint32_t nOffset = 0);

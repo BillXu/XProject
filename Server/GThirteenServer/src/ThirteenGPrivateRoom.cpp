@@ -948,17 +948,6 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 					jsDetail["round"] = st->isJoin;
 					jsDetails[jsDetails.size()] = jsDetail;
 				}
-				/*for (; tIdx < tIdx + 10; tIdx++) {
-					if (tIdx >= vsPlayers.size()) {
-						break;
-					}
-					Json::Value jsDetail;
-					auto st = vsPlayers.at(tIdx);
-					jsDetail["uid"] = st->nUserUID;
-					jsDetail["chip"] = st->nChip;
-					jsDetail["drag"] = st->nAllWrag;
-					jsDetails[jsDetails.size()] = jsDetail;
-				}*/
 				jsMsg["detail"] = jsDetails;
 				pIdx++;
 				sendMsgToPlayer(jsMsg, nMsgType, nSessionID);

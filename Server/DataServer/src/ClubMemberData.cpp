@@ -58,6 +58,16 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 
 	if (MSG_CLUB_MEMBER_INFO == nmsgType) {
 		Json::Value jsMsg, jsUIDs;
+		jsMsg["clubID"] = getClub()->getClubID();
+
+		uint32_t nUID = recvValue["uid"].asUInt();
+		if (isNotJoin(nUID)) {
+			jsMsg["ret"] = 1;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			return true;
+		}
+		bool needDetail = checkUpdateLevel(nUID, eClubMemberLevel_Admin);
+
 		std::vector<stMemberBaseData*> vMembers;
 		for (auto& ref : m_mMembers) {
 			if (ref.second.nState != eClubState_Delete) {
@@ -76,13 +86,55 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 				return st1->nJoinTime < st2->nJoinTime;
 			}
 		});
-		jsMsg["ret"] = 0;
-		for (auto& ref : vMembers) {
-			jsUIDs[jsUIDs.size()] = ref->nMemberUID;
+
+		if (vMembers.size() == 0) {
+			jsMsg["ret"] = 2;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+			return true;
 		}
-		jsMsg["clubID"] = getClub()->getClubID();
+
+		jsMsg["ret"] = 0;
+		jsMsg["size"] = vMembers.size();
+		uint32_t tIdx = 0;
+		uint32_t pIdx = 0;
+		while (tIdx < vMembers.size()) {
+			Json::Value jsDetails;
+			jsMsg["idx"] = pIdx;
+			uint8_t cIdx = 0;
+			while (cIdx < 100) {
+				if (tIdx >= vMembers.size()) {
+					break;
+				}
+				auto st = vMembers.at(tIdx);
+				tIdx++;
+				cIdx++;
+				Json::Value jsDetail;
+				jsDetail["uid"] = st->nMemberUID;
+				jsDetail["name"] = st->cName;
+				if (needDetail) {
+					jsDetail["remark"] = st->cRemark;
+					jsDetail["level"] = st->nLevel;
+				}
+				jsDetails[jsDetails.size()] = jsDetail;
+			}
+			jsMsg["members"] = jsDetails;
+			pIdx++;
+			sendMsgToClient(jsMsg, nmsgType, nSenderID);
+		}
+
+
+		/*for (auto& ref : vMembers) {
+			Json::Value jsMember;
+			jsMember["id"] = ref->nMemberUID;
+			jsMember["name"] = ref->cName;
+			if (needDetail) {
+				jsMember["remark"] = ref->cRemark;
+				jsMember["level"] = ref->nLevel;
+			}
+			jsUIDs[jsUIDs.size()] = jsMember;
+		}
 		jsMsg["members"] = jsUIDs;
-		sendMsgToClient(jsMsg, nmsgType, nSenderID);
+		sendMsgToClient(jsMsg, nmsgType, nSenderID);*/
 		return true;
 	}
 
@@ -180,6 +232,13 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 }
 
 bool CClubMemberData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult) {
+	if (eAsync_Club_Member_Name_Check == nRequestType) {
+		uint32_t nMemberUID = jsReqContent["uid"].asUInt();
+		auto cName = jsReqContent["name"].asCString();
+		checkMemberName(nMemberUID, cName);
+		return true;
+	}
+
 	if (eAsync_Club_League_T_Player_Check == nRequestType) {
 		uint32_t nUserID = jsReqContent["uid"].asUInt();
 		uint32_t nMemberUID = jsReqContent["tuid"].asUInt();
@@ -365,7 +424,7 @@ bool CClubMemberData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 	return false;
 }
 
-bool CClubMemberData::addMember(uint32_t nMemberUID, uint8_t nLevel) {
+bool CClubMemberData::addMember(uint32_t nMemberUID, const char* cName, uint8_t nLevel) {
 	if (isNotJoin(nMemberUID) == false) {
 		LOGFMTE("Club add member error, is already the member! ClubID = %u, MemberUID = %u", getClub()->getClubID(), nMemberUID);
 		return false;
@@ -394,6 +453,7 @@ bool CClubMemberData::addMember(uint32_t nMemberUID, uint8_t nLevel) {
 		stmbd.nLevel = nLevel;
 		stmbd.nJoinTime = time(NULL);
 		stmbd.nQuitTime = 0;
+		stmbd.setName(cName);
 
 		if (std::find(m_vMemberAddIDs.begin(), m_vMemberAddIDs.end(), nMemberUID) == m_vMemberAddIDs.end()) {
 			m_vMemberAddIDs.push_back(nMemberUID);
@@ -406,6 +466,7 @@ bool CClubMemberData::addMember(uint32_t nMemberUID, uint8_t nLevel) {
 		it->second.nJoinTime = time(NULL);
 		it->second.nLevel = nLevel;
 		it->second.nQuitTime = 0;
+		it->second.setName(cName);
 
 		m_vMemberDertyIDs.push_back(nMemberUID);
 	}
@@ -532,6 +593,23 @@ bool CClubMemberData::fireMember(uint32_t nMemberUID) {
 	return true;
 }
 
+void CClubMemberData::checkMemberName(uint32_t nMemberUID, const char* cName) {
+	if (isNotJoin(nMemberUID)) {
+		return;
+	}
+
+	std::string cNewName = cName;
+	std::string cOldName = m_mMembers[nMemberUID].cName;
+	if (cNewName == cOldName) {
+		return;
+	}
+
+	m_mMembers[nMemberUID].setName(cName);
+	if (std::find(m_vMemberDertyIDs.begin(), m_vMemberDertyIDs.end(), nMemberUID) == m_vMemberDertyIDs.end()) {
+		m_vMemberDertyIDs.push_back(nMemberUID);
+	}
+}
+
 void CClubMemberData::timerSave() {
 	if (m_bReadingDB) {
 		return;
@@ -549,7 +627,7 @@ void CClubMemberData::timerSave() {
 		auto info = m_mMembers[nAddUID];
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, "insert into clubmember (clubID, userUID, state, level, joinDataTime) values (%u, %u, %u, %u, from_unixtime( %u ));", getClub()->getClubID(), info.nMemberUID, info.nState, info.nLevel, info.nJoinTime);
+		sprintf_s(pBuffer, "insert into clubmember (clubID, userUID, state, level, joinDataTime, name) values (%u, %u, %u, %u, from_unixtime( %u ), '%s');", getClub()->getClubID(), info.nMemberUID, info.nState, info.nLevel, info.nJoinTime, info.cName);
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = m_pClub->getClubMgr()->getSvrApp()->getAsynReqQueue();
 		pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getClub()->getClubID(), eAsync_DB_Add, jssql);
@@ -564,7 +642,7 @@ void CClubMemberData::timerSave() {
 		auto info = m_mMembers[nDirtyUID];
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, "update clubmember set state = %u, level = %u, quitDataTime = from_unixtime( %u ), remark = '%s' where clubID = %u and userUID = %u;", info.nState, info.nLevel, info.nQuitTime, info.cRemark, getClub()->getClubID(), nDirtyUID);
+		sprintf_s(pBuffer, "update clubmember set state = %u, level = %u, quitDataTime = from_unixtime( %u ), remark = '%s', name = '%s' where clubID = %u and userUID = %u;", info.nState, info.nLevel, info.nQuitTime, info.cRemark, info.cName, getClub()->getClubID(), nDirtyUID);
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = m_pClub->getClubMgr()->getSvrApp()->getAsynReqQueue();
 		pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getClub()->getClubID(), eAsync_DB_Update, jssql);
@@ -575,7 +653,7 @@ void CClubMemberData::timerSave() {
 void CClubMemberData::readMemberFormDB(uint32_t nOffset) {
 	m_bReadingDB = true;
 	std::ostringstream ss;
-	ss << "SELECT userUID, state, level, unix_timestamp(joinDataTime) as joinDataTime, unix_timestamp(quitDataTime) as quitDataTime, remark FROM clubmember where clubID = " << (UINT)m_pClub->getClubID() << " order by userUID desc limit 10 offset " << (UINT)nOffset << ";";
+	ss << "SELECT userUID, state, level, unix_timestamp(joinDataTime) as joinDataTime, unix_timestamp(quitDataTime) as quitDataTime, remark, name FROM clubmember where clubID = " << (UINT)m_pClub->getClubID() << " order by userUID desc limit 10 offset " << (UINT)nOffset << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	m_pClub->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
@@ -613,6 +691,7 @@ void CClubMemberData::readMemberFormDB(uint32_t nOffset) {
 			stMemberInfo.nJoinTime = jsRow["joinDataTime"].asUInt();
 			stMemberInfo.nQuitTime = jsRow["quitDataTime"].asUInt();
 			stMemberInfo.setRemark(jsRow["remark"].asCString());
+			stMemberInfo.setName(jsRow["name"].asCString());
 
 			m_mMembers[nUserUID] = stMemberInfo;
 		}

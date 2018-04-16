@@ -33,7 +33,7 @@ protected:
 	void doProcessAfterReadDB();
 	uint8_t getEventLevel(uint8_t nEventType);
 	bool eventIsDirty(uint32_t nEventID);
-	uint8_t treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nState, uint32_t nSenderID);
+	uint8_t treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nState, uint32_t nSenderID, Json::Value& recvValue);
 	bool hasApplayJoin(uint32_t nUserID);
 
 protected:
