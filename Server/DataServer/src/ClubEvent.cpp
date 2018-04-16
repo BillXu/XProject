@@ -850,6 +850,7 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			jsMsg["roomID"] = nRoomID;
 			jsMsg["uid"] = nMemberUID;
 			jsMsg["clubID"] = getClub()->getClubID();
+			jsMsg["eventID"] = itEvent->first;
 			auto sendPort = itEvent->second.jsDetail["port"].asUInt();
 			auto sendTargetID = nRoomID;
 			//getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(itEvent->second.jsDetail["port"].asUInt(), nRoomID, eAsync_club_agree_DragIn, jsMsg);
@@ -898,7 +899,7 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 				jsResult["ret"] = 0;
 				sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 				getClub()->getClubMemberData()->pushAsyncRequestToLevelNeed(ID_MSG_PORT_DATA, eAsync_club_Treat_Event_Message, jsResult, eClubMemberLevel_Admin);
-			});
+			}, itEvent->first);
 			break;
 		}
 		default: {
@@ -920,6 +921,7 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			jsMsg["roomID"] = nRoomID;
 			jsMsg["uid"] = nMemberUID;
 			jsMsg["clubID"] = getClub()->getClubID();
+			jsMsg["eventID"] = itEvent->first;
 			auto reqQueue = getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue();
 			reqQueue->pushAsyncRequest(itEvent->second.jsDetail["port"].asUInt(), nRoomID, eAsync_club_decline_DragIn, jsMsg);
 			jsMsgP["targetUID"] = nMemberUID;

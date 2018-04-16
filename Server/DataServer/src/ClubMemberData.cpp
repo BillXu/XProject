@@ -101,7 +101,7 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 			Json::Value jsDetails;
 			jsMsg["idx"] = pIdx;
 			uint8_t cIdx = 0;
-			while (cIdx < 100) {
+			while (cIdx < 1) {
 				if (tIdx >= vMembers.size()) {
 					break;
 				}
