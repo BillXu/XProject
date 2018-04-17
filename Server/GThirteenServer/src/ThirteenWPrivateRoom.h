@@ -26,9 +26,10 @@ public:
 			isJoin = 0;
 		}
 
-		void reset(){
-			tOutTime = 0;
-			nOutGIdx = 0;
+		void leave(){
+			nSessionID = 0;
+			//tOutTime = 0;
+			//nOutGIdx = 0;
 		}
 	};
 	typedef std::map<uint32_t, stwStayPlayer*> MAP_UID_PLAYERS;
@@ -43,12 +44,12 @@ public:
 	bool canStartGame(IGameRoom* pRoom)override;
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool isEnableReplay()override { return false; }
+	void onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID)override;
 	bool canPlayerSitDown(uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	bool isRoomFull()override;
-	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
 	void update(float fDelta)override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
@@ -58,12 +59,12 @@ public:
 	bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount);
 
 protected:
-	void sendBssicRoomInfo(uint32_t nSessionID);
-	bool initMaxPlayerCnt()override;
+	//void sendBssicRoomInfo(uint32_t nSessionID);
+	//bool initMaxPlayerCnt()override;
 	bool packTempRoomInfoToPlayer(stEnterRoomData* pEnterRoomPlayer);
 	bool enterRoomToWatch(stEnterRoomData* pEnterRoomPlayer); //返回是否需要发送房间信息
-	stwStayPlayer* isEnterBySession(uint32_t nSessionID);
-	stwStayPlayer* isEnterByUserID(uint32_t nUserID);
+	//stwStayPlayer* isEnterBySession(uint32_t nSessionID);
+	//stwStayPlayer* isEnterByUserID(uint32_t nUserID);
 
 protected:
 	//bool m_isForbitEnterRoomWhenStarted;

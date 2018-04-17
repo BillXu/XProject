@@ -80,8 +80,9 @@ void ThirteenWPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo) {
 
 bool ThirteenWPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
 	if (isRoomStarted()) {
-		auto sPlayer = isEnterByUserID(pEnterRoomPlayer->nUserUID);
+		auto sPlayer = (stwStayPlayer*)isEnterByUserID(pEnterRoomPlayer->nUserUID);
 		if (sPlayer) {
+			pEnterRoomPlayer->nChip = sPlayer->nChip;
 			sPlayer->nSessionID = pEnterRoomPlayer->nSessionID;
 			if ((uint32_t)-1 == sPlayer->nCurInIdx) {
 				if (sPlayer->nChip) {
@@ -221,6 +222,10 @@ void ThirteenWPrivateRoom::onGameDidEnd(IGameRoom* pRoom) {
 	}
 }
 
+void ThirteenWPrivateRoom::onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID) {
+	//TODO
+}
+
 bool ThirteenWPrivateRoom::canPlayerSitDown(uint32_t nUserUID) {
 	auto stw = isEnterByUserID(nUserUID);
 	if (stw) {
@@ -237,6 +242,11 @@ void ThirteenWPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlaye
 }
 
 void ThirteenWPrivateRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID) {
+	auto sPlayer = (stwStayPlayer*)isEnterByUserID(nUserUID);
+	if (sPlayer) {
+		sPlayer->leave();
+	}
+
 	Json::Value jsReqLeave;
 	jsReqLeave["targetUID"] = nUserUID;
 	jsReqLeave["roomID"] = getRoomID();
@@ -341,7 +351,7 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 	{
 		uint32_t tIdx = 0;
 		uint32_t pIdx = 0;
-		std::vector<stwStayPlayer*> vsPlayers;
+		std::vector<stStayPlayer*> vsPlayers;
 		for (auto ref : m_mStayPlayers) {
 			vsPlayers.push_back(ref.second);
 		}
