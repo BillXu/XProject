@@ -111,9 +111,9 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 				Json::Value jsDetail;
 				jsDetail["uid"] = st->nMemberUID;
 				jsDetail["name"] = st->cName;
+				jsDetail["level"] = st->nLevel;
 				if (needDetail) {
 					jsDetail["remark"] = st->cRemark;
-					jsDetail["level"] = st->nLevel;
 				}
 				jsDetails[jsDetails.size()] = jsDetail;
 			}
