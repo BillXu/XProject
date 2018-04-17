@@ -1,20 +1,30 @@
 #pragma once
-#include "ThirteenGPrivateRoom.h"
+#include "ThirteenPrivateRoom.h"
 class ThirteenWPrivateRoom
-	:public IPrivateRoom {
+	:public ThirteenPrivateRoom {
 public:
 	struct stwStayPlayer
+		:public stStayPlayer
 	{
-		uint32_t nSessionID = 0;
-		uint32_t nUserUID;
-		uint32_t nClubID = 0;
-		int32_t nChip = 0;
+		//uint32_t nSessionID = 0;
+		//uint32_t nUserUID;
+		//uint32_t nClubID = 0;
+		//int32_t nChip = 0;
 		uint32_t nRebuyTime = 0;
+		//int32_t nAllWrag = 0;
+		//uint32_t isJoin = 0;
 		bool bJoin = false;
-		bool bHadBeenJoined = false;
 		uint32_t nCurInIdx = -1;
 		uint32_t tOutTime = 0; //淘汰时间
 		uint32_t nOutGIdx = 0; //淘汰回合
+
+		stwStayPlayer() {
+			nSessionID = 0;
+			nClubID = 0;
+			nChip = 0;
+			nAllWrag = 0;
+			isJoin = 0;
+		}
 
 		void reset(){
 			tOutTime = 0;
@@ -29,6 +39,14 @@ public:
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;
+	uint8_t getInitRound(uint8_t nLevel)override;
+	bool canStartGame(IGameRoom* pRoom)override;
+	void onGameDidEnd(IGameRoom* pRoom)override;
+	bool isEnableReplay()override { return false; }
+	bool canPlayerSitDown(uint32_t nUserUID)override;
+	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
+	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
+	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	bool isRoomFull()override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
 	void update(float fDelta)override;
@@ -37,7 +55,10 @@ public:
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
 	uint16_t getPlayerCnt()override;
 
+	bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount);
+
 protected:
+	void sendBssicRoomInfo(uint32_t nSessionID);
 	bool initMaxPlayerCnt()override;
 	bool packTempRoomInfoToPlayer(stEnterRoomData* pEnterRoomPlayer);
 	bool enterRoomToWatch(stEnterRoomData* pEnterRoomPlayer); //返回是否需要发送房间信息
@@ -45,10 +66,10 @@ protected:
 	stwStayPlayer* isEnterByUserID(uint32_t nUserID);
 
 protected:
-	bool m_isForbitEnterRoomWhenStarted;
-	uint8_t m_nAutoOpenCnt;
-	uint32_t m_nClubID = 0;
-	uint32_t m_nLeagueID = 0;
+	//bool m_isForbitEnterRoomWhenStarted;
+	//uint8_t m_nAutoOpenCnt;
+	//uint32_t m_nClubID = 0;
+	//uint32_t m_nLeagueID = 0;
 	uint32_t m_nStartTime = 0;
 	bool m_bNeedVerify = false;
 	uint32_t m_nInitialCoin = 0;
@@ -59,7 +80,6 @@ protected:
 	uint8_t m_nDelayEnterLevel = 0;
 	uint16_t m_nMaxCnt = 0;
 
-	MAP_UID_PLAYERS m_mStayPlayers;
 	std::vector<GameRoom*> m_vPRooms;
-	std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;
+	//std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;
 };
