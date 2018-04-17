@@ -11,7 +11,7 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		auto pRoom = (ThirteenRoom*)getRoom();
 		if (pRoom->isCanRotBanker()) {
-			setStateDuringTime(10);
+			setStateDuringTime(5);
 			Json::Value jsMsg;
 			getRoom()->sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_START_ROT_BANKER);
 		}
