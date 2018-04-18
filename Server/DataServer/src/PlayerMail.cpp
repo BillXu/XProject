@@ -19,6 +19,16 @@ CPlayerMailComponent::~CPlayerMailComponent()
 	m_vMails.clear();
 }
 
+void CPlayerMailComponent::reset()
+{
+	for (auto& ref : m_vMails)
+	{
+		delete ref.second;
+		ref.second = nullptr;
+	}
+	m_vMails.clear();
+}
+
 void CPlayerMailComponent::onPlayerLogined()
 {
 	// read player mail ;
@@ -68,6 +78,9 @@ bool CPlayerMailComponent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsg
 	case MSG_PLAYER_REQ_MAILS:
 	{
 		uint32_t nClientMaxMailID = recvValue["clientMaxMailID"].asUInt();
+#ifdef _DEBUG
+		nClientMaxMailID = 0;
+#endif // _DEBUG
 
 		uint8_t nPage = 0;
 		Json::Value jsArrayM;
@@ -85,7 +98,7 @@ bool CPlayerMailComponent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsg
 			jsMail["detail"] = ref.second->jsDetail;
 			jsMail["time"] = ref.second->nPostTime;
 			jsArrayM[jsArrayM.size()] = jsMail;
-			if ( jsMail.size() == 10 )
+			if (jsArrayM.size() == 10 )
 			{
 				Json::Value jsmsg;
 				jsmsg["pageIdx"] = nPage++;
