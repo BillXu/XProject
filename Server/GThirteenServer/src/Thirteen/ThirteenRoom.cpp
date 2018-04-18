@@ -412,6 +412,7 @@ void ThirteenRoom::onGameEnd()
 		auto nIdx = p->getIdx();
 		jsPlayerResult["idx"] = nIdx;
 		jsPlayerResult["offset"] = p->getSingleOffset();
+		jsPlayerResult["final"] = p->getChips();
 		p->getPlayerCard()->groupCardToJson(jsCards);
 		jsPlayerResult["cards"] = jsCards;
 		p->getPlayerCard()->groupCardTypeToJson(jsCardsType);
@@ -1698,7 +1699,7 @@ uint32_t ThirteenRoom::getMaxLose() {
 		nMaxLose += nTemp;
 	}
 	//nMaxLose += (3 + 10 + 5 + 6) * 2;
-	return nMaxLose * getBaseScore();
+	return nMaxLose/* * getBaseScore()*/;
 }
 
 uint32_t ThirteenRoom::getMaxDragIn() {

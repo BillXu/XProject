@@ -6,6 +6,7 @@
 #include "log4z.h"
 #include <time.h>
 #include <algorithm>
+#define MEMBER_INFO_SIZE_PER_PAGE 100
 CClubMemberData::CClubMemberData()
 {
 	m_eType = eClubComponent_MemberData;
@@ -94,14 +95,18 @@ bool CClubMemberData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		}
 
 		jsMsg["ret"] = 0;
-		jsMsg["size"] = vMembers.size();
+		uint32_t nPage = vMembers.size() / MEMBER_INFO_SIZE_PER_PAGE;
+		if (vMembers.size() % MEMBER_INFO_SIZE_PER_PAGE > 0) {
+			nPage += 1;
+		}
+		jsMsg["page"] = nPage;
 		uint32_t tIdx = 0;
 		uint32_t pIdx = 0;
 		while (tIdx < vMembers.size()) {
 			Json::Value jsDetails;
 			jsMsg["idx"] = pIdx;
 			uint8_t cIdx = 0;
-			while (cIdx < 1) {
+			while (cIdx < MEMBER_INFO_SIZE_PER_PAGE) {
 				if (tIdx >= vMembers.size()) {
 					break;
 				}
