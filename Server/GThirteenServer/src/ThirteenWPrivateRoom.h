@@ -51,7 +51,6 @@ public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	bool isRoomFull()override;
 	void update(float fDelta)override;
-	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
 	uint16_t getPlayerCnt()override;
