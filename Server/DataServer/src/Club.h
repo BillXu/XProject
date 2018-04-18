@@ -27,6 +27,12 @@ public:
 		time_t nTime;
 	};
 
+	struct stClubRoomInfo
+	{
+		uint32_t nRoomID;
+		uint32_t nRoomIdx;
+	};
+
 public:
 	typedef std::map<uint32_t, stMember*> MAP_MEMBER;
 	typedef std::map<uint32_t, stClubEvent*> MAP_EVENT;
@@ -53,15 +59,21 @@ public:
 	bool isPasuseState() { return 1 == m_nState; }
 	std::string getName() { return m_strName; }
 	bool canDismiss();
+	void onFirstCreated()
+	{
+		m_isFinishReadEvent = true;
+		m_isFinishReadMembers = true;
+	}
 protected:
 	void readClubEvents( uint32_t nAlreadyCnt );
 	void readClubMemebers( uint32_t nAlreadyCnt );
 	void saveEventToDB( uint32_t nEventID , bool isAdd ) ; // or update ?
 	bool addEvent( stClubEvent* pEvent );
-	void onCreateEmptyRoom( uint32_t nRoomID, int32_t nDiamondFee );
+	void onCreateEmptyRoom( uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx );
 	void updateCreateRoom();
 	void postMail( uint32_t nTargetID , eMailType eType , Json::Value& jsContent , eMailState eState );
 	uint16_t getTargetPortByGameType( uint32_t nGameType );
+	void dismissEmptyRoom( bool isWillDelteClub = false );
 protected:
 	uint8_t m_nState;  // 0 normal , 1 pause ;
 	uint32_t m_nCapacity;
@@ -76,13 +88,17 @@ protected:
 	MAP_MEMBER m_vMembers;
 	MAP_EVENT m_vEvents;
 	ClubManager* m_pMgr;
-	std::vector<uint32_t> m_vFullRooms;
-	std::vector<uint32_t> m_vEmptyRooms;
+	std::vector<stClubRoomInfo> m_vFullRooms;
+	std::vector<stClubRoomInfo> m_vEmptyRooms;
 	std::vector<stInvitation*> m_vInvitations;
 
 	bool m_isLackDiamond;
 	float m_fDelayTryCreateRoom;
 	bool m_isClubInfoDirty;
+	uint32_t m_nMaxRoomIdx;
+
+	bool m_isFinishReadEvent;
+	bool m_isFinishReadMembers; 
 };
 
 

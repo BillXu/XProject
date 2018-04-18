@@ -8,6 +8,7 @@
 #include "PlayerBaseData.h"
 #include "AsyncRequestQuene.h"
 #include "MailModule.h"
+#include <algorithm>
 #define MAX_EMPTY_ROOM_CNT 2 
 Club::~Club()
 {
@@ -50,6 +51,9 @@ bool Club::init( ClubManager * pClubMgr,uint32_t nClubID ,std::string& strClubNa
 	m_fDelayTryCreateRoom = 0;
 	m_isClubInfoDirty = false;
 	m_strNotice = strNotice;
+	m_nMaxRoomIdx = 0;
+	m_isFinishReadEvent = false;
+	m_isFinishReadMembers = false;
 	return true;
 }
 
@@ -195,9 +199,8 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 
 		} while ( 0 );
 
-		Json::Value js;
-		js["ret"] = nRet;
-		sendMsg(js, nMsgType, nTargetID, nSenderID);
+		prealMsg["ret"] = nRet;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
 		if ( 0 == nRet )
 		{
 			deleteMember( nLeaveUID );
@@ -238,6 +241,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			break;
 		}
 		LOGFMTD( "club id = %u change player opts ",getClubID() );
+		dismissEmptyRoom();
 		m_jsCreateRoomOpts = prealMsg["opts"];
 		if ( m_jsCreateRoomOpts["payType"].asUInt() == ePayType_AA )
 		{
@@ -505,15 +509,22 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		Json::Value jsEmptyRooms;
 		for (auto& ref : m_vFullRooms)
 		{
-			jsFullRooms[jsFullRooms.size()] = ref;
+			//Json::Value jsItem;
+			//jsItem["id"] = ref.nRoomID;
+			//jsItem["idx"] = ref.nRoomIdx;
+			jsFullRooms[jsFullRooms.size()] = ref.nRoomID;
 		}
 
 		for (auto& ref : m_vEmptyRooms )
 		{
-			jsEmptyRooms[jsEmptyRooms.size()] = ref;
+			//Json::Value jsItem;
+			//jsItem["id"] = ref.nRoomID;
+			//jsItem["idx"] = ref.nRoomIdx;
+			jsEmptyRooms[jsEmptyRooms.size()] = ref.nRoomID;
 		}
 
 		Json::Value jsmsg;
+		jsmsg["clubID"] = getClubID();
 		jsmsg["fullRooms"] = jsFullRooms;
 		jsmsg["emptyRooms"] = jsEmptyRooms;
 		sendMsg(jsmsg, nMsgType, nTargetID, nSenderID);
@@ -889,14 +900,15 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 	{
 		uint32_t nRoomID = jsReqContent["roomID"].asUInt();
 		LOGFMTD("clubID = %u room end roomID = %u", getClubID(), nRoomID );
-		auto iter = std::find(m_vFullRooms.begin(),m_vFullRooms.end(),nRoomID );
+		auto iter = std::find_if(m_vFullRooms.begin(),m_vFullRooms.end(), [nRoomID](stClubRoomInfo& ref) { return ref.nRoomID == nRoomID; });
 		if (iter != m_vFullRooms.end())
 		{
 			m_vFullRooms.erase(iter);
 			break;
 		}
 
-		iter = std::find( m_vEmptyRooms.begin(),m_vEmptyRooms.end(),nRoomID );
+	
+		iter = std::find_if(m_vEmptyRooms.begin(), m_vEmptyRooms.end(), [nRoomID](stClubRoomInfo& ref) { return ref.nRoomID == nRoomID; });
 		if (iter != m_vEmptyRooms.end())
 		{
 			m_vEmptyRooms.erase(iter);
@@ -916,7 +928,7 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 	case eAsync_ClubRoomStart:
 	{
 		uint32_t nRoomID = jsReqContent["roomID"].asUInt();
-		auto iter = std::find(m_vEmptyRooms.begin(), m_vEmptyRooms.end(), nRoomID);
+		auto iter = std::find_if(m_vEmptyRooms.begin(), m_vEmptyRooms.end(), [nRoomID](stClubRoomInfo& ref) { return ref.nRoomID == nRoomID; } );
 		if (iter == m_vEmptyRooms.end())
 		{
 			LOGFMTE( "clubID = %u ,room id = %u start but not in empty room list",getClubID(),nRoomID );
@@ -1112,15 +1124,7 @@ void Club::onWillDismiss()
 	} while ( 1 );
 
 	// dissmiss room
-	auto nRoomType = m_jsCreateRoomOpts["gameType"].asUInt();
-	for ( auto& ref : m_vEmptyRooms )
-	{
-		Json::Value js;
-		js["roomID"] = ref;
-		m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest( getTargetPortByGameType(nRoomType), 0, eAsync_ClubDismissRoom, js );
-	}
-
-	m_vEmptyRooms.clear();
+	dismissEmptyRoom( true );
 }
 
 void Club::update(float fDeta)
@@ -1136,14 +1140,14 @@ void Club::update(float fDeta)
 
 void Club::updateCreateRoom()
 {
-	if ( false == m_isLackDiamond && false == m_isCreatingRoom && false == isPasuseState() && m_vEmptyRooms.size() < MAX_EMPTY_ROOM_CNT && m_fDelayTryCreateRoom < 0.1 )
+	if ( m_isFinishReadEvent && m_isFinishReadMembers && false == m_isLackDiamond && false == m_isCreatingRoom && false == isPasuseState() && m_vEmptyRooms.size() < MAX_EMPTY_ROOM_CNT && m_fDelayTryCreateRoom < 0.1 )
 	{
 		m_isCreatingRoom = true;
 		auto nRoomType = m_jsCreateRoomOpts["gameType"].asUInt();
 		m_jsCreateRoomOpts["uid"] = 0;
 		m_jsCreateRoomOpts["clubID"] = getClubID();
 		m_jsCreateRoomOpts["diamond"] = getDiamond();
-
+		m_jsCreateRoomOpts["clubName"] = getName();
 		auto nPort = getTargetPortByGameType(nRoomType);
 		if ( nPort >= ID_MSG_PORT_MAX)
 		{
@@ -1154,6 +1158,11 @@ void Club::updateCreateRoom()
 		}
 
 		auto asyq = m_pMgr->getSvrApp()->getAsynReqQueue();
+		m_jsCreateRoomOpts["roomIdx"] = ++m_nMaxRoomIdx;
+		if ( m_nMaxRoomIdx >= 99 )
+		{
+			m_nMaxRoomIdx = 0;
+		}
 		asyq->pushAsyncRequest( nPort , 0, eAsync_ClubCreateRoom, m_jsCreateRoomOpts, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
 			m_isCreatingRoom = false;
 			if ( isTimeOut )
@@ -1164,7 +1173,7 @@ void Club::updateCreateRoom()
 			uint8_t nRet = retContent["ret"].asUInt();
 			if ( 0 == nRet )
 			{
-				onCreateEmptyRoom(retContent["roomID"].asUInt(), retContent["diamondFee"].asInt());
+				onCreateEmptyRoom(retContent["roomID"].asUInt(), retContent["diamondFee"].asInt(), retContent["roomIdx"].asInt() );
 				return;
 			}
 
@@ -1201,22 +1210,31 @@ uint16_t Club::getTargetPortByGameType(uint32_t nGameType)
 		return ID_MSG_PORT_DOU_DI_ZHU;
 	}
 	break;
+	case eGame_Golden:
+	{
+		return ID_MSG_PORT_GOLDEN;
+	}
+	break;
 	default:
 		break;
 	}
 	return ID_MSG_PORT_MAX;
 }
 
-void Club::onCreateEmptyRoom(uint32_t nRoomID, int32_t nDiamondFee )
+void Club::onCreateEmptyRoom(uint32_t nRoomID, int32_t nDiamondFee, uint32_t nRoomIdx )
 {
-	m_vEmptyRooms.push_back(nRoomID);
+	stClubRoomInfo ci;
+	ci.nRoomID = nRoomID;
+	ci.nRoomIdx = nRoomIdx;
+	m_vEmptyRooms.push_back(ci);
 	updateDiamond( nDiamondFee * -1 );
 	m_isCreatingRoom = false;
+	LOGFMTD("created room id = %u consume diamond = %d, clubid = %u, final diamond = %u",nRoomID,nDiamondFee,getClubID(),getDiamond() );
 }
 
 void Club::updateDiamond(int32_t nDiamond)
 {
-	if (nDiamond < 0 && abs(nDiamond) > getDiamond())
+	if (nDiamond < (int32_t)0 && abs(nDiamond) > (int32_t)getDiamond())
 	{
 		LOGFMTE( "diamond = %u is too few , need cnt = %u",getDiamond(), nDiamond );
 		m_nDiamond = 0;
@@ -1283,6 +1301,7 @@ void Club::readClubEvents( uint32_t nAlreadyCnt )
 		if (nAft == 0 || jsData.isNull())
 		{
 			LOGFMTD("finish club events 2 id = %u ", getClubID());
+			m_isFinishReadEvent = true;
 			return;
 		}
 
@@ -1295,6 +1314,7 @@ void Club::readClubEvents( uint32_t nAlreadyCnt )
 			if ( iterEvent != m_vEvents.end() )
 			{
 				LOGFMTE("why have duplicate event club id = %u, stop read eventID = %u ", getClubID(), nEventID );
+				m_isFinishReadEvent = true;
 				return;
 			}
 
@@ -1315,12 +1335,14 @@ void Club::readClubEvents( uint32_t nAlreadyCnt )
 		if (nNewOffset % 20 != 0 || nAft < 20)  // finish read clubs ;
 		{
 			LOGFMTD("finish club events  id = %u ", getClubID());
+			m_isFinishReadEvent = true;
 			return;
 		}
 
 		if ( nNewOffset > 600 )
 		{
 			LOGFMTD(" two many cnts finish club events  id = %u ", getClubID());
+			m_isFinishReadEvent = true;
 			return;
 		}
 
@@ -1342,6 +1364,7 @@ void Club::readClubMemebers( uint32_t nAlreadyReadCnt)
 		if (nAft == 0 || jsData.isNull())
 		{
 			LOGFMTD("finish club members 2 id = %u ", getClubID());
+			m_isFinishReadMembers = true;
 			return;
 		}
 
@@ -1353,6 +1376,7 @@ void Club::readClubMemebers( uint32_t nAlreadyReadCnt)
 			if ( isHaveMemeber( nUID ) )
 			{
 				LOGFMTE("why have duplicate clubid = %u, stop read uid = %u ",getClubID() ,nUID );
+				m_isFinishReadMembers = true;
 				return;
 			}
 
@@ -1367,6 +1391,7 @@ void Club::readClubMemebers( uint32_t nAlreadyReadCnt)
 		if ( nNewOffset % 20 != 0 || nAft < 20 )  // finish read clubs ;
 		{
 			LOGFMTD("finish club members  id = %u " , getClubID() );
+			m_isFinishReadMembers = true;
 			return;
 		}
 
@@ -1442,4 +1467,30 @@ void Club::postMail( uint32_t nTargetID, eMailType eType, Json::Value& jsContent
 {
 	auto pMailModule = ((DataServerApp*)m_pMgr->getSvrApp())->getMailModule();
 	pMailModule->postMail(nTargetID, eType, jsContent, eState );
+}
+
+void Club::dismissEmptyRoom( bool isWillDelteClub )
+{
+	auto nRoomType = m_jsCreateRoomOpts["gameType"].asUInt();
+	for (auto& ref : m_vEmptyRooms)
+	{
+		Json::Value js;
+		js["roomID"] = ref.nRoomID;
+		uint32_t nRid = ref.nRoomID;
+		if ( isWillDelteClub )
+		{
+			m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(getTargetPortByGameType(nRoomType), 0, eAsync_ClubDismissRoom, js, ref.nRoomID);
+		}
+		else
+		{
+			m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(getTargetPortByGameType(nRoomType), 0, eAsync_ClubDismissRoom, js, [this, nRid](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+			{
+				auto iter = std::find_if(m_vEmptyRooms.begin(), m_vEmptyRooms.end(), [nRid](const stClubRoomInfo& rf) { return rf.nRoomID == nRid; });
+				if (iter != m_vEmptyRooms.end())
+				{
+					m_vEmptyRooms.erase(iter);  // in callback function , iter will not invalid 
+				}
+			}, ref.nRoomID);
+		}
+	}
 }

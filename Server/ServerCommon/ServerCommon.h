@@ -92,9 +92,10 @@ enum eAsyncReq
 	eAsync_ClubRoomGameOvered, // { clubID : 23 , roomID : 23 }
 	eAsync_ClubGiveBackDiamond, // { clubID : 23 ,diamond : 23 }
 	eAsync_ClubRoomStart, // { clubID : 23 , roomID : 23 }
-	eAsync_ClubCreateRoom, // {  clubID : 23 , diamond : 234  } extern creatOpts ,  // result : { ret : 0 , roomID : 234, diamondFee : 23 } // ret:  1 ,diamond is not enough ,  2  admin stoped create room , 3  room ptr is null, 4 room id run out.  diamondFee : consume diamonds ;  
+	eAsync_ClubCreateRoom, // {  clubID : 23 , diamond : 234, roomIdx : 1  } extern creatOpts ,  // result : { ret : 0 , roomIdx : 1 ,roomID : 234, diamondFee : 23 } // ret:  1 ,diamond is not enough ,  2  admin stoped create room , 3  room ptr is null, 4 room id run out.  diamondFee : consume diamonds ;  
 	eAsync_ClubCheckMember, // { clubID : 23 , uid : 234 } // result { ret : 0 } // ret : 0 ok , 1 not in club ;
-	eAsync_ClubDismissRoom, // { roomID : 23 }
+	eAsync_ClubDismissRoom, // { roomID : 23 }, // result { roomID : 23 } 
+	eAsync_HttpPost, // { url : "http://3sfhgss.com/a", postData : {} }  // result : { respon data }
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
 	//eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;

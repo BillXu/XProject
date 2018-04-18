@@ -12,6 +12,7 @@
 #include "AnyLoginTask.h"
 #include "AsyncRequestQuene.h"
 #include "VerifyApp.h"
+#include "HttpPostRequestTask.h"
 void CTaskPoolModule::init( IServerApp* svrApp )
 {
 	IGlobalModule::init(svrApp) ;
@@ -55,6 +56,33 @@ bool CTaskPoolModule::onAsyncRequestDelayResp( uint16_t nRequestType, uint32_t n
 	else if ( eAsync_Verify_Transcation == nRequestType )
 	{
 		onVerifyMsg(nReqSerial, jsReqContent, nTargetID);
+		return true;
+	}
+	else if (eAsync_HttpPost == nRequestType)
+	{
+		auto pTask = getPool().getReuseTaskObjByID(eTask_HttpPost);
+		HttpPostRequestTask* pTaskObj = (HttpPostRequestTask*)pTask.get();
+		// set call back 
+		if (pTask->getCallBack() == nullptr)
+		{
+			pTask->setCallBack([this](ITask::ITaskPrt ptr)
+			{
+				HttpPostRequestTask* pTask = (HttpPostRequestTask*)ptr.get();
+				auto jsUserData = pTask->getUserData();
+				getSvrApp()->responeAsyncRequest(jsUserData["senderPort"].asUInt(), jsUserData["reqSieralNum"].asUInt(), jsUserData["senderID"].asUInt(), pTask->getResultJson());
+				LOGFMTI("finish order for sessionid = %d, sender port = %d ", jsUserData["senderID"].asUInt(), jsUserData["senderPort"].asUInt() );
+			}
+			);
+		}
+
+		Json::Value jsUserData;
+		jsUserData["reqSieralNum"] = nReqSerial;
+		jsUserData["senderPort"] = nSenderPort;
+		jsUserData["senderID"] = nSenderID;
+		pTaskObj->setUserData(jsUserData);
+		pTaskObj->setReqString( jsReqContent["url"].asString(),jsReqContent["postData"]);
+		// do the request 
+		getPool().postTask(pTask);
 		return true;
 	}
 	return false;
@@ -121,6 +149,12 @@ ITask::ITaskPrt CTaskPoolModule::createTask( uint32_t nTaskID )
 	case eTask_AnyLogin:
 		{
 			std::shared_ptr<AnyLoginTask> pTask(new AnyLoginTask(nTaskID));
+			return pTask;
+		}
+		break;
+	case eTask_HttpPost:
+		{
+			std::shared_ptr<HttpPostRequestTask> pTask(new HttpPostRequestTask(nTaskID));
 			return pTask;
 		}
 		break;

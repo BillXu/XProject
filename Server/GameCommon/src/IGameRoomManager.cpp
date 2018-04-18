@@ -224,12 +224,18 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		
 		jsResult["roomID"] = nNewRoomID;
 		jsResult["diamondFee"] = nDiamondNeed;
+		jsResult["roomIdx"] = jsReqContent["roomIdx"];
 	}
 	break;
 	case eAsync_ClubDismissRoom:
 	{
 		uint32_t nRoomID = jsReqContent["roomID"].asUInt();
-		deleteRoom(nRoomID);
+
+		auto pRoom = dynamic_cast<IPrivateRoom*>(getRoomByID(nRoomID));
+		if (pRoom && pRoom->isClubRoom())
+		{
+			pRoom->doRoomGameOver(true);
+		}
 	}
 	break;
 	default:
@@ -396,7 +402,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 				if (nRet)
 				{
 					Json::Value jsRet;
-					jsRet["ret"] = 9;
+					jsRet["ret"] = nRet == 1 ? 9 : 10;
 					sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
 					LOGFMTE("club member check failed ret = %u uid = %u , can not enter room ", nRet, nUserID);
 					return;

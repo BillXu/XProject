@@ -51,8 +51,8 @@ public:
 	IGameRoomManager* getRoomMgr();
 	IGamePlayer* getPlayerByUID( uint32_t nUserUID );
 	IGamePlayer* getPlayerBySessionID(uint32_t nSessionID);
-	IGamePlayer* getPlayerByIdx( uint16_t nIdx );
-	uint16_t getSeatCnt();
+	IGamePlayer* getPlayerByIdx( uint16_t nIdx )final;
+	uint16_t getSeatCnt()final;
 
 	virtual std::shared_ptr<IGameRoomRecorder> createRoomRecorder();
 	virtual std::shared_ptr<ISingleRoundRecorder> createSingleRoundRecorder();

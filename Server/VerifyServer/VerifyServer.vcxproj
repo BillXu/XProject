@@ -95,6 +95,7 @@
     <ClCompile Include="src\AppleVerifyTask.cpp" />
     <ClCompile Include="src\DBVerifyTask.cpp" />
     <ClCompile Include="src\HttpModule.cpp" />
+    <ClCompile Include="src\HttpPostRequestTask.cpp" />
     <ClCompile Include="src\httpServer\connection.cpp" />
     <ClCompile Include="src\httpServer\connection_manager.cpp" />
     <ClCompile Include="src\httpServer\mime_types.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="src\AppleVerifyTask.h" />
     <ClInclude Include="src\DBVerifyTask.h" />
     <ClInclude Include="src\HttpModule.h" />
+    <ClInclude Include="src\HttpPostRequestTask.h" />
     <ClInclude Include="src\httpServer\connection.hpp" />
     <ClInclude Include="src\httpServer\connection_manager.hpp" />
     <ClInclude Include="src\httpServer\header.hpp" />

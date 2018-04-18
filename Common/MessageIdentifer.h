@@ -186,6 +186,9 @@ enum eMsgType
 	// client : null
 	// svr : { list : [ 23, 232,52 ... ] } 
 
+	MSG_ROOM_TEMP_OWNER_UPDATED,
+	// svr : { uid : 23 }
+
 	MSG_PLAYER_SET_READY = 600,   	// player do ready
 	// client : { dstRoomID : 2345 } ;
 	// svr : { ret : 1 , curState : 23 } // 1 you are not in room , 2 you are not state waitNextGame, tell curState ;
@@ -382,7 +385,7 @@ enum eMsgType
 	// state : 0 normal , 1 pause ;
 	MSG_CLUB_REQ_ROOMS,
 	// client : { clubID : 0 }
-	// svr : { clubID : 234, name : 23, fullRooms : [ 12,12], emptyRooms : [2,4]  }
+	// svr : { clubID : 234, name : 23, fullRooms : [ 23,23,4 ], emptyRooms :  [  23,2, .... ]  }
 
 	MSG_CLUB_REQ_PLAYERS,
 	// client : { clubID : 10  }

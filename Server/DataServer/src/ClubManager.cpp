@@ -72,10 +72,29 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		Json::StyledWriter jsw;
 		auto strOpts = jsw.write(prealMsg["opts"]);
 		Json::Value jssql;
-		char pBuffer[512] = { 0 };
-		sprintf(pBuffer, "insert into clubs ( clubID,ownerUID,name,opts ) values ( %u,%u,'%s','%s');", p->getClubID(), p->getCreatorUID(), prealMsg["name"].asCString(), strOpts.c_str() );
+		char pBuffer[2048] = { 0 };
+		sprintf_s(pBuffer,sizeof(pBuffer),"insert into clubs ( clubID,ownerUID,name,opts ) values ( %u,%u,'%s','%s');", p->getClubID(), p->getCreatorUID(), prealMsg["name"].asCString(), strOpts.c_str() );
 		jssql["sql"] = pBuffer;
 		getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB,rand() % 100 ,eAsync_DB_Add, jssql);
+
+		if ( prealMsg["opts"].isNull() )
+		{
+			LOGFMTE( "argumet erros opts is null " );
+			return true;
+		}
+
+		// inform hei zi 
+		Json::Value jsPost;
+		jsPost["url"] = "http://nn365.youhoox.com?ct=club&&ac=add";
+		Json::Value jsPostData;
+		jsPostData["ct"] = "club";
+		jsPostData["ac"] = "add" ;
+		jsPostData["mobile"] = prealMsg["opts"]["phoneNum"];
+		jsPostData["club_id"] = p->getClubID();
+		jsPostData["pay_type"] = prealMsg["opts"]["payType"];
+		jsPost["postData"] = jsPostData;
+		getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_VERIFY, rand() % 100, eAsync_HttpPost, jsPost);
+		p->onFirstCreated();
 		return true;
 	}
 	 
@@ -89,6 +108,7 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		return true;
 	}
 
+	nClubID = prealMsg["clubID"].asUInt();
 	if ( MSG_CLUB_DISMISS_CLUB == nMsgType)
 	{
 		uint8_t nRet = 0;
@@ -154,7 +174,6 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		return true;
 	}
 
-	nClubID = prealMsg["clubID"].asUInt();
 	auto iter = m_vClubs.find( nClubID );
 	if (iter == m_vClubs.end())
 	{
@@ -193,6 +212,8 @@ bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 			return true;
 		}
 
+		jsResult["ret"] = 0;
+		jsResult["addCnt"] = nAddCnt;
 		iterClub->second->updateDiamond(nAddCnt);
 		LOGFMTD( "agent id = %u add diamond = %d to clubid = %u", jsReqContent["agentID"].asUInt(),nAddCnt, nClubID );
 		return true;
@@ -224,6 +245,9 @@ void ClubManager::onConnectedSvr( bool isReconnected )
 		{
 			Json::Value jsRow = jsData[(uint32_t)0];
 			m_nMaxClubID = jsRow["maxClubID"].asUInt();
+#ifdef _DEBUG
+			m_nMaxClubID = 0;
+#endif // _DEBUG
 			LOGFMTD("read max serial number = %u", m_nMaxClubID);
 		}
 	});
@@ -308,7 +332,8 @@ bool ClubManager::canPlayerCreateClub(uint32_t nUID)
 
 uint32_t ClubManager::generateClubID()
 {
-	return ++m_nMaxClubID;
+	m_nMaxClubID = m_nMaxClubID + 1 + rand() % 15;
+	return m_nMaxClubID;
 }
 
 void ClubManager::update(float fDeta)

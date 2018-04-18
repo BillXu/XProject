@@ -212,7 +212,8 @@ protected:
 			jsItem["times"] = ref.second;
 			jsRobotBankerInfo[jsRobotBankerInfo.size()] = jsItem;
 		}
-		getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu, &jsRobotBankerInfo);
+		//getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu, &jsRobotBankerInfo);
+		getRoom()->goToState( eRoomState_DDZ_Chu, &jsRobotBankerInfo);
 	}
 
 	bool isPlayerMustRobBanker( uint8_t nIdx )

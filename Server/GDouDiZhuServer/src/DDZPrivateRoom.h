@@ -9,5 +9,7 @@ public:
 	uint8_t getInitRound(uint8_t nLevel)override;
 	void doSendRoomGameOverInfoToClient(bool isDismissed)override;
 	bool isEnableReplay()override { return true; }
+	bool canStartGame(IGameRoom* pRoom);
 protected:
+	uint8_t m_nAutoOpenCnt;
 };

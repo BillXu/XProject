@@ -112,6 +112,9 @@
     <ClCompile Include="..\ServerCommon\httpRequest.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="src\HttpPostRequestTask.cpp">
+      <Filter>App\Task</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VerifyApp.h">
@@ -191,6 +194,9 @@
     </ClInclude>
     <ClInclude Include="..\ServerCommon\httpRequest.h">
       <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HttpPostRequestTask.h">
+      <Filter>App\Task</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

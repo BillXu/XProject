@@ -21,6 +21,7 @@ public:
 public:
 	CPlayerMailComponent(CPlayer* pPlayer ):IPlayerComponent(pPlayer){}
 	~CPlayerMailComponent();
+	void reset()override;
 	void onPlayerLogined()override;
 	bool onRecievedMail( uint32_t nMailID, eMailType emailType,Json::Value& jsMailDetail ,uint32_t& nState, uint32_t nPostTime = 0 );
 	bool onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPort)override;

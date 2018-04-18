@@ -52,6 +52,12 @@ public:
 	uint16_t getPlayerCnt()override;
 	bool isClubRoom() { return m_nClubID > 0; }
 	uint32_t getClubID() { return m_nClubID; }
+
+	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
+	void onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)override;
+
+	IGamePlayer* getPlayerByIdx(uint16_t nIdx) override;
+	uint16_t getSeatCnt() override;
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();
@@ -64,6 +70,8 @@ protected:
 protected:
 	IGameRoomManager* m_pRoomMgr;
 	uint32_t m_nOwnerUID;
+	uint32_t m_nTempOwnerUID;
+	uint32_t m_nAutoStartCnt;
 	uint32_t m_nClubID;
 	ePayRoomCardType m_nPayType;
 	bool m_isEnableWhiteList;

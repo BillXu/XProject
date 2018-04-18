@@ -7,6 +7,7 @@
 class IGameRoomManager;
 struct stMsg;
 struct stEnterRoomData;
+class IGamePlayer;
 class IGameRoom
 {
 public:
@@ -29,5 +30,7 @@ public:
 	virtual bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID ) = 0;
 	virtual void packRoomInfo( Json::Value& jsRoomInfo ) = 0;
 	virtual uint16_t getPlayerCnt() = 0;
+	virtual IGamePlayer* getPlayerByIdx(uint16_t nIdx) = 0 ;
+	virtual uint16_t getSeatCnt() = 0;
 
 };

@@ -16,9 +16,9 @@ uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomC
 	{
 		return 0;
 	}
-#ifdef _DEBUG
-	return 0;
-#endif // _DEBUG
+//#ifdef _DEBUG
+//	return 0;
+//#endif // _DEBUG
 
 	if (nLevel >= 3)
 	{
@@ -30,7 +30,7 @@ uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomC
 	if (ePayType_AA == payType)
 	{
 		uint8_t vAA[] = { 1 , 2 , 3 };
-		return vAA[nLevel] * 10;
+		return vAA[nLevel] * 10 * 2;
 	}
 
 	// 6,1 . 12.2 , 18. 3
