@@ -93,4 +93,6 @@ protected:
 	GameRoom* m_pRoom;
 
 	CTimer m_tAutoDismissTimer;
+
+	std::vector<uint32_t> m_vTempID;
 };

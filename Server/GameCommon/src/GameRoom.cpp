@@ -10,6 +10,7 @@
 #include "IPoker.h"
 bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
+	m_nTempID = 0;
 	m_pDelegate = nullptr;
 	m_pRoomMgr = pRoomMgr;
 	m_nSieralNum = nSeialNum;

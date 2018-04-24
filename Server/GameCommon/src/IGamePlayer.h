@@ -18,6 +18,7 @@ public:
 		m_nWaiBaoOffset = 0;
 		m_isOnline = true;
 		m_nState = 0;
+		m_nCurOffset = 0;
 		setState(eRoomPeer_WaitNextGame);
 	}
 

@@ -111,6 +111,13 @@ public:
 		}*/
 		
 		if (MSG_ROOM_GOLDEN_GAME_CALL == nMsgType) {
+
+			if (m_isMove)
+			{
+				LOGFMTE( "one frame recived two msg roomid = %u",getRoom()->getRoomID() );
+				return true;
+			}
+
 			auto pRoom = (GoldenRoom*)getRoom();
 			auto pPlayer = pRoom->getPlayerBySessionID(nSessionID);
 			Json::Value jsRet;

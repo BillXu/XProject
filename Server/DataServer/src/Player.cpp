@@ -126,6 +126,7 @@ void CPlayer::onPlayerOtherDeviceLogin(uint32_t nNewSessionID, const char* pNewI
 	Json::Value jsMsg;
 	sendMsgToClient(jsMsg,MSG_PLAYER_OTHER_LOGIN );
 
+	LOGFMTE( "other device login old ip = %s , old session id = %u, new ip = %s , session = %u",m_strCurIP.c_str(),getSessionID(),pNewIP,nNewSessionID );
 	// tell old gate other logined 
 	stMsgClientOtherLogin msg;
 	msg.nTargetID = m_nSessionID;

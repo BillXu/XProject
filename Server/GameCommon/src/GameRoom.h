@@ -63,6 +63,8 @@ public:
 	virtual IPoker* getPoker() = 0;
 	stStandPlayer* getStandPlayerBySessionID(uint32_t nSessinID);
 	uint16_t getPlayerCnt()override;
+	void setTempID(uint32_t nTempID) { m_nTempID = nTempID; }
+	uint32_t getTempID() { return m_nTempID; }
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();
@@ -82,6 +84,7 @@ protected:
 	std::map<uint32_t,stStandPlayer*> m_vStandPlayers;
 	uint32_t m_nRoomID;
 	uint32_t m_nSieralNum;
+	uint32_t m_nTempID;
 private:
 	std::shared_ptr<ISingleRoundRecorder> m_ptrCurRoundRecorder;
 	std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;

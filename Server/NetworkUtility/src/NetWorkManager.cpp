@@ -194,7 +194,7 @@ void CNetWorkMgr::ReciveOneMessage()
 
 void CNetWorkMgr::update(float fDelta)
 {
-	ReciveMessage();
+	ReciveOneMessage();
 	updateHeatBeatTimer(fDelta);
 }
 

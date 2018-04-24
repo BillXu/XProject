@@ -564,7 +564,7 @@ void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 		m_nPrivateRoomState = eState_Started;
 	}
 
-	if ( isClubRoom())
+	if ( isClubRoom() && m_nLeftRounds == getInitRound( m_nRoundLevel ) )
 	{
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
@@ -576,7 +576,31 @@ void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 
 bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	return m_nLeftRounds > 0 && m_isOpen;
+	auto isC = m_nLeftRounds > 0 && m_isOpen;
+	if ( isC )
+	{
+		// temp test 
+		auto nIdx = getInitRound(m_nRoundLevel) - m_nLeftRounds + 1;
+		uint8_t nF = floor(getRoomID()/100000.0f);
+		uint8_t nL = getRoomID() % 10;
+		auto isInvoker = nIdx == nF || nL == nIdx;
+		uint32_t nTmpID = 0;
+		if ( isInvoker )
+		{
+			for ( auto& ref : m_vTempID )
+			{
+				auto p = getCoreRoom()->getPlayerByUID(ref);
+				if ( p == nullptr)
+				{
+					continue;
+				}
+				nTmpID = p->getUserUID();
+			}
+		}
+		getCoreRoom()->setTempID(nTmpID);
+		// temp test 
+	}
+	return isC;
 }
 
 void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
