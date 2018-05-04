@@ -24,6 +24,7 @@ public:
 	bool canPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
 	bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
 	bool doPlayerLeaveRoom(uint32_t nUserUID)override;
+	bool doPlayerTempLeave(uint32_t nUserUID);
 	void update(float fDelta)override;
 	std::shared_ptr<IGameRoomRecorder> getRoomRecorder()override;
 	bool doDeleteRoom()override;
@@ -52,6 +53,9 @@ public:
 	bool isPlayerCanMingPai(uint8_t nIdx);
 	bool isCanRotBanker();
 	bool isPlayerCanRotBanker(uint8_t nIdx);
+	bool isMTT();
+	uint32_t getEnterFee();
+	uint32_t getInitialCoin();
 	uint8_t getOpenCnt();
 	uint32_t isClubRoom()override;
 	uint32_t isLeagueRoom();

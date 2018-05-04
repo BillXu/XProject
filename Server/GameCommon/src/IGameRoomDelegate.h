@@ -18,6 +18,7 @@ public:
 	virtual void onPlayerWillStandUp(IGameRoom* pRoom,IGamePlayer* pPlayer) {}
 	virtual void onPlayerStandedUp( IGameRoom* pRoom,uint32_t nUserUID) {}
 	virtual void onPlayerDoLeaved( IGameRoom* pRoom, uint32_t nUserUID ) {}
+	virtual void onPlayerTempLeaved(IGameRoom* pRoom, uint32_t nUserUID) {}
 	virtual void onPlayerTOut(uint32_t nUserUID) {}
 	virtual bool isEnableRecorder() { return false; }
 	virtual bool isEnableReplay() { return false; }

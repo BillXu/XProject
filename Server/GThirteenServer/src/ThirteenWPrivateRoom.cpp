@@ -255,6 +255,13 @@ void ThirteenWPrivateRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID, eAsync_Inform_Player_LeavedRoom, jsReqLeave);
 }
 
+void ThirteenWPrivateRoom::onPlayerTempLeaved(IGameRoom* pRoom, uint32_t nUserUID) {
+	auto sPlayer = (stwStayPlayer*)isEnterByUserID(nUserUID);
+	if (sPlayer && sPlayer->nChip > 0) {
+		ss
+	}
+}
+
 bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) {
 	switch (nMsgType) {
 	case MSG_PLAYER_SIT_DOWN:
@@ -391,6 +398,64 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 	}
 	}
 	return true;
+}
+
+bool ThirteenWPrivateRoom::onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount) {
+	nAmount = getInitialCoin();
+	if (nAmount == 0) {
+		return false;
+	}
+	if (m_mStayPlayers.count(nUserID) == 0) {
+		return false;
+	}
+	auto st = m_mStayPlayers[nUserID];
+	if (st->nClubID && st->nClubID != nClubID) {
+		return false;
+	}
+	if (setCoreRoomByUserID(nUserID) && ((ThirteenRoom*)getCoreRoom())->onPlayerDragIn(nUserID, nAmount)) {
+		st->nChip = getCoreRoom()->getPlayerByUID(nUserID)->getChips();
+	}
+	else {
+		st->nChip += nAmount;
+	}
+	st->isDragIn = true;
+	st->nAllWrag += nAmount;
+	//st->nClubID = nClubID;
+	getRoomRecorder()->addDragIn(nUserID, nAmount, st->nClubID);
+	return true;
+}
+
+bool ThirteenWPrivateRoom::onPlayerDeclineDragIn(uint32_t nUserID) {
+	if (m_mStayPlayers.count(nUserID) == 0) {
+		return false;
+	}
+
+	if (((ThirteenRoom*)getCoreRoom())->onPlayerDeclineDragIn(nUserID)) {
+
+	}
+	return true;
+}
+
+bool ThirteenWPrivateRoom::doDeleteRoom() {
+	getRoomRecorder()->doSaveRoomRecorder(m_pRoomMgr->getSvrApp()->getAsynReqQueue());
+	m_tWaitReplyDismissTimer.canncel();
+	m_tAutoDismissTimer.canncel();
+
+	Json::Value jsReqInfo;
+	jsReqInfo["targetUID"] = m_nOwnerUID;
+	jsReqInfo["roomID"] = getRoomID();
+	jsReqInfo["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
+	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
+
+	for (auto& ref : m_mStayPlayers) {
+		jsReqInfo["targetUID"] = ref.second->nUserUID;
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_player_DragInRoom_Closed, jsReqInfo);
+	}
+
+	for (auto& ref : m_vPRooms) {
+		ref->doDeleteRoom();
+	}
 }
 
 bool ThirteenWPrivateRoom::isRoomFull() {

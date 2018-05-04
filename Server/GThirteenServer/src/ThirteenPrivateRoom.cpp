@@ -636,6 +636,18 @@ void ThirteenPrivateRoom::onDismiss() {
 	m_tCreateTimeLimit.setInterval(0);
 }
 
+bool ThirteenPrivateRoom::isMTT() {
+	return ((ThirteenRoom*)getCoreRoom())->isMTT();
+}
+
+uint32_t ThirteenPrivateRoom::getEnterFee() {
+	return ((ThirteenRoom*)getCoreRoom())->getEnterFee();
+}
+
+uint32_t ThirteenPrivateRoom::getInitialCoin() {
+	return ((ThirteenRoom*)getCoreRoom())->getInitialCoin();
+}
+
 bool ThirteenPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
 
 	pEnterRoomPlayer->nChip = 0;

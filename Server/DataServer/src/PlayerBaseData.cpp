@@ -313,11 +313,19 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 			LOGFMTE("player apply drag in amount is missing ? uid = %u, clubID = %u ", getPlayer()->getUserUID(), nClubID);
 			return true;
 		}
-		uint32_t nFee = nAmount / 10;
-		if (nFee % 10 > 0) {
-			nFee += 1;
+		bool bMTT = jsReqContent["mtt"].isUInt() ? jsReqContent["mtt"].asBool() : false;
+		uint32_t nReal = 0;
+		if (bMTT) {
+			nReal = nAmount;
 		}
-		uint32_t nReal = nAmount + nFee;
+		else {
+			uint32_t nFee = nAmount / 10;
+			if (nFee % 10 > 0) {
+				nFee += 1;
+			}
+			nReal = nAmount + nFee;
+		}
+		
 		if (nReal > m_stBaseData.nCoin) {
 			Json::Value jsBack;
 			jsBack["ret"] = 3;
@@ -336,6 +344,10 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 		jsReq["leagueID"] = jsReqContent["leagueID"];
 		jsReq["roomName"] = jsReqContent["roomName"];
 		jsReq["roomLevel"] = jsReqContent["roomLevel"];
+		if (bMTT) {
+			jsReq["mtt"] = 1;
+			jsReq["initialCoin"] = jsReqContent["initialCoin"];
+		}
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_apply_DragIn, jsReq, [pApp, nReqSerial, nRoomID, nSenderPort, nSenderID, this, nReal](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			Json::Value jsRet;

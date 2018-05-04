@@ -82,7 +82,7 @@ IGameRoom* RoomManager::doPlayerCreateRoom(Json::Value& prealMsg, uint32_t nDiam
 	auto nRoomType = prealMsg["gameType"].asUInt();
 	auto nUserID = prealMsg["uid"].asUInt();
 	auto nLevel = prealMsg["level"].asUInt();
-	bool bWTT = prealMsg["wtt"].isUInt() ? prealMsg["wtt"].asBool() : false;
+	bool bWTT = prealMsg["mtt"].isUInt() ? prealMsg["mtt"].asBool() : false;
 	IGameRoom* pRoom = nullptr;
 	if (bWTT) {
 		pRoom = createWRoom(nRoomType);
@@ -378,10 +378,11 @@ bool RoomManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 		jsReq["targetUID"] = nUID;
 		jsReq["roomID"] = nRoomID;
 		jsReq["amount"] = nAmount;
+		jsReq["mtt"] = pRoom->isMTT() ? 1 : 0;
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_player_check_DragIn, jsReq, [pApp, nSenderID, nReqSerial, nSenderPort, this, nUID, pRoom, nAmount, nClubID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			Json::Value jsRet;
-			if (isTimeOut)
+			if (isTimeOut || pRoom == nullptr)
 			{
 				LOGFMTE(" request of check drag in time out, uid = %u , room id = %u ", nUID, pRoom->getRoomID());
 				jsRet["ret"] = 7;
@@ -402,6 +403,7 @@ bool RoomManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 				jsReq_1["targetUID"] = nUID;
 				jsReq_1["roomID"] = pRoom->getRoomID();
 				jsReq_1["amount"] = nAmount;
+				jsReq_1["mtt"] = pRoom->isMTT() ? 1 : 0;
 				if (pRoom->onPlayerDragIn(nUID, nClubID, nAmount)) {
 					pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_player_do_DragIn, jsReq_1);
 				}
@@ -464,7 +466,7 @@ bool RoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort
 		auto pAsync = getSvrApp()->getAsynReqQueue();
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync, nRoomID, nSenderID, this, nUserID, nClubID, pRoom](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
-			if (isTimeOut)
+			if (isTimeOut || nullptr == pRoom)
 			{
 				LOGFMTE(" request time out uid = %u , can not enter room ", nUserID);
 				Json::Value jsRet;

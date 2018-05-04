@@ -48,20 +48,24 @@ public:
 	bool canPlayerSitDown(uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
+	void onPlayerTempLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
+	bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount)override;
+	bool onPlayerDeclineDragIn(uint32_t nUserID)override;
+	bool doDeleteRoom()override;
 	bool isRoomFull()override;
 	void update(float fDelta)override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
 	uint16_t getPlayerCnt()override;
 
-	bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount);
-
 protected:
 	//void sendBssicRoomInfo(uint32_t nSessionID);
 	//bool initMaxPlayerCnt()override;
-	bool packTempRoomInfoToPlayer(stEnterRoomData* pEnterRoomPlayer);
+	bool packTempRoomInfoToPlayer(stEnterRoomData* pEnterRoomPlayer); //仅用于无比赛牌桌时的临时桌
 	bool enterRoomToWatch(stEnterRoomData* pEnterRoomPlayer); //返回是否需要发送房间信息
+	bool setCoreRoomBySessionID(uint32_t nSessionID);
+	bool setCoreRoomByUserID(uint32_t nUserID);
 	//stwStayPlayer* isEnterBySession(uint32_t nSessionID);
 	//stwStayPlayer* isEnterByUserID(uint32_t nUserID);
 

@@ -834,6 +834,7 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			auto nRoomID = itEvent->second.jsDetail["roomID"].asUInt();
 			auto nAmount = itEvent->second.jsDetail["amount"].asUInt();
 			auto nLeagueID = itEvent->second.jsDetail["leagueID"].asUInt();
+			bool bMTT = itEvent->second.jsDetail["mtt"].isUInt() ? itEvent->second.jsDetail["mtt"].asBool() : false;
 			//if (getClub()->getClubGameData()->isClubCreateThisRoom(nRoomID) == false) {
 				/*if (getClub()->getIntegration() < nAmount) {
 					Json::Value jsResult;
@@ -851,10 +852,14 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			jsMsg["uid"] = nMemberUID;
 			jsMsg["clubID"] = getClub()->getClubID();
 			jsMsg["eventID"] = itEvent->first;
+			if (bMTT) {
+				jsMsg["mtt"] = 1;
+				jsMsg["initialCoin"] = itEvent->second.jsDetail["initialCoin"];
+			}
 			auto sendPort = itEvent->second.jsDetail["port"].asUInt();
 			auto sendTargetID = nRoomID;
 			//getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(itEvent->second.jsDetail["port"].asUInt(), nRoomID, eAsync_club_agree_DragIn, jsMsg);
-			if (nLeagueID) {
+			if (nLeagueID && bMTT == false) {
 				jsMsg["leagueID"] = nLeagueID;
 				jsMsg["port"] = itEvent->second.jsDetail["port"].asUInt();
 				sendPort = ID_MSG_PORT_DATA;

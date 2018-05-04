@@ -574,9 +574,13 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();
 		uint32_t nAmount = jsReqContent["amount"].asUInt();
-		uint32_t nFee = nAmount / 10;
-		if (nFee % 10 > 0) {
-			nFee += 1;
+		bool bMTT = jsReqContent["mtt"].isUInt() ? jsReqContent["mtt"].asBool() : false;
+		uint32_t nFee = 0;
+		if (bMTT == false) {
+			nFee = nAmount / 10;
+			if (nFee % 10 > 0) {
+				nFee += 1;
+			}
 		}
 		nAmount += nFee;
 		Json::Value jsMailArg;
@@ -696,9 +700,13 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 			return false;
 		}
 		uint32_t nAmount = jsReqContent["amount"].asUInt();
-		uint32_t nFee = nAmount / 10;
-		if (nFee % 10 > 0) {
-			nFee += 1;
+		bool bMTT = jsReqContent["mtt"].isUInt() ? jsReqContent["mtt"].asBool() : false;
+		uint32_t nFee = 0;
+		if (bMTT == false) {
+			nFee = nAmount / 10;
+			if (nFee % 10 > 0) {
+				nFee += 1;
+			}
 		}
 		uint32_t nReal = nAmount + nFee;
 		if (nReal > pPlayer->getBaseData()->getCoin()) {
@@ -938,9 +946,13 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 			return false;
 		}
 		uint32_t nAmount = jsReqContent["amount"].asUInt();
-		uint32_t nFee = nAmount / 10;
-		if (nFee % 10 > 0) {
-			nFee += 1;
+		bool bMTT = jsReqContent["mtt"].isUInt() ? jsReqContent["mtt"].asBool() : false;
+		uint32_t nFee = 0;
+		if (bMTT == false) {
+			nFee = nAmount / 10;
+			if (nFee % 10 > 0) {
+				nFee += 1;
+			}
 		}
 		nAmount += nFee;
 		auto pApp = getSvrApp();

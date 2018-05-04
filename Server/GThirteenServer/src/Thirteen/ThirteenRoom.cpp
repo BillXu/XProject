@@ -224,6 +224,9 @@ void ThirteenRoom::onGameEnd()
 
 	// caculate coin
 	bool bMinus = isClubRoom() == 0;
+	if (isMTT()) {
+		bMinus = true;
+	}
 	// 先找全垒打
 	// 两个人没有全垒打
 	uint8_t nQLDIdx = -1;
@@ -469,7 +472,7 @@ void ThirteenRoom::onGameEnd()
 }
 
 void ThirteenRoom::onGameDidEnd() {
-	if (isClubRoom() && isRoomGameOver() == false) {
+	if ((isClubRoom() || isMTT()) && isRoomGameOver() == false) {
 		for (auto& ref : m_vPlayers) {
 			if (ref && ref->getChips() < getDragInNeed() && ref->haveState(eRoomPeer_WaitDragIn) == false) {
 				ref->setState(eRoomPeer_WaitDragIn);
@@ -590,7 +593,7 @@ bool ThirteenRoom::canPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t 
 
 bool ThirteenRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx) {
 	if (GameRoom::doPlayerSitDown(pEnterRoomPlayer, nIdx)) {
-		if (isClubRoom()) {
+		if (isClubRoom() || isMTT()) {
 			auto pPlayer = getPlayerByIdx(nIdx);
 			if (pPlayer->getChips() < getDragInNeed()) {
 				pPlayer->setState(eRoomPeer_WaitDragIn);
@@ -727,6 +730,30 @@ bool ThirteenRoom::doPlayerLeaveRoom(uint32_t nUserUID) {
 	return true;
 }
 
+bool ThirteenRoom::doPlayerTempLeave(uint32_t nUserUID) {
+	auto pPlayer = getPlayerByUID(nUserUID);
+	if (pPlayer)
+	{
+		doPlayerStandUp(nUserUID);
+	}
+
+	auto iterStand = m_vStandPlayers.find(nUserUID);
+	if (m_vStandPlayers.end() == iterStand)
+	{
+		LOGFMTE("uid = %u not stand in this room = %u how to leave ?", nUserUID, getRoomID());
+		return false;
+	}
+
+	delete iterStand->second;
+	m_vStandPlayers.erase(iterStand);
+	if (getDelegate())
+	{
+		getDelegate()->onPlayerTempLeaved(this, nUserUID);
+	}
+
+	return true;
+}
+
 bool ThirteenRoom::doAllPlayerStandUp() {
 	// process player leave ;
 	std::vector<uint32_t> vAllInRoomPlayers;
@@ -770,7 +797,13 @@ bool ThirteenRoom::clearRoom() {
 		/*if (getDelegate() && isRoomGameOver()) {
 			getDelegate()->onPlayerAutoLeave(ref);
 		}*/
-		doPlayerLeaveRoom(ref);
+		if (isMTT()) {
+			doPlayerTempLeave(ref);
+		}
+		else {
+			doPlayerLeaveRoom(ref);
+		}
+		
 	}
 	LOGFMTD("room id = %u do clear", getRoomID());
 	return true;
@@ -1052,6 +1085,14 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		}
 		auto nState = prealMsg["state"].asUInt();
 		if (nState) {
+			if (isMTT()) {
+				Json::Value jsMsg;
+				sendMsgToPlayer(jsMsg, MSG_ROOM_PLAYER_LEAVE, nSessionID);
+				if (getDelegate()) {
+					getDelegate()->onPlayerDoLeaved(this, pPlayer->getUserUID());
+				}
+				return true;
+			}
 			pPlayer->signAutoStandUp();
 		}
 		else {
@@ -1103,6 +1144,14 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		}
 		auto nState = prealMsg["state"].asUInt();
 		if (nState) {
+			if (isMTT()) {
+				Json::Value jsMsg;
+				sendMsgToPlayer(jsMsg, MSG_ROOM_PLAYER_LEAVE, nSessionID);
+				if (getDelegate()) {
+					getDelegate()->onPlayerDoLeaved(this, pPlayer->getUserUID());
+				}
+				return true;
+			}
 			pPlayer->signAutoLeave();
 		}
 		else {
@@ -1237,6 +1286,9 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 			return true;
 		}
 		auto nAmount = prealMsg["amount"].asUInt();
+		if (isMTT()) {
+			nAmount = getEnterFee();
+		}
 		auto pPlayer = getPlayerBySessionID(nSessionID);
 		if (pPlayer == nullptr)
 		{
@@ -1291,6 +1343,8 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		jsReq["leagueID"] = isLeagueRoom();
 		jsReq["roomName"] = getOpts()["name"];
 		jsReq["roomLevel"] = getOpts()["level"];
+		jsReq["mtt"] = isMTT() ? 1 : 0;
+		jsReq["initialCoin"] = getInitialCoin();
 		auto pApp = getRoomMgr()->getSvrApp();
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_player_apply_DragIn, jsReq,[pApp, this, pPlayer, nSessionID, nAmount, nClubID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
@@ -1592,6 +1646,27 @@ bool ThirteenRoom::isPlayerCanRotBanker(uint8_t nIdx) {
 	return false;
 }
 
+bool ThirteenRoom::isMTT() {
+	if (m_jsOpts["mtt"].isNull() || m_jsOpts["mtt"].isUInt() == false) {
+		return false;
+	}
+	return m_jsOpts["mtt"].asUInt() ? true : false;
+}
+
+uint32_t ThirteenRoom::getEnterFee() {
+	if (m_jsOpts["enterFee"].isNull() || m_jsOpts["enterFee"].isUInt() == false) {
+		return 0;
+	}
+	return m_jsOpts["enterFee"].asUInt();
+}
+
+uint32_t ThirteenRoom::getInitialCoin() {
+	if (m_jsOpts["initialCoin"].isNull() || m_jsOpts["initialCoin"].isUInt() == false) {
+		return 0;
+	}
+	return m_jsOpts["initialCoin"].asUInt();
+}
+
 uint8_t ThirteenRoom::getOpenCnt() {
 	if (m_jsOpts["starGame"].isNull() || m_jsOpts["starGame"].isUInt() == false) {
 		return 2;
@@ -1703,14 +1778,23 @@ uint32_t ThirteenRoom::getMaxLose() {
 }
 
 uint32_t ThirteenRoom::getMaxDragIn() {
+	if (isMTT()) {
+		return getEnterFee();
+	}
 	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO * getMultiple();
 }
 
 uint32_t ThirteenRoom::getMinDragIn() {
+	if (isMTT()) {
+		return getEnterFee();
+	}
 	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO;
 }
 
 uint32_t ThirteenRoom::getDragInNeed() {
+	if (isMTT()) {
+		return 1;
+	}
 	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO / 2;
 }
 

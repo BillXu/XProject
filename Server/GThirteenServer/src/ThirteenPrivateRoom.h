@@ -64,6 +64,9 @@ public:
 	uint32_t isClubRoom()override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
 	void onDismiss()override;
+	bool isMTT();
+	uint32_t getEnterFee();
+	uint32_t getInitialCoin();
 	//void setCurrentPointer(IGameRoom* pRoom)override;
 
 protected:
