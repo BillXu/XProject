@@ -6,6 +6,7 @@
 #include "IGamePlayer.h"
 #include "AsyncRequestQuene.h"
 #include "Thirteen\ThirteenPlayer.h"
+#include "IGameRoomState.h"
 #define MAX_WAIT_TIME 60
 #define AUTO_PICK_OUT_TIME 180
 
@@ -516,6 +517,11 @@ void ThirteenGPrivateRoom::update(float fDelta) {
 					continue;
 				}
 				else {
+					if (ref->getCurState()->getStateID() == eRoomSate_WaitReady && ref->canStartGame() == false) {
+						((ThirteenRoom*)ref)->clearRoom();
+						((ThirteenRoom*)ref)->signIsWaiting();
+						continue;
+					}
 					return;
 				}
 			}
@@ -581,6 +587,27 @@ void ThirteenGPrivateRoom::update(float fDelta) {
 }
 
 bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) {
+	if (MSG_ROOM_THIRTEEN_FORCE_DISMISS_ROOM == nMsgType) {
+		if (prealMsg["uid"].isNull() || prealMsg["uid"].isUInt() == false) {
+			Json::Value jsMsg;
+			jsMsg["ret"] = 1;
+			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+			return false;
+		}
+		auto nUID = prealMsg["uid"].asUInt();
+		if (nUID != m_nOwnerUID) {
+			Json::Value jsMsg;
+			jsMsg["ret"] = 2;
+			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+			return false;
+		}
+		Json::Value jsMsg;
+		jsMsg["ret"] = 0;
+		sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+		doRoomGameOver(true);
+		return true;
+	}
+	
 	if (setCoreRoomBySessionID(nSessionID)) {
 		return ThirteenPrivateRoom::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
 	}
