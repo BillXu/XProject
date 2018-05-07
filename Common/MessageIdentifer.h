@@ -646,6 +646,11 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	// 1, game is over  2, uid is miss  4, time out
 	// time : is not 30 will be 60
 
+	MSG_ROOM_THIRTEEN_FORCE_DISMISS_ROOM, //十三水极速场强制解散房间
+	// client : {uid : 123}
+	// svr : {ret : 0}
+	// 1, uid is null or is not correct  2, uid is not the owner
+
 	MSG_ROOM_THIRTEEN_END = 2300, //13水命令号结束标记
 
 
