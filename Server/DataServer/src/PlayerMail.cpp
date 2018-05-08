@@ -356,7 +356,7 @@ void CPlayerMailComponent::updateMailsStateToDB(std::vector<uint32_t>& vMailIDs,
 	ss << "UPDATE mail SET state = " << eNewState << " where mailUID = " << vMailIDs[0]; 
 	for ( uint16_t nIdx = 1; nIdx < vMailIDs.size(); ++nIdx)
 	{
-		ss << " and mailUID = " << vMailIDs[nIdx];
+		ss << " or mailUID = " << vMailIDs[nIdx];
 	}
 	ss << " limit " << vMailIDs.size() << ";";
 

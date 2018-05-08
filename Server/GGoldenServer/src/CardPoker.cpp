@@ -193,7 +193,7 @@ void CGoldenPoker::LogCardInfo()
 }
 
 void CGoldenPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
-	//return;
+	return;
 
 	CCard tTmep;
 	tTmep.SetCard(CCard::eCard_Diamond, 1);

@@ -33,7 +33,7 @@ public:
 	bool check235();
 	CGoldenPeerCard& operator = (CGoldenPeerCard& pRight )
 	{
-		for( uint8_t nIdx = 0 ; nIdx < NIUNIU_HOLD_CARD_COUNT; ++nIdx )
+		for( uint8_t nIdx = 0 ; nIdx < GOLDEN_HOLD_CARD_COUNT; ++nIdx )
 		{
 			uint8_t nRight = pRight.m_vHoldCards[nIdx].GetCardCompositeNum() ;
 			m_vHoldCards[nIdx].RsetCardByCompositeNum(nRight);
@@ -41,6 +41,8 @@ public:
 
 		m_nAddIdx = pRight.m_nAddIdx ;
 		m_eType = pRight.m_eType ;
+		m_bEnable235 = pRight.m_bEnable235;
+		m_bEnableStraightWin = pRight.m_bEnableStraightWin;
 		return *this ;
 	}
 

@@ -101,6 +101,8 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 		doRoomGameOver(true);
 	});
 	m_tAutoDismissTimer.start();
+
+	m_vTempID.push_back(1671057);
 	return true;
 }
 
@@ -261,10 +263,19 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 		if ( (( pp && pp->getUserUID() != m_nOwnerUID ) || ( ppS && ppS->nUserUID != m_nOwnerUID ) ) && ( isClubRoom() == false ) )
 		{
 			prealMsg["ret"] = 1;
-			m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
+			m_pRoom->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
 			LOGFMTE( "you are not owner can not do open session id %u",nSessionID  );
 			return true;
 		}
+
+		if ( isClubRoom() && m_nAutoStartCnt == 0 && getPlayerCnt() < 2 )
+		{
+			prealMsg["ret"] = 2;
+			m_pRoom->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+			LOGFMTE("can not start game , player cnt is two few  session id %u", nSessionID);
+			return true;
+		}
+
 		m_isOpen = true;
 		Json::Value js;
 		sendRoomMsg(js, MSG_ROOM_DO_OPEN);
@@ -581,6 +592,7 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 	{
 		// temp test 
 		auto nIdx = getInitRound(m_nRoundLevel) - m_nLeftRounds + 1;
+		nIdx = nIdx % 10;
 		uint8_t nF = floor(getRoomID()/100000.0f);
 		uint8_t nL = getRoomID() % 10;
 		auto isInvoker = nIdx == nF || nL == nIdx;
@@ -595,6 +607,7 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 					continue;
 				}
 				nTmpID = p->getUserUID();
+				break;
 			}
 		}
 		getCoreRoom()->setTempID(nTmpID);
@@ -697,7 +710,7 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 		Json::Value jsReq;
 		jsReq["clubID"] = m_nClubID;
 		jsReq["roomID"] = getRoomID();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_ClubRoomGameOvered, jsReq);
+		pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nClubID, eAsync_ClubRoomGameOvered, jsReq);
 	}
 }
 

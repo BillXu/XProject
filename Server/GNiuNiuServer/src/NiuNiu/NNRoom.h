@@ -61,7 +61,7 @@ protected:
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
 	uint16_t getBankerIdx() { return m_nBankerIdx; }
 private:
-	uint8_t m_eResultType; // 0:Å£Å£x3 Å£¾Åx2 Å£°Ëx2, 1 : Å£Å£x4 Å£¾Åx3 Å£°Ëx2 Å£Æßx2
+	uint8_t m_eResultType; // 0:Å£Å£x3 Å£¾Åx2 Å£°Ëx2, 1 : Å£Å£x4 Å£¾Åx3 Å£°Ëx2 Å£Æßx2, 2 : Å£Ò» x1 ----Å£Å£x 10
 	eDecideBankerType m_eDecideBankerType;
 	uint16_t m_nBankerIdx;
 	uint16_t m_nBottomTimes;

@@ -656,6 +656,15 @@ int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 	{
 	case CNiuNiuPeerCard::Niu_Single:
 	{
+		if (2 == m_eResultType)
+		{
+			if ( 0 == nPoint )
+			{
+				return 1;
+			}
+			return nPoint;
+		}
+
 		if ( 0 == m_eResultType && (nPoint == 9 || 8 == nPoint) )
 		{
 			return 2;
@@ -679,6 +688,10 @@ int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 	break;
 	case CNiuNiuPeerCard::Niu_Niu:
 	{
+		if ( 2 == m_eResultType )
+		{
+			return 10;
+		}
 		return m_eResultType == 0 ? 3 : 4;
 	};
 	break;
@@ -687,21 +700,37 @@ int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 	case CNiuNiuPeerCard::Niu_Hulu:
 	case CNiuNiuPeerCard::Niu_FiveFlower:
 	{
+		if (2 == m_eResultType)
+		{
+			return 10;
+		}
 		return 5;
 	}
 	break;
 	case CNiuNiuPeerCard::Niu_Boom:
 	{
+		if (2 == m_eResultType)
+		{
+			return 10;
+		}
 		return 6;
 	}
 	break;
 	case CNiuNiuPeerCard::Niu_FiveSmall:
 	{
+		if (2 == m_eResultType)
+		{
+			return 10;
+		}
 		return 8;
 	}
 	break;
 	case CNiuNiuPeerCard::Niu_TongHuaShun:
 	{
+		if (2 == m_eResultType)
+		{
+			return 10;
+		}
 		return 10;
 	}
 	break;

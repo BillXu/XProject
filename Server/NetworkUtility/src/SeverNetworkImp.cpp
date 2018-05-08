@@ -29,8 +29,8 @@ bool CServerNetworkImp::init(uint16_t nPort )
 	m_pIOThread = std::make_shared<std::thread>([this] { m_ioService.run(); });
 	m_pIOThread->detach();
 
-	m_pIOThread = std::make_shared<std::thread>([this] { m_ioService.run(); });
-	m_pIOThread->detach();
+	m_pIOThread2 = std::make_shared<std::thread>([this] { m_ioService.run(); });
+	m_pIOThread2->detach();
 	LOGFMTI("init server net imp, port = %u",nPort);
 	return true ;
 }
