@@ -36,6 +36,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_nTempOwnerUID = 0;
 	m_pRoomMgr = pRoomMgr;
 	m_nPayType = ePayType_RoomOwner;
+	m_isEnablePointRestrict = vJsOpts["pointRct"].isInt() && vJsOpts["pointRct"].asInt() == 1;
 	if (vJsOpts["isAA"].isNull() == false)
 	{
 		if (vJsOpts["isAA"].asUInt() == 1)
@@ -710,6 +711,24 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 		Json::Value jsReq;
 		jsReq["clubID"] = m_nClubID;
 		jsReq["roomID"] = getRoomID();
+		if ( m_isOneRoundNormalEnd && isEnableClubPointRestrict() ) // inform result to club svr ;
+		{
+			Json::Value jsResult;
+			for ( uint16_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+			{
+				auto p = getPlayerByIdx(nIdx);
+				if ( !p )
+				{
+					continue;
+				}
+				Json::Value jsp;
+				jsp["uid"] = p->getUserUID();
+				jsp["offset"] = p->getChips();
+				jsResult[jsResult.size()] = jsp;
+			}
+			jsReq["result"] = jsResult;
+		}
+
 		pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nClubID, eAsync_ClubRoomGameOvered, jsReq);
 	}
 }

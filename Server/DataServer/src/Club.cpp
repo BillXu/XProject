@@ -301,12 +301,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		opt->ePrivilige = (eClubPrivilige)nPrivilige;
 
 		// save to db 
-		Json::StyledWriter jsw;
-		Json::Value jssql;
-		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer),"update clubmember set privilige = %u where clubID = %u and uid = %u limit 1 ;", nPrivilige,getClubID(), nCandinatePlayerUID );
-		jssql["sql"] = pBuffer;
-		m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand()%100,eAsync_DB_Update, jssql);
+		saveMemberUpdateToDB(opt);
 
 		auto p = new stClubEvent();
 		p->nEventID = ++m_nMaxEventID;
@@ -486,6 +481,20 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		jsInfo["inviteCnt"] = m_vInvitations.size();
 		jsInfo["notice"] = m_strNotice;
 
+		if ( isEnablePointsRestrict() )
+		{
+			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+			if (pPlayer)
+			{
+				auto pmem = getMember(pPlayer->getUserUID());
+				if ( pmem )
+				{
+					jsInfo["selfPoint"] = pmem->nOffsetPoints;
+					jsInfo["selfInitPoint"] = pmem->nInitPoints;
+				}
+			}
+		}
+
 		Json::Value jsMgrs;
 		for (auto& ref : m_vMembers)
 		{
@@ -533,6 +542,17 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 	case MSG_CLUB_REQ_PLAYERS:
 	{
 		uint16_t nPages = 0;
+		bool isSendPoints = false;
+		if ( isEnablePointsRestrict() )
+		{
+			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+			if ( pPlayer )
+			{
+				auto pmem = getMember(pPlayer->getUserUID());
+				isSendPoints = pmem && pmem->ePrivilige >= eClubPrivilige_Manager;
+			}
+		}
+
 		Json::Value jsPlayers;
 		for ( auto& ref : m_vMembers )
 		{
@@ -540,6 +560,12 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			Json::Value jsp;
 			jsp["uid"] = pMem->nPlayerUID;
 			jsp["privilige"] = pMem->ePrivilige;
+			if (isSendPoints)
+			{
+				jsp["initPoint"] = pMem->nInitPoints;
+				jsp["offsetPoint"] = pMem->nOffsetPoints;
+			}
+
 			jsPlayers[jsPlayers.size()] = jsp;
 			if ( 10 == jsPlayers.size() )
 			{
@@ -872,6 +898,117 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
 	}
 	break;
+	case MSG_CLUB_SET_PLAYER_INIT_POINTS:
+	{
+		uint8_t nRet = 0;
+		uint32_t nTargetMemberUID = prealMsg["uid"].asUInt();
+		do
+		{
+			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+			if (pPlayer == nullptr || pPlayer->getSessionID() != nSenderID)
+			{
+				nRet = 4;
+				break;
+			}
+
+			auto pMem = getMember(pPlayer->getUserUID());
+			if (pMem == nullptr || pMem->ePrivilige < eClubPrivilige_Manager)
+			{
+				nRet = 1;
+				break;
+			}
+
+			auto pTargetMem = getMember(nTargetMemberUID);
+			if (pMem == nullptr)
+			{
+				nRet = 2;
+				break;
+			}
+
+			if ( prealMsg["points"].isInt() == false || prealMsg["points"].asInt() < 0)
+			{
+				nRet = 3;
+				break;
+			}
+
+			// do opeater 
+			pTargetMem->nInitPoints = prealMsg["points"].asInt();
+
+			auto p = new stClubEvent();
+			p->nEventID = ++m_nMaxEventID;
+			p->nEventType = eClubEvent_SetPlayerInitPoints;
+			p->nState = eEventState_Processed;
+			p->nTime = time(nullptr);
+			p->jsEventDetail["uid"] = nTargetMemberUID;
+			p->jsEventDetail["mgrUID"] = nTargetID;
+			p->jsEventDetail["points"] = pTargetMem->nInitPoints;
+			addEvent(p);
+
+			saveMemberUpdateToDB(pTargetMem);
+
+			Json::Value jsDetail;
+			jsDetail["mgrUID"] = nTargetID;
+			jsDetail["initPoint"] = pTargetMem->nInitPoints;
+			savePointLog(nTargetMemberUID, 2, jsDetail);
+
+		} while (0);
+
+		prealMsg["ret"] = nRet;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+	}
+	break;
+	case MSG_CLUB_RESET_PLAYER_POINTS:
+	{
+		uint8_t nRet = 0;
+		uint32_t nTargetMemberUID = prealMsg["uid"].asUInt();
+		do
+		{
+			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+			if (pPlayer == nullptr || pPlayer->getSessionID() != nSenderID)
+			{
+				nRet = 4;
+				break;
+			}
+
+			auto pMem = getMember(pPlayer->getUserUID());
+			if (pMem == nullptr || pMem->ePrivilige < eClubPrivilige_Manager)
+			{
+				nRet = 1;
+				break;
+			}
+
+			auto pTargetMem = getMember(nTargetMemberUID);
+			if (pMem == nullptr)
+			{
+				nRet = 2;
+				break;
+			}
+
+			// do opeater 
+			pTargetMem->nOffsetPoints = 0;
+
+			auto p = new stClubEvent();
+			p->nEventID = ++m_nMaxEventID;
+			p->nEventType = eClubEvent_ResetPlayerPoints;
+			p->nState = eEventState_Processed;
+			p->nTime = time(nullptr);
+			p->jsEventDetail["uid"] = nTargetMemberUID;
+			p->jsEventDetail["mgrUID"] = nTargetID;
+			addEvent(p);
+
+			saveMemberUpdateToDB(pTargetMem);
+
+			Json::Value jsDetail;
+			jsDetail["mgrUID"] = nTargetID;
+			jsDetail["curPoint"] = pTargetMem->nInitPoints + pTargetMem->nOffsetPoints;
+			savePointLog(nTargetMemberUID,1 , jsDetail );
+
+		} while (0);
+
+		prealMsg["ret"] = nRet;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+	}
+	break;
 	default:
 		return false ;
 	}
@@ -900,6 +1037,37 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 	{
 		uint32_t nRoomID = jsReqContent["roomID"].asUInt();
 		LOGFMTD("clubID = %u room end roomID = %u", getClubID(), nRoomID );
+
+		// check game result 
+		if ( isEnablePointsRestrict() )
+		{
+			auto jsDetail = jsReqContent["result"];
+			for (uint32_t nIdx = 0; nIdx < jsDetail.size(); ++nIdx)
+			{
+				auto jsp = jsDetail[nIdx];
+				uint32_t nUID = jsp["uid"].asUInt();
+				int32_t nOffset = jsp["offset"].asInt();
+				auto pmem = getMember(nUID);
+				if (pmem == nullptr)
+				{
+					LOGFMTE("recived player result but member is null clubID = %u , uid = %u , offset = %d", getClubID(), nUID, nOffset);
+					continue;
+				}
+				pmem->nOffsetPoints += nOffset;
+
+				// save member update ;
+				saveMemberUpdateToDB(pmem);
+
+				// save point log ;
+				Json::Value jslogdetail;
+				jslogdetail["roomOffset"] = nOffset;
+				jslogdetail["roomID"] = nRoomID;
+				jslogdetail["curPoint"] = pmem->nInitPoints + pmem->nOffsetPoints;
+				savePointLog(nUID, 0, jslogdetail);
+			}
+		}
+
+		// remove from full room ;
 		auto iter = std::find_if(m_vFullRooms.begin(),m_vFullRooms.end(), [nRoomID](stClubRoomInfo& ref) { return ref.nRoomID == nRoomID; });
 		if (iter != m_vFullRooms.end())
 		{
@@ -908,6 +1076,7 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 		}
 
 	
+		// maybe remove from empty room 
 		iter = std::find_if(m_vEmptyRooms.begin(), m_vEmptyRooms.end(), [nRoomID](stClubRoomInfo& ref) { return ref.nRoomID == nRoomID; });
 		if (iter != m_vEmptyRooms.end())
 		{
@@ -915,7 +1084,7 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 			break;
 		}
 
-		LOGFMTE( "clubID = %u , room id = %u overd , but not in club ? " , getClubID(),nRoomID );
+		LOGFMTE( "clubID = %u , room id = %u overed , but not in club ? " , getClubID(),nRoomID );
 	}
 	break;
 	case eAsync_ClubGiveBackDiamond:
@@ -952,6 +1121,12 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 		if ( p->ePrivilige < eClubPrivilige_Normal )
 		{
 			jsResult["ret"] = 2;
+			break;
+		}
+
+		if ( isEnablePointsRestrict() && p->getCurPoint() <= 0 )
+		{
+			jsResult["ret"] = 3;
 			break;
 		}
 	}
@@ -1259,6 +1434,18 @@ bool Club::canDismiss()
 	return m_vFullRooms.empty();
 }
 
+bool Club::setIsEnablePointRestrict(bool isEnable)
+{
+	if ( isEnable == isEnablePointsRestrict())
+	{
+		return false;
+	}
+
+	m_jsCreateRoomOpts["pointRct"] = isEnable ? 1 : 0;
+	m_isClubInfoDirty = true;
+	return true;
+}
+
 void Club::readClubDetail()
 {
 	// read max event id  ;
@@ -1355,7 +1542,7 @@ void Club::readClubMemebers( uint32_t nAlreadyReadCnt)
 {
 	auto asyq = m_pMgr->getSvrApp()->getAsynReqQueue();
 	std::ostringstream ss;
-	ss << "SELECT uid,privilige FROM clubmember where clubID = " << getClubID() << " limit 20 OFFSET " << nAlreadyReadCnt << ";";
+	ss << "SELECT uid,privilige,offsetPoints,initPoints FROM clubmember where clubID = " << getClubID() << " limit 20 OFFSET " << nAlreadyReadCnt << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_DB,rand() % 100, eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
@@ -1384,6 +1571,8 @@ void Club::readClubMemebers( uint32_t nAlreadyReadCnt)
 			auto p = new stMember();
 			p->nPlayerUID = nUID;
 			p->ePrivilige = (eClubPrivilige)jsRow["privilige"].asUInt();
+			p->nInitPoints = jsRow["initPoints"].asInt();
+			p->nOffsetPoints = jsRow["offsetPoints"].asInt();
 			m_vMembers[nUID] = p;
 		}
 
@@ -1493,4 +1682,36 @@ void Club::dismissEmptyRoom( bool isWillDelteClub )
 			}, ref.nRoomID);
 		}
 	}
+}
+
+bool Club::isEnablePointsRestrict()
+{
+	return m_jsCreateRoomOpts["pointRct"].isInt() && m_jsCreateRoomOpts["pointRct"].asInt() == 1;
+}
+
+void Club::savePointLog(uint32_t nPlayerUID, uint32_t nLogType, Json::Value& jsDetail)
+{
+	if ( isEnablePointsRestrict() == false )
+	{
+		return;
+	}
+
+	Json::StyledWriter jsw;
+	auto strDetail = jsw.write(jsDetail);
+	// save to db 
+	Json::Value jssql;
+	char pBuffer[2024] = { 0 };
+	sprintf_s(pBuffer, sizeof(pBuffer), "insert into clubpointrecorder ( clubID,playerUID,type,detail ) values ( %u,%u,%u,'%s');", getClubID(), nPlayerUID, nLogType, strDetail.c_str() );
+	jssql["sql"] = pBuffer;
+	m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, rand() % 100, eAsync_DB_Add, jssql);
+}
+
+void Club::saveMemberUpdateToDB(stMember * pMem)
+{
+	Json::StyledWriter jsw;
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, sizeof(pBuffer), "update clubmember set privilige = %u,offsetPoints = %d,initPoints = %d where clubID = %u and uid = %u limit 1 ;", pMem->ePrivilige, pMem->nOffsetPoints,pMem->nInitPoints ,getClubID(), pMem->nPlayerUID );
+	jssql["sql"] = pBuffer;
+	m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Update, jssql);
 }

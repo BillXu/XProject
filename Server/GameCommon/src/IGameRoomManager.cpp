@@ -403,6 +403,10 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 				{
 					Json::Value jsRet;
 					jsRet["ret"] = nRet == 1 ? 9 : 10;
+					if ( nRet == 3 )
+					{
+						jsRet["ret"] = 11;
+					}
 					sendMsg(jsRet, MSG_ENTER_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
 					LOGFMTE("club member check failed ret = %u uid = %u , can not enter room ", nRet, nUserID);
 					return;

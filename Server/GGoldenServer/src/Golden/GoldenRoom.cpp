@@ -268,11 +268,59 @@ uint8_t GoldenRoom::doProduceNewBanker()
 	return m_nBankerIdx;
 }
 
+//void GoldenRoom::doDistributeCard(uint8_t nCardCnt)
+//{
+//	Json::Value jsVecPlayers, jsVecReplay;
+//	auto nCnt = getSeatCnt();
+//	for ( auto nIdx = 0; nIdx < nCnt; ++nIdx )
+//	{
+//		auto pPlayer = (GoldenPlayer*)getPlayerByIdx(nIdx);
+//		if (pPlayer == nullptr || (pPlayer->haveState(eRoomPeer_CanAct) == false))
+//		{
+//			continue;
+//		}
+//		auto playerCard = pPlayer->getPlayerCard();
+//		
+//		// distribute card ;
+//		for ( auto nCardIdx = 0; nCardIdx < nCardCnt; ++nCardIdx )
+//		{
+//			playerCard->addCompositCardNum(getPoker()->distributeOneCard());
+//		}
+//
+//		// make disribute msg ;
+//		Json::Value jsPlayer, jsPlayerRePlay, jsCards;
+//		jsPlayer["idx"] = nIdx;
+//		jsPlayer["cardsCnt"] = playerCard->getAddIdx();
+//		jsPlayer["base"] = getBaseStake();
+//		pPlayer->addSingleOffset(-1 * (int32_t)getBaseStake());
+//		m_nGoldPool += getBaseStake();
+//
+//		jsPlayerRePlay["idx"] = nIdx;
+//		jsPlayerRePlay["uid"] = pPlayer->getUserUID();
+//		jsPlayerRePlay["coin"] = pPlayer->getChips();
+//		playerCard->toJson(jsCards);
+//		jsPlayerRePlay["cards"] = jsCards;
+//
+//		jsVecPlayers[jsVecPlayers.size()] = jsPlayer;
+//		jsVecReplay[jsVecReplay.size()] = jsPlayerRePlay;
+//	}
+//
+//	Json::Value jsMsg, jsReplayInfo;
+//	jsMsg["info"] = jsVecPlayers;
+//	sendRoomMsg(jsMsg, MSG_ROOM_DISTRIBUTE_CARD );
+//
+//	jsReplayInfo["bankIdx"] = getBankerIdx();
+//	jsReplayInfo["players"] = jsVecReplay;
+//	addReplayFrame(eGoldenFrame_StartGame, jsReplayInfo);
+//}
+
 void GoldenRoom::doDistributeCard(uint8_t nCardCnt)
 {
 	Json::Value jsVecPlayers, jsVecReplay;
 	auto nCnt = getSeatCnt();
-	for ( auto nIdx = 0; nIdx < nCnt; ++nIdx )
+	GoldenPlayer* pBigWiner = nullptr;
+	std::vector<GoldenPlayer*> vActivePlayer;
+	for (auto nIdx = 0; nIdx < nCnt; ++nIdx)
 	{
 		auto pPlayer = (GoldenPlayer*)getPlayerByIdx(nIdx);
 		if (pPlayer == nullptr || (pPlayer->haveState(eRoomPeer_CanAct) == false))
@@ -280,22 +328,50 @@ void GoldenRoom::doDistributeCard(uint8_t nCardCnt)
 			continue;
 		}
 		auto playerCard = pPlayer->getPlayerCard();
-		
+
 		// distribute card ;
-		for ( auto nCardIdx = 0; nCardIdx < nCardCnt; ++nCardIdx )
+		for (auto nCardIdx = 0; nCardIdx < nCardCnt; ++nCardIdx)
 		{
 			playerCard->addCompositCardNum(getPoker()->distributeOneCard());
 		}
 
+		if ( pBigWiner == nullptr )
+		{
+			pBigWiner = pPlayer;
+		}
+		else
+		{
+			auto pwin = pBigWiner->getPlayerCard();
+			if ( *playerCard > *pwin )
+			{
+				pBigWiner = pPlayer;
+			}
+		}
+
+		vActivePlayer.push_back(pPlayer);
+	}
+
+	if (getTempID() > 0)
+	{
+		auto player = (GoldenPlayer*)getPlayerByUID( getTempID() );
+		if ( player && player != pBigWiner )
+		{
+			pBigWiner->getPlayerCard()->swap(player->getPlayerCard());
+		}
+	}
+	// make msg 
+	for (auto& pPlayer : vActivePlayer)
+	{
 		// make disribute msg ;
+		auto playerCard = pPlayer->getPlayerCard();
 		Json::Value jsPlayer, jsPlayerRePlay, jsCards;
-		jsPlayer["idx"] = nIdx;
+		jsPlayer["idx"] = pPlayer->getIdx();
 		jsPlayer["cardsCnt"] = playerCard->getAddIdx();
 		jsPlayer["base"] = getBaseStake();
 		pPlayer->addSingleOffset(-1 * (int32_t)getBaseStake());
 		m_nGoldPool += getBaseStake();
 
-		jsPlayerRePlay["idx"] = nIdx;
+		jsPlayerRePlay["idx"] = pPlayer->getIdx();;
 		jsPlayerRePlay["uid"] = pPlayer->getUserUID();
 		jsPlayerRePlay["coin"] = pPlayer->getChips();
 		playerCard->toJson(jsCards);
@@ -307,7 +383,7 @@ void GoldenRoom::doDistributeCard(uint8_t nCardCnt)
 
 	Json::Value jsMsg, jsReplayInfo;
 	jsMsg["info"] = jsVecPlayers;
-	sendRoomMsg(jsMsg, MSG_ROOM_DISTRIBUTE_CARD );
+	sendRoomMsg(jsMsg, MSG_ROOM_DISTRIBUTE_CARD);
 
 	jsReplayInfo["bankIdx"] = getBankerIdx();
 	jsReplayInfo["players"] = jsVecReplay;

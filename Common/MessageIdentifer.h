@@ -419,6 +419,16 @@ enum eMsgType
 	// client : { clubID : 23 }
 	// svr : { ret : 0 ,clubID : 23, diamond : 23 }
 
+	MSG_CLUB_SET_PLAYER_INIT_POINTS,
+	// client : { clubID : 23 , uid : 23 , points : 23 }
+	// svr : { ret : 0 ,clubID : 23 , uid : 23 , points : 23 }
+	// ret : 0 success , 1 privilige is invalid , 2 player is not in club , 3 invalid points ;
+
+	MSG_CLUB_RESET_PLAYER_POINTS,
+	// client : { clubID : 23 , uid : 23 }
+	// svr : { ret : 0 ,clubID : 23 , uid : 23 }
+	// ret : 0 success , 1 privilige is invalid , 2 player is not in club ;
+
 	MSG_CLUB_MSG_END = 2900,
 
 	// mj specail msg ;

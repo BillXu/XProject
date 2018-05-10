@@ -342,7 +342,7 @@ uint8_t BJRoom::onPlayerDoMakeCardGroup(uint8_t nIdx, std::vector<uint8_t>& vGro
 	}
 
 	auto pPlayerCard = pPlayer->getPlayerCard();
-	if ( !pPlayerCard->setCardsGroup(vGroupCards))
+	if ( !pPlayerCard->setCardsGroup(vGroupCards,isTianJiSaiMa()))
 	{
 		return 2;
 	}
