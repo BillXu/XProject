@@ -9,6 +9,7 @@ public:
 	virtual void onWillStartGame(IGameRoom* pRoom) {};
 	virtual void onStartGame(IGameRoom* pRoom) {};
 	virtual bool canStartGame(IGameRoom* pRoom) { return true; }
+	virtual void onPreGameDidEnd(IGameRoom* pRoom) {}
 	virtual void onGameDidEnd(IGameRoom* pRoom){ }
 	virtual void onGameEnd( IGameRoom* pRoom ){}
 	virtual void doPlayerEnter(IGameRoom* pRoom, uint32_t nUserUID) {}
@@ -18,7 +19,7 @@ public:
 	virtual void onPlayerWillStandUp(IGameRoom* pRoom,IGamePlayer* pPlayer) {}
 	virtual void onPlayerStandedUp( IGameRoom* pRoom,uint32_t nUserUID) {}
 	virtual void onPlayerDoLeaved( IGameRoom* pRoom, uint32_t nUserUID ) {}
-	virtual void onPlayerTempLeaved(IGameRoom* pRoom, uint32_t nUserUID) {}
+	virtual void onPlayerTempLeaved(IGameRoom* pRoom, stEnterRoomData* pEnterRoomPlayer) {}
 	virtual void onPlayerTOut(uint32_t nUserUID) {}
 	virtual bool isEnableRecorder() { return false; }
 	virtual bool isEnableReplay() { return false; }
@@ -36,4 +37,6 @@ public:
 	virtual void onPlayerAutoStandUp(uint32_t nUserUID, bool bSwitch = true) {}
 	virtual void onPlayerAutoLeave(uint32_t nUserUID, bool bSwitch = true) {}
 	virtual uint32_t getEnterClubID(uint32_t nUserUID) { return 0; }
+	virtual uint32_t getBlindBaseScore() { return 0; }
+	virtual uint32_t getBlindPreScore() { return 0; }
 };

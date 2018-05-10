@@ -48,6 +48,7 @@ public:
 	void onPlayerWillSitDown(IGameRoom* pRoom, uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	bool isRoomFull()override;
+	void onPreGameDidEnd(IGameRoom* pRoom)override;
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool doDeleteRoom()override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;

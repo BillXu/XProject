@@ -267,14 +267,7 @@ void ThirteenPrivateRoom::onPlayerWillStandUp(IGameRoom* pRoom, IGamePlayer* pPl
 	}
 }
 
-void ThirteenPrivateRoom::onGameDidEnd(IGameRoom* pRoom) {
-	// decrease round 
-	if (m_nOverType == ROOM_OVER_TYPE_ROUND) {
-		if (m_nLeftRounds > 0) {
-			--m_nLeftRounds;
-		}
-	}
-
+void ThirteenPrivateRoom::onPreGameDidEnd(IGameRoom* pRoom) {
 	// consume diamond 
 	if (m_isOneRoundNormalEnd == false)
 	{
@@ -331,6 +324,72 @@ void ThirteenPrivateRoom::onGameDidEnd(IGameRoom* pRoom) {
 			}
 		}
 	}
+}
+
+void ThirteenPrivateRoom::onGameDidEnd(IGameRoom* pRoom) {
+	// decrease round 
+	if (m_nOverType == ROOM_OVER_TYPE_ROUND) {
+		if (m_nLeftRounds > 0) {
+			--m_nLeftRounds;
+		}
+	}
+
+	//// consume diamond 
+	//if (m_isOneRoundNormalEnd == false)
+	//{
+	//	m_isOneRoundNormalEnd = true;
+	//	auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, getPayType());
+	//	if (isAAPay() && nNeedDiamond > 0)  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
+	//	{
+	//		auto nCnt = m_pRoom->getSeatCnt();
+	//		for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
+	//		{
+	//			auto pPlayer = m_pRoom->getPlayerByIdx(nIdx);
+	//			if (!pPlayer)
+	//			{
+	//				//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
+	//				continue;
+	//			}
+
+	//			Json::Value js;
+	//			js["playerUID"] = pPlayer->getUserUID();
+	//			js["diamond"] = nNeedDiamond;
+	//			js["roomID"] = getRoomID();
+	//			js["reason"] = 0;
+	//			auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	//			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
+	//		}
+	//	}
+	//}
+
+	//auto nCnt = m_pRoom->getSeatCnt();
+	//for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx) {
+	//	auto pPlayer = m_pRoom->getPlayerByIdx(nIdx);
+	//	if (!pPlayer || pPlayer->haveState(eRoomPeer_StayThisRound) == false)
+	//	{
+	//		//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
+	//		continue;
+	//	}
+	//	auto stg = isEnterByUserID(pPlayer->getUserUID());
+	//	if (stg) {
+	//		stg->isJoin += 1;
+	//		if (stg->nState == eNet_Offline || stg->nState == eNet_WaitReconnect) {
+	//			stg->nOffLineGame += 1;
+	//			if (stg->nOffLineGame >= OFFLINE_AUTO_LEAVE_ROOM) {
+	//				if (stg->nState == eNet_Offline) {
+	//					getCoreRoom()->doPlayerLeaveRoom(stg->nUserUID);
+	//				}
+	//				else {
+	//					getCoreRoom()->doPlayerStandUp(stg->nUserUID);
+	//				}
+	//				stg->nOffLineGame = 0;
+	//			}
+	//		}
+	//		else {
+	//			stg->nOffLineGame = 0;
+	//		}
+	//	}
+	//}
 
 	// check room over
 	if (0 == m_nLeftRounds)
@@ -633,7 +692,13 @@ bool ThirteenPrivateRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetStat
 }
 
 void ThirteenPrivateRoom::onDismiss() {
-	m_tCreateTimeLimit.setInterval(0);
+	if (m_nOverType == ROOM_OVER_TYPE_TIME) {
+		m_tCreateTimeLimit.setInterval(0);
+	}
+	else {
+		m_nLeftRounds = 0;
+	}
+	//m_tCreateTimeLimit.setInterval(0);
 }
 
 bool ThirteenPrivateRoom::isMTT() {

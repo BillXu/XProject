@@ -129,6 +129,19 @@ void ThirteenRoom::onWillStartGame() {
 void ThirteenRoom::onStartGame()
 {
 	GameRoom::onStartGame();
+
+	if (isMTT() && getDelegate()) {
+		for (auto ref : m_vPlayers) {
+			if (ref->haveState(eRoomPeer_StayThisRound)) {
+				auto nCoin = getDelegate()->getBlindPreScore();
+				ref->addSingleOffset(-1 * (int32_t)nCoin, false);
+				Json::Value jsMsg;
+				jsMsg["idx"] = ref->getIdx();
+				jsMsg["chips"] = ref->getChips();
+				sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_GOLDEN_UPDATE);
+			}
+		}
+	}
 }
 
 /*
@@ -472,6 +485,8 @@ void ThirteenRoom::onGameEnd()
 }
 
 void ThirteenRoom::onGameDidEnd() {
+	getDelegate()->onPreGameDidEnd(this);
+
 	if ((isClubRoom() || isMTT()) && isRoomGameOver() == false) {
 		for (auto& ref : m_vPlayers) {
 			if (ref && ref->getChips() < getDragInNeed() && ref->haveState(eRoomPeer_WaitDragIn) == false) {
@@ -483,6 +498,9 @@ void ThirteenRoom::onGameDidEnd() {
 				jsMsg["min"] = getMinDragIn();
 				jsMsg["max"] = getMaxDragIn();
 				jsMsg["enterClubID"] = getDelegate()->getEnterClubID(ref->getUserUID());
+				if (isMTT()) {
+					jsMsg["dragIn"] = 1;
+				}
 				if (isLeagueRoom()) {
 					if (getDelegate() && getDelegate()->getDragInClubID(ref->getUserUID())) {
 						Json::Value jsClubs;
@@ -604,6 +622,9 @@ bool ThirteenRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t n
 				jsMsg["min"] = getMinDragIn();
 				jsMsg["max"] = getMaxDragIn();
 				jsMsg["enterClubID"] = getDelegate()->getEnterClubID(pPlayer->getUserUID());
+				if (isMTT()) {
+					jsMsg["dragIn"] = 1;
+				}
 				if (isLeagueRoom()) {
 					if (getDelegate() && getDelegate()->getDragInClubID(pPlayer->getUserUID())) {
 						Json::Value jsClubs;
@@ -744,11 +765,18 @@ bool ThirteenRoom::doPlayerTempLeave(uint32_t nUserUID) {
 		return false;
 	}
 
+	stEnterRoomData pEnterRoomPlayer;
+	pEnterRoomPlayer.nChip = 0;
+	pEnterRoomPlayer.nDiamond = 0;
+	pEnterRoomPlayer.nCurInRoomID = 0;
+	pEnterRoomPlayer.nUserUID = nUserUID;
+	pEnterRoomPlayer.nSessionID = iterStand->second->nSessionID;
+
 	delete iterStand->second;
 	m_vStandPlayers.erase(iterStand);
 	if (getDelegate())
 	{
-		getDelegate()->onPlayerTempLeaved(this, nUserUID);
+		getDelegate()->onPlayerTempLeaved(this, &pEnterRoomPlayer);
 	}
 
 	return true;
@@ -1230,6 +1258,9 @@ bool ThirteenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		jsMsg["min"] = getMinDragIn();
 		jsMsg["max"] = getMaxDragIn();
 		jsMsg["enterClubID"] = getDelegate()->getEnterClubID(pPlayer->getUserUID());
+		if (isMTT()) {
+			jsMsg["dragIn"] = 1;
+		}
 		if (isLeagueRoom()) {
 			if (getDelegate() && getDelegate()->getDragInClubID(pPlayer->getUserUID())) {
 				Json::Value jsClubs;
@@ -1516,6 +1547,9 @@ bool ThirteenRoom::onPlayerRotBanker(uint8_t nIdx, uint8_t nState) {
 			if (nCoin < 1) {
 				nCoin = 1;
 			}
+			if (isMTT()) {
+				nCoin = 0;
+			}
 			pPlayer->addSingleOffset(-1 * (int32_t)nCoin);
 			Json::Value jsMsg;
 			jsMsg["idx"] = nIdx;
@@ -1561,6 +1595,10 @@ bool ThirteenRoom::onPlayerShowCards(uint8_t nIdx) {
 }
 
 uint8_t ThirteenRoom::getBaseScore() {
+	if (isMTT() && getDelegate()) {
+		return getDelegate()->getBlindBaseScore();
+	}
+
 	if (m_jsOpts["baseScore"].isNull() || m_jsOpts["baseScore"].isUInt() == false) {
 		return 1;
 	}

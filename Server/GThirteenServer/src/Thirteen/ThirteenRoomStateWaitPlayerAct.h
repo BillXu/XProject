@@ -356,6 +356,13 @@ public:
 			}
 			if (pRoom->onPlayerSetDao(pPlayer->getIdx(), vCards)) {
 				if (jsmsg["showCards"].isNull() == false && jsmsg["showCards"].isUInt() && jsmsg["showCards"].asUInt()) {
+					if (pRoom->isMTT()) {
+						jsRet["ret"] = 8;
+						pRoom->sendMsgToPlayer(jsRet, MSG_ROOM_THIRTEEN_GAME_SHOW_CARDS, nSessionID);
+						LOGFMTE("mtt room can not show cards? room id = %u, session id = %u", pRoom->getRoomID(), nSessionID);
+						return true;
+					}
+
 					if (pRoom->isCanMingPai() == false || pRoom->isPlayerCanMingPai(pPlayer->getIdx()) == false) {
 						jsRet["ret"] = 3;
 						pRoom->sendMsgToPlayer(jsRet, MSG_ROOM_THIRTEEN_GAME_SHOW_CARDS, nSessionID);

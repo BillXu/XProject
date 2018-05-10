@@ -36,6 +36,7 @@ public:
 	bool canStartGame(IGameRoom* pRoom)override;
 	//void onGameEnd(IGameRoom* pRoom)override;
 	void onPlayerWillStandUp(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
+	void onPreGameDidEnd(IGameRoom* pRoom)override;
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool isEnableReplay()override { return false; }
 	void onPlayerWaitDragIn(uint32_t nUserUID)override;
@@ -70,7 +71,7 @@ public:
 	//void setCurrentPointer(IGameRoom* pRoom)override;
 
 protected:
-	void sendBssicRoomInfo(uint32_t nSessionID);
+	virtual void sendBssicRoomInfo(uint32_t nSessionID);
 	stStayPlayer* isEnterBySession(uint32_t nSessionID);
 	stStayPlayer* isEnterByUserID(uint32_t nUserID);
 
