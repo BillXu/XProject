@@ -36,7 +36,7 @@ public:
 	bool getGroupInfo( uint8_t nGroupIdx , uint8_t& nGroupType , std::vector<uint8_t>& vGroupCards );
 	void setCurGroupIdx( uint8_t nGrpIdx );
 	uint8_t getCurGroupIdx();
-	bool setCardsGroup(std::vector<uint8_t>& vGroupedCards);
+	bool setCardsGroup(std::vector<uint8_t>& vGroupedCards, bool isTianJiSaiMa );
 	bool holdCardToJson(Json::Value& vHoldCards);
 	bool groupCardToJson(Json::Value& vHoldCards);
 	// xi pai used 

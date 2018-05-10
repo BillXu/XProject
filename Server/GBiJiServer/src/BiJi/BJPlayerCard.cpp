@@ -141,7 +141,7 @@ uint8_t BJPlayerCard::getCurGroupIdx()
 	return m_nCurGroupIdx;
 }
 
-bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards)
+bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards, bool isTianJiSaiMa )
 {
 	if (vGroupedCards.empty())
 	{
@@ -183,7 +183,10 @@ bool BJPlayerCard::setCardsGroup(std::vector<uint8_t>& vGroupedCards)
 		m_vGroups[nGIdx].setCard(vTemp);
 	}
 
-	std::sort(m_vGroups.begin(), m_vGroups.end(), [](stGroupCard& a, stGroupCard& b) { return a.getWeight() < b.getWeight(); });
+	if ( !isTianJiSaiMa )
+	{
+		std::sort(m_vGroups.begin(), m_vGroups.end(), [](stGroupCard& a, stGroupCard& b) { return a.getWeight() < b.getWeight(); });
+	}
 	return true;
 }
 

@@ -9,7 +9,11 @@ public:
 	struct stMember
 	{
 		uint32_t nPlayerUID; 
-		eClubPrivilige ePrivilige;   
+		eClubPrivilige ePrivilige;
+		int32_t nOffsetPoints;
+		int32_t nInitPoints;
+		stMember() { nOffsetPoints = 0; nInitPoints = 0; }
+		int32_t getCurPoint() { return nInitPoints + nOffsetPoints; }
 	};
 
 	struct stClubEvent
@@ -64,6 +68,7 @@ public:
 		m_isFinishReadEvent = true;
 		m_isFinishReadMembers = true;
 	}
+	bool setIsEnablePointRestrict( bool isEnable );
 protected:
 	void readClubEvents( uint32_t nAlreadyCnt );
 	void readClubMemebers( uint32_t nAlreadyCnt );
@@ -74,6 +79,13 @@ protected:
 	void postMail( uint32_t nTargetID , eMailType eType , Json::Value& jsContent , eMailState eState );
 	uint16_t getTargetPortByGameType( uint32_t nGameType );
 	void dismissEmptyRoom( bool isWillDelteClub = false );
+	bool isEnablePointsRestrict();
+
+	// nLogType 0 牌局更新offsetPoint 。 detail { roomOffset: 23 , curPoint : 23 , roomID : 23 }
+	// nLogType	1 管理重置offsetPoint 。detail { curPoint: 23 , mgrUID : 23 }
+	//nLogType	2 管理员调整 initPoint。detail { initPoint: 23 , mgrUID : 23 }
+	void savePointLog( uint32_t nPlayerUID , uint32_t nLogType , Json::Value& jsDetail );
+	void saveMemberUpdateToDB( stMember * pMem );
 protected:
 	uint8_t m_nState;  // 0 normal , 1 pause ;
 	uint32_t m_nCapacity;

@@ -219,6 +219,28 @@ bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 		return true;
 	}
 
+	if ( eAsync_HttpCmd_UpdateClubPointRestrict == nRequestType )  // check argument 
+	{
+		if (jsReqContent["clubID"].isNull() || jsReqContent["isEanble"].isNull() )
+		{
+			jsResult["ret"] = 1;
+			return true;
+		}
+
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		auto iterClub = m_vClubs.find(nClubID);
+		if (iterClub == m_vClubs.end())
+		{
+			jsResult["ret"] = 2;
+			return true;
+		}
+
+		iterClub->second->setIsEnablePointRestrict( jsReqContent["isEanble"].asUInt() == 1 );
+		jsResult = jsReqContent;
+		jsResult["ret"] = 0;
+		return true;
+	}
+
 	for (auto& ref : m_vClubs)
 	{
 		if ( ref.second->onAsyncRequest(nRequestType, jsReqContent, jsResult) )

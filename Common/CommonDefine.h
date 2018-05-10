@@ -50,6 +50,8 @@ enum eClubEvent
 	eClubEvent_Leave, // { uid : 23 }
 	eClubEvent_UpdatePrivlige, // { uid : 23 , privilige : eClubPrivilige , actUID : 234 }
 	eClubEvent_RespInvite,// { uid : 234 , nIsAgree : 0 }
+	eClubEvent_ResetPlayerPoints, // { uid : 23 , mgrUID : 23 }
+	eClubEvent_SetPlayerInitPoints, // { uid : 23 , mgrUID : 23, points : 23 }
 	eClubEvent_Max,
 };
 

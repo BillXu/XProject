@@ -67,6 +67,7 @@ protected:
 	bool isWinerPay() { return ePayType_Winer == m_nPayType; }
 	ePayRoomCardType getPayType() { return m_nPayType; }
 	void doProcessWinerPayRoomCard();
+	bool isEnableClubPointRestrict() { return m_isEnablePointRestrict; }
 protected:
 	IGameRoomManager* m_pRoomMgr;
 	uint32_t m_nOwnerUID;
@@ -76,6 +77,7 @@ protected:
 	ePayRoomCardType m_nPayType;
 	bool m_isEnableWhiteList;
 
+	bool m_isEnablePointRestrict;
 	bool m_isOpen; 
 
 	uint8_t m_nRoundLevel; // round level , comsume card and init round deponeded on this level ;

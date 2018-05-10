@@ -86,10 +86,11 @@ enum eAsyncReq
 	eAsync_HttpCmd_GetPlayerInfo, // { uid : 234 } , result :  { ret : 0 , uid : 2323, name: "abc" , diamond : 23 , emojiCnt : 23 , createRooms : [ { port : 2 , roomID : 23 }, ...] , stayInRoom: { port : 1 , roomID : 23 } }  
 	eAsync_HttpCmd_AddEmojiCnt, // { targetUID : 234, addCnt : 23 , agentID : 23 }, result : { ret : 0, addCnt : 23 } // ret : 0 success , 1 argument error , 2 player is not online .
 	eAsync_HttpCmd_AddClubDiamond, // { targetUID : 234, addCnt : 23 , agentID : 23 }, result : { ret : 0, addCnt : 23 } // ret : 0 success , 1 argument error , 2 club is not exsit .
+	eAsync_HttpCmd_UpdateClubPointRestrict, // { clubID : 23 , isEanble : 0 } , result : { clubID : 23 , isEanble : 0 , ret : 0 }
 
 	eAsync_Comsume_Interact_Emoji, // { targetUID : 23 ,roomID : 23452, cnt : 1 } // result : { ret : 0 }  // 0 ok , 1 not enough, 2 player is not online ;
 
-	eAsync_ClubRoomGameOvered, // { clubID : 23 , roomID : 23 }
+	eAsync_ClubRoomGameOvered, // { clubID : 23 , roomID : 23 ,result : [ { uid : 23 , offset : -2 }, .... ] }
 	eAsync_ClubGiveBackDiamond, // { clubID : 23 ,diamond : 23 }
 	eAsync_ClubRoomStart, // { clubID : 23 , roomID : 23 }
 	eAsync_ClubCreateRoom, // {  clubID : 23 , diamond : 234, roomIdx : 1  } extern creatOpts ,  // result : { ret : 0 , roomIdx : 1 ,roomID : 234, diamondFee : 23 } // ret:  1 ,diamond is not enough ,  2  admin stoped create room , 3  room ptr is null, 4 room id run out.  diamondFee : consume diamonds ;  
