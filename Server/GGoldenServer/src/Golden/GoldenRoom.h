@@ -31,6 +31,7 @@ public:
 	bool onPlayerCallToEnd(uint8_t nIdx);
 	bool onPlayerAddCall(uint8_t nIdx, uint16_t nCoin);
 	bool onPlayerKanPai(uint8_t nIdx);
+	bool canPlayerPK(uint8_t nIdx);
 	bool onPlayerPKWith(uint8_t nIdx, uint8_t nPKIdx);
 	void onEndPK();
 	bool isWaitPlayerActForever() { return true; }
@@ -41,6 +42,7 @@ public:
 	uint8_t getMultiple();
 	uint8_t getNextMoveIdx(uint8_t nIdx);
 	uint8_t getMustMenCircle();
+	uint8_t getCanPKCircle();
 
 	bool isEnable235();
 	bool isEnableStraight();

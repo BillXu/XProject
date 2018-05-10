@@ -16,7 +16,8 @@ public:
 		{
 			m_nCurMoveIdx = jsTranData["idx"].asUInt();
 			if (pRoom->onWaitPlayerAct(m_nCurMoveIdx, m_isCanPass)) {
-				setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_GoldenChoseAct);
+				//setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_GoldenChoseAct);
+				setStateDuringTime(eTime_GoldenChoseAct);
 			}
 			else {
 				setStateDuringTime(1);
@@ -164,6 +165,12 @@ public:
 				jsRet["ret"] = 2;
 				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 				LOGFMTE("you are not current move player how to PK ? idx = %u", pPlayer->getIdx());
+				return true;
+			}
+			if (pRoom->canPlayerPK(pPlayer->getIdx()) == false) {
+				jsRet["ret"] = 3;
+				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				LOGFMTE("current can not PK ? idx = %u", pPlayer->getIdx());
 				return true;
 			}
 			uint8_t pkWith = jsmsg["withIdx"].asUInt();

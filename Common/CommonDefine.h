@@ -239,7 +239,7 @@ enum eTime
 	eTime_DoDecideQue = 2, // 定缺时间
 	eTime_WaitPlayerAct = 10,  // 等待玩家操作的时间
 	eTime_WaitPlayerChoseAct = eTime_WaitPlayerAct,
-	eTime_GoldenChoseAct = 30, // 三张等待玩家操作时间
+	eTime_GoldenChoseAct = 300, // 三张等待玩家操作时间
 	eTime_DoPlayerMoPai = 0,  //  玩家摸牌时间
 	eTime_DoPlayerActChuPai = 1,  // 玩家出牌的时间
 	eTime_DoPlayerAct_Gang = 0, // 玩家杠牌时间

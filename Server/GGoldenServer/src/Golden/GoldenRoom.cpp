@@ -708,6 +708,11 @@ bool GoldenRoom::onPlayerKanPai(uint8_t nIdx) {
 	return flag;
 }
 
+bool GoldenRoom::canPlayerPK(uint8_t nIdx) {
+	auto nPKLimit = getCanPKCircle();
+	return nPKLimit ? m_nCurCircle >= nPKLimit : true;
+}
+
 bool GoldenRoom::onPlayerPKWith(uint8_t nIdx, uint8_t nPKIdx) {
 	auto pPlayer = (GoldenPlayer*)getPlayerByIdx(nIdx);
 	auto pPKPlayer = (GoldenPlayer*)getPlayerByIdx(nPKIdx);
@@ -867,6 +872,10 @@ uint8_t GoldenRoom::getMultiple() {
 
 uint8_t GoldenRoom::getMustMenCircle() {
 	return m_jsOpts["mustMen"].isNull() ? 0 : m_jsOpts["mustMen"].asUInt();
+}
+
+uint8_t GoldenRoom::getCanPKCircle() {
+	return m_jsOpts["pkCircleLimit"].isNull() ? 0 : m_jsOpts["pkCircleLimit"].asUInt();
 }
 
 uint8_t GoldenRoom::getCircleLimit() {
