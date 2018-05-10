@@ -364,6 +364,13 @@ bool GoldenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSende
 			return true;
 		}
 
+		if (m_nCurCircle < getMustMenCircle()) {
+			jsRet["ret"] = 4;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("current room can not look card? user id = %u, roomID = %u", pPlayer->getUserUID(), getRoomID());
+			return true;
+		}
+
 		onPlayerKanPai(pPlayer->getIdx());
 		return true;
 	}
@@ -441,12 +448,13 @@ bool GoldenRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 
 	//必闷圈数限制
 	//自动跟注（状态机中会去自动跟注的）
-	if (m_nCurCircle < getMustMenCircle()) {
+	/*if (m_nCurCircle < getMustMenCircle()) {
 		return false;
 	}
 	else {
 		isCanPass = true;
-	}
+	}*/
+	isCanPass = true;
 
 	//动作列表
 	Json::Value jsArrayActs;
