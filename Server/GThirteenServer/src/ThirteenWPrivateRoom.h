@@ -100,7 +100,7 @@ protected:
 	uint32_t getAliveCnt();
 	uint32_t getEmptySeatCnt(IGameRoom* pRoom = nullptr);
 	void initLevelInfo();
-	void sendBssicRoomInfo(uint32_t nSessionID)override;
+	void sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID = 0)override;
 	//stwStayPlayer* isEnterBySession(uint32_t nSessionID);
 	//stwStayPlayer* isEnterByUserID(uint32_t nUserID);
 

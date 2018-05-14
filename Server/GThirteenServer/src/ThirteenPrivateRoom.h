@@ -71,7 +71,7 @@ public:
 	//void setCurrentPointer(IGameRoom* pRoom)override;
 
 protected:
-	virtual void sendBssicRoomInfo(uint32_t nSessionID);
+	virtual void sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID = 0);
 	stStayPlayer* isEnterBySession(uint32_t nSessionID);
 	stStayPlayer* isEnterByUserID(uint32_t nUserID);
 

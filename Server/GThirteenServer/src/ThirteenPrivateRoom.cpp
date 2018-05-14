@@ -1045,7 +1045,7 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 	return true;
 }
 
-void ThirteenPrivateRoom::sendBssicRoomInfo(uint32_t nSessionID) {
+void ThirteenPrivateRoom::sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID) {
 	Json::Value jsMsg;
 	jsMsg["ret"] = 0;
 	jsMsg["roomID"] = getRoomID();

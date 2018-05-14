@@ -91,10 +91,26 @@ void ThirteenWPrivateRoom::setCurrentPointer(IGameRoom* pRoom) {
 
 void ThirteenWPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo) {
 	IPrivateRoom::packRoomInfo(jsRoomInfo);
+	bool isOpen = m_tMTTBlindRise.isRunning();
 	jsRoomInfo["curBlind"] = m_nCurBlind;
 	jsRoomInfo["riseTime"] = (int32_t)m_tMTTBlindRise.getDuringTime();
 	jsRoomInfo["dragInCnt"] = getPlayerCnt();
 	jsRoomInfo["aliveCnt"] = getAliveCnt();
+	jsRoomInfo["isOpen"] = isOpen ? 1 : 0;
+
+	uint32_t nUserID = jsRoomInfo["uid"].isUInt() ? jsRoomInfo["uid"].asUInt() : 0;
+	auto sPlayer = (stwStayPlayer*)isEnterByUserID(nUserID);
+	if (sPlayer && sPlayer->isDragIn) {
+		if (isOpen && sPlayer->nOutGIdx) {
+			jsRoomInfo["state"] = MTT_PLAYER_TOUT;
+		}
+		else {
+			jsRoomInfo["state"] = MTT_PLAYER_DRAGIN;
+		}
+	}
+	else {
+		jsRoomInfo["state"] = MTT_PLAYER_NOT_DRAGIN;
+	}
 }
 
 bool ThirteenWPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
@@ -256,10 +272,14 @@ void ThirteenWPrivateRoom::onPreGameDidEnd(IGameRoom* pRoom) {
 	for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx) {
 		auto pPlayer = ((ThirteenRoom*)pRoom)->getPlayerByIdx(nIdx);
 		if (pPlayer && pPlayer->haveState(eRoomPeer_StayThisRound)) {
-			auto stg = isEnterByUserID(pPlayer->getUserUID());
+			auto stg = (stwStayPlayer*)isEnterByUserID(pPlayer->getUserUID());
 			if (stg) {
 				stg->nChip = pPlayer->getChips();
 				stg->isJoin += 1;
+				if (pPlayer->getChips() < 1) {
+					stg->tOutTime = time(NULL);
+					stg->nOutGIdx = getCoreRoom()->getRoomRecorder()->getRoundCnt() + 1;
+				}
 			}
 		}
 	}
@@ -438,7 +458,8 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 	break;
 	case MSG_ROOM_REQUEST_THIRTEEN_ROOM_INFO:
 	{
-		sendBssicRoomInfo(nSessionID);
+		uint32_t nUserID = prealMsg["uid"].isUInt() ? prealMsg["uid"].asUInt() : 0;
+		sendBssicRoomInfo(nSessionID, nUserID);
 	}
 	break;
 	case MSG_ROOM_THIRTEEN_REAL_TIME_RECORD:
@@ -688,18 +709,36 @@ bool ThirteenWPrivateRoom::onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, ui
 	if (stw->nClubID && stw->nClubID != nClubID) {
 		return false;
 	}
-	if (getPlayerCnt() >= getMaxCnt()) {
-		return false;
+
+	if (stw->isDragIn) {
+		if (m_tMTTBlindRise.isRunning() && m_nCurBlind > m_nRebuyLevel) {
+			return false;
+		}
+
+		if (stw->nRebuyTime >= m_nRebuyTime) {
+			return false;
+		}
 	}
+	else {
+		if (getPlayerCnt() >= getMaxCnt()) {
+			return false;
+		}
+	}
+	
 	if (setCoreRoomByUserID(nUserID) && ((ThirteenRoom*)getCoreRoom())->onPlayerDragIn(nUserID, nAmount)) {
 		stw->nChip = getCoreRoom()->getPlayerByUID(nUserID)->getChips();
 	}
 	else {
 		stw->nChip += nAmount;
 	}
+	if (stw->isDragIn) {
+		stw->nRebuyTime += 1;
+	}
 	stw->bWaitDragIn = false;
 	stw->isDragIn = true;
 	stw->nAllWrag += nAmount;
+	stw->tOutTime = 0;
+	stw->nOutGIdx = 0;
 	//st->nClubID = nClubID;
 	getRoomRecorder()->addDragIn(nUserID, nAmount, stw->nClubID);
 	return true;
@@ -1244,14 +1283,40 @@ void ThirteenWPrivateRoom::initLevelInfo() {
 	}
 }
 
-void ThirteenWPrivateRoom::sendBssicRoomInfo(uint32_t nSessionID) {
+void ThirteenWPrivateRoom::sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID) {
 	Json::Value jsMsg;
+	bool isOpen = m_tMTTBlindRise.isRunning();
 	jsMsg["ret"] = 0;
 	jsMsg["roomID"] = getRoomID();
 	jsMsg["curBlind"] = m_nCurBlind;
 	jsMsg["riseTime"] = (int32_t)m_tMTTBlindRise.getDuringTime();
 	jsMsg["dragInCnt"] = getPlayerCnt();
 	jsMsg["aliveCnt"] = getAliveCnt();
+	jsMsg["isOpen"] = isOpen ? 1 : 0;
+	uint32_t nAllChips = 0;
+	uint32_t nRebuyNumber = 0;
+	for (auto ref : m_mStayPlayers) {
+		nAllChips += ref.second->nChip;
+		if (((stwStayPlayer*)(ref.second))->nRebuyTime) {
+			nRebuyNumber++;
+		}
+	}
+	jsMsg["allChips"] = nAllChips;
+	jsMsg["rebuyCnt"] = nRebuyNumber;
+
+	auto sPlayer = (stwStayPlayer*)isEnterByUserID(nUserID);
+	if (sPlayer && sPlayer->isDragIn) {
+		if (isOpen && sPlayer->nOutGIdx) {
+			jsMsg["state"] = MTT_PLAYER_TOUT;
+		}
+		else {
+			jsMsg["state"] = MTT_PLAYER_DRAGIN;
+		}
+	}
+	else {
+		jsMsg["state"] = MTT_PLAYER_NOT_DRAGIN;
+	}
+
 	jsMsg["opts"] = getOpts();
 	sendMsgToPlayer(jsMsg, MSG_ROOM_REQUEST_THIRTEEN_ROOM_INFO, nSessionID);
 }
