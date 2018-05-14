@@ -61,12 +61,12 @@ void GoldenRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInf
 
 	GameRoom::visitPlayerInfo(pPlayer, jsPlayerInfo, nVisitorSessionID);
 	
+	jsPlayerInfo["trustee"] = ((GoldenPlayer*)pPlayer)->isTrustee() ? 1 : 0;
+
 	if ( pPlayer->haveState(eRoomPeer_CanAct) == false )  // not join this round game ;
 	{
 		return;
 	}
-
-	jsPlayerInfo["trustee"] = ((GoldenPlayer*)pPlayer)->isTrustee() ? 1 : 0;
  
 	if (pPlayer->getSessionID() == nVisitorSessionID) {
 		if (pPlayer->haveState(eRoomPeer_Looked))
