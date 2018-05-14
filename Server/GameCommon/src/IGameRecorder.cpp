@@ -54,6 +54,14 @@ void ISingleRoundRecorder::toJson(Json::Value& js) {
 	}
 }
 
+void ISingleRoundRecorder::printInfo() {
+	LOGFMTI("roundIdx = %u", getRoundIdx());
+	for (auto& ref : m_vPlayerRecorderInfo)
+	{
+		LOGFMTI("playerUID = %u, offset = %u", ref.second->getUserUID(), ref.second->getOffset());
+	}
+}
+
 void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecorder, CAsyncRequestQuene* pSyncQuene, uint16_t nRoomType )
 {
 	if (m_vPlayerRecorderInfo.empty())
@@ -137,6 +145,8 @@ void IGameRoomRecorder::addSingleRoundRecorder(std::shared_ptr<ISingleRoundRecor
 		LOGFMTE("duplicate round recorder for idx = %u", ptrSingleRecorder->getRoundIdx());
 		m_vAllRoundRecorders.erase(iter);
 	}
+	LOGFMTI("roomID = %u, sieralNum = %u, clubID = %u, leagueID = %u add one round game", m_nRoomID, m_nSieralNum, m_nClubID, m_nLeagueID);
+	ptrSingleRecorder->printInfo();
 	m_vAllRoundRecorders[ptrSingleRecorder->getRoundIdx()] = ptrSingleRecorder;
 }
 

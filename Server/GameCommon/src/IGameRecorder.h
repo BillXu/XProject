@@ -37,6 +37,7 @@ public:
 	bool calculatePlayerTotalOffset(std::map<uint32_t, int32_t>& vPlayersOffset );
 	std::shared_ptr<IPlayerRecorder> getPlayerRecorderInfo(uint32_t nUserID);
 	void toJson(Json::Value& js);
+	void printInfo();
 
 	void setBankerUID(uint32_t nBankerUID) { m_nBankerUID = nBankerUID; };
 	void signRotBanker() { m_bRotBanker = true; }
