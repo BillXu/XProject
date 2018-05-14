@@ -26,7 +26,7 @@ public:
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	bool onWaitPlayerAct(uint8_t nIdx, bool& isCanPass);
-	bool onPlayerPass(uint8_t nIdx);
+	bool onPlayerPass(uint8_t nIdx, bool bForce = false);
 	bool onPlayerCall(uint8_t nIdx);
 	bool onPlayerCallToEnd(uint8_t nIdx);
 	bool onPlayerAddCall(uint8_t nIdx, uint16_t nCoin);

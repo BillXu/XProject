@@ -12,6 +12,7 @@ public:
 		auto pRoom = (GoldenRoom*)getRoom();
 		m_isCanPass = false;
 		m_isMove = false;
+		m_isWaitMove = true;
 		if (jsTranData["idx"].isNull() == false && jsTranData["idx"].isUInt())
 		{
 			m_nCurMoveIdx = jsTranData["idx"].asUInt();
@@ -20,6 +21,7 @@ public:
 				setStateDuringTime(eTime_GoldenChoseAct);
 			}
 			else {
+				m_isWaitMove = false;
 				setStateDuringTime(1);
 			}
 			return;
@@ -44,7 +46,9 @@ public:
 			pRoom->goToState(eRoomState_GameEnd);
 		}
 		else {
-			if (m_isMove == false && pRoom->isPlayerCanAct(m_nCurMoveIdx)) {
+			if (m_isWaitMove && m_isMove == false) {
+				pRoom->onPlayerPass(m_nCurMoveIdx, true);
+			}else if (m_isMove == false && pRoom->isPlayerCanAct(m_nCurMoveIdx)) {
 				if (m_isCanPass) {
 					pRoom->onPlayerPass(m_nCurMoveIdx);
 				}
@@ -193,5 +197,6 @@ protected:
 	uint8_t m_nCurMoveIdx;
 	bool m_isCanPass;
 	bool m_isMove;
+	bool m_isWaitMove;
 
 };

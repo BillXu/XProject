@@ -524,13 +524,14 @@ bool GoldenRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 
 	//必闷圈数限制
 	//自动跟注（状态机中会去自动跟注的）
-	/*if (m_nCurCircle < getMustMenCircle()) {
-		return false;
+	if (m_nCurCircle < getMustMenCircle()) {
+		isCanPass = false;
+		//return false;
 	}
 	else {
 		isCanPass = true;
-	}*/
-	isCanPass = true;
+	}
+	//isCanPass = true;
 
 	//动作列表
 	Json::Value jsArrayActs;
@@ -580,7 +581,7 @@ bool GoldenRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 	return true;
 }
 
-bool GoldenRoom::onPlayerPass(uint8_t nIdx) {
+bool GoldenRoom::onPlayerPass(uint8_t nIdx, bool bForce) {
 	auto pPlayer = (GoldenPlayer*)getPlayerByIdx(nIdx);
 	Json::Value jsMsg;
 	jsMsg["ret"] = 0;
@@ -592,7 +593,7 @@ bool GoldenRoom::onPlayerPass(uint8_t nIdx) {
 	}
 	else {
 		if (pPlayer->haveState(eRoomPeer_CanAct)) {
-			if (m_nCurCircle < getMustMenCircle()) {
+			if (bForce == false && m_nCurCircle < getMustMenCircle()) {
 				jsMsg["ret"] = 3;//当前无法弃牌
 				flag = false;
 			}
