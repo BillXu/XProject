@@ -518,6 +518,26 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 
 		auto nAmount = prealMsg["amount"].asUInt();
 		auto pPlayer = (stwStayPlayer*)isEnterBySession(nSessionID);
+		if (pPlayer == nullptr) {
+			uint32_t nUserID = prealMsg["uid"].isUInt() ? prealMsg["uid"].asUInt() : 0;
+			if (nUserID) {
+				pPlayer = (stwStayPlayer*)isEnterByUserID(nUserID);
+				if (pPlayer == nullptr) {
+					jsRet["ret"] = 1;
+					sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+					LOGFMTE("you are not in this room how to drag in? session id = %u", nSessionID);
+					return true;
+				}
+			}
+			else {
+				jsRet["ret"] = 1;
+				sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				LOGFMTE("you are not in this room how to drag in? session id = %u", nSessionID);
+				return true;
+			}
+			
+		}
+
 		if (pPlayer == nullptr || pPlayer->bWaitDragIn)
 		{
 			jsRet["ret"] = 1;
@@ -527,6 +547,12 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 		}
 		if (pPlayer->isDragIn == false && m_tMTTBlindRise.isRunning() && m_nCurBlind > m_nDelayEnterLevel) {
 			jsRet["ret"] = 12;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("Drag in error this room can not drag in? player sessionID = %u", nSessionID);
+			return true;
+		}
+		if (m_nRebuyTime && pPlayer->isDragIn && pPlayer->nRebuyTime >= m_nRebuyTime) {
+			jsRet["ret"] = 13;
 			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 			LOGFMTE("Drag in error this room can not drag in? player sessionID = %u", nSessionID);
 			return true;
@@ -627,11 +653,23 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 				auto pPlayer = (stwStayPlayer*)isEnterBySession(nSessionID);
 				if (pPlayer == nullptr)
 				{
-					Json::Value jsRet;
-					jsRet["ret"] = 2;
-					sendMsgToPlayer(jsRet, nMsgType, nSessionID);
-					LOGFMTE("you are not in this room how to apply drag in? session id = %u", nSessionID);
-					return true;
+					uint32_t nUserID = prealMsg["uid"].isUInt() ? prealMsg["uid"].asUInt() : 0;
+					if (nUserID == 0) {
+						Json::Value jsRet;
+						jsRet["ret"] = 2;
+						sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+						LOGFMTE("you are not in this room how to apply drag in? session id = %u", nSessionID);
+						return true;
+					}
+					pPlayer = (stwStayPlayer*)isEnterByUserID(nUserID);
+					if (pPlayer == nullptr) {
+						pPlayer = new stwStayPlayer();
+						pPlayer->nSessionID = 0;
+						pPlayer->nChip = 0;
+						pPlayer->nUserUID = nUserID;
+						pPlayer->nEnterClubID = prealMsg["enterClubID"].asUInt();
+						m_mStayPlayers[pPlayer->nUserUID] = pPlayer;
+					}
 				}
 
 				auto pRoom = (ThirteenRoom*)getCoreRoom();
@@ -672,20 +710,20 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 								Json::Value jsClubs;
 								jsClubs[jsClubs.size()] = isClubRoom();
 								jsUserData["clubIDs"] = jsClubs;
-								sendMsgToPlayer(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN, pPlayer->nSessionID);
+								sendMsgToPlayer(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN, nSessionID);
 								return;
 							}
 							//Json::Value jsClubs;
 							//jsClubs[jsClubs.size()] = isClubRoom();
 							jsUserData["clubIDs"] = retContent["clubIDs"];
-							sendMsgToPlayer(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN, pPlayer->nSessionID);
+							sendMsgToPlayer(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN, nSessionID);
 						}, jsMsg);
 					}
 					else {
 						Json::Value jsClubs;
 						jsClubs[jsClubs.size()] = isClubRoom();
 						jsMsg["clubIDs"] = jsClubs;
-						sendMsgToPlayer(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN, pPlayer->nSessionID);
+						sendMsgToPlayer(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN, nSessionID);
 					}
 					return true;
 				}
@@ -715,7 +753,7 @@ bool ThirteenWPrivateRoom::onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, ui
 			return false;
 		}
 
-		if (stw->nRebuyTime >= m_nRebuyTime) {
+		if (m_nRebuyTime && stw->nRebuyTime >= m_nRebuyTime) {
 			return false;
 		}
 	}

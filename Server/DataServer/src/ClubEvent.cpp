@@ -349,14 +349,17 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 
 	if (MSG_CLUB_EVENT_ENTRY == nmsgType) {
 		Json::Value jsMsg, jsEvents;
+		bool isMTT = recvValue["mtt"].isUInt() ? recvValue["mtt"].asBool() : false;
 		for (auto& ref : m_mAllEvents) {
 			auto& data = ref.second;
 			if (data.nEventType == eClubEventType_AppcationEntry && data.nState == eClubEventState_Wait) {
-				Json::Value jsEvent;
-				jsEvent["eventID"] = data.nEventID;
-				jsEvent["time"] = data.nPostTime;
-				jsEvent["detail"] = data.jsDetail;
-				jsEvents[jsEvents.size()] = jsEvent;
+				if (data.jsDetail["mtt"].asBool() == isMTT) {
+					Json::Value jsEvent;
+					jsEvent["eventID"] = data.nEventID;
+					jsEvent["time"] = data.nPostTime;
+					jsEvent["detail"] = data.jsDetail;
+					jsEvents[jsEvents.size()] = jsEvent;
+				}
 			}
 		}
 		jsMsg["ret"] = 0;
@@ -367,19 +370,22 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 
 	if (MSG_CLUB_EVENT_ENTRY_RECORDER == nmsgType) {
 		Json::Value jsMsg, jsEvents;
+		bool isMTT = recvValue["mtt"].isUInt() ? recvValue["mtt"].asBool() : false;
 		uint8_t i = 0;
 		for (auto& ref : m_mAllEvents) {
 			auto& data = ref.second;
 			if (data.nEventType == eClubEventType_AppcationEntry && data.nState != eClubEventState_Wait) {
-				Json::Value jsEvent;
-				jsEvent["eventID"] = data.nEventID;
-				jsEvent["time"] = data.nPostTime;
-				jsEvent["state"] = data.nState;
-				jsEvent["disposer"] = data.nDisposerUID;
-				jsEvent["detail"] = data.jsDetail;
-				jsEvents[jsEvents.size()] = jsEvent;
-				if (++i >= ENTRY_RECORDER_LIST_LIMIT) {
-					break;
+				if (data.jsDetail["mtt"].asBool() == isMTT) {
+					Json::Value jsEvent;
+					jsEvent["eventID"] = data.nEventID;
+					jsEvent["time"] = data.nPostTime;
+					jsEvent["state"] = data.nState;
+					jsEvent["disposer"] = data.nDisposerUID;
+					jsEvent["detail"] = data.jsDetail;
+					jsEvents[jsEvents.size()] = jsEvent;
+					if (++i >= ENTRY_RECORDER_LIST_LIMIT) {
+						break;
+					}
 				}
 			}
 		}
