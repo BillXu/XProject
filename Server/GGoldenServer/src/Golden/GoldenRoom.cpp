@@ -65,6 +65,8 @@ void GoldenRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInf
 	{
 		return;
 	}
+
+	jsPlayerInfo["trustee"] = ((GoldenPlayer*)pPlayer)->isTrustee() ? 1 : 0;
  
 	if (pPlayer->getSessionID() == nVisitorSessionID) {
 		if (pPlayer->haveState(eRoomPeer_Looked))
@@ -429,6 +431,33 @@ bool GoldenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSende
 		return true;
 	}
 
+	if (MSG_ROOM_GOLDEN_GAME_CANCLE_TRUSTEE == nMsgType) {
+		auto pPlayer = (GoldenPlayer*)getPlayerBySessionID(nSessionID);
+		Json::Value jsRet;
+		if (pPlayer == nullptr)
+		{
+			jsRet["ret"] = 1;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("you are not in this room how to cancle trustee ? session id = %u", nSessionID);
+			return true;
+		}
+
+		if (pPlayer->isTrustee() == false) {
+			jsRet["ret"] = 2;
+			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE("you are not trustee how to cancle trustee ? session id = %u, uid = %u", nSessionID, pPlayer->getUserUID());
+			return true;
+		}
+
+		pPlayer->clearTrustee();
+		jsRet["ret"] = 0;
+		sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+		jsRet["idx"] = pPlayer->getIdx();
+		jsRet["state"] = 0;
+		sendRoomMsg(jsRet, MSG_ROOM_GOLDEN_GAME_UPDATE_TRUSTEE);
+		return true;
+	}
+
 	if (MSG_ROOM_GOLDEN_GAME_LOOK_CARDS == nMsgType) {
 		auto pPlayer = getPlayerBySessionID(nSessionID);
 		Json::Value jsRet;
@@ -511,13 +540,19 @@ bool GoldenRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 		return false;
 	}
 
-	//一跟到底
 	auto pPlayer = (GoldenPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer)
 	{
 		LOGFMTE("player idx = %u is null can not tell it wait act", nIdx);
 		return false;
 	}
+
+	//托管(自动弃牌)
+	if (pPlayer->isTrustee()) {
+		return false;
+	}
+
+	//一跟到底
 	if (pPlayer->isCallToEnd()) {
 		return false;
 	}

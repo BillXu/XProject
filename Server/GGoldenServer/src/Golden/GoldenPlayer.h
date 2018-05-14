@@ -5,7 +5,7 @@ class GoldenPlayer
 	:public IGamePlayer
 {
 public:
-	GoldenPlayer() {}
+	GoldenPlayer() { clearTrustee(); }
 	void onGameWillStart()override;
 	void onGameDidEnd()override;
 	CGoldenPeerCard* getPlayerCard();
@@ -20,10 +20,14 @@ public:
 	bool haveXiQian() { return m_bHaveXiQian; }
 	void signHaveXiQian() { m_bHaveXiQian = true; }
 	void clearHaveXiQian() { m_bHaveXiQian = false; }
+	void signTrustee() { m_bTrustee = true; }
+	void clearTrustee() { m_bTrustee = false; }
+	bool isTrustee() { return m_bTrustee; }
 protected:
 	CGoldenPeerCard m_tPeerCard;
 
 	bool m_bCallToEnd;
 	bool m_bEndShow;
 	bool m_bHaveXiQian;
+	bool m_bTrustee;
 };

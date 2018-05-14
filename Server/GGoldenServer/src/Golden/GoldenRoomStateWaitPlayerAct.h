@@ -16,12 +16,15 @@ public:
 		if (jsTranData["idx"].isNull() == false && jsTranData["idx"].isUInt())
 		{
 			m_nCurMoveIdx = jsTranData["idx"].asUInt();
+			auto pPlayer = (GoldenPlayer*)pRoom->getPlayerByIdx(m_nCurMoveIdx);
 			if (pRoom->onWaitPlayerAct(m_nCurMoveIdx, m_isCanPass)) {
 				//setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_GoldenChoseAct);
 				setStateDuringTime(eTime_GoldenChoseAct);
 			}
 			else {
-				m_isWaitMove = false;
+				if (pPlayer->isTrustee() == false) {
+					m_isWaitMove = false;
+				}
 				setStateDuringTime(1);
 			}
 			return;
@@ -48,6 +51,16 @@ public:
 		else {
 			if (m_isWaitMove && m_isMove == false) {
 				pRoom->onPlayerPass(m_nCurMoveIdx, true);
+
+				auto pPlayer = (GoldenPlayer*)pRoom->getPlayerByIdx(m_nCurMoveIdx);
+				if (pPlayer->isTrustee() == false) {
+					pPlayer->signTrustee();
+					Json::Value jsRet;
+					jsRet["idx"] = m_nCurMoveIdx;
+					jsRet["state"] = 1;
+					pRoom->sendRoomMsg(jsRet, MSG_ROOM_GOLDEN_GAME_UPDATE_TRUSTEE);
+				}
+				
 			}else if (m_isMove == false && pRoom->isPlayerCanAct(m_nCurMoveIdx)) {
 				if (m_isCanPass) {
 					pRoom->onPlayerPass(m_nCurMoveIdx);

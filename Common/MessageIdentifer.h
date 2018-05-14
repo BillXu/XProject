@@ -618,6 +618,13 @@ enum eMsgType
 	// participate : 参与者
 	// lose : 输的人
 
+	MSG_ROOM_GOLDEN_GAME_CANCLE_TRUSTEE, //三张取消托管
+	// sur : { ret : 0}
+
+	MSG_ROOM_GOLDEN_GAME_UPDATE_TRUSTEE, //三张托管状态变化
+	// sur : { idx : 1 , state : 1 }
+	// state : 0, 取消托管  1, 托管
+
 	MSG_ROOM_GOLDEN_END = 1900, //三张命令号结束标识
 
 
