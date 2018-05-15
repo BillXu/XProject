@@ -132,7 +132,7 @@ void ThirteenRoom::onStartGame()
 
 	if (isMTT() && getDelegate()) {
 		for (auto ref : m_vPlayers) {
-			if (ref->haveState(eRoomPeer_StayThisRound)) {
+			if (ref && ref->haveState(eRoomPeer_StayThisRound)) {
 				auto nCoin = getDelegate()->getBlindPreScore();
 				ref->addSingleOffset(-1 * (int32_t)nCoin, false);
 				Json::Value jsMsg;
