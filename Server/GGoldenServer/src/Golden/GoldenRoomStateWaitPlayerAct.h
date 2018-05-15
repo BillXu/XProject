@@ -50,17 +50,19 @@ public:
 		}
 		else {
 			if (m_isWaitMove && m_isMove == false) {
-				pRoom->onPlayerPass(m_nCurMoveIdx, true);
+				if (pRoom->isPlayerCanAct(m_nCurMoveIdx))
+				{
+					pRoom->onPlayerPass(m_nCurMoveIdx, true);
 
-				auto pPlayer = (GoldenPlayer*)pRoom->getPlayerByIdx(m_nCurMoveIdx);
-				if (pPlayer->isTrustee() == false) {
-					pPlayer->signTrustee();
-					Json::Value jsRet;
-					jsRet["idx"] = m_nCurMoveIdx;
-					jsRet["state"] = 1;
-					pRoom->sendRoomMsg(jsRet, MSG_ROOM_GOLDEN_GAME_UPDATE_TRUSTEE);
+					auto pPlayer = (GoldenPlayer*)pRoom->getPlayerByIdx(m_nCurMoveIdx);
+					if (pPlayer->isTrustee() == false) {
+						pPlayer->signTrustee();
+						Json::Value jsRet;
+						jsRet["idx"] = m_nCurMoveIdx;
+						jsRet["state"] = 1;
+						pRoom->sendRoomMsg(jsRet, MSG_ROOM_GOLDEN_GAME_UPDATE_TRUSTEE);
+					}
 				}
-				
 			}else if (m_isMove == false && pRoom->isPlayerCanAct(m_nCurMoveIdx)) {
 				if (m_isCanPass) {
 					pRoom->onPlayerPass(m_nCurMoveIdx);
