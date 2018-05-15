@@ -51,6 +51,7 @@ enum eClubEventType
 	eClubEventType_FirePlayer, //申请踢出俱乐部玩家
 	eClubEventType_PlayerQuit, //玩家退出
 	eClubEventType_PlayerAddFoundation, //玩家给俱乐部充值基金
+	eClubEventType_MTTAppcationEntry,//赛事报名重构(仅用于更新消息区分，区分方式为带入金币中详情的mtt值)
 };
 
 enum eLeagueEventType

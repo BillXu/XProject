@@ -89,24 +89,32 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 		}
 
 		jsMsg["ret"] = 0;
-		Json::Value jsDetail, jsJoinInfo, jsEntryInfo;
-		uint32_t nJoinAmount(0), nEntryAmount(0);
+		Json::Value jsDetail, jsJoinInfo, jsEntryInfo, jsMTTEntryInfo;
+		uint32_t nJoinAmount(0), nEntryAmount(0), nMTTEntryAmount(0);
 		jsJoinInfo["type"] = eClubEventType_AppcationJoin;
 		jsEntryInfo["type"] = eClubEventType_AppcationEntry;
+		jsMTTEntryInfo["type"] = eClubEventType_MTTAppcationEntry;
 		for (auto ref : m_mAllEvents) {
 			if (ref.second.nState == eClubEventState_Wait) {
 				if (ref.second.nEventType == eClubEventType_AppcationJoin) {
 					nJoinAmount++;
 				}
 				else if(ref.second.nEventType == eClubEventType_AppcationEntry){
-					nEntryAmount++;
+					if (ref.second.jsDetail["mtt"].asBool()) {
+						nMTTEntryAmount++;
+					}
+					else {
+						nEntryAmount++;
+					}
 				}
 			}
 		}
 		jsJoinInfo["amount"] = nJoinAmount;
 		jsEntryInfo["amount"] = nEntryAmount;
+		jsMTTEntryInfo["amount"] = nMTTEntryAmount;
 		jsDetail[jsDetail.size()] = jsJoinInfo;
 		jsDetail[jsDetail.size()] = jsEntryInfo;
+		jsDetail[jsDetail.size()] = jsMTTEntryInfo;
 		jsMsg["detail"] = jsDetail;
 		sendMsgToClient(jsMsg, nmsgType, nSenderID);
 		return true;
