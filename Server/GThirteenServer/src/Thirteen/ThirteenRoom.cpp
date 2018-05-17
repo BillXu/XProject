@@ -2020,3 +2020,18 @@ bool ThirteenRoom::doPlayerAutoStandUp() {
 	}
 	return true;
 }
+
+void ThirteenRoom::requestHttpRoomInfo(Json::Value& jsMsg) {
+	if (getCurState()->getStateID() != eRoomState_WaitPlayerAct) {
+		return;
+	}
+	for (auto& ref : m_vPlayers) {
+		if (ref && isPlayerCanAct(ref->getIdx()) && ((ThirteenPlayer*)ref)->hasDetermined()) {
+			Json::Value jsPlayer, jsCards;
+			((ThirteenPlayer*)ref)->getPlayerCard()->groupCardToJson(jsCards);
+			jsPlayer["uid"] = ref->getUserUID();
+			jsPlayer["cards"] = jsCards;
+			jsMsg[jsMsg.size()] = jsPlayer;
+		}
+	}
+}

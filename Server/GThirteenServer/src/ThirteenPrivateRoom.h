@@ -53,12 +53,12 @@ public:
 	bool doDeleteRoom()override;
 	bool isRoomGameOver()override;
 	std::shared_ptr<IGameRoomRecorder> getRoomRecorder()override;
-	uint32_t getRoomPlayerCnt()override;
+	uint32_t getRoomPlayerCnt()override; //当前房间里有多少玩家玩过
 	uint32_t getClubID()override;
 	uint32_t getLeagueID()override;
 	uint32_t getDragInClubID(uint32_t nUserID)override;
 	uint32_t getEnterClubID(uint32_t nUserID)override;
-	uint16_t getPlayerCnt()override;
+	uint16_t getPlayerCnt()override; //当前有多少玩家在房间里玩
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
 	void doRoomGameOver(bool isDismissed)override;
 	void onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin)override;

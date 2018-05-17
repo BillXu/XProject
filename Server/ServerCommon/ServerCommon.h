@@ -100,6 +100,8 @@ enum eAsyncReq
 	eAsync_HttpCmd_GetStopInfo, // { leagueID : 123, clubID : 123 } // { ret : 0, state : 1 }
 	eAsync_HttpCmd_GetClubCreatFlag, // { clubID : 123 } // { ret : 0, state : 0 }
 	eAsync_HttpCmd_SetClubCreatFlag, // { clubID : 123, state : 1 } // { ret : 0, state : 0 }
+	eAsync_HttpCmd_UIDRoomInfo, // { uid : 123 } // {ret : 0, detail : { {uid : 0, cards : {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13} }, ...}}
+	eAsync_HttpCmd_RoomIDRoomInfo, // { roomID : 123 } // {ret : 0, detail : { {uid : 0, cards : {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13} }, ...}}
 
 
 	//// above is new 

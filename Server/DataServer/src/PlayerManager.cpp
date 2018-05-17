@@ -938,6 +938,47 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 
 bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID )
 {
+	if (eAsync_HttpCmd_UIDRoomInfo == nRequestType) {
+		auto pApp = getSvrApp();
+		uint32_t nUserUID = jsReqContent["uid"].isUInt() ? jsReqContent["uid"].asUInt() : 0;
+		if (nUserUID == 0) {
+			Json::Value jsAgentBack;
+			jsAgentBack["ret"] = 1;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+			return true;
+		}
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer == nullptr) {
+			Json::Value jsAgentBack;
+			jsAgentBack["ret"] = 1;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+			return true;
+		}
+		auto pStay = ((CPlayerGameData*)pPlayer->getComponent(ePlayerComponent_PlayerGameData))->getStayInRoom();
+		if (pStay.isEmpty())
+		{
+			Json::Value jsAgentBack;
+			jsAgentBack["ret"] = 2;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+			return true;
+		}
+		Json::Value jsReq;
+		jsReq["roomID"] = pStay.nRoomID;
+		pApp->getAsynReqQueue()->pushAsyncRequest(pStay.nSvrPort, pStay.nRoomID, eAsync_HttpCmd_RoomIDRoomInfo, jsReq, [nReqSerial, nSenderID, nSenderPort, pApp, nUserUID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+			Json::Value jsAgentBack;
+			if (isTimeOut)
+			{
+				jsAgentBack["ret"] = 7;
+				pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+				LOGFMTE(" request time out , so uidroominfo can not find , uid = %u", nUserUID);
+			}
+
+			jsAgentBack = retContent;
+			pApp->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+		});
+		return true;
+	}
+
 	if (eAsync_player_check_DragIn == nRequestType) {
 		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUserUID);

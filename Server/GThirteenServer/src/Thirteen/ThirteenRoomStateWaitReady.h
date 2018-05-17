@@ -9,7 +9,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(eTime_WaitPlayerReady);
+		setStateDuringTime(eTime_ExeGameStart);
 	}
 
 	void onStateTimeUp()
@@ -25,7 +25,7 @@ public:
 			((ThirteenRoom*)getRoom())->onPlayerReady(nIdx);
 			LOGFMTD( "auto set ready room id = %u , uid = %u",getRoom()->getRoomID(),ptrPlayer->getUserUID() );
 		}
-		setStateDuringTime(eTime_WaitPlayerReady);
+		setStateDuringTime(eTime_ExeGameStart);
 	}
 
 	void update(float fDeta)override

@@ -67,13 +67,15 @@ public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount)override;
 	bool onPlayerDeclineDragIn(uint32_t nUserID)override;
+	void doRoomGameOver(bool isDismissed)override;
 	bool doDeleteRoom()override;
 	bool isRoomFull()override;
 	void update(float fDelta)override;
 	void onDismiss()override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID) override;
-	uint16_t getPlayerCnt()override;
+	uint32_t getRoomPlayerCnt()override;
+	uint16_t getPlayerCnt()override; //当前有多少人玩过
 	uint16_t getMaxCnt() { return m_nMaxCnt; }
 	uint32_t getBlindBaseScore()override;
 	uint32_t getBlindPreScore()override;
@@ -97,7 +99,7 @@ protected:
 	bool dispatcherPlayers(std::vector<stwStayPlayer*>& vWait);
 	void dispatcherToEmptyPlace(std::vector<stwStayPlayer*>& vWait);
 	GameRoom* findWaitingRoom();
-	uint32_t getAliveCnt();
+	uint32_t getAliveCnt(); //当前有多少存活玩家
 	uint32_t getEmptySeatCnt(IGameRoom* pRoom = nullptr);
 	void initLevelInfo();
 	void sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID = 0)override;
@@ -110,7 +112,7 @@ protected:
 	//uint32_t m_nClubID = 0;
 	//uint32_t m_nLeagueID = 0;
 	uint32_t m_nStartTime = 0;
-	bool m_bNeedVerify = false;
+	bool m_bNeedVerify = true;
 	uint32_t m_nInitialCoin = 0;
 	uint32_t m_nRiseBlindTime = 0;
 	uint8_t m_nRebuyLevel = 0;

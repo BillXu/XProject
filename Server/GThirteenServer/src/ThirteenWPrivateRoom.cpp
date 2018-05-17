@@ -28,7 +28,7 @@ bool ThirteenWPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, 
 		m_nMaxCnt = vJsOpts["maxCnt"].isUInt() ? vJsOpts["maxCnt"].asUInt() : 0;
 
 		m_nStartTime = vJsOpts["startTime"].isUInt() ? vJsOpts["startTime"].asUInt() : 0;
-		m_bNeedVerify = vJsOpts["needVerify"].isUInt() ? vJsOpts["needVerify"].asBool() : false;
+		m_bNeedVerify = vJsOpts["needVerify"].isUInt() ? vJsOpts["needVerify"].asBool() : true;
 		m_nInitialCoin = vJsOpts["initialCoin"].isUInt() ? vJsOpts["initialCoin"].asUInt() : 0;
 		m_nRiseBlindTime = vJsOpts["rbt"].isUInt() ? vJsOpts["rbt"].asUInt() : 0;
 		m_nRebuyLevel = vJsOpts["rebuyLevel"].isUInt() ? vJsOpts["rebuyLevel"].asUInt() : 0;
@@ -345,7 +345,12 @@ void ThirteenWPrivateRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)
 	auto sPlayer = (stwStayPlayer*)isEnterByUserID(nUserUID);
 	if (sPlayer) {
 		sPlayer->leave();
-		pRoom->onPlayerNetStateRefreshed(nUserUID, eNet_WaitReconnect);
+		if (pRoom) {
+			pRoom->onPlayerNetStateRefreshed(nUserUID, eNet_WaitReconnect);
+		}
+		else {
+			LOGFMTE("mtt game request leave player but proom is null? ");
+		}
 	}
 
 	Json::Value jsReqLeave;
@@ -604,6 +609,7 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 		jsReq["mtt"] = 1;
 		jsReq["initialCoin"] = getInitialCoin();
 		jsReq["dragIn"] = pPlayer->isDragIn ? 1 : 0;
+		jsReq["needVerify"] = pPlayer->isDragIn ? 1 : (m_bNeedVerify ? 1 : 0);
 		auto pApp = m_pRoomMgr->getSvrApp();
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->nUserUID, eAsync_player_apply_DragIn, jsReq, [pApp, this, pPlayer, nSessionID, nAmount, nClubID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
@@ -800,6 +806,43 @@ bool ThirteenWPrivateRoom::onPlayerDeclineDragIn(uint32_t nUserID) {
 	return true;
 }
 
+void ThirteenWPrivateRoom::doRoomGameOver(bool isDismissed) {
+	if (eState_RoomOvered == m_nPrivateRoomState)  // avoid opotion  loop invoke this function ;
+	{
+		LOGFMTE("already gave over , why invoker again room id = %u", getRoomID());
+		return;
+	}
+
+	getRoomRecorder()->setPlayerCnt(getPlayerCnt());
+	getRoomRecorder()->setRotBankerPool(m_nRotBankerPool);
+	getRoomRecorder()->setDuration(time(NULL) - m_nStartTime);
+
+	// give back room card to room owner ;
+	bool isAlreadyComsumedDiamond = (isRoomOwnerPay() && (getDiamondNeed(m_nRoundLevel, getPayType()) > 0));
+	if (isDismissed && isAlreadyComsumedDiamond && isOneRoundNormalEnd() == false)
+	{
+		Json::Value jsReq;
+		jsReq["targetUID"] = m_nOwnerUID;
+		jsReq["diamond"] = getDiamondNeed(m_nRoundLevel, getPayType());
+		jsReq["roomID"] = getRoomID();
+		jsReq["reason"] = 1;
+		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_GiveBackDiamond, jsReq);
+		LOGFMTD("room id = %u dissmiss give back uid = %u diamond = %u", getRoomID(), m_nOwnerUID, jsReq["diamond"].asUInt());
+	}
+
+	// find big wineer and pay room card 
+	if (isWinerPay() && isOneRoundNormalEnd() && getDiamondNeed(m_nRoundLevel, getPayType()) > 0)
+	{
+		doProcessWinerPayRoomCard();
+	}
+
+	m_nPrivateRoomState = eState_RoomOvered;
+	// delete self
+	m_pRoomMgr->deleteRoom(getRoomID());
+	//IPrivateRoom::doRoomGameOver(isDismissed);
+}
+
 bool ThirteenWPrivateRoom::doDeleteRoom() {
 	getRoomRecorder()->doSaveRoomRecorder(m_pRoomMgr->getSvrApp()->getAsynReqQueue());
 	m_tWaitReplyDismissTimer.canncel();
@@ -935,7 +978,9 @@ bool ThirteenWPrivateRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetSta
 		}*/
 		stg->nState = nState;
 		if (nState == eNet_Offline) {
-			onPlayerDoLeaved(nullptr, stg->nUserUID);
+			if (setCoreRoomByUserID(nPlayerID)) {
+				onPlayerDoLeaved(getCoreRoom(), stg->nUserUID);
+			}
 		}
 
 		if (stg->nCurInIdx != (uint16_t)-1 && stg->nCurInIdx < m_vPRooms.size()) {
@@ -959,6 +1004,10 @@ bool ThirteenWPrivateRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t 
 		return true;
 	}
 	return false;
+}
+
+uint32_t ThirteenWPrivateRoom::getRoomPlayerCnt() {
+	return getPlayerCnt();
 }
 
 uint16_t ThirteenWPrivateRoom::getPlayerCnt() {
@@ -1343,6 +1392,7 @@ void ThirteenWPrivateRoom::sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUser
 	jsMsg["rebuyCnt"] = nRebuyNumber;
 
 	auto sPlayer = (stwStayPlayer*)isEnterByUserID(nUserID);
+	jsMsg["waitDragIn"] = sPlayer && sPlayer->bWaitDragIn ? 1 : 0;
 	if (sPlayer && sPlayer->isDragIn) {
 		if (isOpen && sPlayer->nOutGIdx) {
 			jsMsg["state"] = MTT_PLAYER_TOUT;

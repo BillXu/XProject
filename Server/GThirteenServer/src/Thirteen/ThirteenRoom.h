@@ -74,6 +74,7 @@ public:
 	bool checkDragInAmount(uint32_t nAmount);
 	bool doPlayerAutoLeave();
 	bool doPlayerAutoStandUp();
+	void requestHttpRoomInfo(Json::Value& jsMsg);
 
 protected:
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;

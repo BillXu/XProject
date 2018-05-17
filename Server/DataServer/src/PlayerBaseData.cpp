@@ -348,6 +348,7 @@ bool CPlayerBaseData::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nR
 			jsReq["mtt"] = 1;
 			jsReq["initialCoin"] = jsReqContent["initialCoin"];
 			jsReq["dragIn"] = jsReqContent["dragIn"];
+			jsReq["needVerify"] = jsReqContent["needVerify"];
 		}
 		pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nClubID, eAsync_club_apply_DragIn, jsReq, [pApp, nReqSerial, nRoomID, nSenderPort, nSenderID, this, nReal](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{

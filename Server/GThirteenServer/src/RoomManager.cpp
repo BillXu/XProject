@@ -1,4 +1,5 @@
 #include "RoomManager.h"
+#include "Thirteen/ThirteenRoom.h"
 #include "ThirteenPrivateRoom.h"
 #include "ThirteenGPrivateRoom.h"
 #include "ThirteenWPrivateRoom.h"
@@ -319,6 +320,25 @@ bool RoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 	if (IGameRoomManager::onAsyncRequest(nRequestType, jsReqContent, jsResult)) {
 		return true;
 	}
+
+	if (eAsync_HttpCmd_RoomIDRoomInfo == nRequestType) {
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		auto pRoom = (ThirteenPrivateRoom*)getRoomByID(nRoomID);
+		if (pRoom == nullptr) {
+			jsResult["ret"] = 3;
+			return true;
+		}
+
+		if (dynamic_cast<ThirteenGPrivateRoom*>(pRoom) || dynamic_cast<ThirteenWPrivateRoom*>(pRoom)) {
+			jsResult["ret"] = 4;
+			return true;
+		}
+		Json::Value jsDetail;
+		((ThirteenRoom*)(pRoom->getCoreRoom()))->requestHttpRoomInfo(jsDetail);
+		jsResult["detail"] = jsDetail;
+		return true;
+	}
+
 	if (eAsync_club_decline_DragIn == nRequestType) {
 		auto nRoomID = jsReqContent["roomID"].asUInt();
 		auto nUID = jsReqContent["uid"].asUInt();
