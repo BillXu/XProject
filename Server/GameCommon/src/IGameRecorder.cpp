@@ -58,7 +58,7 @@ void ISingleRoundRecorder::printInfo() {
 	LOGFMTI("roundIdx = %u", getRoundIdx());
 	for (auto& ref : m_vPlayerRecorderInfo)
 	{
-		LOGFMTI("playerUID = %u, offset = %u", ref.second->getUserUID(), ref.second->getOffset());
+		LOGFMTI("playerUID = %u, offset = %d", ref.second->getUserUID(), ref.second->getOffset());
 	}
 }
 
