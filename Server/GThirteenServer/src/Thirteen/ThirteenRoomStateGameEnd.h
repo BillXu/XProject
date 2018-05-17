@@ -40,7 +40,10 @@ public:
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override {
 		if (MSG_ROOM_THIRTEEN_CLIENT_OVER == nMsgType) {
-			setStateDuringTime(0);
+			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
+			if (pPlayer) {
+				setStateDuringTime(0);
+			}
 			return true;
 		}
 		return false;
