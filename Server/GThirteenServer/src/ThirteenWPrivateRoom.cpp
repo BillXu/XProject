@@ -23,6 +23,7 @@ ThirteenWPrivateRoom::~ThirteenWPrivateRoom() {
 
 bool ThirteenWPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts) {
 	if (IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts)) {
+		m_tAutoDismissTimer.canncel();
 		m_isForbitEnterRoomWhenStarted = vJsOpts["forbidJoin"].asUInt() == 1;
 		m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
 		m_nMaxCnt = vJsOpts["maxCnt"].isUInt() ? vJsOpts["maxCnt"].asUInt() : 0;
@@ -296,7 +297,7 @@ void ThirteenWPrivateRoom::onGameDidEnd(IGameRoom* pRoom) {
 	for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx) {
 		auto pPlayer = ((ThirteenRoom*)pRoom)->getPlayerByIdx(nIdx);
 		if (pPlayer) {
-			if (pPlayer->getChips() >= ((ThirteenRoom*)pRoom)->getDragInNeed()) {
+			if (pPlayer->getChips() >= (int32_t)(((ThirteenRoom*)pRoom)->getDragInNeed())) {
 				nCnJoinCnt++;
 			}
 		}
