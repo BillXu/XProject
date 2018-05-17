@@ -145,6 +145,7 @@ void IGameRoomRecorder::addSingleRoundRecorder(std::shared_ptr<ISingleRoundRecor
 		LOGFMTE("duplicate round recorder for idx = %u", ptrSingleRecorder->getRoundIdx());
 		m_vAllRoundRecorders.erase(iter);
 	}
+	LOGFMTI("roomID = %u, sieralNum = %u, clubID = %u, leagueID = %u add one round game", m_nRoomID, m_nSieralNum, m_nClubID, m_nLeagueID);
 	ptrSingleRecorder->printInfo();
 	m_vAllRoundRecorders[ptrSingleRecorder->getRoundIdx()] = ptrSingleRecorder;
 }
