@@ -1772,6 +1772,9 @@ bool ThirteenRoom::onPlayerDragIn(uint32_t nUserID, uint32_t nAmount) {
 		pPlayer->addChips(nAmount);
 		pPlayer->clearWaitDrgInTime();
 		if (pPlayer->haveState(eRoomPeer_WaitDragIn)) {
+			if (isMTT() && pPlayer->getChips() < getDragInNeed()) {
+				pPlayer->setChips(getDragInNeed());
+			}
 			pPlayer->setState(eRoomPeer_WaitNextGame);
 		}
 		Json::Value jsMsg;

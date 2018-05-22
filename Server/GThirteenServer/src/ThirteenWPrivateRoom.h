@@ -130,6 +130,7 @@ protected:
 	MAP_MTT_LEVEL_INFO m_mMTTLevelInfo;
 	MAP_UID_PLAYERS m_mWatchPlayers;
 	std::vector<GameRoom*> m_vPRooms;
+	bool m_bNeedSplitRoom = false;
 
 	CTimer m_tMTTBlindRise;
 	//std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;

@@ -315,6 +315,11 @@ void ThirteenWPrivateRoom::onGameDidEnd(IGameRoom* pRoom) {
 			((ThirteenRoom*)pRoom)->clearRoom();
 			((ThirteenRoom*)pRoom)->signIsWaiting();
 		}
+		else if (m_bNeedSplitRoom) {
+			((ThirteenRoom*)pRoom)->clearRoom();
+			((ThirteenRoom*)pRoom)->signIsWaiting();
+			m_bNeedSplitRoom = false;
+		}
 	}
 }
 
@@ -807,6 +812,9 @@ bool ThirteenWPrivateRoom::onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, ui
 	}
 	else {
 		stw->nChip += nAmount;
+		if (stw->nChip < ((ThirteenRoom*)getCoreRoom())->getDragInNeed()) {
+			stw->nChip = ((ThirteenRoom*)getCoreRoom())->getDragInNeed();
+		}
 	}
 	if (stw->isDragIn) {
 		stw->nRebuyTime += 1;
@@ -1036,9 +1044,23 @@ void ThirteenWPrivateRoom::update(float fDelta) {
 			dispatcherPlayers(vWait);
 		}
 
-		if (vWait.size() < 2 && m_nCurBlind > m_nRebuyLevel && m_nCurBlind > m_nDelayEnterLevel) {
-			onDismiss();
+		if (vWait.size() < 2) {
+			if (getAliveCnt() < 2 && m_nCurBlind > m_nRebuyLevel && m_nCurBlind > m_nDelayEnterLevel) {
+				onDismiss();
+			}
+			else {
+				if (vWait.size() == 1) {
+					m_bNeedSplitRoom = true;
+				}
+				else {
+					m_bNeedSplitRoom = false;
+				}
+			}
 		}
+
+		/*if (vWait.size() < 2 && getAliveCnt() < 2 && m_nCurBlind > m_nRebuyLevel && m_nCurBlind > m_nDelayEnterLevel) {
+			onDismiss();
+		}*/
 	}
 }
 
