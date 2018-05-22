@@ -64,10 +64,10 @@ public:
 	bool hasShowCards() { return m_bShowCards; }
 	bool onPlayerDragIn(uint32_t nUserID, uint32_t nAmount);
 	bool onPlayerDeclineDragIn(uint32_t nUserID);
-	uint32_t getMaxLose();
-	uint32_t getMaxDragIn();
-	uint32_t getMinDragIn();
-	uint32_t getDragInNeed();
+	int32_t getMaxLose();
+	int32_t getMaxDragIn();
+	int32_t getMinDragIn();
+	int32_t getDragInNeed();
 	bool isRoomWaiting() { return m_bIsWaiting; }
 	void signIsWaiting() { m_bIsWaiting = true; }
 	void clearIsWaiting() { m_bIsWaiting = false; }

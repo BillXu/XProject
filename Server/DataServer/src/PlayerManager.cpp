@@ -400,6 +400,17 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_thirteen_MTT_Request_PushMsg:
+	{
+		auto nUserUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (pPlayer) {
+			Json::Value jsMsg = jsReqContent;
+			uint16_t nMsgType = jsReqContent["msgType"].asUInt();
+			pPlayer->sendMsgToClient(jsMsg, nMsgType);
+		}
+	}
+	break;
 	case eAsync_player_DragInRoom_Closed:
 	{
 		auto nUserUID = jsReqContent["targetUID"].asUInt();

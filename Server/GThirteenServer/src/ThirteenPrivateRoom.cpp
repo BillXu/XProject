@@ -408,6 +408,14 @@ void ThirteenPrivateRoom::onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubI
 	}
 }
 
+uint8_t ThirteenPrivateRoom::canPlayerDragIn(uint32_t nUserUID) {
+	if (isClubRoom() == 0) {
+		return 10;
+	}
+
+	return 0;
+}
+
 bool ThirteenPrivateRoom::onPlayerDeclineDragIn(uint32_t nUserID) {
 	if (m_mStayPlayers.count(nUserID) == 0) {
 		return false;

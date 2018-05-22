@@ -487,65 +487,70 @@ void ThirteenRoom::onGameEnd()
 void ThirteenRoom::onGameDidEnd() {
 	getDelegate()->onPreGameDidEnd(this);
 
-	if ((isClubRoom() || isMTT()) && isRoomGameOver() == false) {
+	if (getDelegate() && (isClubRoom() || isMTT()) && isRoomGameOver() == false) {
 		for (auto& ref : m_vPlayers) {
 			if (ref && ref->getChips() < getDragInNeed() && ref->haveState(eRoomPeer_WaitDragIn) == false) {
 				ref->setState(eRoomPeer_WaitDragIn);
 				getDelegate()->onPlayerWaitDragIn(ref->getUserUID());
-				Json::Value jsMsg;
-				jsMsg["ret"] = 0;
-				jsMsg["idx"] = ref->getIdx();
-				jsMsg["min"] = getMinDragIn();
-				jsMsg["max"] = getMaxDragIn();
-				jsMsg["enterClubID"] = getDelegate()->getEnterClubID(ref->getUserUID());
-				if (isMTT()) {
-					jsMsg["dragIn"] = 1;
-				}
-				if (isLeagueRoom()) {
-					if (getDelegate() && getDelegate()->getDragInClubID(ref->getUserUID())) {
-						Json::Value jsClubs;
-						jsClubs[jsClubs.size()] = getDelegate()->getDragInClubID(ref->getUserUID());
-						jsMsg["clubIDs"] = jsClubs;
-						sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-						//return;
+				if (getDelegate()->canPlayerDragIn(ref->getUserUID()) == 0) {
+					Json::Value jsMsg;
+					jsMsg["ret"] = 0;
+					jsMsg["idx"] = ref->getIdx();
+					jsMsg["min"] = getMinDragIn();
+					jsMsg["max"] = getMaxDragIn();
+					jsMsg["enterClubID"] = getDelegate()->getEnterClubID(ref->getUserUID());
+					if (isMTT()) {
+						jsMsg["dragIn"] = 1;
+					}
+					if (isLeagueRoom()) {
+						if (getDelegate() && getDelegate()->getDragInClubID(ref->getUserUID())) {
+							Json::Value jsClubs;
+							jsClubs[jsClubs.size()] = getDelegate()->getDragInClubID(ref->getUserUID());
+							jsMsg["clubIDs"] = jsClubs;
+							sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+							//return;
+						}
+						else {
+							Json::Value jsReq;
+							jsReq["playerUID"] = ref->getUserUID();
+							jsReq["leagueID"] = isLeagueRoom();
+							getRoomMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, ref->getUserUID(), eAsync_player_apply_DragIn_Clubs, jsReq, [this, ref](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+							{
+								if (isTimeOut)
+								{
+									LOGFMTE("inform player drag in clubs error,time out  room id = %u , uid = %u", getRoomID(), ref->getUserUID());
+									Json::Value jsClubs;
+									jsClubs[jsClubs.size()] = isClubRoom();
+									jsUserData["clubIDs"] = jsClubs;
+									sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+									return;
+								}
+
+								if (retContent["ret"].asUInt() != 0)
+								{
+									LOGFMTE("inform player drag in clubs error, request error, room id = %u , uid = %u", getRoomID(), ref->getUserUID());
+									Json::Value jsClubs;
+									jsClubs[jsClubs.size()] = isClubRoom();
+									jsUserData["clubIDs"] = jsClubs;
+									sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+									return;
+								}
+								Json::Value jsClubs;
+								jsClubs[jsClubs.size()] = isClubRoom();
+								jsUserData["clubIDs"] = retContent["clubIDs"];
+								sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+							}, jsMsg);
+						}
 					}
 					else {
-						Json::Value jsReq;
-						jsReq["playerUID"] = ref->getUserUID();
-						jsReq["leagueID"] = isLeagueRoom();
-						getRoomMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, ref->getUserUID(), eAsync_player_apply_DragIn_Clubs, jsReq, [this, ref](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
-						{
-							if (isTimeOut)
-							{
-								LOGFMTE("inform player drag in clubs error,time out  room id = %u , uid = %u", getRoomID(), ref->getUserUID());
-								Json::Value jsClubs;
-								jsClubs[jsClubs.size()] = isClubRoom();
-								jsUserData["clubIDs"] = jsClubs;
-								sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-								return;
-							}
-
-							if (retContent["ret"].asUInt() != 0)
-							{
-								LOGFMTE("inform player drag in clubs error, request error, room id = %u , uid = %u", getRoomID(), ref->getUserUID());
-								Json::Value jsClubs;
-								jsClubs[jsClubs.size()] = isClubRoom();
-								jsUserData["clubIDs"] = jsClubs;
-								sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-								return;
-							}
-							Json::Value jsClubs;
-							jsClubs[jsClubs.size()] = isClubRoom();
-							jsUserData["clubIDs"] = retContent["clubIDs"];
-							sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-						}, jsMsg);
+						Json::Value jsClubs;
+						jsClubs[jsClubs.size()] = isClubRoom();
+						jsMsg["clubIDs"] = jsClubs;
+						sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
 					}
 				}
-				else {
-					Json::Value jsClubs;
-					jsClubs[jsClubs.size()] = isClubRoom();
-					jsMsg["clubIDs"] = jsClubs;
-					sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+				else if (isMTT()) {
+					doPlayerStandUp(ref->getUserUID());
 				}
 			}
 		}
@@ -616,65 +621,64 @@ bool ThirteenRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t n
 			if (pPlayer->getChips() < getDragInNeed()) {
 				pPlayer->setState(eRoomPeer_WaitDragIn);
 				getDelegate()->onPlayerWaitDragIn(pPlayer->getUserUID());
-				Json::Value jsMsg;
-				jsMsg["ret"] = 0;
-				jsMsg["idx"] = nIdx;
-				jsMsg["min"] = getMinDragIn();
-				jsMsg["max"] = getMaxDragIn();
-				jsMsg["enterClubID"] = getDelegate()->getEnterClubID(pPlayer->getUserUID());
-				if (isMTT()) {
-					jsMsg["dragIn"] = 1;
-				}
-				if (isLeagueRoom()) {
-					if (getDelegate() && getDelegate()->getDragInClubID(pPlayer->getUserUID())) {
-						Json::Value jsClubs;
-						jsClubs[jsClubs.size()] = getDelegate()->getDragInClubID(pPlayer->getUserUID());
-						jsMsg["clubIDs"] = jsClubs;
-						sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-						return true;
+				if (getDelegate() && getDelegate()->canPlayerDragIn(pPlayer->getUserUID()) == 0) {
+					Json::Value jsMsg;
+					jsMsg["ret"] = 0;
+					jsMsg["idx"] = nIdx;
+					jsMsg["min"] = getMinDragIn();
+					jsMsg["max"] = getMaxDragIn();
+					jsMsg["enterClubID"] = getDelegate()->getEnterClubID(pPlayer->getUserUID());
+					if (isMTT()) {
+						jsMsg["dragIn"] = 1;
 					}
-					Json::Value jsReq;
-					jsReq["playerUID"] = pPlayer->getUserUID();
-					jsReq["leagueID"] = isLeagueRoom();
-					getRoomMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_player_apply_DragIn_Clubs, jsReq, [this, pPlayer](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
-					{
-						if (isTimeOut)
-						{
-							LOGFMTE("inform player drag in clubs error,time out  room id = %u , uid = %u", getRoomID(), pPlayer->getUserUID());
+					if (isLeagueRoom()) {
+						if (getDelegate() && getDelegate()->getDragInClubID(pPlayer->getUserUID())) {
 							Json::Value jsClubs;
-							jsClubs[jsClubs.size()] = isClubRoom();
-							jsUserData["clubIDs"] = jsClubs;
-							sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-							return;
+							jsClubs[jsClubs.size()] = getDelegate()->getDragInClubID(pPlayer->getUserUID());
+							jsMsg["clubIDs"] = jsClubs;
+							sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+							return true;
 						}
+						Json::Value jsReq;
+						jsReq["playerUID"] = pPlayer->getUserUID();
+						jsReq["leagueID"] = isLeagueRoom();
+						getRoomMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_player_apply_DragIn_Clubs, jsReq, [this, pPlayer](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+						{
+							if (isTimeOut)
+							{
+								LOGFMTE("inform player drag in clubs error,time out  room id = %u , uid = %u", getRoomID(), pPlayer->getUserUID());
+								Json::Value jsClubs;
+								jsClubs[jsClubs.size()] = isClubRoom();
+								jsUserData["clubIDs"] = jsClubs;
+								sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+								return;
+							}
 
-						if (retContent["ret"].asUInt() != 0)
-						{
-							LOGFMTE("inform player drag in clubs error, request error, room id = %u , uid = %u", getRoomID(), pPlayer->getUserUID());
+							if (retContent["ret"].asUInt() != 0)
+							{
+								LOGFMTE("inform player drag in clubs error, request error, room id = %u , uid = %u", getRoomID(), pPlayer->getUserUID());
+								Json::Value jsClubs;
+								jsClubs[jsClubs.size()] = isClubRoom();
+								jsUserData["clubIDs"] = jsClubs;
+								sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+								return;
+							}
 							Json::Value jsClubs;
 							jsClubs[jsClubs.size()] = isClubRoom();
-							jsUserData["clubIDs"] = jsClubs;
+							jsUserData["clubIDs"] = retContent["clubIDs"];
 							sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-							return;
-						}
+						}, jsMsg);
+					}
+					else {
 						Json::Value jsClubs;
 						jsClubs[jsClubs.size()] = isClubRoom();
-						jsUserData["clubIDs"] = retContent["clubIDs"];
-						sendRoomMsg(jsUserData, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
-					}, jsMsg);
+						jsMsg["clubIDs"] = jsClubs;
+						sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+					}
 				}
-				else {
-					Json::Value jsClubs;
-					jsClubs[jsClubs.size()] = isClubRoom();
-					jsMsg["clubIDs"] = jsClubs;
-					sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);
+				else if (isMTT()) {
+					doPlayerStandUp(pPlayer->getUserUID());
 				}
-
-
-
-				/*Json::Value jsMsg;
-				jsMsg["idx"] = pPlayer->getIdx();
-				sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_NEED_DRAGIN);*/
 			}
 		}
 		
@@ -1649,7 +1653,7 @@ bool ThirteenRoom::isCanMingPai() {
 bool ThirteenRoom::isPlayerCanMingPai(uint8_t nIdx) {
 	auto pPlayer = getPlayerByIdx(nIdx);
 	if (pPlayer) {
-		uint8_t nCoin = 0;
+		int32_t nCoin = 0;
 		if (isClubRoom()) {
 			return pPlayer->getChips() + nCoin >= getMaxLose();
 		}
@@ -1670,7 +1674,7 @@ bool ThirteenRoom::isCanRotBanker() {
 bool ThirteenRoom::isPlayerCanRotBanker(uint8_t nIdx) {
 	auto pPlayer = getPlayerByIdx(nIdx);
 	if (pPlayer) {
-		uint8_t nCoin = getBaseScore() / 2;
+		int32_t nCoin = getBaseScore() / 2;
 		if (nCoin < 1) {
 			nCoin = 1;
 		}
@@ -1792,7 +1796,7 @@ bool ThirteenRoom::onPlayerDeclineDragIn(uint32_t nUserID) {
 	return false;
 }
 
-uint32_t ThirteenRoom::getMaxLose() {
+int32_t ThirteenRoom::getMaxLose() {
 	uint32_t nMaxLose = 3 + 10 + 5 + GAME_WIN_SWAT_EXTRA;
 	if (isCanMingPai()) {
 		nMaxLose += 10;
@@ -1815,21 +1819,21 @@ uint32_t ThirteenRoom::getMaxLose() {
 	return nMaxLose/* * getBaseScore()*/;
 }
 
-uint32_t ThirteenRoom::getMaxDragIn() {
+int32_t ThirteenRoom::getMaxDragIn() {
 	if (isMTT()) {
 		return getEnterFee();
 	}
 	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO * getMultiple();
 }
 
-uint32_t ThirteenRoom::getMinDragIn() {
+int32_t ThirteenRoom::getMinDragIn() {
 	if (isMTT()) {
 		return getEnterFee();
 	}
 	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO;
 }
 
-uint32_t ThirteenRoom::getDragInNeed() {
+int32_t ThirteenRoom::getDragInNeed() {
 	if (isMTT()) {
 		return 1;
 	}

@@ -1,6 +1,7 @@
 #include "IGameRecorder.h"
 #include "log4z.h"
 #include "AsyncRequestQuene.h"
+#include <sys/timeb.h>
 void ISingleRoundRecorder::init(uint16_t nRoundIdx, uint32_t nFinish, uint32_t nReplayID)
 {
 	m_vPlayerRecorderInfo.clear();
@@ -226,6 +227,8 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 		auto nOffset = ref.second;
 		uint32_t nDragIn = 0;
 		uint32_t nClubID = 0;
+		uint32_t tOutTime = 0;
+		uint32_t nOutIdx = 0;
 		uint32_t nRotBankerCoin = 0;
 		if (m_mRotBankerPool.count(nUserUID)) {
 			nRotBankerCoin = m_mRotBankerPool[nUserUID];
@@ -233,10 +236,12 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 		if (m_mAllDragIn.count(nUserUID)) {
 			nDragIn = m_mAllDragIn[nUserUID].nAmount;
 			nClubID = m_mAllDragIn[nUserUID].nClubID;
+			tOutTime = m_mAllDragIn[nUserUID].tOutTime;
+			nOutIdx = m_mAllDragIn[nUserUID].nOutIdx;
 		}
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,rotPool,dragin,draginClubID,time,roomType ) values (%u,%u,%u,%d,%u,%u,%u,now(),%u);", nUserUID,m_nSieralNum, m_nRoomID, nOffset, nRotBankerCoin, nDragIn, nClubID, m_nRoomType);
+		sprintf_s(pBuffer, sizeof(pBuffer), "insert into playerrecorder ( userUID,sieralNum,roomID,offset,rotPool,dragin,outTime,outIdx,draginClubID,time,roomType ) values (%u,%u,%u,%d,%u,%u,%u,%u,%u,now(),%u);", nUserUID,m_nSieralNum, m_nRoomID, nOffset, nRotBankerCoin, nDragIn, tOutTime, nOutIdx, nClubID, m_nRoomType);
 		jssql["sql"] = pBuffer;
 		pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSieralNum(), eAsync_DB_Add, jssql);
 	}
@@ -249,14 +254,28 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	}
 }
 
+void IGameRoomRecorder::onMTTPlayerOut(uint32_t nUserID, uint32_t& tOutTime, uint32_t nOutIdx) {
+	if (m_mAllDragIn.count(nUserID)) {
+		timeb t;
+		ftime(&t);
+		tOutTime = (t.time * 1000 + t.millitm) % 100000000;
+		m_mAllDragIn[nUserID].tOutTime = tOutTime;
+		m_mAllDragIn[nUserID].nOutIdx = nOutIdx;
+	}
+}
+
 void IGameRoomRecorder::addDragIn(uint32_t nUserID, uint32_t nAmount, uint32_t nClubID) {
 	if (m_mAllDragIn.count(nUserID)) {
 		m_mAllDragIn[nUserID].nAmount += nAmount;
+		m_mAllDragIn[nUserID].tOutTime = 0;
+		m_mAllDragIn[nUserID].nOutIdx = 0;
 	}
 	else {
 		reDraginInfo draginInfo;
 		draginInfo.nAmount = nAmount;
 		draginInfo.nClubID = nClubID;
+		draginInfo.tOutTime = 0;
+		draginInfo.nOutIdx = 0;
 		m_mAllDragIn[nUserID] = draginInfo;
 	}
 }

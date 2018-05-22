@@ -41,6 +41,7 @@ public:
 	bool isEnableReplay()override { return false; }
 	void onPlayerWaitDragIn(uint32_t nUserUID)override;
 	void onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID)override;
+	uint8_t canPlayerDragIn(uint32_t nUserUID)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	bool canPlayerSitDown(uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;

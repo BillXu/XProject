@@ -651,6 +651,10 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	// svr : {ret : 0}
 	// 1, uid is null or is not correct  2, uid is not the owner
 
+	MSG_ROOM_THIRTEEN_MTT_GAME_START, //十三水比赛场游戏开始
+	// svr : {roomID : 123, port : 8}
+	// no reply
+
 	MSG_ROOM_THIRTEEN_END = 2300, //13水命令号结束标记
 
 

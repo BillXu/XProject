@@ -60,6 +60,8 @@ public:
 	{
 		uint32_t nAmount;
 		uint32_t nClubID;
+		uint32_t tOutTime = 0;
+		uint32_t nOutIdx = 0;
 	};
 	typedef std::map<uint32_t, reDraginInfo> MAP_UID_RECORD;
 public:
@@ -78,6 +80,7 @@ public:
 	void setDuration(int32_t nDuration) { m_nDuration = nDuration; }
 	void doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene  );
 	void addDragIn(uint32_t nUserID, uint32_t nAmount, uint32_t nClubID);
+	void onMTTPlayerOut(uint32_t nUserID, uint32_t& tOutTime, uint32_t nOutIdx);
 	void getPlayerSingleRecorder(uint32_t nUserID, std::vector<std::shared_ptr<ISingleRoundRecorder>>& vRecorder);
 protected:
 	uint32_t m_nRoomID;

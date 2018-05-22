@@ -60,6 +60,7 @@ public:
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool isEnableReplay()override { return false; }
 	void onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID)override;
+	void onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)override;
 	bool canPlayerSitDown(uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
@@ -67,6 +68,7 @@ public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	bool onPlayerDragIn(uint32_t nUserID, uint32_t nClubID, uint32_t nAmount)override;
 	bool onPlayerDeclineDragIn(uint32_t nUserID)override;
+	uint8_t canPlayerDragIn(uint32_t nUserUID)override;
 	void doRoomGameOver(bool isDismissed)override;
 	bool doDeleteRoom()override;
 	bool isRoomFull()override;
@@ -103,6 +105,9 @@ protected:
 	uint32_t getEmptySeatCnt(IGameRoom* pRoom = nullptr);
 	void initLevelInfo();
 	void sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID = 0)override;
+	void onRoomStart();
+	void sendRoomMsgToAllPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0);
+	void pushRoomMsgToAllPlayer(Json::Value& prealMsg, uint16_t nMsgType, bool isDragIn = true);
 	//stwStayPlayer* isEnterBySession(uint32_t nSessionID);
 	//stwStayPlayer* isEnterByUserID(uint32_t nUserID);
 

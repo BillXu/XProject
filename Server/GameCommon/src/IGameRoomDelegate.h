@@ -26,6 +26,7 @@ public:
 	virtual void setCurrentPointer(IGameRoom* pRoom) {}
 	virtual void onPlayerWaitDragIn(uint32_t nUserUID) {}
 	virtual void onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID) {}
+	virtual uint8_t canPlayerDragIn(uint32_t nUserUID) { return 0; }
 	virtual bool isRoomGameOver() { return false; }
 	virtual std::shared_ptr<IGameRoomRecorder> getRoomRecorder() { return nullptr; }
 	virtual uint32_t getRoomPlayerCnt() { return 0; }

@@ -130,6 +130,7 @@ enum eAsyncReq
 	eAsync_player_DragInRoom_Closed, //玩家带入房间结束
 	eAsync_thirteen_delay_check_Diamond, //十三水延时摆牌检测
 	eAsync_thirteen_reput_check_Diamond, //十三水重新摆牌检测
+	eAsync_thirteen_MTT_Request_PushMsg, //十三水比赛场请求推送消息
 	eAsync_Club_AddCoin, //俱乐部添加金币
 	eAsync_Club_AddFoundation, //俱乐部充值基金
 	eAsync_Club_Join, //申请通过加入俱乐部
