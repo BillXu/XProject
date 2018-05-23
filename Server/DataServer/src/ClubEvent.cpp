@@ -1029,6 +1029,10 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			jsMsgP["roomID"] = nRoomID;
 			jsMsgP["clubID"] = getClub()->getClubID();
 			jsMsgP["uid"] = nPlayerID;
+			bool isMTT = itEvent->second.jsDetail["mtt"].asBool();
+			if (isMTT) {
+				jsMsgP["dragIn"] = itEvent->second.jsDetail["dragIn"];
+			}
 			reqQueue->pushAsyncRequest(ID_MSG_PORT_DATA, nMemberUID, eAsync_player_club_decline_DragIn, jsMsgP);
 		}
 	}

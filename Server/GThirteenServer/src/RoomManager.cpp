@@ -424,6 +424,9 @@ bool RoomManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 				jsReq_1["roomID"] = pRoom->getRoomID();
 				jsReq_1["amount"] = nAmount;
 				jsReq_1["mtt"] = pRoom->isMTT() ? 1 : 0;
+				if (pRoom->isMTT()) {
+					jsReq_1["dragIn"] = ((ThirteenWPrivateRoom*)pRoom)->isPlayerDragIn(nUID) ? 1 : 0;
+				}
 				if (pRoom->onPlayerDragIn(nUID, nClubID, nAmount)) {
 					pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_player_do_DragIn, jsReq_1);
 				}

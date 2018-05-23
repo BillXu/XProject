@@ -1540,3 +1540,11 @@ void ThirteenWPrivateRoom::pushRoomMsgToAllPlayer(Json::Value& prealMsg, uint16_
 		}
 	}
 }
+
+bool ThirteenWPrivateRoom::isPlayerDragIn(uint32_t nUserID) {
+	auto sPlayer = (stwStayPlayer*)isEnterByUserID(nUserID);
+	if (sPlayer) {
+		return sPlayer->isDragIn;
+	}
+	return false;
+}

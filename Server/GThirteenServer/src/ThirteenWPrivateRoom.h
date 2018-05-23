@@ -82,6 +82,7 @@ public:
 	uint32_t getBlindBaseScore()override;
 	uint32_t getBlindPreScore()override;
 	void onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin)override;
+	bool isPlayerDragIn(uint32_t nUserID);
 
 protected:
 	//void sendBssicRoomInfo(uint32_t nSessionID);

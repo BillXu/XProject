@@ -462,6 +462,9 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		jsMailArg["roomID"] = jsReqContent["roomID"];
 		jsMailArg["uid"] = jsReqContent["uid"];
 		jsMailArg["clubID"] = jsReqContent["clubID"];
+		if (jsReqContent["dragIn"].isNull() == false) {
+			jsMailArg["dragIn"] = jsReqContent["dragIn"];
+		}
 
 		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
 		pMailModule->postMail(nUserUID, eMail_Club_DeclineDragIn, jsMailArg, eMailState_SysProcessed);
@@ -587,14 +590,17 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		uint32_t nAmount = jsReqContent["amount"].asUInt();
 		bool bMTT = jsReqContent["mtt"].isUInt() ? jsReqContent["mtt"].asBool() : false;
 		uint32_t nFee = 0;
+		Json::Value jsMailArg;
 		if (bMTT == false) {
 			nFee = nAmount / 10;
 			if (nFee % 10 > 0) {
 				nFee += 1;
 			}
 		}
+		else {
+			jsMailArg["dragIn"] = jsReqContent["dragIn"];
+		}
 		nAmount += nFee;
-		Json::Value jsMailArg;
 		jsMailArg["uid"] = nUserUID;
 		jsMailArg["amount"] = -1 * (int32_t)nAmount;
 		jsMailArg["roomID"] = jsReqContent["roomID"];
