@@ -60,6 +60,7 @@ public:
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool isEnableReplay()override { return false; }
 	void onPlayerApplyDragIn(uint32_t nUserUID, uint32_t nClubID)override;
+	void onPlayerWillStandUp(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)override;
 	bool canPlayerSitDown(uint32_t nUserUID)override;
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
@@ -82,7 +83,9 @@ public:
 	uint32_t getBlindBaseScore()override;
 	uint32_t getBlindPreScore()override;
 	void onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin)override;
+	void onMTTPlayerCostPreScore(IGamePlayer* pPlayer)override;
 	bool isPlayerDragIn(uint32_t nUserID);
+	void sendRealTimeRecord(uint32_t nSessionID = 0)override;
 
 protected:
 	//void sendBssicRoomInfo(uint32_t nSessionID);
@@ -126,6 +129,7 @@ protected:
 	uint32_t m_nEnterFee = 0;
 	uint8_t m_nDelayEnterLevel = 0;
 	uint16_t m_nMaxCnt = 0;
+	uint16_t m_nLestCnt = 0;
 
 	uint8_t m_nCurBlind = 1;
 	MAP_MTT_LEVEL_INFO m_mMTTLevelInfo;

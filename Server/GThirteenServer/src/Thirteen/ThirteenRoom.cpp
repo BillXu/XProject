@@ -25,6 +25,7 @@ bool ThirteenRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_bRotBanker = false;
 	m_bShowCards = false;
 	m_bIsWaiting = true;
+	m_nMTTBaseScore = 0;
 
 	IGameRoomState* pState = new ThirteenRoomStateWaitReady();
 	addRoomState(pState);
@@ -56,6 +57,7 @@ void ThirteenRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["waitTimer"] = getCurState()->getStateDuring();
 	jsRoomInfo["bankIdx"] = m_nBankerIdx;
 	jsRoomInfo["rotBanker"] = m_bRotBanker ? 1 : 0;
+	jsRoomInfo["baseScore"] = getBaseScore();
 }
 
 void ThirteenRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,uint32_t nVisitorSessionID)
@@ -124,6 +126,9 @@ void ThirteenRoom::onWillStartGame() {
 	GameRoom::onWillStartGame();
 	m_bRotBanker = false;
 	m_bShowCards = false;
+	if (isMTT() && getDelegate()) {
+		m_nMTTBaseScore = getDelegate()->getBlindBaseScore();
+	}
 }
 
 void ThirteenRoom::onStartGame()
@@ -135,6 +140,7 @@ void ThirteenRoom::onStartGame()
 			if (ref && ref->haveState(eRoomPeer_StayThisRound)) {
 				auto nCoin = getDelegate()->getBlindPreScore();
 				ref->addSingleOffset(-1 * (int32_t)nCoin, false);
+				getDelegate()->onMTTPlayerCostPreScore(ref);
 				Json::Value jsMsg;
 				jsMsg["idx"] = ref->getIdx();
 				jsMsg["chips"] = ref->getChips();
@@ -901,6 +907,7 @@ void ThirteenRoom::doDistributeCard(uint8_t nCardCnt)
 
 	Json::Value jsMsg, jsReplayInfo;
 	jsMsg["info"] = jsVecPlayers;
+	jsMsg["baseScore"] = getBaseScore();
 	sendRoomMsg(jsMsg, MSG_ROOM_DISTRIBUTE_CARD );
 
 	jsReplayInfo["players"] = jsVecReplay;
@@ -1547,7 +1554,7 @@ bool ThirteenRoom::onPlayerRotBanker(uint8_t nIdx, uint8_t nState) {
 	if (pPlayer && isPlayerCanAct(nIdx) && pPlayer->hasRotBanker() == false) {
 		pPlayer->signRotBanker();
 		if (nState) {
-			uint8_t nCoin = getBaseScore() / 2;
+			uint32_t nCoin = getBaseScore() / 2;
 			if (nCoin < 1) {
 				nCoin = 1;
 			}
@@ -1598,9 +1605,10 @@ bool ThirteenRoom::onPlayerShowCards(uint8_t nIdx) {
 	return false;
 }
 
-uint8_t ThirteenRoom::getBaseScore() {
+uint32_t ThirteenRoom::getBaseScore() {
 	if (isMTT() && getDelegate()) {
-		return getDelegate()->getBlindBaseScore();
+		//return getDelegate()->getBlindBaseScore();
+		return m_nMTTBaseScore;
 	}
 
 	if (m_jsOpts["baseScore"].isNull() || m_jsOpts["baseScore"].isUInt() == false) {
@@ -1682,7 +1690,7 @@ bool ThirteenRoom::isPlayerCanRotBanker(uint8_t nIdx) {
 			return pPlayer->getChips() + nCoin >= getMaxLose();
 		}
 		else {
-			return pPlayer->getChips() >= (int32_t)nCoin;
+			return pPlayer->getChips() >= nCoin;
 		}
 	}
 	return false;
@@ -1826,21 +1834,21 @@ int32_t ThirteenRoom::getMaxDragIn() {
 	if (isMTT()) {
 		return getEnterFee();
 	}
-	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO * getMultiple();
+	return getBaseScore() * BASE_DRAGIN_RATIO * getMultiple();
 }
 
 int32_t ThirteenRoom::getMinDragIn() {
 	if (isMTT()) {
 		return getEnterFee();
 	}
-	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO;
+	return getBaseScore() * BASE_DRAGIN_RATIO;
 }
 
 int32_t ThirteenRoom::getDragInNeed() {
 	if (isMTT()) {
 		return 1;
 	}
-	return ((uint32_t)getBaseScore()) * BASE_DRAGIN_RATIO / 2;
+	return getBaseScore() * BASE_DRAGIN_RATIO / 2;
 }
 
 uint8_t ThirteenRoom::getWinShui(uint8_t nIdx, uint8_t nWinType, uint8_t nDaoIdx) {
@@ -1893,7 +1901,7 @@ uint8_t ThirteenRoom::getWinShui(uint8_t nIdx, uint8_t nWinType, uint8_t nDaoIdx
 }
 
 uint32_t ThirteenRoom::getWinCoin(uint8_t nIdx, uint8_t nWinType, uint8_t nDaoIdx) {
-	return ((uint32_t)getWinShui(nIdx, nWinType, nDaoIdx)) * (uint32_t)getBaseScore();
+	return ((uint32_t)getWinShui(nIdx, nWinType, nDaoIdx)) * getBaseScore();
 }
 
 IGameRoomDelegate* ThirteenRoom::getDelegate() {

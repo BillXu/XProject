@@ -70,6 +70,7 @@ public:
 	uint32_t getEnterFee();
 	uint32_t getInitialCoin();
 	//void setCurrentPointer(IGameRoom* pRoom)override;
+	virtual void sendRealTimeRecord(uint32_t nSessionID = 0);
 
 protected:
 	virtual void sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID = 0);

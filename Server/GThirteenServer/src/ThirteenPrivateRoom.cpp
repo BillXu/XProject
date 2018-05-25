@@ -209,7 +209,8 @@ void ThirteenPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )
 	//jsMsg["result"] = jsArrayPlayers;
 	jsMsg["sieralNum"] = getSeiralNum();
 	jsMsg["joinAmount"] = getPlayerCnt();
-	sendRoomMsg(jsMsg, MSG_ROOM_GAME_OVER );
+	sendRoomMsg(jsMsg, MSG_ROOM_GAME_OVER);
+	sendRealTimeRecord();
 }
 
 bool ThirteenPrivateRoom::canStartGame(IGameRoom* pRoom)
@@ -299,12 +300,39 @@ void ThirteenPrivateRoom::onPreGameDidEnd(IGameRoom* pRoom) {
 	auto nCnt = m_pRoom->getSeatCnt();
 	for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx) {
 		auto pPlayer = m_pRoom->getPlayerByIdx(nIdx);
-		if (!pPlayer || pPlayer->haveState(eRoomPeer_StayThisRound) == false)
-		{
-			//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
-			continue;
+		//if (!pPlayer || pPlayer->haveState(eRoomPeer_StayThisRound) == false)
+		//{
+		//	//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
+		//	continue;
+		//}
+
+		if (pPlayer) {
+			auto stg = isEnterByUserID(pPlayer->getUserUID());
+			if (stg) {
+				if (pPlayer->haveState(eRoomPeer_StayThisRound)) {
+					stg->nChip = pPlayer->getChips();
+					stg->isJoin += 1;
+					if (stg->nState == eNet_Offline || stg->nState == eNet_WaitReconnect) {
+						stg->nOffLineGame += 1;
+						if (stg->nOffLineGame >= OFFLINE_AUTO_LEAVE_ROOM) {
+							if (stg->nState == eNet_Offline) {
+								getCoreRoom()->doPlayerLeaveRoom(stg->nUserUID);
+							}
+							else {
+								getCoreRoom()->doPlayerStandUp(stg->nUserUID);
+							}
+							stg->nOffLineGame = 0;
+						}
+					}
+					else {
+						stg->nOffLineGame = 0;
+					}
+				}
+			}
+			
 		}
-		auto stg = isEnterByUserID(pPlayer->getUserUID());
+
+		/*auto stg = isEnterByUserID(pPlayer->getUserUID());
 		if (stg) {
 			stg->isJoin += 1;
 			if (stg->nState == eNet_Offline || stg->nState == eNet_WaitReconnect) {
@@ -322,7 +350,7 @@ void ThirteenPrivateRoom::onPreGameDidEnd(IGameRoom* pRoom) {
 			else {
 				stg->nOffLineGame = 0;
 			}
-		}
+		}*/
 	}
 }
 
@@ -680,6 +708,10 @@ void ThirteenPrivateRoom::doRoomGameOver(bool isDismissed) {
 void ThirteenPrivateRoom::onPlayerRotBanker(IGamePlayer* pPlayer, uint8_t nCoin) {
 	m_nRotBankerPool += nCoin;
 	getRoomRecorder()->addRotBankerPool(pPlayer->getUserUID(), nCoin);
+	auto sPlayer = isEnterByUserID(pPlayer->getUserUID());
+	if (sPlayer) {
+		sPlayer->nChip = pPlayer->getChips();
+	}
 	Json::Value jsMsg;
 	jsMsg["pool"] = m_nRotBankerPool;
 	sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_RBPOOL_UPDATE);
@@ -983,66 +1015,71 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 	break;
 	case MSG_ROOM_THIRTEEN_REAL_TIME_RECORD :
 	{
-		uint32_t tIdx = 0;
-		uint32_t pIdx = 0;
-		std::vector<stStayPlayer*> vsPlayers;
-		for (auto ref : m_mStayPlayers) {
-			vsPlayers.push_back(ref.second);
-		}
-		while (tIdx < vsPlayers.size()) {
-			Json::Value jsMsg, jsDetails;
-			jsMsg["idx"] = pIdx;
-			uint8_t cIdx = 0;
-			while (cIdx < 10) {
-				if (tIdx >= vsPlayers.size()) {
-					break;
-				}
-				auto st = vsPlayers.at(tIdx);
-				tIdx++;
-				if (st->isJoin == 0 && st->isDragIn == false) {
-					continue;
-				}
-				cIdx++;
-				Json::Value jsDetail;
-				jsDetail["uid"] = st->nUserUID;
-				auto pPlayer = getCoreRoom()->getPlayerByUID(st->nUserUID);
-				if (pPlayer) {
-					jsDetail["chip"] = pPlayer->getChips();
-				}
-				else {
-					jsDetail["chip"] = st->nChip;
-				}
-				jsDetail["drag"] = st->nAllWrag;
-				jsDetail["round"] = st->isJoin;
-				jsDetails[jsDetails.size()] = jsDetail;
-			}
+		sendRealTimeRecord(nSessionID);
+		//uint32_t tIdx = 0;
+		//uint32_t pIdx = 0;
+		//std::vector<stStayPlayer*> vsPlayers;
+		//for (auto ref : m_mStayPlayers) {
+		//	if (ref.second->isJoin == 0 && ref.second->isDragIn == false) {
+		//		continue;
+		//	}
+		//	vsPlayers.push_back(ref.second);
+		//}
+		//while (tIdx < vsPlayers.size()) {
+		//	Json::Value jsMsg, jsDetails;
+		//	jsMsg["idx"] = pIdx;
+		//	jsMsg["size"] = vsPlayers.size();
+		//	uint8_t cIdx = 0;
+		//	while (cIdx < 10) {
+		//		if (tIdx >= vsPlayers.size()) {
+		//			break;
+		//		}
+		//		auto st = vsPlayers.at(tIdx);
+		//		tIdx++;
+		//		/*if (st->isJoin == 0 && st->isDragIn == false) {
+		//			continue;
+		//		}*/
+		//		cIdx++;
+		//		Json::Value jsDetail;
+		//		jsDetail["uid"] = st->nUserUID;
+		//		//auto pPlayer = getCoreRoom()->getPlayerByUID(st->nUserUID);
+		//		//if (pPlayer) {
+		//			//jsDetail["chip"] = pPlayer->getChips();
+		//		//}
+		//		//else {
+		//		jsDetail["chip"] = st->nChip;
+		//		//}
+		//		jsDetail["drag"] = st->nAllWrag;
+		//		jsDetail["round"] = st->isJoin;
+		//		jsDetails[jsDetails.size()] = jsDetail;
+		//	}
 
 
 
-			/*for (; tIdx < tIdx + 10; tIdx++) {
-				if (tIdx >= vsPlayers.size()) {
-					break;
-				}
-				Json::Value jsDetail;
-				auto st = vsPlayers.at(tIdx);
-				if (st->isJoin == false) {
-					continue;
-				}
-				jsDetail["uid"] = st->nUserUID;
-				auto pPlayer = getCoreRoom()->getPlayerByUID(st->nUserUID);
-				if (pPlayer) {
-					jsDetail["chip"] = pPlayer->getChips();
-				}
-				else {
-					jsDetail["chip"] = st->nChip;
-				}
-				jsDetail["drag"] = st->nAllWrag;
-				jsDetails[jsDetails.size()] = jsDetail;
-			}*/
-			jsMsg["detail"] = jsDetails;
-			pIdx++;
-			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
-		}
+		//	/*for (; tIdx < tIdx + 10; tIdx++) {
+		//		if (tIdx >= vsPlayers.size()) {
+		//			break;
+		//		}
+		//		Json::Value jsDetail;
+		//		auto st = vsPlayers.at(tIdx);
+		//		if (st->isJoin == false) {
+		//			continue;
+		//		}
+		//		jsDetail["uid"] = st->nUserUID;
+		//		auto pPlayer = getCoreRoom()->getPlayerByUID(st->nUserUID);
+		//		if (pPlayer) {
+		//			jsDetail["chip"] = pPlayer->getChips();
+		//		}
+		//		else {
+		//			jsDetail["chip"] = st->nChip;
+		//		}
+		//		jsDetail["drag"] = st->nAllWrag;
+		//		jsDetails[jsDetails.size()] = jsDetail;
+		//	}*/
+		//	jsMsg["detail"] = jsDetails;
+		//	pIdx++;
+		//	sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
+		//}
 	}
 	break;
 	default :
@@ -1051,6 +1088,46 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 	}
 	}
 	return true;
+}
+
+void ThirteenPrivateRoom::sendRealTimeRecord(uint32_t nSessionID) {
+	uint32_t tIdx = 0;
+	uint32_t pIdx = 0;
+	std::vector<stStayPlayer*> vsPlayers;
+	for (auto ref : m_mStayPlayers) {
+		if (ref.second->isJoin == 0 && ref.second->isDragIn == false) {
+			continue;
+		}
+		vsPlayers.push_back(ref.second);
+	}
+	while (tIdx < vsPlayers.size()) {
+		Json::Value jsMsg, jsDetails;
+		jsMsg["idx"] = pIdx;
+		jsMsg["size"] = vsPlayers.size();
+		uint8_t cIdx = 0;
+		while (cIdx < 10) {
+			if (tIdx >= vsPlayers.size()) {
+				break;
+			}
+			auto st = vsPlayers.at(tIdx);
+			tIdx++;
+			cIdx++;
+			Json::Value jsDetail;
+			jsDetail["uid"] = st->nUserUID;
+			jsDetail["chip"] = st->nChip;
+			jsDetail["drag"] = st->nAllWrag;
+			jsDetail["round"] = st->isJoin;
+			jsDetails[jsDetails.size()] = jsDetail;
+		}
+		jsMsg["detail"] = jsDetails;
+		pIdx++;
+		if (nSessionID) {
+			sendMsgToPlayer(jsMsg, MSG_ROOM_THIRTEEN_REAL_TIME_RECORD, nSessionID);
+		}
+		else {
+			sendRoomMsg(jsMsg, MSG_ROOM_THIRTEEN_REAL_TIME_RECORD);
+		}
+	}
 }
 
 void ThirteenPrivateRoom::sendBssicRoomInfo(uint32_t nSessionID, uint32_t nUserID) {

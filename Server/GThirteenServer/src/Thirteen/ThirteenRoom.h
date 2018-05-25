@@ -46,7 +46,7 @@ public:
 	bool isGameOver();
 	bool onPlayerRotBanker(uint8_t nIdx, uint8_t nState);
 	bool onPlayerShowCards(uint8_t nIdx);
-	uint8_t getBaseScore();
+	uint32_t getBaseScore();
 	uint8_t getMultiple();
 	uint8_t getPutCardsTime();
 	bool isCanMingPai();
@@ -88,4 +88,6 @@ private:
 	bool m_bRotBanker;
 	bool m_bShowCards;
 	bool m_bIsWaiting;
+
+	uint32_t m_nMTTBaseScore;
 };

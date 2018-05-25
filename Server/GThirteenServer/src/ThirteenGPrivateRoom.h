@@ -69,6 +69,7 @@ public:
 	bool canStartGame(IGameRoom* pRoom)override;
 	uint16_t getPlayerCnt()override;
 	uint16_t getMaxCnt() { return m_nMaxCnt; }
+	void sendRealTimeRecord(uint32_t nSessionID = 0)override;
 
 protected:
 	virtual bool initMaxPlayerCnt();
