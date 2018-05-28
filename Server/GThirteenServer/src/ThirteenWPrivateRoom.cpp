@@ -1355,13 +1355,16 @@ void ThirteenWPrivateRoom::dispatcherToEmptyPlace(std::vector<stwStayPlayer*>& v
 	}
 
 	for (auto ref : m_vPRooms) {
+		if (vWait.size() == 0) {
+			return;
+		}
 		if (((ThirteenRoom*)ref)->isRoomWaiting()) {
 			continue;
 		}
 		uint8_t nCnt = ref->getSeatCnt();
 		for (uint8_t i = 0; i < nCnt; i++) {
 			if (vWait.size() == 0) {
-				break;
+				return;
 			}
 			if (ref->getPlayerByIdx(i)) {
 				continue;
