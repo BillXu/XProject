@@ -41,4 +41,5 @@ public:
 	virtual uint32_t getBlindBaseScore() { return 0; }
 	virtual uint32_t getBlindPreScore() { return 0; }
 	virtual void onMTTPlayerCostPreScore(IGamePlayer* pPlayer) {}
+	virtual void packExtraRoomInfo(Json::Value& jsInfo) {}
 };

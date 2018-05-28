@@ -51,6 +51,7 @@ public:
 	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
 	void setCurrentPointer(IGameRoom* pRoom)override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
+	void packExtraRoomInfo(Json::Value& jsInfo)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	void doPlayerEnter(IGameRoom* pRoom, uint32_t nUserUID)override;
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;

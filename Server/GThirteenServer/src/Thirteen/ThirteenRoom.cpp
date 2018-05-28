@@ -908,7 +908,10 @@ void ThirteenRoom::doDistributeCard(uint8_t nCardCnt)
 	Json::Value jsMsg, jsReplayInfo;
 	jsMsg["info"] = jsVecPlayers;
 	jsMsg["baseScore"] = getBaseScore();
-	sendRoomMsg(jsMsg, MSG_ROOM_DISTRIBUTE_CARD );
+	if (getDelegate()) {
+		getDelegate()->packExtraRoomInfo(jsMsg);
+	}
+	sendRoomMsg(jsMsg, MSG_ROOM_DISTRIBUTE_CARD);
 
 	jsReplayInfo["players"] = jsVecReplay;
 	addReplayFrame(eThirteenFrame_StartGame, jsReplayInfo);

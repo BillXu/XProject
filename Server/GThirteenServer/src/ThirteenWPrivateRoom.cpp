@@ -94,6 +94,11 @@ void ThirteenWPrivateRoom::setCurrentPointer(IGameRoom* pRoom) {
 	}
 }
 
+void ThirteenWPrivateRoom::packExtraRoomInfo(Json::Value& jsInfo) {
+	jsInfo["curBlind"] = m_nCurBlind;
+	jsInfo["riseTime"] = (int32_t)m_tMTTBlindRise.getDuringTime();
+}
+
 void ThirteenWPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo) {
 	IPrivateRoom::packRoomInfo(jsRoomInfo);
 	bool isOpen = m_tMTTBlindRise.isRunning();
@@ -1578,10 +1583,14 @@ void ThirteenWPrivateRoom::sendRealTimeRecord(uint32_t nSessionID) {
 			vsPlayers.push_back((stwStayPlayer*)ref.second);
 		}
 	}
+	auto nPage = vsPlayers.size() / 10;
+	if (vsPlayers.size() % 10 > 0) {
+		nPage++;
+	}
 	while (tIdx < vsPlayers.size()) {
 		Json::Value jsMsg, jsDetails;
 		jsMsg["idx"] = pIdx;
-		jsMsg["size"] = vsPlayers.size();
+		jsMsg["page"] = nPage;
 		uint8_t cIdx = 0;
 		while (cIdx < 10) {
 			if (tIdx >= vsPlayers.size()) {

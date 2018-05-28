@@ -204,13 +204,13 @@ void ThirteenPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )
 		}
 	}*/
 
+	sendRealTimeRecord();
 	Json::Value jsMsg;
 	jsMsg["dismissID"] = m_nApplyDismissUID;
 	//jsMsg["result"] = jsArrayPlayers;
 	jsMsg["sieralNum"] = getSeiralNum();
 	jsMsg["joinAmount"] = getPlayerCnt();
 	sendRoomMsg(jsMsg, MSG_ROOM_GAME_OVER);
-	sendRealTimeRecord();
 }
 
 bool ThirteenPrivateRoom::canStartGame(IGameRoom* pRoom)
@@ -1100,10 +1100,14 @@ void ThirteenPrivateRoom::sendRealTimeRecord(uint32_t nSessionID) {
 		}
 		vsPlayers.push_back(ref.second);
 	}
+	auto nPage = vsPlayers.size() / 10;
+	if (vsPlayers.size() % 10 > 0) {
+		nPage++;
+	}
 	while (tIdx < vsPlayers.size()) {
 		Json::Value jsMsg, jsDetails;
 		jsMsg["idx"] = pIdx;
-		jsMsg["size"] = vsPlayers.size();
+		jsMsg["page"] = nPage;
 		uint8_t cIdx = 0;
 		while (cIdx < 10) {
 			if (tIdx >= vsPlayers.size()) {
