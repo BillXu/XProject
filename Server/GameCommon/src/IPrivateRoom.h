@@ -45,6 +45,7 @@ public:
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	bool isEnableRecorder()final { return true; }
 	bool isEnableReplay()override { return true; }
+	uint32_t getCurRoundIdx()override;
 
 	void doRoomGameOver(bool isDismissed);
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
@@ -97,4 +98,6 @@ protected:
 	CTimer m_tAutoDismissTimer;
 
 	std::vector<uint32_t> m_vTempID;
+
+	std::vector<uint32_t> m_vAAPayedPlayers;
 };

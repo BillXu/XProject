@@ -55,6 +55,10 @@ public:
 	void onTimeOutPlayerAutoBet();
 	void onTimeOutPlayerAutoRobBanker();
 	void invokerTuoGuanAction( uint8_t nTargetIdx = -1 );
+	bool isFirstRound();
+
+	bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
+	//void allPlayerAutoReady();
 protected:
 	uint8_t getMiniBetTimes();
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );

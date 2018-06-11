@@ -1092,6 +1092,12 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 		uint32_t nBackDiamond = jsReqContent["diamond"].asUInt();
 		updateDiamond( nBackDiamond );
 		LOGFMTD( "clubID = %u give back diamond = %u", getClubID(), nBackDiamond );
+
+		if ( nBackDiamond > 0 )
+		{
+			auto jsd = jsReqContent;
+			CPlayer::saveDiamondRecorder(getClubID(), eLogDiamond_ClubGiveBack, nBackDiamond, getDiamond(), jsd);
+		}
 	}
 	break;
 	case eAsync_ClubRoomStart:
@@ -1403,6 +1409,15 @@ void Club::onCreateEmptyRoom(uint32_t nRoomID, int32_t nDiamondFee, uint32_t nRo
 	ci.nRoomIdx = nRoomIdx;
 	m_vEmptyRooms.push_back(ci);
 	updateDiamond( nDiamondFee * -1 );
+
+	if ( abs( nDiamondFee ) > 0 )
+	{
+		Json::Value jsd;
+		jsd["roomID"] = nRoomID;
+		CPlayer::saveDiamondRecorder(getClubID(), eLogDiamond_ClubConsume, nDiamondFee * -1, getDiamond(), jsd);
+	}
+
+
 	m_isCreatingRoom = false;
 	LOGFMTD("created room id = %u consume diamond = %d, clubid = %u, final diamond = %u",nRoomID,nDiamondFee,getClubID(),getDiamond() );
 }

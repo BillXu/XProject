@@ -13,6 +13,7 @@
 #include "NiuNiu\NNRoomStateLRBDistributeFristCard.h"
 #include "NiuNiu\NNRoomStateLRBDistributeFinalCard.h"
 #include "NiuNiu\NiuNiuPlayerRecorder.h"
+#include "IGameRoomDelegate.h"
 bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
@@ -906,4 +907,50 @@ uint8_t NNRoom::getMiniBetTimes()
 		return 1;
 	}
 	return m_jsOpts["diFen"].asUInt();
+}
+
+bool NNRoom::isFirstRound()
+{
+	if ( getDelegate() )
+	{
+		return 0 == getDelegate()->getCurRoundIdx();
+	}
+	return false;
+}
+
+//void NNRoom::allPlayerAutoReady()
+//{
+//	if ( getCurState()->getStateID() != eRoomSate_WaitReady || false == isFirstRound())
+//	{
+//		return;
+//	}
+//
+//	for (uint8_t nIdx = 0; nIdx <  getSeatCnt(); ++nIdx)
+//	{
+//		auto ptrPlayer = getPlayerByIdx(nIdx);
+//		if (ptrPlayer == nullptr || ptrPlayer->haveState(eRoomPeer_WaitNextGame) == false)
+//		{
+//			continue;
+//		}
+//
+//		onPlayerReady(nIdx);
+//		LOGFMTD("auto set ready room id = %u , uid = %u",  getRoomID(), ptrPlayer->getUserUID());
+//	}
+//}
+
+bool NNRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)
+{
+	auto ret = GameRoom::doPlayerSitDown(pEnterRoomPlayer,nIdx);
+	if ( !ret )
+	{
+		return ret;
+	}
+
+	if (getCurState()->getStateID() != eRoomSate_WaitReady || false == isFirstRound())
+	{
+		return true ;
+	}
+
+	getCurState()->setStateDuringTime(60);
+	return true;
 }

@@ -216,6 +216,9 @@ bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 		jsResult["addCnt"] = nAddCnt;
 		iterClub->second->updateDiamond(nAddCnt);
 		LOGFMTD( "agent id = %u add diamond = %d to clubid = %u", jsReqContent["agentID"].asUInt(),nAddCnt, nClubID );
+
+		auto jsd = jsReqContent;
+		CPlayer::saveDiamondRecorder(nClubID, eLogDiamond_ClubAgent, nAddCnt, iterClub->second->getDiamond(), jsd);
 		return true;
 	}
 

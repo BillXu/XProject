@@ -11,7 +11,8 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(5);
+		auto pNR = ((NNRoom*)getRoom());
+		setStateDuringTime( pNR->isFirstRound() ? 9999999 : 5);
 		m_isCheckTuoGuan = false;
 	}
 
@@ -25,8 +26,10 @@ public:
 			{
 				continue;
 			}
-			((NNRoom*)getRoom())->onPlayerReady(nIdx);
-			LOGFMTD( "auto set ready room id = %u , uid = %u",getRoom()->getRoomID(),ptrPlayer->getUserUID() );
+
+			auto pNR = ((NNRoom*)getRoom());
+			pNR->onPlayerReady(nIdx);
+			LOGFMTD("auto set ready room id = %u , uid = %u", getRoom()->getRoomID(), ptrPlayer->getUserUID());
 		}
 
 		if (getRoom()->canStartGame())
@@ -48,7 +51,7 @@ public:
 			pRoom->goToState(eRoomState_StartGame);
 		}
 
-		if (false == m_isCheckTuoGuan)
+		if ( false == m_isCheckTuoGuan && pRoom->isFirstRound() == false )
 		{
 			m_isCheckTuoGuan = true;
 			pRoom->invokerTuoGuanAction();

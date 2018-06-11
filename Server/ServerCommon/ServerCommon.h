@@ -44,6 +44,9 @@ enum eLogDiamond
 	eLogDiamond_Shop_Wechat,
 	eLogDiamond_Agent,
 	eLogDiamond_Room,
+	eLogDiamond_ClubAgent,
+	eLogDiamond_ClubGiveBack,
+	eLogDiamond_ClubConsume,
 	eLogDiamond_Max,
 };
 

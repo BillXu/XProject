@@ -58,6 +58,7 @@ void CServerNetwork::RecieveMsg()
 	}
 
 	CServerNetworkImp::LIST_PACKET vPacket ;
+	vPacket.clear();
 	if ( !m_pNetPeer->getAllPacket(vPacket) )
 	{
 		return ;

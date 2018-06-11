@@ -16,6 +16,7 @@ IPrivateRoom::~IPrivateRoom()
 
 bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts )
 {
+	m_vAAPayedPlayers.clear();
 	m_pRoom = doCreatRealRoom();
 	if (!m_pRoom)
 	{
@@ -626,27 +627,36 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	if ( m_isOneRoundNormalEnd == false )
 	{
 		m_isOneRoundNormalEnd = true;
-		auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, getPayType() );
-		if ( isAAPay() && nNeedDiamond > 0 )  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
-		{
-			auto nCnt = m_pRoom->getSeatCnt();
-			for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
-			{
-				auto pPlayer = m_pRoom->getPlayerByIdx(nIdx);
-				if (!pPlayer)
-				{
-					//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
-					continue;
-				}
+	}
 
-				Json::Value js;
-				js["playerUID"] = pPlayer->getUserUID();
-				js["diamond"] = nNeedDiamond;
-				js["roomID"] = getRoomID();
-				js["reason"] = 0;
-				auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
-				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
+	auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, getPayType());
+	if ( isAAPay() && nNeedDiamond > 0)  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
+	{
+		auto nCnt = m_pRoom->getSeatCnt();
+		for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx)
+		{
+			auto pPlayer = m_pRoom->getPlayerByIdx(nIdx);
+			if (!pPlayer)
+			{
+				//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
+				continue;
 			}
+
+			auto iterAAPayPlayer = std::find(m_vAAPayedPlayers.begin(),m_vAAPayedPlayers.end(),pPlayer->getUserUID() );
+			if ( iterAAPayPlayer != m_vAAPayedPlayers.end())
+			{
+				continue;
+			}
+
+			m_vAAPayedPlayers.push_back( pPlayer->getUserUID());
+			
+			Json::Value js;
+			js["playerUID"] = pPlayer->getUserUID();
+			js["diamond"] = nNeedDiamond;
+			js["roomID"] = getRoomID();
+			js["reason"] = 0;
+			auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
 		}
 	}
 
@@ -655,6 +665,11 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	{
 		doRoomGameOver(false);
 	}
+}
+
+uint32_t IPrivateRoom::getCurRoundIdx()
+{
+	return getInitRound(m_nRoundLevel) - m_nLeftRounds;
 }
 
 void IPrivateRoom::doRoomGameOver(bool isDismissed)

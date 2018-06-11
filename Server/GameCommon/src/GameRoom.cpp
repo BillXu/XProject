@@ -635,6 +635,12 @@ bool GameRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
 		auto pStand = getStandPlayerByUID(nPlayerID);
 		if ( pStand )
 		{
+			if (nState == eNetState::eNet_Offline)
+			{
+				doPlayerLeaveRoom(nPlayerID);
+				return true;
+			}
+
 			return true;
 		}
 		LOGFMTE( "inform player state refreshed , but player is null room id = %u , uid = %u",getRoomID(),nPlayerID );

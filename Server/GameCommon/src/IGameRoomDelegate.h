@@ -17,4 +17,5 @@ public:
 	virtual void onPlayerDoLeaved( IGameRoom* pRoom, uint32_t nUserUID ) {};
 	virtual bool isEnableRecorder() { return false; }
 	virtual bool isEnableReplay() { return false; }
+	virtual uint32_t getCurRoundIdx() = 0;
 };
