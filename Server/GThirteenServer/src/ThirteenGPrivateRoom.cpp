@@ -319,7 +319,7 @@ void ThirteenGPrivateRoom::onPreGameDidEnd(IGameRoom* pRoom) {
 				js["playerUID"] = pPlayer->getUserUID();
 				js["diamond"] = nNeedDiamond;
 				js["roomID"] = getRoomID();
-				js["reason"] = 0;
+				js["reason"] = ROOM_CREATE;
 				auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
 			}
@@ -651,6 +651,7 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
 			return false;
 		}
+		LOGFMTE("uid = %u, apply force dismiss room id = %u, do force dismiss", nUID, getRoomID());
 		Json::Value jsMsg;
 		jsMsg["ret"] = 0;
 		sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
@@ -737,7 +738,7 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 					jsConsumDiamond["playerUID"] = nUID;
 					jsConsumDiamond["diamond"] = nDiamond;
 					jsConsumDiamond["roomID"] = getRoomID();
-					jsConsumDiamond["reason"] = 1;
+					jsConsumDiamond["reason"] = ROOM_DELAY_GAME_TIME;
 					pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_Consume_Diamond, jsConsumDiamond);
 					LOGFMTD("user uid = %u delay room time do comuse diamond = %u room id = %u", nUID, nDiamond, getRoomID());
 
@@ -768,6 +769,7 @@ bool ThirteenGPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 				sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
 				break;
 			}
+			LOGFMTE("uid = %u, apply dismiss room id = %u, do dismiss", nUID, getRoomID());
 			if (m_nOverType == ROOM_OVER_TYPE_TIME) {
 				m_tCreateTimeLimit.setInterval(0);
 			}
@@ -1281,6 +1283,7 @@ void ThirteenGPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed) {
 	//jsMsg["result"] = jsArrayPlayers;
 	jsMsg["sieralNum"] = getSeiralNum();
 	jsMsg["joinAmount"] = getPlayerCnt();
+	jsMsg["duration"] = m_tCreateTimeLimit.getInterval();
 	getCoreRoom()->sendRoomMsg(jsMsg, MSG_ROOM_GAME_OVER);
 	/*Json::Value jsDoClosed;
 	jsDoClosed["roomID"] = getRoomID();

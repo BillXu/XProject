@@ -47,6 +47,10 @@ public:
 		{
 			pRoom->goToState(eRoomState_GameEnd);
 		}
+
+		if (pRoom->isNotActPlayerOffLine()) {
+			setStateDuringTime(0);
+		}
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override
@@ -130,7 +134,7 @@ public:
 					jsConsumDiamond["playerUID"] = pPlayer->getUserUID();
 					jsConsumDiamond["diamond"] = Reput_Cards_Consume_Diamond;
 					jsConsumDiamond["roomID"] = getRoom()->getRoomID();
-					jsConsumDiamond["reason"] = 1;
+					jsConsumDiamond["reason"] = ROOM_REPUT_CARDS;
 					pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, jsConsumDiamond);
 					LOGFMTD("user uid = %u reput cards do comuse diamond = %u room id = %u", pPlayer->getUserUID(), Reput_Cards_Consume_Diamond, getRoom()->getRoomID());
 
@@ -193,7 +197,7 @@ public:
 					jsConsumDiamond["playerUID"] = pPlayer->getUserUID();
 					jsConsumDiamond["diamond"] = Reput_Cards_Consume_Diamond;
 					jsConsumDiamond["roomID"] = getRoom()->getRoomID();
-					jsConsumDiamond["reason"] = 1;
+					jsConsumDiamond["reason"] = ROOM_DELAY_PUT_CARDS_TIME;
 					pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, jsConsumDiamond);
 					LOGFMTD("user uid = %u delay put cards do comuse diamond = %u room id = %u", pPlayer->getUserUID(), Reput_Cards_Consume_Diamond, getRoom()->getRoomID());
 

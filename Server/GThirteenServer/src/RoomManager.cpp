@@ -42,7 +42,7 @@ uint32_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoom
 		return 0;
 	}
 #ifdef _DEBUG
-	return 0;
+	//return 0;
 #endif // _DEBUG
 
 	uint8_t nAmountLevel = nLevel >> 4;
@@ -141,7 +141,7 @@ IGameRoom* RoomManager::doPlayerCreateRoom(Json::Value& prealMsg, uint32_t nDiam
 		jsConsumDiamond["playerUID"] = nUserID;
 		jsConsumDiamond["diamond"] = nDiamondNeed;
 		jsConsumDiamond["roomID"] = nRoomID;
-		jsConsumDiamond["reason"] = 1;
+		jsConsumDiamond["reason"] = ROOM_CREATE;
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Consume_Diamond, jsConsumDiamond);
 		LOGFMTD("user uid = %u agent create room do comuse diamond = %u room id = %u", nUserID, nDiamondNeed, nRoomID);
 	}

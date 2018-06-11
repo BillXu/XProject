@@ -25,6 +25,7 @@ public:
 	bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx)override;
 	bool doPlayerLeaveRoom(uint32_t nUserUID)override;
 	bool doPlayerTempLeave(uint32_t nUserUID);
+	bool doPlayerTempLeaveWhenWatch(uint32_t nUserUID);
 	void update(float fDelta)override;
 	std::shared_ptr<IGameRoomRecorder> getRoomRecorder()override;
 	bool doDeleteRoom()override;
@@ -75,6 +76,9 @@ public:
 	bool doPlayerAutoLeave();
 	bool doPlayerAutoStandUp();
 	void requestHttpRoomInfo(Json::Value& jsMsg);
+	bool isNotActPlayerOffLine();
+	float getGameEndAnimationTime() { return m_nGameEndAnimationTime; }
+	void packRoomListInfo(Json::Value& jsInfo);
 
 protected:
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;
@@ -90,4 +94,5 @@ private:
 	bool m_bIsWaiting;
 
 	uint32_t m_nMTTBaseScore;
+	float m_nGameEndAnimationTime;
 };

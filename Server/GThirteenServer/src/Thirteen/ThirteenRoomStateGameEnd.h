@@ -9,7 +9,15 @@ public:
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		getRoom()->onGameEnd();
-		setStateDuringTime(eTime_GameOver * getRoom()->getPlayerCnt() * 15);
+		auto fTime = ((ThirteenRoom*)getRoom())->getGameEndAnimationTime();
+		LOGFMTE("game end time = %f", fTime);
+		if (fTime > 0 && fTime < 60) {
+			setStateDuringTime(fTime + 0.5f);
+		}
+		else {
+			setStateDuringTime(60);
+		}
+		//setStateDuringTime(eTime_GameOver * getRoom()->getPlayerCnt() * 15);
 		//LOGFMTE("enter game end, during = %f", getStateDuring());
 		/*if (((ThirteenRoom*)getRoom())->isRoomGameOver()) {
 			setStateDuringTime(eTime_GameOver * 30);
@@ -39,13 +47,13 @@ public:
 	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override {
-		if (MSG_ROOM_THIRTEEN_CLIENT_OVER == nMsgType) {
+		/*if (MSG_ROOM_THIRTEEN_CLIENT_OVER == nMsgType) {
 			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 			if (pPlayer) {
 				setStateDuringTime(0);
 			}
 			return true;
-		}
+		}*/
 		return false;
 	}
 };

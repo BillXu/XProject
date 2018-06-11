@@ -2,6 +2,7 @@
 #include "log4z.h"
 #include "AsyncRequestQuene.h"
 #include <sys/timeb.h>
+#include <algorithm>
 void ISingleRoundRecorder::init(uint16_t nRoundIdx, uint32_t nFinish, uint32_t nReplayID)
 {
 	m_vPlayerRecorderInfo.clear();
@@ -210,7 +211,11 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 		ref.second->calculatePlayerTotalOffset(vPlayerOffset);
 	}
 
-	for (auto ref : m_mAllDragIn) {
+	std::vector<PAIR_UID_RECORD> rank_score_vec(m_mAllDragIn.begin(), m_mAllDragIn.end());
+	std::sort(rank_score_vec.begin(), rank_score_vec.end(), URSortByOutTime());
+	uint32_t nRank = 1;
+	for (auto ref : rank_score_vec) {
+		m_mAllDragIn[ref.first].nOutIdx = nRank++;
 		if (vPlayerOffset.count(ref.first)) {
 			continue;
 		}

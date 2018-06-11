@@ -58,6 +58,9 @@ void ThirteenRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["bankIdx"] = m_nBankerIdx;
 	jsRoomInfo["rotBanker"] = m_bRotBanker ? 1 : 0;
 	jsRoomInfo["baseScore"] = getBaseScore();
+	if (getDelegate()) {
+		jsRoomInfo["roomIdx"] = getDelegate()->getRoomIdx(this);
+	}
 }
 
 void ThirteenRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,uint32_t nVisitorSessionID)
@@ -126,6 +129,7 @@ void ThirteenRoom::onWillStartGame() {
 	GameRoom::onWillStartGame();
 	m_bRotBanker = false;
 	m_bShowCards = false;
+	m_nGameEndAnimationTime = 0.0f;
 	if (isMTT() && getDelegate()) {
 		m_nMTTBaseScore = getDelegate()->getBlindBaseScore();
 	}
@@ -177,6 +181,9 @@ void ThirteenRoom::onStartGame()
 */
 void ThirteenRoom::onGameEnd()
 {
+	m_nGameEndAnimationTime = 0.9f;//打枪红波浪固定增加时间
+	m_nGameEndAnimationTime += 1.5f;
+
 	auto pPlayer = getPlayerByIdx(getBankerIdx());
 	uint32_t nBankerUID = 0;
 	if (pPlayer) {
@@ -278,6 +285,9 @@ void ThirteenRoom::onGameEnd()
 	
 	//找到全垒打算分
 	if ((uint8_t)-1 != nQLDIdx) {
+		m_nGameEndAnimationTime += 5.8f;
+		m_nGameEndAnimationTime += (vActivePlayers.size() - 1) * 1.06f;
+
 		auto pWinPlayer = (ThirteenPlayer*)getPlayerByIdx(nQLDIdx);
 		uint32_t nWinCoin = 0;
 		if (pWinPlayer) {
@@ -351,6 +361,8 @@ void ThirteenRoom::onGameEnd()
 						auto nLoseTemp = nLoseCoin;
 						auto pLoser = (ThirteenPlayer*)getPlayerByIdx(loseIdx);
 						if (pLoser) {
+							m_nGameEndAnimationTime += 1.06f;
+
 							if (pWinPlayer->hasShowCards() || pLoser->hasShowCards()) {
 								nLoseTemp += GAME_SHWO_CARDS_EXTRA_SHUI * getBaseScore();
 							}
@@ -371,6 +383,7 @@ void ThirteenRoom::onGameEnd()
 	}
 
 	//最后算正常每道的输赢
+	m_nGameEndAnimationTime += vActivePlayers.size() * 0.9f * 3.0f;
 	std::map<uint8_t, std::vector<uint8_t>> vShowCards;
 	for (uint8_t nDao = DAO_HEAD; nDao < DAO_MAX; nDao++) {
 		for (uint8_t nWinIdx = 0; nWinIdx < nSeatCnt; nWinIdx++) {
@@ -498,7 +511,7 @@ void ThirteenRoom::onGameDidEnd() {
 			if (ref && ref->getChips() < getDragInNeed() && ref->haveState(eRoomPeer_WaitDragIn) == false) {
 				ref->setState(eRoomPeer_WaitDragIn);
 				getDelegate()->onPlayerWaitDragIn(ref->getUserUID());
-				if (getDelegate()->canPlayerDragIn(ref->getUserUID()) == 0) {
+				if (getDelegate()->canPlayerDragIn(ref->getUserUID()) == 0 && getDelegate()->isPlayerOffLine(ref->getUserUID()) == false) {
 					Json::Value jsMsg;
 					jsMsg["ret"] = 0;
 					jsMsg["idx"] = ref->getIdx();
@@ -684,6 +697,7 @@ bool ThirteenRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t n
 				}
 				else if (isMTT()) {
 					doPlayerStandUp(pPlayer->getUserUID());
+					return false;
 				}
 			}
 		}
@@ -758,6 +772,25 @@ bool ThirteenRoom::doPlayerLeaveRoom(uint32_t nUserUID) {
 		getDelegate()->onPlayerDoLeaved(this, nUserUID);
 	}
 
+	return true;
+}
+
+bool ThirteenRoom::doPlayerTempLeaveWhenWatch(uint32_t nUserUID) {
+	auto pPlayer = getPlayerByUID(nUserUID);
+	if (pPlayer) {
+		LOGFMTE("uid = %u is sitting down how to leave when watch in this room = %u?", nUserUID, getRoomID());
+		return false;
+	}
+
+	auto iterStand = m_vStandPlayers.find(nUserUID);
+	if (m_vStandPlayers.end() == iterStand)
+	{
+		LOGFMTE("uid = %u is not standing in this room = %u how to leave when watch?", nUserUID, getRoomID());
+		return true;
+	}
+
+	delete iterStand->second;
+	m_vStandPlayers.erase(iterStand);
 	return true;
 }
 
@@ -2052,4 +2085,32 @@ void ThirteenRoom::requestHttpRoomInfo(Json::Value& jsMsg) {
 			jsMsg[jsMsg.size()] = jsPlayer;
 		}
 	}
+}
+
+bool ThirteenRoom::isNotActPlayerOffLine() {
+	if (getDelegate()) {
+		for (auto ref : m_vPlayers) {
+			if (ref && isPlayerCanAct(ref->getIdx()) && ((ThirteenPlayer*)ref)->hasDetermined() == false && getDelegate()->isPlayerOffLine(ref->getUserUID()) == false) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
+void ThirteenRoom::packRoomListInfo(Json::Value& jsInfo) {
+	Json::Value jsPlayerInfo;
+	uint8_t nCnt = 0;
+	for (auto ref : m_vPlayers) {
+		if (ref && ref->getChips() >= getDragInNeed()) {
+			Json::Value jsPlayerDetail;
+			jsPlayerDetail["uid"] = ref->getUserUID();
+			jsPlayerDetail["chip"] = ref->getChips();
+			jsPlayerInfo[jsPlayerInfo.size()] = jsPlayerDetail;
+			nCnt++;
+		}
+	}
+	jsInfo["playerCnt"] = nCnt;
+	jsInfo["playerInfo"] = jsPlayerInfo;
 }

@@ -210,6 +210,7 @@ void ThirteenPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )
 	//jsMsg["result"] = jsArrayPlayers;
 	jsMsg["sieralNum"] = getSeiralNum();
 	jsMsg["joinAmount"] = getPlayerCnt();
+	jsMsg["duration"] = m_tCreateTimeLimit.getInterval();
 	sendRoomMsg(jsMsg, MSG_ROOM_GAME_OVER);
 }
 
@@ -290,7 +291,7 @@ void ThirteenPrivateRoom::onPreGameDidEnd(IGameRoom* pRoom) {
 				js["playerUID"] = pPlayer->getUserUID();
 				js["diamond"] = nNeedDiamond;
 				js["roomID"] = getRoomID();
-				js["reason"] = 0;
+				js["reason"] = ROOM_CREATE;
 				auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
 			}
@@ -909,7 +910,7 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 				jsConsumDiamond["playerUID"] = nUID;
 				jsConsumDiamond["diamond"] = nDiamond;
 				jsConsumDiamond["roomID"] = getRoomID();
-				jsConsumDiamond["reason"] = 1;
+				jsConsumDiamond["reason"] = ROOM_DELAY_GAME_TIME;
 				pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_Consume_Diamond, jsConsumDiamond);
 				LOGFMTD("user uid = %u delay room time do comuse diamond = %u room id = %u", nUID, nDiamond, getRoomID());
 
@@ -940,6 +941,7 @@ bool ThirteenPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPo
 			sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
 			break;
 		}
+		LOGFMTE("uid = %u, apply dismiss room id = %u, do dismiss", nUID, getRoomID());
 		if (m_nOverType == ROOM_OVER_TYPE_TIME) {
 			m_tCreateTimeLimit.setInterval(0);
 		}

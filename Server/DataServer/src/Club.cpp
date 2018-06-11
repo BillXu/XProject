@@ -198,7 +198,7 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 				Json::Value jsConsumDiamond;
 				jsConsumDiamond["playerUID"] = nUserID;
 				jsConsumDiamond["diamond"] = nDiamond;
-				jsConsumDiamond["reason"] = 1;
+				jsConsumDiamond["reason"] = 4;
 				jsConsumDiamond["clubID"] = getClubID();
 				pApp->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Consume_Diamond, jsConsumDiamond);
 				LOGFMTD("user uid = %u add member limit do comuse diamond = %u club id = %u member amount = %u", nUserID, nDiamond, getClubID(), nMemberAmount);

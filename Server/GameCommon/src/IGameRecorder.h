@@ -64,6 +64,15 @@ public:
 		uint32_t nOutIdx = 0;
 	};
 	typedef std::map<uint32_t, reDraginInfo> MAP_UID_RECORD;
+	typedef std::pair<uint32_t, reDraginInfo> PAIR_UID_RECORD;
+	struct URSortByOutTime {
+		bool operator()(const PAIR_UID_RECORD& lhs, const PAIR_UID_RECORD& rhs) {
+			if (lhs.second.tOutTime && rhs.second.tOutTime) {
+				return lhs.second.tOutTime > rhs.second.tOutTime;
+			}
+			return lhs.second.tOutTime == 0 ? true : false;
+		}
+	};
 public:
 	virtual ~IGameRoomRecorder(){}
 	virtual void init(uint32_t nSieralNum, uint32_t nRoomID,uint32_t nRoomType,uint32_t nCreaterUID, Json::Value& jsOpts );

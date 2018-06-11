@@ -8,4 +8,5 @@ struct stEnterRoomData
 	uint32_t nDiamond;
 	uint32_t nCurInRoomID;
 	uint32_t nClubID = 0;
+	uint32_t nRoomIdx = -1;
 };

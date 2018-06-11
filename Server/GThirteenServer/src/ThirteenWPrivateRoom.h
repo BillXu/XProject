@@ -87,6 +87,8 @@ public:
 	void onMTTPlayerCostPreScore(IGamePlayer* pPlayer)override;
 	bool isPlayerDragIn(uint32_t nUserID);
 	void sendRealTimeRecord(uint32_t nSessionID = 0)override;
+	bool isPlayerOffLine(uint32_t nUserUID)override;
+	uint32_t getRoomIdx(IGameRoom* pRoom)override;
 
 protected:
 	//void sendBssicRoomInfo(uint32_t nSessionID);
@@ -139,5 +141,6 @@ protected:
 	bool m_bNeedSplitRoom = false;
 
 	CTimer m_tMTTBlindRise;
+	bool m_bSendPreInMsg = false;
 	//std::shared_ptr<IGameRoomRecorder> m_ptrRoomRecorder;
 };

@@ -42,4 +42,6 @@ public:
 	virtual uint32_t getBlindPreScore() { return 0; }
 	virtual void onMTTPlayerCostPreScore(IGamePlayer* pPlayer) {}
 	virtual void packExtraRoomInfo(Json::Value& jsInfo) {}
+	virtual bool isPlayerOffLine(uint32_t nUserUID) { return false; }
+	virtual uint32_t getRoomIdx(IGameRoom* pRoom) { return 0; }
 };

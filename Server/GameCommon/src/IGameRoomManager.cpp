@@ -229,6 +229,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 			break;
 		}
 
+		uint32_t nRoomIdx = prealMsg["roomIdx"].isUInt() ? prealMsg["roomIdx"].asUInt() : -1;
 		// request enter room info 
 		Json::Value jsReq;
 		jsReq["targetUID"] = nUserID;
@@ -236,9 +237,9 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 		jsReq["sessionID"] = nSenderID;
 		jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
 		auto pAsync = getSvrApp()->getAsynReqQueue();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync,nRoomID,nSenderID, this, nUserID, pRoom](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync,nRoomID,nSenderID, this, nUserID, pRoom, nRoomIdx](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
-			if (isTimeOut)
+			if (isTimeOut || pRoom == nullptr)
 			{
 				LOGFMTE(" request time out uid = %u , can not enter room ", nUserID );
 				Json::Value jsRet;
@@ -294,6 +295,7 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 				tInfo.nSessionID = nSenderID;
 				tInfo.nDiamond = retContent["diamond"].asUInt();
 				tInfo.nChip = retContent["coin"].asInt();
+				tInfo.nRoomIdx = nRoomIdx;
 
 				nRet = pRoom->checkPlayerCanEnter(&tInfo);
 				if ( isAlreadyInThisRoom == false &&  nRet )

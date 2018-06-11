@@ -755,6 +755,10 @@ void CLeagueEvent::readEventFormDB(uint32_t nOffset) {
 
 		// not finish , go on read 
 		auto nSize = m_mAllEvents.size();
+		if (nSize > 599) {
+			doProcessAfterReadDB();
+			return;
+		}
 		readEventFormDB(nSize);
 	});
 }

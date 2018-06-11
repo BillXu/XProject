@@ -408,6 +408,7 @@ bool CClubEvent::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSend
 		uint32_t nEventID = recvValue["eventID"].isUInt() ? recvValue["eventID"].asUInt() : 0;
 		Json::Value jsResult;
 		jsResult["eventID"] = nEventID;
+		jsResult["clubID"] = getClub()->getClubID();
 		if (nPlayerID == 0) {
 			LOGFMTE("User apply treat club event error, userID is missing, sessionID = %u, clubID = %u", nSenderID, getClub()->getClubID());
 			jsResult["ret"] = 1;
@@ -854,10 +855,13 @@ void CClubEvent::autoTreatEvent(uint32_t nEventID, uint8_t nState) {
 uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nState, uint32_t nSenderID, Json::Value& recvValue) {
 	uint8_t nRet = 0;
 	auto& itEvent = m_mAllEvents.find(nEventID);
+	Json::Value jsResult;
+	jsResult["eventID"] = nEventID;
+	jsResult["clubID"] = getClub()->getClubID();
 	if (itEvent == m_mAllEvents.end()) {
 		LOGFMTE("User apply treat club event error, can not find event, eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
-		Json::Value jsResult;
-		jsResult["eventID"] = nEventID;
+		//Json::Value jsResult;
+		//jsResult["eventID"] = nEventID;
 		jsResult["ret"] = 5;
 		sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 		return 5;
@@ -865,8 +869,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 
 	if (itEvent->second.bWaiting) {
 		LOGFMTE("User apply treat club event error, event is already in treating, eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
-		Json::Value jsResult;
-		jsResult["eventID"] = nEventID;
+		//Json::Value jsResult;
+		//jsResult["eventID"] = nEventID;
 		jsResult["ret"] = 6;
 		sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 		return 6;
@@ -874,8 +878,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 
 	if (itEvent->second.nState != eClubEventState_Wait) {
 		LOGFMTE("User apply treat club event error, event is already be treated, eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
-		Json::Value jsResult;
-		jsResult["eventID"] = nEventID;
+		//Json::Value jsResult;
+		//jsResult["eventID"] = nEventID;
 		jsResult["ret"] = 6;
 		sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 		return 6;
@@ -883,8 +887,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 
 	if (getClub()->getClubMemberData()->checkUpdateLevel(nPlayerID, itEvent->second.nLevel) == false) {
 		LOGFMTE("User apply treat club event error, player level is not enough, eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
-		Json::Value jsResult;
-		jsResult["eventID"] = nEventID;
+		//Json::Value jsResult;
+		//jsResult["eventID"] = nEventID;
 		jsResult["ret"] = 7;
 		sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 		return 7;
@@ -899,8 +903,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			uint32_t nMemberUID = itEvent->second.jsDetail["uid"].asUInt();
 			if (getClub()->getClubMemberData()->addMember(nMemberUID, cName) == false) {
 				LOGFMTE("User apply treat club event error, club refused could be full? eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
-				Json::Value jsResult;
-				jsResult["eventID"] = nEventID;
+				//Json::Value jsResult;
+				//jsResult["eventID"] = nEventID;
 				jsResult["ret"] = 8;
 				sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 				return 8;
@@ -921,8 +925,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 				itEvent->second.nState = eClubEventState_Decline;
 				itEvent->second.nDisposerUID = 0;
 				m_vDirtyIDs.push_back(itEvent->first);
-				Json::Value jsResult;
-				jsResult["eventID"] = nEventID;
+				//Json::Value jsResult;
+				//jsResult["eventID"] = nEventID;
 				jsResult["ret"] = 10;
 				sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 				return 10;
@@ -964,17 +968,20 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 			itEvent->second.bWaiting = true;
 			getClub()->getClubMgr()->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(sendPort, sendTargetID, eAsync_club_agree_DragIn, jsMsg, [this, nRoomID, nSenderID, nAmount, itEvent, nPlayerID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
 				itEvent->second.bWaiting = false;
+				Json::Value jsResult;
+				jsResult["eventID"] = itEvent->first;
+				jsResult["clubID"] = getClub()->getClubID();
 				if (isTimeOut) {
-					Json::Value jsResult;
-					jsResult["eventID"] = itEvent->first;
+					//Json::Value jsResult;
+					//jsResult["eventID"] = itEvent->first;
 					jsResult["ret"] = 12;
 					sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 					return;
 				}
 
 				if (retContent["ret"].asUInt()) {
-					Json::Value jsResult;
-					jsResult["eventID"] = itEvent->first;
+					//Json::Value jsResult;
+					//jsResult["eventID"] = itEvent->first;
 					jsResult["ret"] = retContent["ret"].asUInt() == 11 ? 11 : 13;
 					sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 					return;
@@ -982,8 +989,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 
 				if (itEvent->second.nState != eClubEventState_Wait) {
 					LOGFMTE("User apply treat club event error, event is already be treated, eventID = %u, playerID = %u, clubID = %u", itEvent->second.nEventID, nPlayerID, getClub()->getClubID());
-					Json::Value jsResult;
-					jsResult["eventID"] = itEvent->second.nEventID;
+					//Json::Value jsResult;
+					//jsResult["eventID"] = itEvent->second.nEventID;
 					jsResult["ret"] = 6;
 					sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 					return;
@@ -995,8 +1002,9 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 				/*if (getClub()->getClubGameData()->isClubCreateThisRoom(nRoomID) == false) {
 				getClub()->addIntegration(-1 * (int32_t)nAmount);
 				}*/
-				Json::Value jsResult;
-				jsResult["eventID"] = itEvent->first;
+				//Json::Value jsResult;
+				//jsResult["eventID"] = itEvent->first;
+				jsResult["state"] = eClubEventState_Accede;
 				jsResult["ret"] = 0;
 				sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 				getClub()->getClubMemberData()->pushAsyncRequestToLevelNeed(ID_MSG_PORT_DATA, eAsync_club_Treat_Event_Message, jsResult, eClubMemberLevel_Admin);
@@ -1005,8 +1013,8 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 		}
 		default: {
 			LOGFMTE("User apply treat club event error, event type can not be treated, eventID = %u, playerID = %u, clubID = %u", nEventID, nPlayerID, getClub()->getClubID());
-			Json::Value jsResult;
-			jsResult["eventID"] = nEventID;
+			//Json::Value jsResult;
+			//jsResult["eventID"] = nEventID;
 			jsResult["ret"] = 9;
 			sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 			return 9;
@@ -1042,10 +1050,11 @@ uint8_t CClubEvent::treatEvent(uint32_t nEventID, uint32_t nPlayerID, uint8_t nS
 	}
 	itEvent->second.nDisposerUID = nPlayerID;
 	m_vDirtyIDs.push_back(itEvent->first);
-	Json::Value jsResult;
-	jsResult["eventID"] = nEventID;
+	//Json::Value jsResult;
+	//jsResult["eventID"] = nEventID;
 	jsResult["ret"] = 0;
 	jsResult["state"] = nState;
+	//jsResult["clubID"] = getClub()->getClubID();
 	sendMsgToClient(jsResult, MSG_CLUB_EVENT_APPLY_TREAT, nSenderID);
 	getClub()->getClubMemberData()->pushAsyncRequestToLevelNeed(ID_MSG_PORT_DATA, eAsync_club_Treat_Event_Message, jsResult, eClubMemberLevel_Admin);
 	return 0;

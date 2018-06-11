@@ -659,6 +659,9 @@ MSG_ROOM_SZ_GAME_OVER, // 苏州麻将结束
 	// svr : {aliveCnt : 0}
 	// no reply
 
+	MSG_ROOM_THIRTEEN_MTT_REQUEST_ROOM_LIST, //十三水比赛场请求观战房间列表
+	// svr : {ret : 0, roomInfo : { { idx : 0, playerCnt : 4, playerInfo : { {uid : 123, chip : 100},... } },... }}
+
 	MSG_ROOM_THIRTEEN_END = 2300, //13水命令号结束标记
 
 
