@@ -19,7 +19,13 @@ public:
 			auto pPlayer = (GoldenPlayer*)pRoom->getPlayerByIdx(m_nCurMoveIdx);
 			if (pRoom->onWaitPlayerAct(m_nCurMoveIdx, m_isCanPass)) {
 				//setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_GoldenChoseAct);
-				setStateDuringTime(eTime_GoldenChoseAct);
+				auto nTime = pRoom->getWaitActTime();
+				if (nTime) {
+					setStateDuringTime(nTime);
+				}
+				else {
+					setStateDuringTime(eTime_GoldenChoseAct);
+				}
 			}
 			else {
 				if (pPlayer->isTrustee() == false) {

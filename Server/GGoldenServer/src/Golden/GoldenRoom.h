@@ -43,6 +43,7 @@ public:
 	uint8_t getNextMoveIdx(uint8_t nIdx);
 	uint8_t getMustMenCircle();
 	uint8_t getCanPKCircle();
+	uint16_t getWaitActTime();
 
 	bool isEnable235();
 	bool isEnableStraight();

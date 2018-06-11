@@ -1013,6 +1013,10 @@ uint8_t GoldenRoom::getPKTimes() {
 	return nTimes;
 }
 
+uint16_t GoldenRoom::getWaitActTime() {
+	return m_jsOpts["waitActTime"].isUInt() ? m_jsOpts["waitActTime"].asUInt() : 0;
+}
+
 uint16_t GoldenRoom::getCallCoin() {
 	if (m_nCurMutiple < sizeof(m_aCallScore) / sizeof(uint16_t)) {
 		return m_aCallScore[m_nCurMutiple];
