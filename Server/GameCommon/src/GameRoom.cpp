@@ -62,6 +62,11 @@ void GameRoom::setDelegate(IGameRoomDelegate* pDelegate)
 
 uint8_t GameRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
+	if ( getPlayerByUID(pEnterRoomPlayer->nUserUID) )
+	{
+		return 0;
+	}
+
 	if (isRoomFull())
 	{
 		return 1;

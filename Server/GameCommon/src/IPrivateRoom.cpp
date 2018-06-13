@@ -130,6 +130,13 @@ uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 	//	return 7;
 	//}
 
+	auto p = m_pRoom->getPlayerByUID( pEnterRoomPlayer->nUserUID );
+	if ( p )
+	{
+		LOGFMTD( "already in this room id = %u , uid = %u , so can enter ",getRoomID(),p->getUserUID() );
+		return 0;
+	}
+
 	if ( isAAPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, getPayType()))
 	{
 		// diamond is not enough 

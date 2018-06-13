@@ -59,7 +59,7 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		}
 
 		auto p = new Club();
-		p->init(this,generateClubID(), prealMsg["name"].asString(), prealMsg["opts"], 200, 8 );
+		p->init(this,generateClubID(), prealMsg["name"].asString(), prealMsg["opts"], 1000, 8 );
 		p->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
 		m_vClubs[p->getClubID()] = p;
 
@@ -317,7 +317,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 			Json::Reader jsr;
 			Json::Value jsOpts;
 			jsr.parse(jsRow["opts"].asString(), jsOpts );
-			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 200, 8,jsRow["state"].asUInt(),jsRow["diamond"].asUInt(),jsRow["notice"].asString());
+			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(),jsRow["diamond"].asUInt(),jsRow["notice"].asString());
 			m_vClubs[p->getClubID()] = p;
 		}
 
