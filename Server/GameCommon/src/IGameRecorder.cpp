@@ -1,7 +1,6 @@
 #include "IGameRecorder.h"
 #include "log4z.h"
 #include "AsyncRequestQuene.h"
-#include <sys/timeb.h>
 #include <algorithm>
 void ISingleRoundRecorder::init(uint16_t nRoundIdx, uint32_t nFinish, uint32_t nReplayID)
 {
@@ -261,9 +260,7 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 
 void IGameRoomRecorder::onMTTPlayerOut(uint32_t nUserID, uint32_t& tOutTime, uint32_t nOutIdx) {
 	if (m_mAllDragIn.count(nUserID)) {
-		timeb t;
-		ftime(&t);
-		tOutTime = (t.time * 1000 + t.millitm) % 100000000;
+		tOutTime = getMTTOutTime();
 		m_mAllDragIn[nUserID].tOutTime = tOutTime;
 		m_mAllDragIn[nUserID].nOutIdx = nOutIdx;
 	}

@@ -91,6 +91,7 @@ public:
 	void addDragIn(uint32_t nUserID, uint32_t nAmount, uint32_t nClubID);
 	void onMTTPlayerOut(uint32_t nUserID, uint32_t& tOutTime, uint32_t nOutIdx);
 	void getPlayerSingleRecorder(uint32_t nUserID, std::vector<std::shared_ptr<ISingleRoundRecorder>>& vRecorder);
+	uint32_t getMTTOutTime() { return ++m_nMTTOutTime; }
 protected:
 	uint32_t m_nRoomID;
 	uint32_t m_nRoomType;
@@ -106,4 +107,6 @@ protected:
 	std::map<uint16_t, std::shared_ptr<ISingleRoundRecorder>> m_vAllRoundRecorders;  // roundIdx : SingleRoundRecorder ;
 	MAP_UID_RECORD m_mAllDragIn;
 	std::map<uint32_t, uint32_t> m_mRotBankerPool;
+	
+	uint32_t m_nMTTOutTime = 0;
 };

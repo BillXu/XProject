@@ -1023,15 +1023,16 @@ bool ThirteenWPrivateRoom::doDeleteRoom() {
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
 
-	for (auto& ref : m_mStayPlayers) {
-		jsReqInfo["targetUID"] = ref.second->nUserUID;
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_player_DragInRoom_Closed, jsReqInfo);
-	}
-
 	for (auto& ref : m_vPRooms) {
 		Json::Value jsMsg;
 		ref->sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_LEAVE);
+		((ThirteenRoom*)ref)->clearRoom();
 		ref->doDeleteRoom();
+	}
+
+	for (auto& ref : m_mStayPlayers) {
+		jsReqInfo["targetUID"] = ref.second->nUserUID;
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref.second->nUserUID, eAsync_player_DragInRoom_Closed, jsReqInfo);
 	}
 
 	if (m_nLeagueID) {
@@ -1180,6 +1181,20 @@ void ThirteenWPrivateRoom::update(float fDelta) {
 				}
 				else {
 					m_bNeedSplitRoom = false;
+				}
+			}
+		}
+
+		for (auto ref : vWait) {
+			if (ref->nSessionID && (uint32_t)-1 == ref->nCurInIdx) {
+				stEnterRoomData ste;
+				ste.nSessionID = ref->nSessionID;
+				ste.nChip = ref->nChip;
+				ste.nUserUID = ref->nUserUID;
+				ste.nDiamond = 0;
+				ste.nCurInRoomID = 0;
+				if (enterRoomToWatch(&ste)) {
+					sendRoomInfo(ref->nSessionID);
 				}
 			}
 		}

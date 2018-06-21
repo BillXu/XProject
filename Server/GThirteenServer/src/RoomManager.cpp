@@ -45,6 +45,10 @@ uint32_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoom
 	//return 0;
 #endif // _DEBUG
 
+	if (ePayType_Thirteen_MTT == payType) {
+		return 200;
+	}
+
 	uint8_t nAmountLevel = nLevel >> 4;
 	uint8_t nTypeLevel = nLevel << 4;
 	nTypeLevel = nTypeLevel >> 4;
@@ -221,7 +225,7 @@ void RoomManager::onPlayerCreateRoom(Json::Value& prealMsg, uint32_t nSenderID) 
 				}
 
 			}
-			isRoomOwnerPay = (nPayType == ePayType_RoomOwner);
+			isRoomOwnerPay = (nPayType == ePayType_RoomOwner || nPayType == ePayType_Thirteen_MTT);
 #ifndef _DEBUG
 			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
 			{

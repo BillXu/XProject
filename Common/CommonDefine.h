@@ -41,6 +41,7 @@ enum ePayRoomCardType
 	ePayType_RoomOwner = ePayType_None,
 	ePayType_AA,
 	ePayType_Winer,
+	ePayType_Thirteen_MTT,
 	ePayType_Max,
 };
 

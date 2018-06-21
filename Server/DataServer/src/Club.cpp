@@ -79,7 +79,9 @@ bool CClub::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort eSenderPor
 		return true;
 	}
 	if (MSG_CLUB_APPLY_CLUB_INFO == nmsgType) {
+		uint32_t nUserID = recvValue["uid"].isUInt() ? recvValue["uid"].asUInt() : 0;
 		Json::Value jsInfo;
+		jsInfo["state"] = getClubMemberData()->getMemberLevel(nUserID);
 		jsInfo["clubID"] = m_stBaseData.nClubID;
 		jsInfo["name"] = m_stBaseData.cName;
 		jsInfo["creator"] = m_stBaseData.nCreatorUID;
