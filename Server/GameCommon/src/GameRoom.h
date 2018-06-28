@@ -15,6 +15,7 @@ public:
 	{
 		uint32_t nUserUID;
 		uint32_t nSessionID;
+		int32_t nChips;
 	};
 public:
 	~GameRoom();

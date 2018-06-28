@@ -67,6 +67,12 @@ uint8_t GameRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 		return 0;
 	}
 
+	if ( getStandPlayerByUID(pEnterRoomPlayer->nUserUID) )
+	{
+		LOGFMTW( "uid = %u should not enter room again", pEnterRoomPlayer->nUserUID );
+		return 0;
+	}
+
 	if (isRoomFull())
 	{
 		return 1;
@@ -91,12 +97,13 @@ bool GameRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 		auto p = new stStandPlayer();
 		p->nSessionID = pEnterRoomPlayer->nSessionID;
 		p->nUserUID = pEnterRoomPlayer->nUserUID;
+		p->nChips = pEnterRoomPlayer->nChip;
 		m_vStandPlayers[p->nUserUID] = p;
 		LOGFMTD("room id = %u , player uid = %u enter room chip = %u",getRoomID(),p->nUserUID,pEnterRoomPlayer->nChip );
 	}
 	else
 	{
-		LOGFMTE("room id = %u uid = %u already in this room why enter again ?",getRoomID(),pEnterRoomPlayer->nUserUID);
+		LOGFMTE("room id = %u uid = %u already in this room why enter again ? chipRoom = %d , chipOut = %d",getRoomID(),pEnterRoomPlayer->nUserUID,iterStand->second->nChips,pEnterRoomPlayer->nChip );
 		iterStand->second->nSessionID = pEnterRoomPlayer->nSessionID;
 	}
 	//sendRoomInfo(pEnterRoomPlayer->nSessionID);
@@ -330,6 +337,7 @@ bool GameRoom::doPlayerStandUp( uint32_t nUserUID )
 	auto pS = new stStandPlayer();
 	pS->nSessionID = pPlayer->getSessionID();
 	pS->nUserUID = nUserUID;
+	pS->nChips = pPlayer->getChips();
 	m_vStandPlayers[pS->nUserUID] = pS;
 
 	// do delete player ;
@@ -359,12 +367,13 @@ bool GameRoom::doPlayerLeaveRoom(uint32_t nUserUID)
 		return false;
 	}
 
-	delete iterStand->second;
-	m_vStandPlayers.erase(iterStand);
 	if (getDelegate())
 	{
-		getDelegate()->onPlayerDoLeaved(this,nUserUID );
+		getDelegate()->onPlayerDoLeaved(this, nUserUID);
 	}
+
+	delete iterStand->second;
+	m_vStandPlayers.erase(iterStand);
 
 	// tell data svr player leave ;
 	Json::Value jsReqLeave;
@@ -474,64 +483,20 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 			Json::Value jsRet;
 			jsRet["ret"] = nRet;
 			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			LOGFMTE( "uid = %u sitdown error ret = %u",pStand->nUserUID,nRet );
 			break;
 		}
 
-		// go on  
-		Json::Value jsReq;
-		jsReq["targetUID"] = pStand->nUserUID;
-		jsReq["roomID"] = getRoomID();
-		jsReq["sessionID"] = nSessionID;
-		jsReq["port"] = getRoomMgr()->getSvrApp()->getLocalSvrMsgPortType();
-		auto pAsync = getRoomMgr()->getSvrApp()->getAsynReqQueue();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pStand->nUserUID, eAsync_Request_EnterRoomInfo, jsReq, [nSessionID,this, nIdx](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
-		{
-			if (isTimeOut)
-			{
-				LOGFMTE("request time out uid = %u , already in other room id = %u , not in this room id = %u", retContent["uid"].asUInt(), 0, getRoomID());
-				Json::Value jsRet;
-				jsRet["ret"] = 2;
-				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
-				return;
-			}
-			auto nRet = retContent["ret"].asUInt();
-			if ( 1 == nRet )
-			{
-			 
-				Json::Value jsRet;
-				jsRet["ret"] = 2;
-				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
-				return;
-			}
+		stEnterRoomData tInfo;
+		tInfo.nUserUID = pStand->nUserUID;
+		tInfo.nSessionID = nSessionID;
+		tInfo.nDiamond = 0;
+		tInfo.nChip = pStand->nChips;
+		auto nDret = doPlayerSitDown(&tInfo, nIdx) ? 0 : 6;
 
-			if (nRet)
-			{
-				Json::Value jsRet;
-				jsRet["ret"] = 5;
-				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
-				return;
-			}
-
-			auto pPlayer = getPlayerByIdx(nIdx);
-			if (pPlayer)
-			{
-				Json::Value jsRet;
-				jsRet["ret"] = 1;
-				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
-				return;
-			}
-
-			stEnterRoomData tInfo;
-			tInfo.nUserUID = retContent["uid"].asUInt();
-			tInfo.nSessionID = nSessionID;
-			tInfo.nDiamond = retContent["diamond"].asUInt();
-			tInfo.nChip = retContent["coin"].asUInt();
-			doPlayerSitDown(&tInfo, nIdx);
-
-			Json::Value jsRet;
-			jsRet["ret"] = 0;
-			sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
-		}, pStand->nUserUID);
+		Json::Value jsRet;
+		jsRet["ret"] = nDret;
+		sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
 	}
 	break;
 	case MSG_PLAYER_STAND_UP:

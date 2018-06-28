@@ -19,6 +19,7 @@ public:
 		m_isOnline = true;
 		m_nState = 0;
 		m_nCurOffset = 0;
+		m_nChips = pEnterPlayer->nChip;
 		setState(eRoomPeer_WaitNextGame);
 	}
 
