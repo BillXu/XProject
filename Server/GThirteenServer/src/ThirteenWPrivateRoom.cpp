@@ -452,10 +452,12 @@ bool ThirteenWPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 				continue;
 			}
 			Json::Value jsDetail;
+			jsDetail["idx"] = i;
 			ref->packRoomListInfo(jsDetail);
 			jsRoomInfo[jsRoomInfo.size()] = jsDetail;
 		}
 		jsMsg["roomInfo"] = jsRoomInfo;
+		jsMsg["roomID"] = getRoomID();
 		sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
 	}
 	break;
@@ -1152,12 +1154,15 @@ void ThirteenWPrivateRoom::update(float fDelta) {
 		auto stg = (stwStayPlayer*)ref.second;
 		if (stg->bLeaved && stg->isDragIn && stg->nChip > 0) {
 			if (setCoreRoomByUserID(stg->nUserUID)) {
-				if (((ThirteenRoom*)getCoreRoom())->doPlayerTempLeaveWhenWatch(stg->nUserUID)) {
+				if (getCoreRoom()->getPlayerByUID(stg->nUserUID)) {
+					continue;
+				}
+				/*if (((ThirteenRoom*)getCoreRoom())->doPlayerTempLeaveWhenWatch(stg->nUserUID)) {
 					stg->nCurInIdx = -1;
 				}
 				else {
 					continue;
-				}
+				}*/
 			}
 			vWait.push_back(stg);
 		}
@@ -1323,9 +1328,9 @@ bool ThirteenWPrivateRoom::setCoreRoomByUserID(uint32_t nUserID) {
 
 bool ThirteenWPrivateRoom::dispatcherPlayers(std::vector<stwStayPlayer*>& vWait) {
 	auto funDispatcher = [this](std::vector<stwStayPlayer*>& vTemp) {
-		auto pRoom = findWaitingRoom();
+		auto pRoom = (ThirteenRoom*)findWaitingRoom();
 		if (pRoom == nullptr) {
-			pRoom = doCreatRealRoom();
+			pRoom = (ThirteenRoom*)doCreatRealRoom();
 			if (!pRoom)
 			{
 				LOGFMTE("create private room error ");
@@ -1338,18 +1343,22 @@ bool ThirteenWPrivateRoom::dispatcherPlayers(std::vector<stwStayPlayer*>& vWait)
 				LOGFMTE("init private room error ");
 				return false;
 			}
-			((ThirteenRoom*)pRoom)->signIsWaiting();
+			pRoom->signIsWaiting();
 			pRoom->setDelegate(this);
 			m_vPRooms.push_back(pRoom);
 		}
-		m_pRoom = pRoom;
 		uint8_t nSeatIdx = 0;
 		for (auto& ref : vTemp) {
+			if (setCoreRoomByUserID(ref->nUserUID)) {
+				((ThirteenRoom*)getCoreRoom())->doPlayerTempLeaveWhenWatch(ref->nUserUID);
+				ref->nCurInIdx = -1;
+			}
 			stEnterRoomData strd;
 			strd.nChip = ref->nChip;
 			strd.nSessionID = ref->nSessionID;
 			strd.nUserUID = ref->nUserUID;
 			if (pRoom->onPlayerEnter(&strd) && pRoom->doPlayerSitDown(&strd, nSeatIdx)) {
+				m_pRoom = pRoom;
 				sendRoomInfo(strd.nSessionID);
 				ref->isSitdown = true;
 			}
@@ -1359,7 +1368,7 @@ bool ThirteenWPrivateRoom::dispatcherPlayers(std::vector<stwStayPlayer*>& vWait)
 			}
 			nSeatIdx++;
 		}
-		((ThirteenRoom*)m_pRoom)->clearIsWaiting();
+		pRoom->clearIsWaiting();
 		return true;
 	};
 
@@ -1419,6 +1428,11 @@ void ThirteenWPrivateRoom::dispatcherToEmptyPlace(std::vector<stwStayPlayer*>& v
 				continue;
 			}
 			if (vWait.size() > 2 || vWait.size() == 1) {
+				if (setCoreRoomByUserID(vWait[0]->nUserUID)) {
+					((ThirteenRoom*)getCoreRoom())->doPlayerTempLeaveWhenWatch(vWait[0]->nUserUID);
+					vWait[0]->nCurInIdx = -1;
+				}
+
 				m_pRoom = ref;
 				stEnterRoomData strd;
 				strd.nChip = vWait[0]->nChip;
@@ -1458,6 +1472,11 @@ void ThirteenWPrivateRoom::dispatcherToEmptyPlace(std::vector<stwStayPlayer*>& v
 			}
 			if (ref->getPlayerByIdx(i)) {
 				continue;
+			}
+
+			if (setCoreRoomByUserID(vWait[0]->nUserUID)) {
+				((ThirteenRoom*)getCoreRoom())->doPlayerTempLeaveWhenWatch(vWait[0]->nUserUID);
+				vWait[0]->nCurInIdx = -1;
 			}
 			m_pRoom = ref;
 			stEnterRoomData strd;

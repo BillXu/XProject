@@ -483,6 +483,7 @@ bool RoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort
 			break;
 		}
 
+		uint32_t nRoomIdx = prealMsg["roomIdx"].isUInt() ? prealMsg["roomIdx"].asUInt() : -1;
 		uint32_t nClubID = prealMsg["clubID"].isUInt() ? prealMsg["clubID"].asUInt() : 0;
 		// request enter room info 
 		Json::Value jsReq;
@@ -491,7 +492,7 @@ bool RoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort
 		jsReq["sessionID"] = nSenderID;
 		jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
 		auto pAsync = getSvrApp()->getAsynReqQueue();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync, nRoomID, nSenderID, this, nUserID, nClubID, pRoom](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync, nRoomID, nSenderID, this, nUserID, nClubID, nRoomIdx, pRoom](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
 			if (isTimeOut || nullptr == pRoom)
 			{
@@ -550,6 +551,7 @@ bool RoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort
 				tInfo.nDiamond = retContent["diamond"].asUInt();
 				tInfo.nChip = retContent["coin"].asInt();
 				tInfo.nClubID = nClubID;
+				tInfo.nRoomIdx = nRoomIdx;
 
 				nRet = pRoom->checkPlayerCanEnter(&tInfo);
 				if (isAlreadyInThisRoom == false && nRet)
