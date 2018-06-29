@@ -105,6 +105,7 @@
     <ClInclude Include="src\NiuNiu\NNRoomStateLRBRobotBanker.h" />
     <ClInclude Include="src\NiuNiu\NNRoomStateLRBStartGame.h" />
     <ClInclude Include="src\NiuNiu\NNRoomStateStartGame.h" />
+    <ClInclude Include="src\NiuNiu\NNRoomStateStartGameNoNiuLeaveBanker.h" />
     <ClInclude Include="src\NiuNiu\NNRoomStateWaitReady.h" />
     <ClInclude Include="src\PokerServer.h" />
     <ClInclude Include="src\NNPrivateRoom.h" />

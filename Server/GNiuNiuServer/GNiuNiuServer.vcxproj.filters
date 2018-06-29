@@ -105,5 +105,8 @@
     <ClInclude Include="src\NiuNiu\NiuNiuPlayerRecorder.h">
       <Filter>src\NiuNiu</Filter>
     </ClInclude>
+    <ClInclude Include="src\NiuNiu\NNRoomStateStartGameNoNiuLeaveBanker.h">
+      <Filter>src\NiuNiu\state</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

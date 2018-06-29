@@ -13,6 +13,7 @@
 #include "NiuNiu\NNRoomStateLRBDistributeFristCard.h"
 #include "NiuNiu\NNRoomStateLRBDistributeFinalCard.h"
 #include "NiuNiu\NiuNiuPlayerRecorder.h"
+#include "NiuNiu\NNRoomStateStartGameNoNiuLeaveBanker.h"
 #include "IGameRoomDelegate.h"
 bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
@@ -34,14 +35,26 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 	addRoomState(pState);
 	if ( eDecideBank_LookCardThenRobot != m_eDecideBankerType )
 	{
-		pState = new NNRoomStateStartGame();
-		addRoomState(pState);
-
 		pState = new NNRoomStateDistributeCard();
 		addRoomState(pState);
 
-		pState = new NNRoomStateDecideBanker();
-		addRoomState(pState);
+		if ( eDecideBank_NoNiuLeaveBanker == m_eDecideBankerType )
+		{
+			pState = new NNRoomStateStartGameNoNiuLeaveBanker();
+			addRoomState(pState);
+
+			pState = new NNRoomStateLRBRobotBanker();
+			addRoomState(pState);
+		}
+		else
+		{
+			pState = new NNRoomStateStartGame();
+			addRoomState(pState);
+
+			pState = new NNRoomStateDecideBanker();
+			addRoomState(pState);
+		}
+
 	}
 	else
 	{
@@ -208,6 +221,11 @@ void NNRoom::onGameEnd()
 	jsMsg["result"] = jsResult;
 	sendRoomMsg(jsMsg, MSG_ROOM_NIUNIU_GAME_END );
 
+	if ( eDecideBank_NoNiuLeaveBanker == m_eDecideBankerType && pBanker )
+	{
+		m_nBankerIdx = pBanker->getPlayerCard()->getType() == CNiuNiuPeerCard::Niu_None ? -1 : m_nBankerIdx;
+	}
+
 	GameRoom::onGameEnd();
 }
 
@@ -326,6 +344,7 @@ uint8_t NNRoom::doProduceNewBanker()
 
 	}
 	break;
+	case eDecideBank_NoNiuLeaveBanker:
 	case eDecideBank_LookCardThenRobot:
 	{
 		auto nSeatCnt = getSeatCnt();
@@ -399,7 +418,7 @@ uint8_t NNRoom::doProduceNewBanker()
 		}
 	}
 	
-	if ( m_eDecideBankerType != eDecideBank_LookCardThenRobot || m_nBankerIdx == (decltype(m_nBankerIdx))-1 )
+	if ( ( m_eDecideBankerType != eDecideBank_LookCardThenRobot && m_eDecideBankerType != eDecideBank_NoNiuLeaveBanker ) || m_nBankerIdx == (decltype(m_nBankerIdx))-1 )
 	{
 		m_nBankerIdx = vCandinates[rand() % vCandinates.size()];
 	}
