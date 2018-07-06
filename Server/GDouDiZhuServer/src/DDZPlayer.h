@@ -11,8 +11,6 @@ public:
 	DDZPlayerCard* getPlayerCard();
 	bool isMingPai();
 	void doMingPai();
-	bool isTuoGuan();
-	void setTuoGuanFlag( uint8_t isTuoGuan );
 	void doChaoZhuang();
 	bool isChaoZhuang();
 	void doTiLaChuai();

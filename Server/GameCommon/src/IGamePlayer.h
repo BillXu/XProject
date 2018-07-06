@@ -84,6 +84,23 @@ public:
 		return m_nState;
 	}
 
+	bool isTuoGuan()
+	{
+		return haveState(eRoomPeer_SysAutoAct);
+	}
+
+	void setTuoGuanFlag(uint8_t isTuoGuan)
+	{
+		if (isTuoGuan)
+		{
+			addState(eRoomPeer_SysAutoAct);
+		}
+		else
+		{
+			clearState(eRoomPeer_SysAutoAct);
+		}
+	}
+
 	virtual void onGameWillStart(){ m_nCurOffset = 0; };
 	virtual void onGameStart()
 	{
