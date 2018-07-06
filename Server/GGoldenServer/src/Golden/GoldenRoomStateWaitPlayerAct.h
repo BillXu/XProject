@@ -24,7 +24,8 @@ public:
 					setStateDuringTime(nTime);
 				}
 				else {
-					setStateDuringTime(eTime_GoldenChoseAct);
+					setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_GoldenChoseAct);
+					//setStateDuringTime(eTime_GoldenChoseAct);
 				}
 			}
 			else {
