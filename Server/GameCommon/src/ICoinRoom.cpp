@@ -27,12 +27,19 @@ bool ICoinRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nR
 		return false;
 	}
 	m_pRoom->setDelegate(this);
+	m_vDelayStandUp.clear();
+	m_vDelayLeave.clear();
 	return true;
 }
 
 uint8_t ICoinRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-
+	if (pEnterRoomPlayer->nChip > getEnterLimitTop() || pEnterRoomPlayer->nChip < getEnterLimitLow())
+	{
+		LOGFMTE( "room id = %u , out of limit chip uid = %u",getRoomID(),pEnterRoomPlayer->nUserUID );
+		return 1;
+	}
+	return m_pRoom->checkPlayerCanEnter(pEnterRoomPlayer);
 }
 
 bool ICoinRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
@@ -90,11 +97,12 @@ bool ICoinRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSender
 	case MSG_PLAYER_STAND_UP:
 	case MSG_PLAYER_LEAVE_ROOM:
 	{
-		LOGFMTE( "wait to write code here , do not forget" );
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
-		if ( pp ) // if game start , and you are sit down , you can not direct leave , if you not sit down , you can leave 
+		if ( pp && (pp->haveState(eRoomPeer_WaitNextGame) == false) ) // if game start , and you are sit down , you can not direct leave , if you not sit down , you can leave 
 		{
 			LOGFMTE("why you leave room ? already start can not leave , just apply dissmiss room id = %u , sessionID = %u", getRoomID(), nSessionID);
+			decltype(m_vDelayLeave)& vDelay = MSG_PLAYER_STAND_UP == nMsgType ? m_vDelayStandUp : m_vDelayLeave;
+			vDelay.insert(pp->getUserUID());
 			return true;
 		}
 		else
@@ -184,7 +192,19 @@ void ICoinRoom::sendRoomInfo(uint32_t nSessionID)
 
 bool ICoinRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
 {
+	auto pp = m_pRoom->getPlayerByUID(nPlayerID);
+	if ( ( eNet_Offline == nState || eNet_WaitReconnect == nState ) && isDuringGame() && pp )
+	{
+		pp->setTuoGuanFlag(true);
 
+		if ( eNet_Offline == nState )
+		{
+			LOGFMTE("player uid = %u do offline , but can not let sit down player leave room , room is started room id = %u", nPlayerID, getRoomID());
+			m_vDelayLeave.insert(pp->getUserUID());
+			return true;
+		}
+	}
+	return m_pRoom->onPlayerNetStateRefreshed(nPlayerID, nState);
 }
 
 bool ICoinRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)
@@ -224,17 +244,29 @@ uint16_t ICoinRoom::getSeatCnt()
 // delegate interface 
 void ICoinRoom::onStartGame(IGameRoom* pRoom)
 {
-
+	// kou shui 
 }
 
 bool ICoinRoom::canStartGame(IGameRoom* pRoom)
 {
-	
+	return true;
 }
 
 void ICoinRoom::onGameDidEnd(IGameRoom* pRoom)
 {
+	 // delay stand up ;
+	for (auto& ref : m_vDelayStandUp)
+	{
+		getCoreRoom()->doPlayerStandUp(ref);
+	}
+	m_vDelayStandUp.clear();
 
+	// delay leave 
+	for (auto& ref : m_vDelayLeave)
+	{
+		getCoreRoom()->doPlayerLeaveRoom(ref);
+	}
+	m_vDelayLeave.clear();
 }
 
 void ICoinRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)

@@ -290,9 +290,9 @@ enum eRoomPeerState
 	eRoomPeer_Looked = (1 << 13) | eRoomPeer_CanAct,
 	eRoomPeer_PK_Failed = (1 << 14) | eRoomPeer_StayThisRound,
 	eRoomPeer_ShowedHoldCard = ( 1 << 16 ),
-	eRoomPeer_SysAutoAct = ( 1 << 18), // 托管状态
+	eRoomPeer_SysAutoAct = (( 1 << 18) | eRoomPeer_CanAct), // 托管状态
 	eRoomPeer_AlreadyHu = ((1 << 15) | eRoomPeer_CanAct),  //  已经胡牌的状态
-	eRoomPeer_DelayLeave = (1 << 17),  //  牌局结束后才离开
+	eRoomPeer_DelayLeave = ((1 << 17) | eRoomPeer_CanAct),  //  牌局结束后才离开
 	eRoomPeer_TiLaChuai = (1 << 19),  //  提拉踹
 	eRoomPeer_Max,
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include "GameRoom.h"
 #include "IGameRoomDelegate.h"
+#include <set>
 class ICoinRoom
 	:public IGameRoom
 	, public IGameRoomDelegate
@@ -37,6 +38,13 @@ public:
 	bool canStartGame(IGameRoom* pRoom)override;
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
+protected:
+	uint32_t getEnterLimitLow();
+	uint32_t getEnterLimitTop();
+	bool isDuringGame();
+	uint32_t getDeskFee();
 private:
 	GameRoom* m_pRoom;
+	std::set<uint32_t> m_vDelayStandUp;
+	std::set<uint32_t> m_vDelayLeave;
 };
