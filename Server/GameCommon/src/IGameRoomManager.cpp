@@ -190,7 +190,7 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		auto nDiamondNeed = 0;
 		if ( nPayType == ePayType_RoomOwner && false == isCreateRoomFree() )
 		{
-			nDiamondNeed = getDiamondNeed(nRoomType, nLevel, (ePayRoomCardType)nPayType);
+			nDiamondNeed = getDiamondNeed(nRoomType, nLevel, (ePayRoomCardType)nPayType,jsReqContent["seatCnt"].asUInt());
 		}
 
 		if ( nClubDiamond < nDiamondNeed)
@@ -634,7 +634,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			}
 #endif // _DEBUG
 
-			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel, (ePayRoomCardType)nPayType );
+			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel, (ePayRoomCardType)nPayType,jsUserData["seatCnt"].asUInt() );
 			if ( nDiamond < nDiamondNeed )
 			{
 				nRet = 1;

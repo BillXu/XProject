@@ -10,7 +10,7 @@ IGameRoom* RoomManager::createRoom(uint8_t nGameType)
 	return nullptr;
 }
 
-uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel,ePayRoomCardType payType)
+uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel,ePayRoomCardType payType, uint16_t nSeatCnt)
 {
 	if (isCreateRoomFree())
 	{
@@ -33,7 +33,13 @@ uint8_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel,ePayRoomCa
 		return vAA[nLevel] * 10;
 	}
 
+	if ( nSeatCnt == 8 )
+	{
+		// 6,1 . 12.2 , 18. 3
+		uint8_t vFangZhu[] = { 4 , 8 , 16 };
+		return vFangZhu[nLevel] * 10;
+	}
 	// 6,1 . 12.2 , 18. 3
-	uint8_t vFangZhu[] = { 6 , 12 , 18 };
-	return vFangZhu[nLevel] * 10 * 0.5;
+	uint8_t vFangZhu[] = { 3 , 6 , 9 };
+	return vFangZhu[nLevel] * 10;
 }

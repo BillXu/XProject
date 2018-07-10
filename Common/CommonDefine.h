@@ -234,7 +234,7 @@ enum eTime
 {
 	eTime_WaitPlayerReady = 15,
 	eTime_WaitRobotBanker = 5,
-	eTime_ExeGameStart = 2,			// 执行游戏开始 的时间
+	eTime_ExeGameStart = 1,			// 执行游戏开始 的时间
 	eTime_WaitChoseExchangeCard = 5, //  等待玩家选择换牌的时间
 	eTime_DoExchangeCard = 3, //   执行换牌的时间
 	eTime_WaitDecideQue = 10, // 等待玩家定缺

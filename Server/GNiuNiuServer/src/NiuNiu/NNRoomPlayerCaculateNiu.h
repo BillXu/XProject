@@ -52,7 +52,7 @@ public:
 	{
 		IGameRoomState::update(fDeta);
 		auto pRoom = (NNRoom*)getRoom();
-		if (false == m_isCheckTuoGuan)
+		//if (false == m_isCheckTuoGuan)
 		{
 			m_isCheckTuoGuan = true;
 			pRoom->invokerTuoGuanAction();

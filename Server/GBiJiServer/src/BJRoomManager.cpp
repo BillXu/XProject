@@ -10,7 +10,7 @@ IGameRoom* BJRoomManager::createRoom(uint8_t nGameType)
 	return nullptr;
 }
 
-uint8_t BJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType )
+uint8_t BJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType, uint16_t nSeatCnt)
 {
 	if (isCreateRoomFree())
 	{

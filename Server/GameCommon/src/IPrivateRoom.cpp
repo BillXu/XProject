@@ -487,7 +487,7 @@ uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType 
 		LOGFMTE("room is null , can not return diamond need");
 		return -1;
 	}
-	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, nPayType );
+	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, nPayType,getSeatCnt() );
 }
 
 void IPrivateRoom::sendRoomPlayersInfo(uint32_t nSessionID)

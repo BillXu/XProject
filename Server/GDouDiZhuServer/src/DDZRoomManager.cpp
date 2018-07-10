@@ -10,7 +10,7 @@ IGameRoom* DDZRoomManager::createRoom(uint8_t nGameType)
 	return nullptr;
 }
 
-uint8_t DDZRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType )
+uint8_t DDZRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType, uint16_t nSeatCnt )
 {
 //#ifdef _DEBUG
 //	return 0;
