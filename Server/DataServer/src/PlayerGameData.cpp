@@ -108,6 +108,17 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		jsResult["ret"] = isUserIDInWhiteList(nCheckUID) ? 0 : 1;
 	}
 	break;
+	case eAsync_SyncPlayerGameInfo:
+	{
+		auto nCoin = jsReqContent["coin"].asInt();
+		LOGFMTD( "uid = %u sync game info coin = %d",nCoin );
+		if ( nCoin < 0 )
+		{
+			nCoin = 0;
+		}
+		getPlayer()->getBaseData()->setCoin(nCoin);
+	}
+	break;
 	default:
 		return false;
 	}

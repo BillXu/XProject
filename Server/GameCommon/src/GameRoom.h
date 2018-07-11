@@ -63,13 +63,13 @@ public:
 	void setInitState( IGameRoomState* pTargetState );
 	virtual IPoker* getPoker() = 0;
 	stStandPlayer* getStandPlayerBySessionID(uint32_t nSessinID);
+	stStandPlayer* getStandPlayerByUID(uint32_t nUserID);
 	uint16_t getPlayerCnt()override;
 	void setTempID(uint32_t nTempID) { m_nTempID = nTempID; }
 	uint32_t getTempID() { return m_nTempID; }
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();
-	stStandPlayer* getStandPlayerByUID( uint32_t nUserID );
 	virtual std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr();
 public:
 	bool addReplayFrame( uint32_t nFrameType , Json::Value& jsFrameArg );

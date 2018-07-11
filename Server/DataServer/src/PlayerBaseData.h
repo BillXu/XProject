@@ -33,6 +33,7 @@ public:
 	double getGPS_W() { return m_stBaseData.dfW; }
 	void onLeaveClub( uint32_t nClubID );
 	void onJoinClub( uint32_t nClubID );
+	void setCoin(uint32_t nCoin);
 private:
 	stServerBaseData m_stBaseData ;
 	bool m_bMoneyDataDirty;

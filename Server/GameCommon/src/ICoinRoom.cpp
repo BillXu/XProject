@@ -29,12 +29,16 @@ bool ICoinRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nR
 	m_pRoom->setDelegate(this);
 	m_vDelayStandUp.clear();
 	m_vDelayLeave.clear();
+
+	m_nEnterLimitLow = vJsOpts["enterLimitLow"].asInt();
+	m_nEnterLimitTop = vJsOpts["enterLimitTop"].asInt();
+	m_nDeskFee = vJsOpts["deskFee"].asInt();
 	return true;
 }
 
 uint8_t ICoinRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-	if (pEnterRoomPlayer->nChip > getEnterLimitTop() || pEnterRoomPlayer->nChip < getEnterLimitLow())
+	if ( ( pEnterRoomPlayer->nChip > getEnterLimitTop() && getEnterLimitTop() != 0 ) || ( getEnterLimitLow() != 0 && pEnterRoomPlayer->nChip < getEnterLimitLow()) )
 	{
 		LOGFMTE( "room id = %u , out of limit chip uid = %u",getRoomID(),pEnterRoomPlayer->nUserUID );
 		return 1;
@@ -245,6 +249,16 @@ uint16_t ICoinRoom::getSeatCnt()
 void ICoinRoom::onStartGame(IGameRoom* pRoom)
 {
 	// kou shui 
+	for (auto nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+	{
+		auto p = getPlayerByIdx(nIdx);
+		if (p == nullptr)
+		{
+			continue;
+		}
+		p->addSingleOffset(-1 * getDeskFee());
+		m_nTotalFee += getDeskFee();
+	}
 }
 
 bool ICoinRoom::canStartGame(IGameRoom* pRoom)
@@ -271,5 +285,42 @@ void ICoinRoom::onGameDidEnd(IGameRoom* pRoom)
 
 void ICoinRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)
 {
+	auto ps = getCoreRoom()->getStandPlayerByUID(nUserUID);
+	if (nullptr == ps)
+	{
+		LOGFMTE( "why player uid = %u stand obj is null , room id = %u??",nUserUID,getRoomID() );
+		return;
+	}
 
+	auto pAsync = getCoreRoom()->getRoomMgr()->getSvrApp()->getAsynReqQueue();
+	Json::Value jsReqLeave;
+	jsReqLeave["coin"] = ps->nChips;
+	jsReqLeave["targetUID"] = nUserUID;
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserUID, eAsync_SyncPlayerGameInfo, jsReqLeave);
+}
+
+uint32_t ICoinRoom::getEnterLimitLow()
+{
+	return m_nEnterLimitLow;
+}
+
+uint32_t ICoinRoom::getEnterLimitTop()
+{
+	return m_nEnterLimitTop;
+}
+
+bool ICoinRoom::isDuringGame()
+{
+	if (getCoreRoom() == nullptr)
+	{
+		return false;
+	}
+
+	auto nStateID = getCoreRoom()->getCurState()->getStateID();
+	return nStateID != eRoomSate_WaitReady && nStateID != eRoomState_GameEnd;
+}
+
+int32_t ICoinRoom::getDeskFee()
+{
+	return m_nDeskFee;
 }

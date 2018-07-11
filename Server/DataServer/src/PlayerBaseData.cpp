@@ -309,3 +309,12 @@ void CPlayerBaseData::onJoinClub(uint32_t nClubID)
 	m_bPlayerInfoDirty = true;
 }
 
+void CPlayerBaseData::setCoin(uint32_t nCoin)
+{
+	if ( getCoin() != nCoin )
+	{
+		m_bMoneyDataDirty = true;
+	}
+	m_stBaseData.nCoin = nCoin;
+}
+

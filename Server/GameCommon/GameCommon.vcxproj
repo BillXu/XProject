@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\GameRoom.cpp" />
+    <ClCompile Include="src\ICoinRoom.cpp" />
     <ClCompile Include="src\IGameRecorder.cpp" />
     <ClCompile Include="src\IGameRoomManager.cpp" />
     <ClCompile Include="src\IMJPoker.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="src\FanxingTianHu.h" />
     <ClInclude Include="src\FanxingHaiDiLaoYue.h" />
     <ClInclude Include="src\GameRoom.h" />
+    <ClInclude Include="src\ICoinRoom.h" />
     <ClInclude Include="src\IFanxing.h" />
     <ClInclude Include="src\IGamePlayer.h" />
     <ClInclude Include="src\IGameRecorder.h" />

@@ -42,9 +42,13 @@ protected:
 	uint32_t getEnterLimitLow();
 	uint32_t getEnterLimitTop();
 	bool isDuringGame();
-	uint32_t getDeskFee();
+	int32_t getDeskFee();
 private:
 	GameRoom* m_pRoom;
 	std::set<uint32_t> m_vDelayStandUp;
 	std::set<uint32_t> m_vDelayLeave;
+	int32_t m_nDeskFee;
+	int32_t m_nEnterLimitLow;
+	int32_t m_nEnterLimitTop;
+	uint32_t m_nTotalFee;
 };

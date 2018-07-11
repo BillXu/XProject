@@ -100,6 +100,8 @@ enum eAsyncReq
 	eAsync_ClubCheckMember, // { clubID : 23 , uid : 234 } // result { ret : 0 } // ret : 0 ok , 1 not in club ;
 	eAsync_ClubDismissRoom, // { roomID : 23 }, // result { roomID : 23 } 
 	eAsync_HttpPost, // { url : "http://3sfhgss.com/a", postData : {} }  // result : { respon data }
+	
+	eAsync_SyncPlayerGameInfo, // { targetUID : 23 ,coin : 234 }				 
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
 	//eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;
