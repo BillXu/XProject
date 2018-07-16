@@ -20,6 +20,9 @@ public:
 		eMJActFlag_CanTianHu = 1 << 7,
 		eMJActFlag_WaitCheckTianTing = 1 << 8,
 		eMJActFlag_TianTing = 1 << 9,
+		eMJActFlag_Cyclone = 1 << 10 | eMJActFlag_Gang,
+		eMJActFlag_CanCyclone = 1 << 11,
+		eMJActFlag_NeedClearCanCyclone = 1 << 12,
 		eMJActFlag_Max,
 	};
 public:

@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="src\LuoMJ">
+      <UniqueIdentifier>{3071387a-e0d0-43d6-842f-2e38a1665934}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\LuoMJ\state">
+      <UniqueIdentifier>{6c69e078-4952-436e-a2b8-930168fbd19c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\LuoMJ\Fanxing">
+      <UniqueIdentifier>{da1c0baf-d23b-498d-bb48-b4161063eb3f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\MJRoomManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJServer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJPrivateRoom.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJRoom.h">
+      <Filter>src\LuoMJ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJPlayer.h">
+      <Filter>src\LuoMJ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJPlayerCard.h">
+      <Filter>src\LuoMJ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJRoomStateAfterChiOrPeng.h">
+      <Filter>src\LuoMJ\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJRoomStateAskForPengOrHu.h">
+      <Filter>src\LuoMJ\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJRoomStateAskForRobotGang.h">
+      <Filter>src\LuoMJ\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJRoomStateDoPlayerAct.h">
+      <Filter>src\LuoMJ\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJRoomStateWaitPlayerAct.h">
+      <Filter>src\LuoMJ\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJFanxingJiaHu.h">
+      <Filter>src\LuoMJ\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJFanxingGangHouPao.h">
+      <Filter>src\LuoMJ\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJFanxingChecker.h">
+      <Filter>src\LuoMJ\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJFanxingBianHu.h">
+      <Filter>src\LuoMJ\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJFanxingHaiDiLaoYue.h">
+      <Filter>src\LuoMJ\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJPoker.h">
+      <Filter>src\LuoMJ</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJRoomManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJServer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MJPrivateRoom.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LuoMJRoom.cpp">
+      <Filter>src\LuoMJ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LuoMJPlayer.cpp">
+      <Filter>src\LuoMJ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LuoMJPlayerCard.cpp">
+      <Filter>src\LuoMJ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LuoMJPoker.cpp">
+      <Filter>src\LuoMJ</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

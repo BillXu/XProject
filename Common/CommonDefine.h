@@ -82,6 +82,8 @@ enum eGameType
 	eGame_TestMJ,
 	eGame_Golden,
 	eGame_SCMJ,
+	eGame_MQMJ,
+	eGame_LuoMJ,
 	eGame_Max,
 };
 
@@ -108,6 +110,7 @@ enum eRoomState
 	eRoomState_DoPlayerAct,  // 玩家操作 // { idx : 0 ,huIdxs : [1,3,2,], act : eMJAct_Chi , card : 23, invokeIdx : 23, eatWithA : 23 , eatWithB : 22 }
 	eRoomState_AskForRobotGang, // 询问玩家抢杠胡， { invokeIdx : 2 , card : 23 }
 	eRoomState_WaitPlayerChu, // 等待玩家出牌 { idx : 2 }
+	eRoomState_AfterChiOrPeng, //吃碰后等待玩家操作
 	eRoomState_MJ_Common_Max = 80, 
 
 	// bj specail 
@@ -181,6 +184,8 @@ enum eMJActType
 	eMJAct_Followed, // 连续跟了4张牌，要罚钱了
 	eMJAct_4Feng, // 前4张出了4张不一样的风牌
 	eMJAct_Ting,
+	eMJAct_Cyclone, //旋风杠
+	eMJAct_MingGang_Pre,
 	eMJAct_Max,
 };
 
@@ -214,6 +219,9 @@ enum eFanxingType
 	eFanxing_SC_ZhongZhang, //四川麻将中张
 	eFanxing_SC_19JiangDui, //四川麻将19将对
 	eFanxing_SC_Gen, //四川麻将根(4张相同的牌)
+
+	eFanxing_BianHu, //边张
+	eFanxing_JiaHu, //夹胡
 
 	eFanxing_Max, // 没有胡
 };
