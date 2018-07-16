@@ -270,7 +270,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 				break;
 			}
 			auto pmem = getMember(pPlayer->getUserUID());
-			if ( pmem == nullptr || pmem->ePrivilige != eClubPrivilige_Creator)
+			if ( pmem == nullptr || pmem->ePrivilige < eClubPrivilige_Manager || nPrivilige >= pmem->ePrivilige )
 			{
 				nRet = 1;
 				break;
@@ -283,7 +283,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			}
 
 			auto opt = getMember( nCandinatePlayerUID );
-			if (opt->ePrivilige == nPrivilige)
+			if (opt->ePrivilige == nPrivilige || opt->ePrivilige >= pmem->ePrivilige )
 			{
 				nRet = 5;
 				break;
