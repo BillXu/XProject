@@ -7,6 +7,7 @@
 
 void IMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx )
 {
+	IGamePlayer::init(pData, nIdx);
 	setState(eRoomPeer_WaitNextGame);
 	m_nHuCnt = 0 ;
 	m_nZiMoCnt = 0 ;
