@@ -14,6 +14,9 @@
     <Filter Include="src\DouDiZhu\state">
       <UniqueIdentifier>{f71f2206-7af4-401d-971a-80380ebe2ab8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\CoinDDZ">
+      <UniqueIdentifier>{a241e9bf-1775-4874-9afa-7ad7c99404c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -39,6 +42,9 @@
     </ClCompile>
     <ClCompile Include="src\DDZServer.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RoomGroup.cpp">
+      <Filter>src\CoinDDZ</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -98,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="src\JJDDZRoomStateWaitReadyChaoZhuangMode.h">
       <Filter>src\DouDiZhu\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RoomGroup.h">
+      <Filter>src\CoinDDZ</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

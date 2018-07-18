@@ -38,6 +38,7 @@ public:
 	bool canStartGame(IGameRoom* pRoom)override;
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
+	uint32_t getCurRoundIdx()final { return 0; }
 protected:
 	uint32_t getEnterLimitLow();
 	uint32_t getEnterLimitTop();

@@ -41,4 +41,8 @@ protected:
 	std::vector<stRoomEntry> m_vCreatedRooms;
 	std::set<uint32_t> m_vWhiteList;
 	bool m_isWhiteListDirty;
+
+	int32_t m_nQueuingRoomLevel; //  -1 means not queuing , other means waiting ;
+	eMsgPort m_nQueuingSvrPort;
+
 };

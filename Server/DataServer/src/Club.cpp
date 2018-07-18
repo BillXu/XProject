@@ -250,7 +250,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		m_isClubInfoDirty = true;
 	}
 	break;
-	case MSG_CLUB_UPDATE_PRIVILIGE:
+	case MSG_CLUB_UPDATE_PRIVILIGE: 
 	{
 		uint8_t nRet = 0;
 		uint32_t nCandinatePlayerUID = prealMsg["playerUID"].asUInt() ;

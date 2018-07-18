@@ -108,6 +108,7 @@
     <ClInclude Include="src\JJDDZRoomStateChaoZhuang.h" />
     <ClInclude Include="src\JJDDZRoomStateTuiLaChuai.h" />
     <ClInclude Include="src\JJDDZRoomStateWaitReadyChaoZhuangMode.h" />
+    <ClInclude Include="src\RoomGroup.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CardPoker.cpp" />
@@ -118,6 +119,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\DDZServer.cpp" />
     <ClCompile Include="src\DDZRoomManager.cpp" />
+    <ClCompile Include="src\RoomGroup.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

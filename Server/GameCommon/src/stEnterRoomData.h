@@ -7,4 +7,6 @@ struct stEnterRoomData
 	uint32_t nChip;  // most situation equal coin ;
 	uint32_t nDiamond;
 	uint32_t nCurInRoomID;
+	bool isRobot; // isRobot ;
+	stEnterRoomData() { isRobot = false; }
 };
