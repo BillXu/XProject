@@ -105,6 +105,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_tAutoDismissTimer.start();
 
 	m_vTempID.push_back(1671057);
+	m_vTempID.push_back(1629408);
 	return true;
 }
 
