@@ -44,5 +44,6 @@ protected:
 
 	int32_t m_nQueuingRoomLevel; //  -1 means not queuing , other means waiting ;
 	eMsgPort m_nQueuingSvrPort;
+	uint16_t m_nQueuingSvrIdx; 
 
 };

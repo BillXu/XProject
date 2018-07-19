@@ -46,6 +46,9 @@
     <ClCompile Include="src\RoomGroup.cpp">
       <Filter>src\CoinDDZ</Filter>
     </ClCompile>
+    <ClCompile Include="src\DDZCoinRoom.cpp">
+      <Filter>src\CoinDDZ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CardPoker.h">
@@ -106,6 +109,9 @@
       <Filter>src\DouDiZhu\state</Filter>
     </ClInclude>
     <ClInclude Include="src\RoomGroup.h">
+      <Filter>src\CoinDDZ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDZCoinRoom.h">
       <Filter>src\CoinDDZ</Filter>
     </ClInclude>
   </ItemGroup>

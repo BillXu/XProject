@@ -7,10 +7,11 @@
 #include <algorithm>
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
-uint32_t RoomGroup::s_MaxGroupRoomID = 1000000;
+#include "DDZCoinRoom.h"
+uint32_t RoomGroup::s_MaxGroupRoomID = 0;
 RoomGroup::RoomGroup()
 {
-	 
+	
 }
 
 RoomGroup::~RoomGroup()
@@ -124,9 +125,7 @@ bool RoomGroup::removePlayerFromQueue(uint32_t nUID)
 			// clear queueing state 
 			Json::Value jsReqLeave;
 			jsReqLeave["targetUID"] = (*iter).nUserUID;
-			jsReqLeave["level"] = -1;
-			jsReqLeave["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, (*iter).nUserUID, eAsync_Set_Queuing_CoinGameLevel, jsReqLeave);
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, (*iter).nUserUID, eAsync_Clear_Queuing_CoinGameLevel, jsReqLeave);
 
 			m_vEnterRoomQuene.erase(iter);
 			return true;
@@ -142,9 +141,7 @@ bool RoomGroup::removePlayerFromQueue(uint32_t nUID)
 			// clear queueing state 
 			Json::Value jsReqLeave;
 			jsReqLeave["targetUID"] = (*iter).nUserUID;
-			jsReqLeave["level"] = -1;
-			jsReqLeave["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, (*iter).nUserUID, eAsync_Set_Queuing_CoinGameLevel, jsReqLeave);
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, (*iter).nUserUID, eAsync_Clear_Queuing_CoinGameLevel, jsReqLeave);
 
 			m_vEnterRoomRobotQuene.erase(iter);
 			return true;
@@ -180,8 +177,14 @@ bool RoomGroup::updatePlayerSessionID(uint32_t nUID, uint32_t nNewSessionID)
 
 IGameRoom* RoomGroup::createRoom()
 {
-	auto pRoom = new ICoinRoom();
-	pRoom->init(m_pRoomMgr, m_pRoomMgr->generateSieralID(), ++s_MaxGroupRoomID, m_jsRoomOpts["seatCnt"].asUInt(), m_jsRoomOpts);
+	if ( 0 == s_MaxGroupRoomID )
+	{
+		s_MaxGroupRoomID = m_pRoomMgr->getSvrApp()->getCurSvrMaxCnt() * 1000000 + m_pRoomMgr->getSvrApp()->getCurSvrIdx();
+	}
+	s_MaxGroupRoomID += m_pRoomMgr->getSvrApp()->getCurSvrMaxCnt();
+
+	auto pRoom = new DDZCoinRoom();
+	pRoom->init(m_pRoomMgr, m_pRoomMgr->generateSieralID(), s_MaxGroupRoomID, m_jsRoomOpts["seatCnt"].asUInt(), m_jsRoomOpts);
 	return pRoom;
 }
 
@@ -195,7 +198,7 @@ bool RoomGroup::doMatchPlayerEnterRoom()
 		while ( nNeedRobotCnt-- && ( m_vEnterRoomRobotQuene.empty() == false ) )
 		{
 			m_vEnterRoomQuene.push_back( m_vEnterRoomRobotQuene.front() );
-			m_vEnterRoomRobotQuene.pop_front();
+			m_vEnterRoomRobotQuene.erase(m_vEnterRoomQuene.begin());
 		}
 	}
 
@@ -229,18 +232,19 @@ bool RoomGroup::doMatchPlayerEnterRoom()
 			{
 				ref->sendRoomInfo(p.nSessionID);
 			}
-			m_vEnterRoomQuene.pop_front();
+			m_vEnterRoomQuene.erase(m_vEnterRoomQuene.begin());
 
 			// clear queueing state 
 			Json::Value jsReqLeave;
 			jsReqLeave["targetUID"] = p.nUserUID;
-			jsReqLeave["level"] = -1;
-			jsReqLeave["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, p.nUserUID, eAsync_Set_Queuing_CoinGameLevel, jsReqLeave);
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, p.nUserUID, eAsync_Clear_Queuing_CoinGameLevel, jsReqLeave);
 
 			// update stayin roomID
 			jsReqLeave["roomID"] = ref->getRoomID();
+			jsReqLeave["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, p.nUserUID, eAsync_Inform_EnterRoom, jsReqLeave);
 		}
 	}
+
+	return m_vEnterRoomQuene.empty();
 }

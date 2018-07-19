@@ -14,6 +14,7 @@ public:
 	};
 public:
 	void init(IServerApp* svrApp)override;
+	void onConnectedSvr(bool isReconnected)override;
 	void update(float fDeta)override;
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)override;
 	bool onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID)override;

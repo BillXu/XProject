@@ -509,6 +509,9 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	case eAsync_Request_CreateRoomInfo:
 	case eAsync_Inform_CreatedRoom:
 	case eAsync_Inform_RoomDeleted:
+	case eAsync_Request_EnterCoinGameInfo:
+	case eAsync_Clear_Queuing_CoinGameLevel:
+	case eAsync_Inform_EnterRoom:
 	case eAsync_SyncPlayerGameInfo:
 	{
 		auto nUID = jsReqContent["targetUID"].asUInt();

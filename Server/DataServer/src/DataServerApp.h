@@ -13,11 +13,12 @@ public:
 	enum eInstallModule
 	{
 		eMod_None = IServerApp::eDefMod_ChildDef,
-		eMod_Club = eMod_None,
-		eMod_Shop,
+		//eMod_Club = eMod_None,
+		eMod_Shop = eMod_None,
 		eMod_Mail,
 		eMod_PlayerMgr,
 		eMod_Max,
+		eMod_Club,
 	};
 public:
 	~DataServerApp();

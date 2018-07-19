@@ -23,8 +23,8 @@ protected:
 	bool doMatchPlayerEnterRoom();
 protected:
 	std::map<uint32_t, IGameRoom*> m_vAllRooms;
-	std::list<stEnterRoomData> m_vEnterRoomQuene;
-	std::list<stEnterRoomData> m_vEnterRoomRobotQuene;
+	std::vector<stEnterRoomData> m_vEnterRoomQuene;
+	std::vector<stEnterRoomData> m_vEnterRoomRobotQuene;
 	Json::Value m_jsRoomOpts;
 	IGameRoomManager* m_pRoomMgr;
 	static uint32_t s_MaxGroupRoomID;

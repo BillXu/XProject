@@ -5,11 +5,30 @@
 void DDZRoomManager::init(IServerApp* svrApp)
 {
 	IGameRoomManager::init(svrApp);
+}
 
-	Json::Value vjs;
-	for ( uint16_t nLevel = eRoomLevel_0; nLevel < eRoomLevel_Max; ++nLevel)
+void DDZRoomManager::onConnectedSvr(bool isReconnected)
+{
+	IGameRoomManager::onConnectedSvr(isReconnected);
+	if (!isReconnected)
 	{
-		m_vCoinRoomGroup[nLevel].init(this, vjs[nLevel]);
+		Json::Value vjs;
+
+		Json::Value jsOpts;
+		jsOpts["maxBet"] = 1000;
+		jsOpts["gameType"] = eGame_CYDouDiZhu;
+		jsOpts["seatCnt"] = 3;
+		jsOpts["enterLimitLow"] = 0;
+		jsOpts["enterLimitTop"] = 0;
+		jsOpts["deskFee"] = 10;
+		vjs[vjs.size()] = jsOpts;
+		vjs[vjs.size()] = jsOpts;
+		vjs[vjs.size()] = jsOpts;
+
+		for (uint16_t nLevel = eRoomLevel_0; nLevel < eRoomLevel_Max; ++nLevel)
+		{
+			m_vCoinRoomGroup[nLevel].init(this, vjs[nLevel]);
+		}
 	}
 }
 
@@ -86,6 +105,7 @@ bool DDZRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 		jsReq["level"] = nLevel;
 		jsReq["sessionID"] = nSenderID;
 		jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
+		jsReq["portIdx"] = getSvrApp()->getCurSvrIdx();
 		auto pAsync = getSvrApp()->getAsynReqQueue();
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterCoinGameInfo, jsReq, [pAsync, nLevel, nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 		{
@@ -98,22 +118,12 @@ bool DDZRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 				return;
 			}
 
-			auto nStayRoomID = retContent["stayRoomID"].asUInt();
-			auto nAreadyLevel = retContent["level"].asInt();
-
 			stEnterRoomData tInfo;
-			uint8_t nRet = 0;
+			uint8_t nRet = retContent["ret"].asInt();
 			do
 			{
-				if (nStayRoomID)
+				if ( nRet )
 				{
-					nRet = 2;
-					break;
-				}
-
-				if (nAreadyLevel != -1 && nLevel != nAreadyLevel)
-				{
-					nRet = 3;
 					break;
 				}
 
@@ -124,7 +134,7 @@ bool DDZRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 
 				if (m_vCoinRoomGroup[nLevel].checkEnterThisLevel(tInfo))
 				{
-					nRet = 1;
+					nRet = 8;
 					break;
 				}
 
@@ -133,17 +143,15 @@ bool DDZRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 			Json::Value jsRet;
 			jsRet["ret"] = nRet;
 			sendMsg(jsRet, MSG_ENTER_COIN_GAME, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
-			if (0 == nRet)
+			if ( 8 == nRet)
 			{
 				Json::Value jsReqLeave;
 				jsReqLeave["targetUID"] = nUserID;
-				jsReqLeave["level"] = nLevel;
-				jsReqLeave["port"] = getSvrApp()->getLocalSvrMsgPortType();
-				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Set_Queuing_CoinGameLevel, jsReqLeave);
-
-				// push to room queue
-				m_vCoinRoomGroup[nLevel].pushPlayerToEnterRoomQueue(tInfo);
+				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Clear_Queuing_CoinGameLevel, jsReqLeave);	
+				return;
 			}
+			// push to room queue
+			m_vCoinRoomGroup[nLevel].pushPlayerToEnterRoomQueue(tInfo);
 
 		}, nUserID);
 	}

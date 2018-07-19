@@ -90,6 +90,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\CardPoker.h" />
+    <ClInclude Include="src\DDZCoinRoom.h" />
     <ClInclude Include="src\DDZFindCardTypeForChu.h" />
     <ClInclude Include="src\DDZPlayer.h" />
     <ClInclude Include="src\DDZPlayerCard.h" />
@@ -112,6 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CardPoker.cpp" />
+    <ClCompile Include="src\DDZCoinRoom.cpp" />
     <ClCompile Include="src\DDZPlayer.cpp" />
     <ClCompile Include="src\DDZPlayerCard.cpp" />
     <ClCompile Include="src\DDZPrivateRoom.cpp" />

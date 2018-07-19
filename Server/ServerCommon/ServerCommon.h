@@ -102,9 +102,9 @@ enum eAsyncReq
 	eAsync_HttpPost, // { url : "http://3sfhgss.com/a", postData : {} }  // result : { respon data }
 	
 	eAsync_SyncPlayerGameInfo, // { targetUID : 23 ,coin : 234 }
-	eAsync_Request_EnterCoinGameInfo, //{ targetUID : 23, sessionID : 23, port : 23 } , result : { uid : 2 , coin : 23 , diamond : 23,stayRoomID : 23,level : 2  } ; // ret : 0 success , 1 already in other room , 2 session id error ;
-	eAsync_Set_Queuing_CoinGameLevel, // { targetUID : 23, level : 23 , port : 2  }
-	eAsync_Inform_EnterRoom, // { targetUID : 23 , roomID : 23 }
+	eAsync_Request_EnterCoinGameInfo, //{ targetUID : 23, sessionID : 23, port : 23, portIdx : 2  ,level : 2  } , result : { uid : 2 , coin : 23 , diamond : 23,stayRoomID : 23,level : 2  } ; // ret : 0 success , 1 already in other room , 2 session id error ;
+	eAsync_Clear_Queuing_CoinGameLevel, // { targetUID : 23, level : 23 , port : 2  }
+	eAsync_Inform_EnterRoom, // { targetUID : 23 , port : 2 ,roomID : 23 }
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
 	//eAsync_DeleteRoom,// { roomID : 2345 }  // ret : { ret : 0 } // 0 success , 1 not find room , 2 room is running ;

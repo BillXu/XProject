@@ -19,6 +19,7 @@ void CPlayerGameData::reset()
 	m_vWhiteList.clear();
 	m_isWhiteListDirty = false;
 	m_nQueuingRoomLevel = -1;
+	m_nQueuingSvrIdx = 0;
 }
 
 bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)
@@ -120,6 +121,55 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		getPlayer()->getBaseData()->setCoin(nCoin);
 	}
 	break;
+	case eAsync_Request_EnterCoinGameInfo:
+	{
+		auto nLevel = jsReqContent["level"].asInt();
+		auto nSessionID = jsReqContent["sessionID"].asUInt();
+		auto nPort = (eMsgPort)(jsReqContent["port"].asUInt());
+		auto nPortIdx = jsReqContent["portIdx"].asUInt();
+		if (getStayInRoom().isEmpty() == false )
+		{
+			jsResult["ret"] = 1;
+			LOGFMTW("uid = %u already room id= %u ,can not enter room id = %u , port = %u , portS = %u", getPlayer()->getUserUID(), getStayInRoom().nRoomID, nLevel, nPort, getStayInRoom().nSvrPort);
+			break;
+		}
+
+		if (nSessionID != getPlayer()->getSessionID())
+		{
+			jsResult["ret"] = 2;
+			LOGFMTW("uid = %u , session id error , can not enter room id = %u", getPlayer()->getUserUID(), nLevel);
+			break;
+		}
+
+		if ( m_nQueuingRoomLevel != -1 )
+		{
+			jsResult["ret"] = m_nQueuingRoomLevel != nLevel ? 3 : 4;
+			break;
+		}
+
+		jsResult["ret"] = 0;
+		jsResult["uid"] = getPlayer()->getUserUID();
+		jsResult["coin"] = getPlayer()->getBaseData()->getCoin();
+		jsResult["diamond"] = getPlayer()->getBaseData()->getDiamoned();
+		
+		m_nQueuingRoomLevel = nLevel;
+		m_nQueuingSvrIdx = nPortIdx;
+		m_nQueuingSvrPort = nPort;
+
+	}
+	break;
+	case eAsync_Clear_Queuing_CoinGameLevel:
+	{
+		m_nQueuingRoomLevel = -1;
+	}
+	break;
+	case eAsync_Inform_EnterRoom:
+	{
+		auto nRoomID = jsReqContent["roomID"].asUInt();
+		auto nPort = (eMsgPort)(jsReqContent["port"].asUInt());
+		setStayInRoom(stRoomEntry(nRoomID, nPort));
+	}
+	break;
 	default:
 		return false;
 	}
@@ -166,10 +216,14 @@ void CPlayerGameData::onPlayerOtherDeviceLogin(uint32_t nOldSessionID, uint32_t 
 
 	auto pAsync = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
 	Json::Value jsReq;
-	jsReq["roomID"] = refStayInRoom.nRoomID;
+	jsReq["roomID"] = refStayInRoom.isEmpty() ? m_nQueuingRoomLevel : refStayInRoom.nRoomID;
 	jsReq["uid"] = getPlayer()->getUserUID();
 	jsReq["newSessionID"] = nNewSessionID;
-	pAsync->pushAsyncRequest( refStayInRoom.nSvrPort, refStayInRoom.nRoomID, eAsync_Inform_Player_NewSessionID, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+
+	auto nSvrPort = refStayInRoom.isEmpty() ? m_nQueuingSvrPort : refStayInRoom.nSvrPort;
+	auto nTargeID = refStayInRoom.isEmpty() ? m_nQueuingSvrIdx : refStayInRoom.nRoomID;
+
+	pAsync->pushAsyncRequest(nSvrPort, nTargeID, eAsync_Inform_Player_NewSessionID, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 	{
 		if (isTimeOut)
 		{
@@ -436,6 +490,7 @@ void CPlayerGameData::informNetState(uint8_t nStateFlag)
 	jsReq["state"] = nStateFlag;
 
 	auto nSvrPort = getStayInRoom().isEmpty() ? m_nQueuingSvrPort : getStayInRoom().nSvrPort;
+	auto nTargeID = getStayInRoom().isEmpty() ? m_nQueuingSvrIdx : getStayInRoom().nRoomID;
 	pAsync->pushAsyncRequest( nSvrPort, 0, eAsync_Inform_Player_NetState, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 	{
 		if (isTimeOut)
