@@ -25,7 +25,7 @@ public:
 		m_nInvokeIdx = jsTranData["invokeIdx"].asUInt();
 		m_nCard = jsTranData["card"].asUInt();
 		((IMJRoom*)getRoom())->onAskForPengOrHuThisCard(m_nInvokeIdx, m_nCard, m_vWaitHuIdx, m_vWaitPengGangIdx, m_isNeedWaitEat);
-		assert((m_vWaitHuIdx.empty() == false || m_vWaitPengGangIdx.empty() == false) && "invalid argument");
+		assert((m_vWaitHuIdx.empty() == false || m_vWaitPengGangIdx.empty() == false || m_isNeedWaitEat) && "invalid argument");
 
 		// wait truastee;
 		std::vector<uint16_t> vWaitTruste;
@@ -155,7 +155,7 @@ public:
 					break;
 				}
 			}
-			else
+			else if (eMJAct_Pass != actType)
 			{
 				auto iter = std::find(m_vWaitHuIdx.begin(), m_vWaitHuIdx.end(), pPlayer->getIdx());
 				auto iterPeng = std::find(m_vWaitPengGangIdx.begin(), m_vWaitPengGangIdx.end(), pPlayer->getIdx());

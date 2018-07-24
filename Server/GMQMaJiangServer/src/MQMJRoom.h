@@ -2,6 +2,7 @@
 #include "IMJRoom.h"
 #include "IMJPoker.h"
 #include "MQMJFanxingChecker.h"
+#include "MQMJPoker.h"
 class MQMJRoom
 	:public IMJRoom
 {
@@ -52,7 +53,10 @@ public:
 	IPoker* getPoker()override;
 	bool isHaveLouPeng()override { return true; }
 	bool isGameOver()override;
+	bool isRoomOver()override;
 	bool isCanGoOnMoPai()override;
+	bool canStartGame() override;
+	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 
 	void doProduceNewBanker();
 	void setNextBankerIdx(uint8_t nHuIdx = -1);
@@ -84,6 +88,8 @@ public:
 	void clearGain();
 	void backGain(uint8_t nIdx);
 
+	bool canGang();
+	void onPrePlayerGang();
 protected:
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime);
@@ -91,11 +97,15 @@ protected:
 	void sendStartGameMsg();
 
 protected:
-	IMJPoker m_tPoker;
+	MQMJPoker m_tPoker;
 	std::vector<stSettle> m_vSettle;
 	MQMJFanxingChecker m_cFanxingChecker;
 
 	uint8_t m_nNextBankerIdx;
 	std::vector<std::vector<stSettleGain>> m_vGainChip;
+	uint8_t m_nGangCnt;
+	uint8_t m_nDice;
+	uint8_t m_nR7;
+	uint8_t m_nR15;
 
 };

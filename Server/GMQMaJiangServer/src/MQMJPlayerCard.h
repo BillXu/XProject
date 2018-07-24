@@ -22,8 +22,8 @@ public:
 	bool isHaveCards(VEC_CARD vCards);
 
 	bool isHoldCardCanHu();
-	bool isHoldCardCanHu(VEC_CARD vTemp);
-	bool isHoldCardCanHu(VEC_CARD vTemp[eCT_Max]);
+	//bool isHoldCardCanHu(VEC_CARD vTemp);
+	//bool isHoldCardCanHu(VEC_CARD vTemp[eCT_Max]);
 	uint8_t getHuCard() { return m_nHuCard; }
 	void setHuCard(uint8_t nCard) { m_nHuCard = nCard; }
 

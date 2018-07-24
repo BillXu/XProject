@@ -14,6 +14,7 @@ void IMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx )
 	m_nDianPaoCnt = 0 ;
 	m_nMingGangCnt = 0 ;
 	m_nAnGangCnt = 0 ;
+	m_nHuaGangCnt = 0;
 	getPlayerCard()->reset();
 }
 
@@ -114,4 +115,10 @@ void IMJPlayer::addMingGangCnt()
 	++m_nMingGangCnt;
 }
 
+uint8_t IMJPlayer::getHuaGangCnt() {
+	return m_nHuaGangCnt;
+}
 
+void IMJPlayer::addHuaGangCnt() {
+	++m_nHuaGangCnt;
+}

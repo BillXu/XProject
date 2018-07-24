@@ -91,6 +91,116 @@ public:
 			}
 		}
 
-		return MJRoomStateWaitPlayerAct::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
+		if (MSG_PLAYER_ACT != nMsgType)
+		{
+			return false;
+		}
+
+		auto actType = prealMsg["actType"].asUInt();
+		auto nCard = prealMsg["card"].asUInt();
+		auto pPlayer = (IMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
+		uint8_t nRet = 0;
+		do
+		{
+			if (pPlayer == nullptr)
+			{
+				LOGFMTE("you are not in this room how to set ready ? session id = %u", nSessionID);
+				nRet = 4;
+				break;
+			}
+
+			if (m_nIdx != pPlayer->getIdx())
+			{
+				nRet = 1;
+				break;
+			}
+
+			auto pMJCard = (LuoMJPlayerCard*)pPlayer->getPlayerCard();
+			switch (actType)
+			{
+			case eMJAct_Chu:
+			{
+				if (!pMJCard->isHaveCard(nCard))
+				{
+					nRet = 3;
+				}
+			}
+			break;
+			case eMJAct_AnGang:
+			{
+				if (!pMJCard->canAnGangWithCard(nCard))
+				{
+					nRet = 3;
+				}
+			}
+			break;
+			case eMJAct_BuGang:
+			case eMJAct_BuGang_Declare:
+			{
+				if (!pMJCard->canBuGangWithCard(nCard))
+				{
+					nRet = 3;
+				}
+			}
+			break;
+			case eMJAct_Cyclone:
+			{
+				if (!pMJCard->canCycloneWithCard(nCard))
+				{
+					nRet = 3;
+				}
+			}
+			break;
+			case eMJAct_Hu:
+			{
+				uint8_t nJiang = 0;
+				if (!pMJCard->isHoldCardCanHu(nJiang))
+				{
+					nRet = 3;
+				}
+				nCard = pMJCard->getNewestFetchedCard();
+			}
+			break;
+			case eMJAct_Pass:
+				break;
+			default:
+				nRet = 2;
+				break;
+			}
+		} while (0);
+
+		if (nRet)
+		{
+			Json::Value jsRet;
+			jsRet["ret"] = nRet;
+			getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			return true;
+		}
+
+		if (eMJAct_Pass == actType)
+		{
+			setStateDuringTime(100000000);
+			return true;
+		}
+
+		// do transfer 
+		Json::Value jsTran;
+		jsTran["idx"] = m_nIdx;
+		jsTran["act"] = actType;
+		jsTran["card"] = nCard;
+		jsTran["invokeIdx"] = m_nIdx;
+		if (eMJAct_BuGang_Declare == actType || eMJAct_BuGang == actType)
+		{
+			pPlayer->signFlag(IMJPlayer::eMJActFlag_DeclBuGang);
+			if (((IMJRoom*)getRoom())->isAnyPlayerRobotGang(m_nIdx, nCard))
+			{
+				getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
+				return true;
+			}
+		}
+		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+		return true;
+
+		//return MJRoomStateWaitPlayerAct::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
 	}
 };

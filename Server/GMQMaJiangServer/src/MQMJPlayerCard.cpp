@@ -225,9 +225,10 @@ bool MQMJPlayerCard::onCyclone(uint8_t nCard, uint8_t nGangGetCard) {
 		nNeed--;
 	}
 	if (eType == eCT_Jian) {
-		vCard = m_vCards[eCT_Tiao];
+		removeHoldCard(make_Card_Num(eCT_Tiao, 1));
+		/*vCard = m_vCards[eCT_Tiao];
 		auto iter = std::find(vCard.begin(), vCard.end(), make_Card_Num(eCT_Tiao, 1));
-		vCard.erase(iter);
+		vCard.erase(iter);*/
 	}
 
 	// sign cyclone gang info 
@@ -270,34 +271,34 @@ bool MQMJPlayerCard::isTingPai() {
 	return MJPlayerCard::isTingPai();
 }
 
-bool MQMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp) {
-	VEC_CARD vAllCards[eCT_Max];
-	for (auto nCard : vTemp)
-	{
-		auto eType = card_Type(nCard);
-		if (eType > eCT_None || eType < eCT_Max)
-		{
-			vAllCards[eType].push_back(nCard);
-		}
-	}
-	return isHoldCardCanHu(vAllCards);
-}
-
-bool MQMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp[eCT_Max]) {
-	VEC_CARD vAllCards[eCT_Max];
-	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
-		vAllCards[i] = m_vCards[i];
-		m_vCards[i].clear();
-		m_vCards[i] = vTemp[i];
-	}
-	uint8_t nJiang = 0;
-	bool canHu = isHoldCardCanHu(nJiang);
-	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
-		m_vCards[i].clear();
-		m_vCards[i] = vAllCards[i];
-	}
-	return canHu;
-}
+//bool MQMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp) {
+//	VEC_CARD vAllCards[eCT_Max];
+//	for (auto nCard : vTemp)
+//	{
+//		auto eType = card_Type(nCard);
+//		if (eType > eCT_None || eType < eCT_Max)
+//		{
+//			vAllCards[eType].push_back(nCard);
+//		}
+//	}
+//	return isHoldCardCanHu(vAllCards);
+//}
+//
+//bool MQMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp[eCT_Max]) {
+//	VEC_CARD vAllCards[eCT_Max];
+//	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
+//		vAllCards[i] = m_vCards[i];
+//		m_vCards[i].clear();
+//		m_vCards[i] = vTemp[i];
+//	}
+//	uint8_t nJiang = 0;
+//	bool canHu = isHoldCardCanHu(nJiang);
+//	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
+//		m_vCards[i].clear();
+//		m_vCards[i] = vAllCards[i];
+//	}
+//	return canHu;
+//}
 
 bool MQMJPlayerCard::isHaveCards(VEC_CARD vCards) {
 	VEC_CARD vTemp;
@@ -346,7 +347,8 @@ bool MQMJPlayerCard::checkKezi() {
 					removeHoldCard(nCard);
 					removeHoldCard(nCard);
 					removeHoldCard(nCard);
-					if (isHoldCardCanHu()) {
+					uint8_t nJiang = 0;
+					if (MJPlayerCard::isHoldCardCanHu(nJiang)) {
 						flag = true;
 					}
 					addHoldCard(nCard);
@@ -567,7 +569,8 @@ bool MQMJPlayerCard::canHuOnlyOneCard() {
 	//TODO...
 	auto nHuCard = getHuCard();
 	if (isHaveCard(nHuCard) == false) {
-		m_bCanHuOnlyOne = false;
+		//m_bCanHuOnlyOne = false;
+		return false;
 	}
 	auto nJiang = m_nJIang;
 	removeHoldCard(nHuCard);
@@ -588,8 +591,11 @@ bool MQMJPlayerCard::canHuOnlyOneCard() {
 		else if (nType == eCT_Tiao || nType == eCT_Tong || nType == eCT_Wan) {
 			nMaxValue = 9;
 		}
+		else {
+			continue;
+		}
 
-		for (uint8_t nValue = 0; nValue < nMaxValue; nValue++) {
+		for (uint8_t nValue = 1; nValue <= nMaxValue; nValue++) {
 			auto nCard = make_Card_Num((eMJCardType)nType, nValue);
 			if (nCard == nHuCard) {
 				continue;

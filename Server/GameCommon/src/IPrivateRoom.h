@@ -59,6 +59,8 @@ public:
 
 	IGamePlayer* getPlayerByIdx(uint16_t nIdx) override;
 	uint16_t getSeatCnt() override;
+
+	bool isRoomOver() override;
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();

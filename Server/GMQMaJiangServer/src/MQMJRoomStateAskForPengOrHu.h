@@ -46,7 +46,7 @@ public:
 					break;
 				}
 			}
-			else
+			else if (eMJAct_Pass != actType)
 			{
 				auto iter = std::find(m_vWaitHuIdx.begin(), m_vWaitHuIdx.end(), pPlayer->getIdx());
 				auto iterPeng = std::find(m_vWaitPengGangIdx.begin(), m_vWaitPengGangIdx.end(), pPlayer->getIdx());

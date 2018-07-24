@@ -346,7 +346,8 @@ bool LuoMJPlayerCard::checkKezi() {
 					removeHoldCard(nCard);
 					removeHoldCard(nCard);
 					removeHoldCard(nCard);
-					if (isHoldCardCanHu()) {
+					uint8_t nJiang = 0;
+					if (MJPlayerCard::isHoldCardCanHu(nJiang)) {
 						flag = true;
 					}
 					addHoldCard(nCard);
@@ -588,8 +589,11 @@ bool LuoMJPlayerCard::canHuOnlyOneCard() {
 		else if (nType == eCT_Tiao || nType == eCT_Tong || nType == eCT_Wan) {
 			nMaxValue = 9;
 		}
+		else {
+			continue;
+		}
 
-		for (uint8_t nValue = 0; nValue < nMaxValue; nValue++) {
+		for (uint8_t nValue = 1; nValue <= nMaxValue; nValue++) {
 			auto nCard = make_Card_Num((eMJCardType)nType, nValue);
 			if (nCard == nHuCard) {
 				continue;

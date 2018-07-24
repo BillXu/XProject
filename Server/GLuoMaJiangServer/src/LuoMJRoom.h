@@ -2,6 +2,7 @@
 #include "IMJRoom.h"
 #include "IMJPoker.h"
 #include "LuoMJFanxingChecker.h"
+#include "LuoMJPoker.h"
 class LuoMJRoom
 	:public IMJRoom
 {
@@ -53,6 +54,8 @@ public:
 	bool isHaveLouPeng()override { return true; }
 	bool isGameOver()override;
 	bool isCanGoOnMoPai()override;
+	bool canStartGame() override;
+	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 
 	void doProduceNewBanker();
 	void setNextBankerIdx(uint8_t nHuIdx = -1);
@@ -93,7 +96,7 @@ protected:
 	void sendStartGameMsg();
 
 protected:
-	IMJPoker m_tPoker;
+	LuoMJPoker m_tPoker;
 	std::vector<stSettle> m_vSettle;
 	LuoMJFanxingChecker m_cFanxingChecker;
 

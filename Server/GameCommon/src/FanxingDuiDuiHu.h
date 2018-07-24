@@ -10,8 +10,14 @@ public:
 	bool checkFanxing(IMJPlayerCard* pPlayerCard, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom)override
 	{
 		IMJPlayerCard::VEC_CARD vCards;
+		pPlayerCard->getEatedCard(vCards);
+		if (vCards.size()) {
+			return false;
+		}
+
+		vCards.clear();
 		pPlayerCard->getHoldCard(vCards);
-		if (vCards.size() % 3 != 0)
+		if (vCards.size() % 3 != 2)
 		{
 			LOGFMTE( "you are not hu , ok ? do not check dudui hu " );
 			return false;

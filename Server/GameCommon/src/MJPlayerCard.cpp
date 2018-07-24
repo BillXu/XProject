@@ -1,6 +1,7 @@
 #include "MJPlayerCard.h"
 #include "IMJPoker.h"
 #include "log4z.h"
+#include "ServerCommon.h"
 // mj player card ;
 void MJPlayerCard::reset()
 {
@@ -286,9 +287,15 @@ void MJPlayerCard::onVisitPlayerCardInfo(Json::Value& js, bool isSelf)
 			}
 		}
 		jsItem["card"] = jsCards;
+		jsItem["invokerIdx"] = ref.nInvokerIdx;
 		jsMing[jsMing.size()] = jsItem;
 	}
 	js["ming"] = jsMing;
+	Json::Value jsChued;
+	for (auto& ref : m_vChuedCard) {
+		jsChued[jsChued.size()] = ref;
+	}
+	js["chued"] = jsChued;
 
 	// hold ;
 	VEC_CARD vHold;
@@ -523,9 +530,10 @@ bool MJPlayerCard::onChuCard(uint8_t nChuCard)
 		LOGFMTE("you don't have this card , how can chu ?  = %u",nChuCard);
 		return false;
 	}
-	auto eT = card_Type(nChuCard);
+	/*auto eT = card_Type(nChuCard);
 	auto iter = std::find(m_vCards[eT].begin(), m_vCards[eT].end(), nChuCard);
-	m_vCards[eT].erase(iter);
+	m_vCards[eT].erase(iter);*/
+	removeHoldCard(nChuCard);
 	m_vChuedCard.push_back(nChuCard);
 
 	//debugCardInfo();
@@ -651,6 +659,16 @@ void MJPlayerCard::addHoldCard( uint8_t nCard )
 		return;
 	}
 
+	auto nValue = card_Value(nCard);
+	uint8_t nMaxValue = 9;
+	if (nType == eCT_Feng) {
+		nMaxValue = 4;
+	}
+	else if (nType == eCT_Jian) {
+		nMaxValue = 3;
+	}
+	Assert(nValue >= 1 && nValue <= nMaxValue, "invalid card type");
+
 	VEC_CARD& vec = m_vCards[nType];
 	auto iter = vec.begin();
 	for (; iter < vec.end(); ++iter)
@@ -681,6 +699,7 @@ void MJPlayerCard::removeHoldCard(uint8_t nCard)
 		return;
 	}
 	LOGFMTE( "do not have card = %u , can not removeHoldCard",nCard );
+	Assert(false, "invalid card type");
 	return;
 }
 
@@ -816,7 +835,7 @@ uint8_t MJPlayerCard::getJiang()
 
 void MJPlayerCard::debugCardInfo()
 {
-	return;
+	//return;
 	LOGFMTD("card Info: \n");
 	VEC_CARD vHold;
 	getHoldCard(vHold);

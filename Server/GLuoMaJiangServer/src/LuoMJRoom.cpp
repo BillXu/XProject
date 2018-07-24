@@ -17,7 +17,6 @@
 #include "LuoMJPoker.h"
 bool LuoMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
-	m_tPoker = LuoMJPoker();
 	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
 	m_cFanxingChecker.init();
 	m_vGainChip.resize(getSeatCnt());
@@ -82,6 +81,7 @@ void LuoMJRoom::sendStartGameMsg() {
 	Json::Value jsMsg;
 	uint8_t nDice = 2 + rand() % 11;
 	jsMsg["dice"] = nDice;
+	jsMsg["bankerIdx"] = getBankerIdx();
 	Json::Value arrPeerCards;
 	for (auto& pPlayer : m_vPlayers)
 	{
@@ -114,7 +114,7 @@ IPoker* LuoMJRoom::getPoker()
 }
 
 bool LuoMJRoom::isCanGoOnMoPai() {
-	return getPoker()->getLeftCardCount() > 8;
+	return IMJRoom::isCanGoOnMoPai();
 }
 
 bool LuoMJRoom::isGameOver() {
@@ -135,11 +135,29 @@ bool LuoMJRoom::isGameOver() {
 }
 
 void LuoMJRoom::onGameEnd() {
-	Json::Value jsReal, jsChaJiao, jsHuaZhu;
+	Json::Value jsReal, jsPlayers;
 	settleInfoToJson(jsReal);
+
+	for (auto& ref : m_vPlayers) {
+		if (ref) {
+			Json::Value jsHoldCard, jsPlayer;
+			IMJPlayerCard::VEC_CARD vHoldCard;
+			((LuoMJPlayer*)ref)->getPlayerCard()->getHoldCard(vHoldCard);
+			for (auto& refCard : vHoldCard) {
+				jsHoldCard[jsHoldCard.size()] = refCard;
+			}
+			jsPlayer["idx"] = ref->getIdx();
+			jsPlayer["offset"] = ref->getSingleOffset();
+			jsPlayer["chips"] = ref->getChips();
+			jsPlayer["holdCard"] = jsHoldCard;
+			jsPlayers[jsPlayers.size()] = jsPlayer;
+		}
+		//jsHoldCards[jsHoldCards.size()] = jsHoldCard;
+	}
 
 	Json::Value jsMsg;
 	jsMsg["realTimeCal"] = jsReal;
+	jsMsg["players"] = jsPlayers;
 	sendRoomMsg(jsMsg, MSG_ROOM_SCMJ_GAME_END);
 
 	IMJRoom::onGameEnd();
@@ -272,9 +290,9 @@ void LuoMJRoom::onPlayerCyclone(uint8_t nIdx, uint8_t nCard) {
 	}
 	pPlayer->signFlag(IMJPlayer::eMJActFlag_Cyclone);
 	pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
-	pPlayer->addAnGangCnt();
+	pPlayer->addHuaGangCnt();
 	auto nGangGetCard = getPoker()->distributeOneCard();
-	if (pPlayer->getPlayerCard()->onAnGang(nCard, nGangGetCard) == false)
+	if (((LuoMJPlayerCard*)pPlayer->getPlayerCard())->onCyclone(nCard, nGangGetCard) == false)
 	{
 		LOGFMTE("nidx = %u an gang card = %u error,", nIdx, nCard);
 	}
@@ -360,6 +378,7 @@ void LuoMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t 
 	jsMsg["isZiMo"] = isZiMo ? 1 : 0;
 	jsMsg["huCard"] = nCard;
 	stSettle st;
+	st.eSettleReason = eMJAct_Hu;
 
 	if (isZiMo) {
 		setNextBankerIdx(nInvokeIdx);
@@ -424,7 +443,7 @@ void LuoMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t 
 		jsDetail["dianPaoIdx"] = pLosePlayer->getIdx();
 		pLosePlayer->addDianPaoCnt();
 		std::vector<uint8_t> vOrderHu;
-		if (vHuIdx.size() > 1)
+		if (vHuIdx.size() > 0)
 		{
 			for (uint8_t offset = 1; offset <= 3; ++offset)
 			{
@@ -440,7 +459,7 @@ void LuoMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t 
 			}
 		}
 
-		Json::Value jsHuPlayers, jsLosePlayers;
+		Json::Value jsHuPlayers;
 		uint32_t nTotalLose = 0;
 		for (auto& nHuIdx : vOrderHu)
 		{
@@ -452,7 +471,7 @@ void LuoMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t 
 			}
 			pHuPlayer->addHuCnt();
 
-			Json::Value jsLosePlayer, jsHuPlayer;
+			Json::Value jsHuPlayer;
 			jsHuPlayer["idx"] = nHuIdx;
 			pHuPlayer->setState(eRoomPeer_AlreadyHu);
 
@@ -1039,4 +1058,40 @@ void LuoMJRoom::onAskForRobotDirectGang(uint8_t nInvokeIdx, uint8_t nActIdx, uin
 
 	// add frame 
 	addReplayFrame(eMJFrame_WaitRobotGang, jsFrameArg);
+}
+
+bool LuoMJRoom::canStartGame() {
+	for (auto ref : m_vPlayers) {
+		if (ref && ref->haveState(eRoomPeer_Ready)) {
+			continue;
+		}
+		return false;
+	}
+
+	return IMJRoom::canStartGame();
+}
+
+bool LuoMJRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
+{
+	GameRoom::onPlayerEnter(pEnterRoomPlayer);
+	// check if already in room ;
+	uint8_t nEmptyIdx = rand() % getSeatCnt();
+	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
+	{
+		nEmptyIdx = (nEmptyIdx + nIdx) % getSeatCnt();
+		if (getPlayerByIdx(nEmptyIdx) == nullptr)
+		{
+			//nEmptyIdx = nIdx;
+			break;
+		}
+	}
+
+	if (nEmptyIdx == (uint8_t)-1)
+	{
+		//LOGFMTE("why player enter , but do not have empty seat");
+		return true;
+	}
+
+	doPlayerSitDown(pEnterRoomPlayer, nEmptyIdx);
+	return true;
 }

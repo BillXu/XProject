@@ -72,14 +72,14 @@ public:
 				break;
 			}
 
-			auto nType = card_Type(nCard);
+			/*auto nType = card_Type(nCard);
 			bool isHua = (eCT_Jian == nType || eCT_Hua == nType);
 			if (isHua)
 			{
 				nRet = 4;
 				LOGFMTE("can not chu hua = %u", nCard);
 				break;
-			}
+			}*/
 
 		} while (0);
 

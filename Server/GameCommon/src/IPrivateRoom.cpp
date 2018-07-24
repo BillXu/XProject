@@ -507,6 +507,7 @@ void IPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo)
 
 	jsRoomInfo["leftCircle"] = m_nLeftRounds;
 	jsRoomInfo["isOpen"] = m_isOpen ? 1 : 0;
+	jsRoomInfo["pState"] = m_nPrivateRoomState;
 	// is waiting vote dismiss room ;
 	jsRoomInfo["isWaitingDismiss"] = m_bWaitDismissReply ? 1 : 0;
 	if ( isClubRoom() && m_nAutoStartCnt == 0 )
@@ -668,10 +669,14 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	}
 
 	// check room over
-	if ( 0 == m_nLeftRounds )
+	if (isRoomOver())
 	{
 		doRoomGameOver(false);
 	}
+}
+
+bool IPrivateRoom::isRoomOver() {
+	return 0 == m_nLeftRounds || getCoreRoom()->isRoomOver();
 }
 
 uint32_t IPrivateRoom::getCurRoundIdx()
