@@ -150,7 +150,7 @@ void CTimerManager::startTimer(CTimer* pTimer )
 	else
 	{
 		auto iter = m_vRunningTimers.find(pTimer->getTimerID()) ;
-		assert(iter == m_vRunningTimers.end() && "already running , why run it again why");
+		//assert(iter == m_vRunningTimers.end() && "already running , why run it again why");
 		if ( iter == m_vRunningTimers.end() )
 		{
 			m_vRunningTimers[pTimer->getTimerID()] = pTimer ;
@@ -174,7 +174,7 @@ void CTimerManager::Update( float fDelta )
 	for ( auto pCanneclID : m_vWillCanncelTimer )
 	{
 		auto iter = m_vRunningTimers.find(pCanneclID) ;
-		assert(iter != m_vRunningTimers.end() && "not running why , canncel");
+		//assert(iter != m_vRunningTimers.end() && "not running why , canncel");
 		if ( iter != m_vRunningTimers.end() )
 		{
 			m_vRunningTimers.erase(iter) ;

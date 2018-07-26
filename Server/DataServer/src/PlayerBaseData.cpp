@@ -183,6 +183,7 @@ void CPlayerBaseData::sendBaseDataToClient()
 	if (pStay.isEmpty() == false)
 	{
 		jsBaseData["stayRoomID"] = pStay.nRoomID;
+		jsBaseData["stayRoomPort"] = pStay.nSvrPort;
 	}
 	sendMsg(jsBaseData, MSG_PLAYER_BASE_DATA);
 	LOGFMTD("send msg to client base data uid = %u", getPlayer()->getUserUID() );

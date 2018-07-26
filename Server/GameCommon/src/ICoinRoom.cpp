@@ -107,6 +107,9 @@ bool ICoinRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSender
 			LOGFMTE("why you leave room ? already start can not leave , just apply dissmiss room id = %u , sessionID = %u", getRoomID(), nSessionID);
 			decltype(m_vDelayLeave)& vDelay = MSG_PLAYER_STAND_UP == nMsgType ? m_vDelayStandUp : m_vDelayLeave;
 			vDelay.insert(pp->getUserUID());
+
+			prealMsg["ret"] = 2;
+			sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
 			return true;
 		}
 		else
@@ -207,6 +210,11 @@ bool ICoinRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)
 			m_vDelayLeave.insert(pp->getUserUID());
 			return true;
 		}
+
+		Json::Value jsret;
+		jsret["idx"] = pp->getIdx();
+		jsret["isTuoGuan"] = 1;
+		sendRoomMsg(jsret, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
 	}
 	return m_pRoom->onPlayerNetStateRefreshed(nPlayerID, nState);
 }

@@ -202,9 +202,14 @@ bool RoomGroup::doMatchPlayerEnterRoom()
 		}
 	}
 
-	std::random_shuffle(m_vEnterRoomQuene.begin(), m_vEnterRoomQuene.end());
+	if ( m_vEnterRoomQuene.size() < nSeatCnt )
+	{
+		return false;
+	}
+
 	// inform players enter room ;
 	uint32_t nNeedRoomCnt = m_vEnterRoomQuene.size() / nSeatCnt;
+	std::random_shuffle(m_vEnterRoomQuene.begin(), m_vEnterRoomQuene.end());
 	std::vector<IGameRoom*> vRooms;
 	for ( auto iter = m_vAllRooms.begin(); iter != m_vAllRooms.end() && vRooms.size() < nNeedRoomCnt; ++iter )
 	{
@@ -228,9 +233,10 @@ bool RoomGroup::doMatchPlayerEnterRoom()
 		while ( nCnt-- )
 		{
 			auto p = m_vEnterRoomQuene.front();
-			if (ref->onPlayerEnter(&p))
+			ref->sendRoomInfo(p.nSessionID);
+			if ( !ref->onPlayerEnter(&p))
 			{
-				ref->sendRoomInfo(p.nSessionID);
+				LOGFMTE( "enter room failed , but how can enter queue , uid = %u room level = %u",p.nUserUID , getLevel() );
 			}
 			m_vEnterRoomQuene.erase(m_vEnterRoomQuene.begin());
 

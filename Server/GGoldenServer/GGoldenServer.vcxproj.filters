@@ -14,6 +14,9 @@
     <Filter Include="src\Golden\state">
       <UniqueIdentifier>{b1a36931-98d7-4dbc-90a9-e12449e271b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\CoinRedBlack">
+      <UniqueIdentifier>{ded595c8-ed13-4eac-8714-2343e3e3acff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -39,6 +42,12 @@
     </ClCompile>
     <ClCompile Include="src\Golden\GoldenRoom.cpp">
       <Filter>src\Golden</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CoinRedBlack\RedBlackRoom.cpp">
+      <Filter>src\CoinRedBlack</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CoinRedBlack\RedBlackPlayer.cpp">
+      <Filter>src\CoinRedBlack</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +95,12 @@
     </ClInclude>
     <ClInclude Include="src\Golden\GoldenRoomStateWaitReady.h">
       <Filter>src\Golden\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CoinRedBlack\RedBlackRoom.h">
+      <Filter>src\CoinRedBlack</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CoinRedBlack\RedBlackPlayer.h">
+      <Filter>src\CoinRedBlack</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

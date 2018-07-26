@@ -11,7 +11,7 @@ public:
 	{
 		IMJPlayerCard::VEC_CARD vCards;
 		pPlayerCard->getHoldCard(vCards);
-		if (vCards.size() % 3 != 0)
+		if (vCards.size() % 3 != 2)
 		{
 			LOGFMTE( "you are not hu , ok ? do not check dudui hu " );
 			return false;

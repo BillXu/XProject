@@ -218,6 +218,7 @@ protected:
 
 	bool isPlayerMustRobBanker( uint8_t nIdx )
 	{
+		return false;
 		auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
 		if (!pPlayer)
 		{

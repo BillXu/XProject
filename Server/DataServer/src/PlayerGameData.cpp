@@ -113,7 +113,7 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 	case eAsync_SyncPlayerGameInfo:
 	{
 		auto nCoin = jsReqContent["coin"].asInt();
-		LOGFMTD( "uid = %u sync game info coin = %d",nCoin );
+		LOGFMTD( "uid = %u sync game info coin = %d",getPlayer()->getUserUID(),nCoin );
 		if ( nCoin < 0 )
 		{
 			nCoin = 0;

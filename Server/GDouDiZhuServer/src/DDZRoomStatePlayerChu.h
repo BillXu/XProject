@@ -45,12 +45,12 @@ public:
 		getRoom()->addReplayFrame(DDZ_Frame_WaitChu, jsFrame);
 		// check tuoGuan 
 		checkTuoGuan();
-		setStateDuringTime(eTime_WaitForever);
+		setStateDuringTime(eTime_WaitPlayerAct);
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
 	{
-		if ( MSG_DDZ_PLAYER_CHU != nMsgType && MSG_DDZ_PLAYER_SHOW_CARDS != nMsgType && MSG_DDZ_PLAYER_UPDATE_TUO_GUAN != nMsgType )
+		if ( MSG_DDZ_PLAYER_CHU != nMsgType && MSG_DDZ_PLAYER_SHOW_CARDS != nMsgType )
 		{
 			return false;
 		}
@@ -58,7 +58,7 @@ public:
 		auto pRoom = (DDZRoom*)getRoom();
 		auto pPlayer = (DDZPlayer*)pRoom->getPlayerBySessionID(nSessionID);
 
-		if ( MSG_DDZ_PLAYER_UPDATE_TUO_GUAN == nMsgType )
+		/*if ( MSG_DDZ_PLAYER_UPDATE_TUO_GUAN == nMsgType )
 		{
 			uint8_t nRet = 0;
 			bool isTuoGuan = false;
@@ -95,7 +95,7 @@ public:
 			jsmsg["idx"] = pPlayer->getIdx();
 			getRoom()->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
 			return true;
-		}
+		}*/
 
 		if ( MSG_DDZ_PLAYER_SHOW_CARDS == nMsgType)
 		{
@@ -163,6 +163,12 @@ public:
 
 		if (jsmsg["cards"].isArray() == false || jsmsg["type"].isNull())  // player do not chu ;
 		{
+			if ( m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx )
+			{
+				js["ret"] = 6;
+				pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
+				return true;
+			}
 			// tell other players ;
 			jsmsg["idx"] = pPlayer->getIdx();
 			getRoom()->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_CHU); 
@@ -252,6 +258,7 @@ public:
 	{
 		IGameRoomState::roomInfoVisitor(js);
 		js["curActIdx"] = m_nWaitChuPlayerIdx;
+		js["maxType"] = m_tCurMaxChuPai.tChuPaiType;
 
 		Json::Value jsLastChuArray;
 		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
@@ -280,7 +287,7 @@ protected:
 	void infomNextPlayerAct()
 	{
 		// inform next player ;
-		auto nSeatCnt = getRoom()->getSeatCnt();
+		auto nSeatCnt = (int16_t)getRoom()->getSeatCnt();
 		m_nWaitChuPlayerIdx = ++m_nWaitChuPlayerIdx % nSeatCnt;
 
 		while (getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx) == nullptr && nSeatCnt-- > 0)
@@ -307,18 +314,26 @@ protected:
 		jsFrame["idx"] = m_nWaitChuPlayerIdx;
 		getRoom()->addReplayFrame(DDZ_Frame_WaitChu, jsFrame);
 		// check tuoGuan 
+		setStateDuringTime(eTime_WaitPlayerAct);
 		checkTuoGuan();
 	}
 
 	void delayEnterGameOverState()
 	{
 		m_nWaitChuPlayerIdx = -1;
-		setStateDuringTime(TIME_DELAY_ENTER_GAME_OVER);
+		getRoom()->goToState(eRoomState_GameEnd);
 	}
 
 	void onStateTimeUp()override
 	{
-		getRoom()->goToState(eRoomState_GameEnd);
+		auto p = getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx);
+		if ( !p )
+		{
+			LOGFMTE( "why wait cur player is null ? idx = %d , roomID = %u",m_nWaitChuPlayerIdx , getRoom()->getRoomID() );
+			return;
+		}
+		Json::Value jsAutoChu;
+		onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
 	}
 
 protected:

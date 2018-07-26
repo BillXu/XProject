@@ -43,15 +43,15 @@ public:
 	uint32_t getSeiralNum()final;
 	virtual uint8_t getRoomType() = 0 ;
 	void update(float fDelta)override;
-	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0 )final;
+	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0 )override;
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )override;
 	void sendRoomInfo(uint32_t nSessionID)override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState)override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)final;
 	IGameRoomManager* getRoomMgr();
-	IGamePlayer* getPlayerByUID( uint32_t nUserUID );
-	IGamePlayer* getPlayerBySessionID(uint32_t nSessionID);
+	virtual IGamePlayer* getPlayerByUID( uint32_t nUserUID );
+	virtual IGamePlayer* getPlayerBySessionID(uint32_t nSessionID);
 	IGamePlayer* getPlayerByIdx( uint16_t nIdx )final;
 	uint16_t getSeatCnt()final;
 

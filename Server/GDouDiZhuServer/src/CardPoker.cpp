@@ -24,6 +24,7 @@ void CDouDiZhuPoker::init( Json::Value& jsOpts )
 
 void CDouDiZhuPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 {
+	return;
 	//vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 18));
 	//vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 19));
 

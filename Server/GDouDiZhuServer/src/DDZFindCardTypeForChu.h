@@ -613,7 +613,7 @@ public:
 		m_vFindTypes[DDZ_3Follow1] = p;
 	}
 
-	bool findCardToChu(std::vector<uint8_t> vHoldCards, DDZ_Type nCurType , std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards )
+	bool findCardToChu(std::vector<uint8_t> vHoldCards, DDZ_Type& nCurType , std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards )
 	{
 		if ( DDZ_Rokect == nCurType )
 		{

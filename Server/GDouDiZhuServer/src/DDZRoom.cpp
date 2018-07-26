@@ -212,12 +212,53 @@ IPoker* DDZRoom::getPoker()
 	return &m_tPoker;
 }
 
-bool DDZRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
+bool DDZRoom::onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
 {
-	if (GameRoom::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID))
+	if (GameRoom::onMsg(jsmsg, nMsgType, eSenderPort, nSessionID))
 	{
 		return true;
 	}
+
+	if (MSG_DDZ_PLAYER_UPDATE_TUO_GUAN == nMsgType)
+	{
+		auto pPlayer = getPlayerBySessionID(nSessionID);
+		uint8_t nRet = 0;
+		bool isTuoGuan = false;
+		do
+		{
+			if (pPlayer == nullptr)
+			{
+				nRet = 2;
+				break;
+			}
+
+			if (jsmsg["isTuoGuan"].isNull() || jsmsg["isTuoGuan"].isInt() == false)
+			{
+				nRet = 3;
+				break;
+			}
+			isTuoGuan = jsmsg["isTuoGuan"].asUInt() == 1;
+			bool isCurTuoGuan = pPlayer->isTuoGuan();
+			if (isTuoGuan == isCurTuoGuan)
+			{
+				nRet = 1;
+				break;
+			}
+			pPlayer->setTuoGuanFlag(isTuoGuan);
+		} while (0);
+
+		if (nRet)
+		{
+			jsmsg["ret"] = nRet;
+			sendMsgToPlayer(jsmsg, nMsgType, nSessionID);
+			return true;
+		}
+
+		jsmsg["idx"] = pPlayer->getIdx();
+		sendRoomMsg(jsmsg, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
+		return true;
+	}
+
 	return false;
 }
 

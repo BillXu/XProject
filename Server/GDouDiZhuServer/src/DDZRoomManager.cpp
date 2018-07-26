@@ -141,6 +141,8 @@ bool DDZRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 			} while (0);
 
 			Json::Value jsRet;
+			jsRet["gamePort"] = getSvrApp()->getLocalSvrMsgPortType();
+			jsRet["level"] = nLevel;
 			jsRet["ret"] = nRet;
 			sendMsg(jsRet, MSG_ENTER_COIN_GAME, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
 			if ( 8 == nRet)
@@ -151,8 +153,10 @@ bool DDZRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgP
 				return;
 			}
 			// push to room queue
-			m_vCoinRoomGroup[nLevel].pushPlayerToEnterRoomQueue(tInfo);
-
+			if ( nRet == 0 )
+			{
+				m_vCoinRoomGroup[nLevel].pushPlayerToEnterRoomQueue(tInfo);
+			}
 		}, nUserID);
 	}
 	break;

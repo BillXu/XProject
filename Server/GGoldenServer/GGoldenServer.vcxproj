@@ -90,6 +90,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\CardPoker.h" />
+    <ClInclude Include="src\CoinRedBlack\RedBlackPlayer.h" />
+    <ClInclude Include="src\CoinRedBlack\RedBlackRoom.h" />
     <ClInclude Include="src\Golden\GoldenDefine.h" />
     <ClInclude Include="src\Golden\GoldenPeerCard.h" />
     <ClInclude Include="src\Golden\GoldenPlayerRecorder.h" />
@@ -107,6 +109,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CardPoker.cpp" />
+    <ClCompile Include="src\CoinRedBlack\RedBlackPlayer.cpp" />
+    <ClCompile Include="src\CoinRedBlack\RedBlackRoom.cpp" />
     <ClCompile Include="src\Golden\GoldenPeerCard.cpp" />
     <ClCompile Include="src\Golden\GoldenPlayer.cpp" />
     <ClCompile Include="src\Golden\GoldenRoom.cpp" />

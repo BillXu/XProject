@@ -233,13 +233,13 @@ enum eSettleType    // Õâ¸öÃ¶¾Ù¶¨ÒåµÄÖ»ÊÇÒ»¸öÖĞÁ¢µÄÊÂ¼ş£¬¶ÔÓÚ·¢ÉúÊÂ¼şµÄË«·½£¬½Ğ·
 enum eTime
 {
 	eTime_WaitPlayerReady = 15,
-	eTime_WaitRobotBanker = 5,
+	eTime_WaitRobotBanker = 15,
 	eTime_ExeGameStart = 2,			// Ö´ĞĞÓÎÏ·¿ªÊ¼ µÄÊ±¼ä
 	eTime_WaitChoseExchangeCard = 5, //  µÈ´ıÍæ¼ÒÑ¡Ôñ»»ÅÆµÄÊ±¼ä
 	eTime_DoExchangeCard = 3, //   Ö´ĞĞ»»ÅÆµÄÊ±¼ä
 	eTime_WaitDecideQue = 10, // µÈ´ıÍæ¼Ò¶¨È±
 	eTime_DoDecideQue = 2, // ¶¨È±Ê±¼ä
-	eTime_WaitPlayerAct = 10,  // µÈ´ıÍæ¼Ò²Ù×÷µÄÊ±¼ä
+	eTime_WaitPlayerAct = 150000000,  // µÈ´ıÍæ¼Ò²Ù×÷µÄÊ±¼ä
 	eTime_WaitPlayerChoseAct = eTime_WaitPlayerAct,
 	eTime_GoldenChoseAct = 120, // ÈıÕÅµÈ´ıÍæ¼Ò²Ù×÷Ê±¼ä
 	eTime_DoPlayerMoPai = 0,  //  Íæ¼ÒÃşÅÆÊ±¼ä
@@ -379,6 +379,14 @@ enum eMailState
 	eMailState_Delete,
 	eMailState_PlayerProcessed,
 	eMailState_Max,
+};
+
+enum eBetPool
+{
+	eBet_Red,
+	eBet_Black,
+	eBet_Other,
+	eBet_Max,
 };
 
 // poker timer measus by second
