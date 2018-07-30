@@ -84,6 +84,7 @@ enum eGameType
 	eGame_SCMJ,
 	eGame_MQMJ,
 	eGame_LuoMJ,
+	eGame_FXMJ,
 	eGame_Max,
 };
 

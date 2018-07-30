@@ -332,6 +332,7 @@ bool MJPlayerCard::getHoldCardThatCanBuGang(VEC_CARD& vGangCards)
 
 bool MJPlayerCard::isHoldCardCanHu( uint8_t& nJiang )
 {
+	m_b7Pair = false;
 	uint8_t nBaiDaCnt = 0;
 	if ( getBaiDaCard() > 0 ) // enabled bai Da card ;
 	{
@@ -818,6 +819,7 @@ bool MJPlayerCard::canHoldCard7PairHu( uint8_t& nJiang, uint8_t nBaiDaCnt )
 	}
 
 	nJiang = getNewestFetchedCard();
+	m_b7Pair = true;
 	return true;
 }
 

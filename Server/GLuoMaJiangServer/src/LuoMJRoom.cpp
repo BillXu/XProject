@@ -20,6 +20,7 @@ bool LuoMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nR
 	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
 	m_cFanxingChecker.init();
 	m_vGainChip.resize(getSeatCnt());
+	m_nDice = 0;
 	// add room state ;
 	IGameRoomState* p[] = { new CMJRoomStateWaitReady(), new MJRoomStateWaitPlayerChu(),new LuoMJRoomStateWaitPlayerAct(),
 		new MJRoomStateStartGame(),new MJRoomStateGameEnd(),new LuoMJRoomStateDoPlayerAct(),new LuoMJRoomStateAskForRobotGang(),
@@ -44,6 +45,7 @@ void LuoMJRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["bankIdx"] = m_nBankerIdx;
 	jsRoomInfo["curActIdex"] = getCurState()->getCurIdx();
 	jsRoomInfo["waitTimer"] = getCurState()->getStateDuring();
+	jsRoomInfo["dice"] = m_nDice;
 }
 
 void LuoMJRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID)
@@ -67,6 +69,7 @@ void LuoMJRoom::onWillStartGame() {
 	IMJRoom::onWillStartGame();
 	m_vSettle.clear();
 	clearGain();
+	m_nDice = 0;
 
 	doProduceNewBanker();
 }
@@ -79,8 +82,9 @@ void LuoMJRoom::onStartGame()
 
 void LuoMJRoom::sendStartGameMsg() {
 	Json::Value jsMsg;
-	uint8_t nDice = 2 + rand() % 11;
-	jsMsg["dice"] = nDice;
+	m_nDice = 1 + rand() % 6;
+	m_nDice = m_nDice * 10 + (1 + rand() % 6);
+	jsMsg["dice"] = m_nDice;
 	jsMsg["bankerIdx"] = getBankerIdx();
 	Json::Value arrPeerCards;
 	for (auto& pPlayer : m_vPlayers)
@@ -966,8 +970,8 @@ void LuoMJRoom::sortFanxing2FanCnt(std::vector<eFanxingType>& vType, uint16_t& n
 			break;
 		}
 		case eFanxing_DuiDuiHu:
-			nFanCnt += 3;
 		{
+			nFanCnt += 3;
 			break;
 		}
 		}

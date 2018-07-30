@@ -1,9 +1,9 @@
 #pragma once
 #include "IMJRoom.h"
 #include "IMJPoker.h"
-#include "LuoMJFanxingChecker.h"
-#include "LuoMJPoker.h"
-class LuoMJRoom
+#include "FXMJFanxingChecker.h"
+#include "FXMJPoker.h"
+class FXMJRoom
 	:public IMJRoom
 {
 public:
@@ -53,6 +53,7 @@ public:
 	IPoker* getPoker()override;
 	bool isHaveLouPeng()override { return true; }
 	bool isGameOver()override;
+	bool isRoomOver()override;
 	bool isCanGoOnMoPai()override;
 	bool canStartGame() override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
@@ -77,18 +78,26 @@ public:
 	uint8_t getNextActPlayerIdx(uint8_t nCurActIdx)override;
 	bool isPlayerRootDirectGang(uint8_t nInvokerIdx, uint8_t nCard);
 	void onAskForRobotDirectGang(uint8_t nInvokeIdx, uint8_t nActIdx, uint8_t nCard, std::vector<uint8_t>& vOutCandinates);
+	void onPlayerTing(uint8_t nIdx, uint8_t nTing = 1);
 
 	uint8_t getFanLimit();
 	bool isDPOnePay();
 	uint8_t getBaseScore();
 	uint32_t getGuang();
+	bool isEnable7Pair();
+	bool isEnableOOT();
+	bool isEnableSB1();
+	bool isEnableFollow();
+	bool isEnableZha5();
 
 	void addGain(uint8_t nIdx, stSettleGain stGain);
 	void clearGain();
 	void backGain(uint8_t nIdx);
 
-	bool isHaveCyclone() { return false; }
+	bool canGang();
+	void onPrePlayerGang();
 
+	bool isHaveCyclone() { return false; }
 protected:
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime);
@@ -96,13 +105,19 @@ protected:
 	void sendStartGameMsg();
 
 protected:
-	LuoMJPoker m_tPoker;
+	FXMJPoker m_tPoker;
 	std::vector<stSettle> m_vSettle;
-	LuoMJFanxingChecker m_cFanxingChecker;
+	FXMJFanxingChecker m_cFanxingChecker;
 
 	uint8_t m_nNextBankerIdx;
 	std::vector<std::vector<stSettleGain>> m_vGainChip;
-
+	/*uint8_t m_nGangCnt;
 	uint8_t m_nDice;
+	uint8_t m_nR7;
+	uint8_t m_nR15;*/
+
+	bool m_bCheckFollow;
+	uint8_t m_nFollowCard;
+	uint8_t m_nFollowCnt;
 
 };

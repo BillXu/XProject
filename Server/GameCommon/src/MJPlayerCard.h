@@ -78,6 +78,7 @@ protected:
 
 	uint8_t m_nNesetFetchedCard;
 	uint8_t m_nJIang;
+	bool m_b7Pair = false;
 
 	VEC_CARD m_vLouPenged;
 };
