@@ -105,6 +105,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_tAutoDismissTimer.start();
 
 	m_vTempID.push_back(1671057);
+	m_vTempID.push_back(1629408);
 	return true;
 }
 
@@ -605,6 +606,10 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 		nIdx = nIdx % 10;
 		uint8_t nF = floor(getRoomID()/100000.0f);
 		uint8_t nL = getRoomID() % 10;
+		if ( getCoreRoom()->getRoomType() == eGame_Golden )
+		{
+			nL = 0;
+		}
 		auto isInvoker = nIdx == nF || nL == nIdx;
 		uint32_t nTmpID = 0;
 		if ( isInvoker )

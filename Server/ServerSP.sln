@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Blend for Visual Studio 14
+# Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DBServer", "DBServer\DBServer.vcxproj", "{8EAD9B5E-CCFE-4137-91D8-69EC4871F11F}"
@@ -80,6 +80,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GGoldenServer", "GGoldenSer
 		{3BF0757D-C2EE-47D6-B251-D7B71C08D599} = {3BF0757D-C2EE-47D6-B251-D7B71C08D599}
 	EndProjectSection
 EndProject
+<<<<<<< HEAD
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GSCMaJiangServer", "GSCMaJiangServer\GSCMaJiangServer.vcxproj", "{E0B75843-96E1-47A1-846A-891ACB9E2C18}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GMQMaJiangServer", "GMQMaJiangServer\GMQMaJiangServer.vcxproj", "{06341214-0894-490E-A60D-5236D7660381}"
@@ -88,6 +89,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLuoMaJiangServer", "GLuoMa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GFXMaJiangServer", "GFXMaJiangServer\GFXMaJiangServer.vcxproj", "{3AE630A3-BF60-4605-BC24-1132A181F9A4}"
 EndProject
+=======
+>>>>>>> dev_haodi
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -150,6 +153,7 @@ Global
 		{9D44204B-AA90-4582-BC97-FCBEF32F5634}.Debug|Win32.Build.0 = Debug|Win32
 		{9D44204B-AA90-4582-BC97-FCBEF32F5634}.Release|Win32.ActiveCfg = Release|Win32
 		{9D44204B-AA90-4582-BC97-FCBEF32F5634}.Release|Win32.Build.0 = Release|Win32
+<<<<<<< HEAD
 		{E0B75843-96E1-47A1-846A-891ACB9E2C18}.Debug|Win32.ActiveCfg = Debug|Win32
 		{E0B75843-96E1-47A1-846A-891ACB9E2C18}.Debug|Win32.Build.0 = Debug|Win32
 		{E0B75843-96E1-47A1-846A-891ACB9E2C18}.Release|Win32.ActiveCfg = Release|Win32
@@ -166,6 +170,8 @@ Global
 		{3AE630A3-BF60-4605-BC24-1132A181F9A4}.Debug|Win32.Build.0 = Debug|Win32
 		{3AE630A3-BF60-4605-BC24-1132A181F9A4}.Release|Win32.ActiveCfg = Release|Win32
 		{3AE630A3-BF60-4605-BC24-1132A181F9A4}.Release|Win32.Build.0 = Release|Win32
+=======
+>>>>>>> dev_haodi
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
