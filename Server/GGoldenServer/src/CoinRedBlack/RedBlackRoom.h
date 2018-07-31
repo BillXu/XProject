@@ -21,10 +21,12 @@ public:
 	{
 		eBetPool eWinPort;
 		CGoldenPeerCard::GoldenType eType;
+		uint8_t nKeyCardValue;
 	};
 public:
 	~RedBlackRoom();
 	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
+	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
 	IGamePlayer* createGamePlayer()override;
 	IPoker* getPoker()override;
 	uint8_t getRoomType()override;
@@ -42,6 +44,14 @@ public:
 	int32_t getCoinNeedToBeBanker();
 	int32_t getWinRateForCardType( CGoldenPeerCard::GoldenType eType );
 	void doDistribute();
+	int32_t getBankerUID() { return m_nBankerUID; }
+	int32_t getPoolCapacityToBet( eBetPool ePool );
+	stBetPool& getPool( eBetPool ePool );
+	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
+	void informRichAndBestBetPlayerUpdate();
+protected:
+	int32_t getRichestPlayerUID();
+	int32_t getBestBetPlayer();
 protected:
 	stBetPool m_vBetPool[eBet_Max];
 	CGoldenPoker m_tPoker;
@@ -49,4 +59,7 @@ protected:
 	int32_t m_nBankerUID;
 	std::map<uint32_t, IGamePlayer*> m_vStandGamePlayers;
 	std::list<stRecorder> m_vRecorders;
+
+	int32_t m_nRichestPlayer;  // da fu hao ;
+	int32_t m_nBestBetPlayer;  // shen suan zi ;
 };

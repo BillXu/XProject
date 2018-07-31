@@ -248,6 +248,8 @@ enum eTime
 	eTime_DoPlayerAct_Hu = 1,  // 玩家胡牌的时间
 	eTime_DoPlayerAct_Peng = 0, // 玩家碰牌时间
 	eTime_GameOver = 1, // 游戏结束状态持续时间
+	eTime_RedBlack_WaitBet = 12,
+	eTime_RedBlack_Result = 8,
 	eTime_WaitForever = 999999999,
 };
 
@@ -338,7 +340,13 @@ enum eRoomFlag
 };
 
  
-
+enum eCoinRoomLevel
+{
+	eRoomLevel_0,
+	eRoomLevel_1,
+	eRoomLevel_2,
+	eRoomLevel_Max,
+};
 
 // mail Module 
 #define MAX_KEEP_MAIL_COUNT 50

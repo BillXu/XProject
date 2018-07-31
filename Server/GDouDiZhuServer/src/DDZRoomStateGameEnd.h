@@ -136,7 +136,7 @@ protected:
 
 			Json::Value jsPlayer;
 			jsPlayer["idx"] = nIdx;
-			jsPlayer["offset"] = p->getSingleOffset();
+			jsPlayer["offset"] = p->getSingleOffset() + ((DDZRoom*)getRoom())->getDeskFee();
 
 			Json::Value jsCards;
 			p->getPlayerCard()->holdCardToJson(jsCards);

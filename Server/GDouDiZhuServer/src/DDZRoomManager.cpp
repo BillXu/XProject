@@ -21,8 +21,11 @@ void DDZRoomManager::onConnectedSvr(bool isReconnected)
 		jsOpts["enterLimitLow"] = 0;
 		jsOpts["enterLimitTop"] = 0;
 		jsOpts["deskFee"] = 10;
+		jsOpts["level"] = vjs.size();
 		vjs[vjs.size()] = jsOpts;
+		jsOpts["level"] = vjs.size();
 		vjs[vjs.size()] = jsOpts;
+		jsOpts["level"] = vjs.size();
 		vjs[vjs.size()] = jsOpts;
 
 		for (uint16_t nLevel = eRoomLevel_0; nLevel < eRoomLevel_Max; ++nLevel)

@@ -47,6 +47,21 @@ uint8_t CGoldenPeerCard::getType()
 	return m_eType;
 }
 
+uint8_t CGoldenPeerCard::getPairKeyValue()
+{
+	if ( Golden_Double != getType() )
+	{
+		return 2;
+	}
+
+	if ( m_vHoldCards[0].GetCardFaceNum() == m_vHoldCards[1].GetCardFaceNum() || m_vHoldCards[0].GetCardFaceNum() == m_vHoldCards[2].GetCardFaceNum() )
+	{
+		return  m_vHoldCards[0].GetCardFaceNum(true);
+	}
+
+	return  m_vHoldCards[1].GetCardFaceNum(true);
+}
+
 uint32_t CGoldenPeerCard::getWeight() {
 	std::vector<CCard> vHoldCards;
 	uint32_t nWeight = getType();

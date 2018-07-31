@@ -254,6 +254,7 @@ bool DDZRoom::onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort,
 			return true;
 		}
 
+		getCurState()->checkTuoGuan();
 		jsmsg["idx"] = pPlayer->getIdx();
 		sendRoomMsg(jsmsg, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
 		return true;
@@ -264,7 +265,12 @@ bool DDZRoom::onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort,
 
 uint8_t DDZRoom::getFirstRobotBankerIdx()
 {
-	return m_nFirstRobotBankerIdx = (++m_nFirstRobotBankerIdx) % getSeatCnt();
+	return m_nFirstRobotBankerIdx;
+}
+
+uint8_t DDZRoom::moveFirstRobotBankerIdx()
+{
+	 return m_nFirstRobotBankerIdx = (++m_nFirstRobotBankerIdx) % getSeatCnt();
 }
 
 void DDZRoom::setNewBankerInfo(uint8_t nBankerIdx, uint8_t nBankerTimes, std::vector<uint8_t>& vDiPai)
@@ -296,4 +302,9 @@ uint32_t DDZRoom::fengDing()
 		return 100000; // not limit 
 	}
 	return m_jsOpts["maxBet"].asUInt();
+}
+
+int32_t DDZRoom::getDeskFee()
+{
+	return m_jsOpts["deskFee"].asInt();
 }

@@ -152,10 +152,12 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		jsResult["coin"] = getPlayer()->getBaseData()->getCoin();
 		jsResult["diamond"] = getPlayer()->getBaseData()->getDiamoned();
 		
-		m_nQueuingRoomLevel = nLevel;
-		m_nQueuingSvrIdx = nPortIdx;
-		m_nQueuingSvrPort = nPort;
-
+		if ( nPort == ID_MSG_PORT_DOU_DI_ZHU )
+		{
+			m_nQueuingRoomLevel = nLevel;
+			m_nQueuingSvrIdx = nPortIdx;
+			m_nQueuingSvrPort = nPort;
+		}
 	}
 	break;
 	case eAsync_Clear_Queuing_CoinGameLevel:

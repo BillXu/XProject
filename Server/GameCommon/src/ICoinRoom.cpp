@@ -33,6 +33,7 @@ bool ICoinRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nR
 	m_nEnterLimitLow = vJsOpts["enterLimitLow"].asInt();
 	m_nEnterLimitTop = vJsOpts["enterLimitTop"].asInt();
 	m_nDeskFee = vJsOpts["deskFee"].asInt();
+	m_nLevel = vJsOpts["level"].asInt();
 	return true;
 }
 

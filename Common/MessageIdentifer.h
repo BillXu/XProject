@@ -521,6 +521,15 @@ enum eMsgType
 	MSG_RB_REQUEST_ROOM_PLAYER_LIST,
 	// client : null ;
 	// svr : { list : [ { uid : 23 , coin : 23 , winCnt : 23 , bet : 23 } ], bestPlayerUID : 23  }
+	
+	MSG_RB_UPDATE_RICH_AND_BEST,
+	// svr : { richestUID : 235, richestCoin : 23 , bestBetUID : 234 , bestBetCoin : 23  }
+
+
+
+
+
+
 
 
 

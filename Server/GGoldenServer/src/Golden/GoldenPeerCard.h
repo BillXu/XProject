@@ -25,6 +25,7 @@ public:
 	const char*  getNameString() override;
 	uint32_t getWeight() override;
 	uint8_t getType();
+	uint8_t getPairKeyValue();
 	void reset() override ;
 	PK_RESULT pk(IPeerCard* pTarget) override;
     uint8_t getAddIdx(){return m_nAddIdx;}

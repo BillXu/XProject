@@ -5,14 +5,6 @@ class DDZRoomManager
 	:public IGameRoomManager
 {
 public:
-	enum eCoinRoomLevel
-	{
-		eRoomLevel_0,
-		eRoomLevel_1,
-		eRoomLevel_2,
-		eRoomLevel_Max,
-	};
-public:
 	void init(IServerApp* svrApp)override;
 	void onConnectedSvr(bool isReconnected)override;
 	void update(float fDeta)override;

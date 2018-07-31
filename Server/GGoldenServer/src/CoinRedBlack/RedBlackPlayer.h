@@ -15,8 +15,8 @@ public:
 	void onGameEnd()override;
 	void onGameDidEnd()override;
 	int32_t getBetCoin(eBetPool ePool) { return m_vBetedCoin[ePool]; }
-protected:
 	int32_t getBetCoin();
+	int8_t getWinTimes();
 protected:
 	int32_t m_vBetedCoin[eBet_Max];
 	std::list<stBetRecorder> m_vRecorders;

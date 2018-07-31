@@ -291,6 +291,14 @@ bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort e
 
 	if ( nMsgType == MSG_REQUEST_PLAYER_DATA )
 	{
+		if (prealMsg["nReqID"].isUInt() == false)
+		{
+			LOGFMTE( "MSG_REQUEST_PLAYER_DATA nReqID type error = %u", prealMsg["nReqID"].type() );
+			Json::Value js;
+			js["ret"] = 110;
+			sendMsg(js, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+			return true;
+		}
 		auto nReqUID = prealMsg["nReqID"].asUInt();
 		bool isDetail = prealMsg["isDetail"].asUInt() == 1;
 		auto pPlayer = getPlayerByUserUID( nReqUID );

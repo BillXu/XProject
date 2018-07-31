@@ -18,12 +18,14 @@ public:
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override;
 	uint8_t getFirstRobotBankerIdx();
+	uint8_t moveFirstRobotBankerIdx();
 	uint8_t getBankerIdx() { return m_nBankerIdx; }
 	void setNewBankerInfo( uint8_t nBankerIdx , uint8_t nBankerTimes , std::vector<uint8_t>& vDiPai );
 	uint8_t getBankTimes();
 	uint8_t getBombCount();
 	void increaseBombCount();
 	uint32_t fengDing();
+	int32_t getDeskFee();
 private:
 	uint8_t m_nFirstRobotBankerIdx;
 	uint8_t m_nBankerIdx;

@@ -25,7 +25,7 @@ public:
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	void sendRoomPlayersInfo(uint32_t nSessionID)override;
 	void sendRoomInfo(uint32_t nSessionID)override;
-	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) final;
+	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) override;
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)final;
 	uint16_t getPlayerCnt()override;
 	GameRoom* getCoreRoom() { return m_pRoom; }
@@ -39,6 +39,7 @@ public:
 	void onGameDidEnd(IGameRoom* pRoom)override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
 	uint32_t getCurRoundIdx()final { return 0; }
+	int8_t getLevel() { return m_nLevel; }
 protected:
 	uint32_t getEnterLimitLow();
 	uint32_t getEnterLimitTop();
@@ -47,9 +48,11 @@ protected:
 private:
 	GameRoom* m_pRoom;
 	std::set<uint32_t> m_vDelayStandUp;
-	std::set<uint32_t> m_vDelayLeave;
 	int32_t m_nDeskFee;
+	int8_t m_nLevel;
 	int32_t m_nEnterLimitLow;
 	int32_t m_nEnterLimitTop;
 	uint32_t m_nTotalFee;
+protected:
+	std::set<uint32_t> m_vDelayLeave;
 };

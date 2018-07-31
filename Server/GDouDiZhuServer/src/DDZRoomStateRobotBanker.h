@@ -15,7 +15,7 @@ public:
 		m_nCurMaxRobotTimes = 0;
 
 		auto pRoom = (DDZRoom*)getRoom();
-		m_nCurWaitPlayerIdx = pRoom->getFirstRobotBankerIdx();
+		m_nCurWaitPlayerIdx = pRoom->moveFirstRobotBankerIdx();
 		m_nBankerCandiate = m_nCurWaitPlayerIdx;
 		// send msg tell room player ;
 		setStateDuringTime(eTime_WaitRobotBanker);

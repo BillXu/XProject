@@ -43,3 +43,16 @@ int32_t RedBlackPlayer::getBetCoin()
 	}
 	return nBetCoin;
 }
+
+int8_t RedBlackPlayer::getWinTimes()
+{
+	uint8_t nTimes = 0;
+	for (auto& ref : m_vRecorders)
+	{
+		if (ref.nOffset > 0)
+		{
+			++nTimes;
+		}
+	}
+	return nTimes;
+}

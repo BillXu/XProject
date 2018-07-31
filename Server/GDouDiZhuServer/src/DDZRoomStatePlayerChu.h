@@ -336,46 +336,68 @@ protected:
 		onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
 	}
 
-protected:
-	void checkTuoGuan()
+	void checkTuoGuan()override
 	{
 		auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx);
 		if (p && p->isTuoGuan())
 		{
-			m_tTuoGuanTimer.reset();
-			m_tTuoGuanTimer.setInterval(TIME_TUOGUAN_DELAY_ACT);
-			m_tTuoGuanTimer.setIsAutoRepeat(false);
-			m_tTuoGuanTimer.setCallBack([this, p](CTimer* t, float f)
+			// do auto chu 
+			auto nCurType = m_tCurMaxChuPai.tChuPaiType;
+			if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
 			{
-				if (p->isTuoGuan() == false || p->getIdx() != m_nWaitChuPlayerIdx)
-				{
-					return;
-				}
+				nCurType = DDZ_Max;
+			}
 
-				// do auto chu 
-				auto nCurType = m_tCurMaxChuPai.tChuPaiType;
-				if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
+			std::vector<uint8_t> vAutChuCards;
+			auto isChu = p->getPlayerCard()->getTuoGuanChuCards(nCurType, m_tCurMaxChuPai.vCards, vAutChuCards);
+			Json::Value jsAutoChu;
+			if (isChu)
+			{
+				Json::Value jsArray;
+				jsAutoChu["type"] = nCurType;
+				for (auto& ref : vAutChuCards)
 				{
-					nCurType = DDZ_Max;
+					jsArray[jsArray.size()] = ref;
 				}
+				jsAutoChu["cards"] = jsArray;
+			}
+			onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
 
-				std::vector<uint8_t> vAutChuCards;
-				auto isChu = p->getPlayerCard()->getTuoGuanChuCards(nCurType, m_tCurMaxChuPai.vCards, vAutChuCards);
-				Json::Value jsAutoChu;
-				if (isChu)
-				{
-					Json::Value jsArray;
-					jsAutoChu["type"] = nCurType;
-					for (auto& ref : vAutChuCards)
-					{
-						jsArray[jsArray.size()] = ref;
-					}
-					jsAutoChu["cards"] = jsArray;
-				}
-				onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
+			/// delay act ;
+			//m_tTuoGuanTimer.reset();
+			//m_tTuoGuanTimer.setInterval(TIME_TUOGUAN_DELAY_ACT);
+			//m_tTuoGuanTimer.setIsAutoRepeat(false);
+			//m_tTuoGuanTimer.setCallBack([this, p](CTimer* t, float f)
+			//{
+			//	if (p->isTuoGuan() == false || p->getIdx() != m_nWaitChuPlayerIdx)
+			//	{
+			//		return;
+			//	}
 
-			});
-			m_tTuoGuanTimer.start();
+			//	// do auto chu 
+			//	auto nCurType = m_tCurMaxChuPai.tChuPaiType;
+			//	if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
+			//	{
+			//		nCurType = DDZ_Max;
+			//	}
+
+			//	std::vector<uint8_t> vAutChuCards;
+			//	auto isChu = p->getPlayerCard()->getTuoGuanChuCards(nCurType, m_tCurMaxChuPai.vCards, vAutChuCards);
+			//	Json::Value jsAutoChu;
+			//	if (isChu)
+			//	{
+			//		Json::Value jsArray;
+			//		jsAutoChu["type"] = nCurType;
+			//		for (auto& ref : vAutChuCards)
+			//		{
+			//			jsArray[jsArray.size()] = ref;
+			//		}
+			//		jsAutoChu["cards"] = jsArray;
+			//	}
+			//	onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
+
+			//});
+			//m_tTuoGuanTimer.start();
 		}
 	}
 protected:

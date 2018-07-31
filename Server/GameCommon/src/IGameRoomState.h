@@ -35,6 +35,7 @@ public:
 	float getStateDuring(){ return m_fStateDuring; }
 	GameRoom* getRoom(){ return m_pRoom; }
 	uint32_t getNextStateID() { return m_nNextStateID; }
+	virtual void checkTuoGuan(){}
 private:
 	float m_fStateDuring;
 	GameRoom* m_pRoom;
