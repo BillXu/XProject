@@ -205,12 +205,21 @@ void CGoldenPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 	tTmep.SetCard(CCard::eCard_Heart, 1);
 	vMakedCards.push_back(tTmep.GetCardCompositeNum());
 
-	/*tTmep.SetCard(CCard::eCard_Sword, 1);
+	tTmep.SetCard(CCard::eCard_Sword, 1);
 	vMakedCards.push_back(tTmep.GetCardCompositeNum());
 
 	tTmep.SetCard(CCard::eCard_Sword, 12);
 	vMakedCards.push_back(tTmep.GetCardCompositeNum());
 
 	tTmep.SetCard(CCard::eCard_Sword, 13);
-	vMakedCards.push_back(tTmep.GetCardCompositeNum());*/
+	vMakedCards.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 13);
+	vMakedCards.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Club, 13);
+	vMakedCards.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Heart, 13);
+	vMakedCards.push_back(tTmep.GetCardCompositeNum());
 }
