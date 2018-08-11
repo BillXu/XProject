@@ -23,6 +23,7 @@ bool RedBlackRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_nBankerUID = -1;
 	m_nRichestPlayer = -1;
 	m_nBestBetPlayer = -1;
+	m_isWillLeaveBanker = false;
 	for (auto& ref : m_vBetPool)
 	{
 		ref.clear();
@@ -89,7 +90,6 @@ bool RedBlackRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 			Json::Value jsRet;
 			jsRet["ret"] = nRet;
 			sendMsgToPlayer(jsRet, nMsgType, nSessionID);
-			LOGFMTE("uid = %u sitdown error ret = %u", pStand->getUserUID(), nRet);
 			break;
 		}
 
@@ -103,6 +103,128 @@ bool RedBlackRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		Json::Value jsRet;
 		jsRet["ret"] = nDret;
 		sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+	}
+	break;
+	case MSG_RB_APPLY_BANKER:
+	{
+		auto p = getPlayerBySessionID(nSessionID);
+		if (!p)
+		{
+			LOGFMTE( "session id = %u not in room can not apply banker , roomID = %u", nSessionID,getRoomID() );
+			prealMsg["ret"] = 2;
+			sendMsgToPlayer(prealMsg,nMsgType,nSessionID);
+			return true;
+		}
+
+		auto iter = std::find( m_vApplyBanker.begin(),m_vApplyBanker.end(),p->getUserUID() );
+		if (iter != m_vApplyBanker.end() || m_nBankerUID == p->getUserUID())
+		{
+			prealMsg["ret"] = 1;
+			sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+			return true;
+		}
+
+		if ( p->getChips() < getCoinNeedToBeBanker() )
+		{
+			prealMsg["ret"] = 3;
+			sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+			return true;
+		}
+
+		m_vApplyBanker.push_back(p->getUserUID());
+		prealMsg["ret"] = 0;
+		sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+	}
+	break;
+	case MSG_RB_APPLY_BANKER_LIST:
+	{
+		Json::Value jsList;
+		for (auto& ref : m_vApplyBanker)
+		{
+			Json::Value jsItem;
+			auto p = getPlayerByUID(ref);
+			if (!p)
+			{
+				continue;
+			}
+			jsItem["uid"] = p->getUserUID();
+			jsItem["coin"] = p->getChips();
+			jsList[jsList.size()] = jsItem;
+		}
+		Json::Value js;
+		js["list"] = jsList;
+		sendMsgToPlayer(js, nMsgType, nSessionID );
+	}
+	break;
+	case MSG_RB_REQUEST_ROOM_PLAYER_LIST:
+	{
+		Json::Value jsV;
+		for (auto& ref : m_vStandGamePlayers)
+		{
+			auto p = (RedBlackPlayer*)ref.second;
+			if (p)
+			{
+				Json::Value jsItem;
+				jsItem["uid"] = p->getUserUID();
+				jsItem["coin"] = p->getChips();
+				jsItem["winCnt"] = p->getWinTimes();
+				jsItem["bet"] = p->getBetCoin();
+				jsV[jsV.size()] = jsItem;
+			}
+		}
+
+		auto nS = getSeatCnt();
+		for (auto nIdx = 0; nIdx < nS; ++nIdx)
+		{
+			auto p = (RedBlackPlayer*)getPlayerByIdx(nIdx);
+			if (p)
+			{
+				Json::Value jsItem;
+				jsItem["uid"] = p->getUserUID();
+				jsItem["coin"] = p->getChips();
+				jsItem["winCnt"] = p->getWinTimes();
+				jsItem["bet"] = p->getBetCoin();
+				jsV[jsV.size()] = jsItem;
+			}
+		}
+
+		Json::Value jsmsg;
+		jsmsg["list"] = jsV;
+		jsmsg["bestPlayerUID"] = getBestBetPlayer();
+		sendMsgToPlayer(jsmsg, nMsgType, nSessionID);
+	}
+	break;
+	case MSG_RB_PLAYER_RESIGN_BANKER:
+	{
+		auto p = getPlayerBySessionID(nSessionID);
+		if (!p)
+		{
+			LOGFMTE("session id = %u not in room can not apply banker , roomID = %u", nSessionID, getRoomID());
+			prealMsg["ret"] = 2;
+			sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+			return true;
+		}
+
+		int32_t nRet = 0;
+		do 
+		{
+			if (m_nBankerUID == p->getUserUID())
+			{
+				m_isWillLeaveBanker = true;
+				break;
+			}
+
+			auto iter = std::find(m_vApplyBanker.begin(), m_vApplyBanker.end(), p->getUserUID());
+			if (iter != m_vApplyBanker.end())
+			{
+				m_vApplyBanker.erase( iter );
+				break;
+			}
+			nRet = 1;
+		} while ( 1 );
+
+		prealMsg["ret"] = nRet;
+		sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
 	}
 	break;
 	default:
@@ -154,7 +276,7 @@ void RedBlackRoom::onGameEnd()
 	}
 
 	auto isRedWin = m_vBetPool[eBet_Red].tPeer > m_vBetPool[eBet_Black].tPeer;
-	auto nWinRate = getWinRateForCardType((CGoldenPeerCard::GoldenType)m_vBetPool[isRedWin ? eBet_Red : eBet_Black].tPeer.getType());
+	auto nWinRate = getWinRateForCardType((CGoldenPeerCard::GoldenType)m_vBetPool[isRedWin ? eBet_Red : eBet_Black].tPeer.getType(), m_vBetPool[isRedWin ? eBet_Red : eBet_Black].tPeer.getPairKeyValue());
 	int32_t nBankerLose = 0;
 	for (auto& p : vPlayers)
 	{
@@ -162,8 +284,8 @@ void RedBlackRoom::onGameEnd()
 		{
 			continue;
 		}
-		p->addSingleOffset(p->getBetCoin(eBet_Black) * (isRedWin ? -1 : 1));
-		p->addSingleOffset(p->getBetCoin(eBet_Red) * (isRedWin ? 1 : -1));
+		p->addSingleOffset((float)p->getBetCoin(eBet_Black) * (isRedWin ? -1 : 0.95));
+		p->addSingleOffset((float)p->getBetCoin(eBet_Red) * (isRedWin ? 0.95 : -1));
 		p->addSingleOffset(nWinRate * p->getBetCoin(eBet_Other));
 		nBankerLose += p->getSingleOffset();
 	}
@@ -178,15 +300,6 @@ void RedBlackRoom::onGameEnd()
 		else
 		{
 			pBanker->addSingleOffset( -1 * nBankerLose );
-			if ( pBanker->getChips() < getCoinNeedToBeBanker() )
-			{
-				m_nBankerUID = -1;
-				// send msg 
-				Json::Value jsmsg;
-				jsmsg["newBankerID"] = m_nBankerUID;
-				jsmsg["coin"] = 99999999;
-				sendRoomMsg(jsmsg, MSG_RB_UPDATE_BANKER);
-			}
 		}
 	}
 	else
@@ -218,19 +331,26 @@ void RedBlackRoom::onGameEnd()
 		Json::Value jsItem;
 		jsItem["idx"] = idx;
 		jsItem["offset"] = p->getSingleOffset();
+		jsItem["coin"] = p->getChips();
 		vJsResults[vJsResults.size()] = jsItem;
 	}
 
 	Json::Value jsMsg;
 	jsMsg["result"] = vJsResults;
 	jsMsg["isRedWin"] = isRedWin ? 1 : 0;
-	jsMsg["bankerLose"] = nBankerLose;
+	jsMsg["bankerOffset"] = nBankerLose;
+	auto pBanker = getPlayerByUID(m_nBankerUID);
+	if (pBanker)
+	{
+		jsMsg["bankerCoin"] = pBanker->getChips();
+	}
 
 	auto pBest = getPlayerByUID(getBestBetPlayer());
 	jsMsg["bestBetOffset"] = 0;
 	if (pBest)
 	{
 		jsMsg["bestBetOffset"] = pBest->getSingleOffset();
+		jsMsg["bestCoin"] = pBest->getChips();
 	}
 
 	auto pRichest = getPlayerByUID(getRichestPlayerUID());
@@ -238,6 +358,7 @@ void RedBlackRoom::onGameEnd()
 	if (pRichest)
 	{
 		jsMsg["richestOffset"] = pRichest->getSingleOffset();
+		jsMsg["richestCoin"] = pRichest->getChips();
 	}
 
 	Json::Value jsred;
@@ -262,6 +383,7 @@ void RedBlackRoom::onGameEnd()
 		if (ref.second)
 		{
 			jsMsg["selfOffset"] = ref.second->getSingleOffset();
+			jsMsg["selfCoin"] = ref.second->getChips();
 			sendMsgToPlayer(jsMsg, MSG_RB_ROOM_RESULT , ref.second->getSessionID() );
 		}
 	}
@@ -274,6 +396,7 @@ void RedBlackRoom::onGameEnd()
 			continue;
 		}
 		jsMsg["selfOffset"] = p->getSingleOffset();
+		jsMsg["selfCoin"] = p->getChips();
 		sendMsgToPlayer(jsMsg, MSG_RB_ROOM_RESULT, p->getSessionID());
 	}
 	// send msg to client  ---end 
@@ -296,7 +419,21 @@ void RedBlackRoom::onWillStartGame()
 		ref.clear();
 	}
 	
-	
+	auto pBanker = getPlayerByUID( m_nBankerUID );
+	if ( pBanker )
+	{
+		if (pBanker->getChips() < getCoinNeedToBeBanker() || m_isWillLeaveBanker)
+		{
+			m_nBankerUID = -1;
+			// send msg 
+			Json::Value jsmsg;
+			jsmsg["newBankerID"] = m_nBankerUID;
+			jsmsg["coin"] = 99999999;
+			sendRoomMsg(jsmsg, MSG_RB_UPDATE_BANKER);
+			m_isWillLeaveBanker = false;
+		}
+	}
+
 	if ( m_nBankerUID == -1 && m_vApplyBanker.empty() == false )
 	{
 		// find banker ;
@@ -322,6 +459,12 @@ void RedBlackRoom::onWillStartGame()
 				jsmsg["newBankerID"] = m_nBankerUID;
 				jsmsg["coin"] = p->getChips();
 				sendRoomMsg(jsmsg, MSG_RB_UPDATE_BANKER );
+
+				auto iter = std::find(m_vApplyBanker.begin(), m_vApplyBanker.end(), ref);
+				if (iter != m_vApplyBanker.end())
+				{
+					m_vApplyBanker.erase(iter);
+				}
 				break;
 			}
 		}
@@ -539,6 +682,12 @@ bool RedBlackRoom::doPlayerLeaveRoom(uint32_t nUserUID)
 		sendRoomMsg(jsmsg, MSG_RB_UPDATE_BANKER);
 	}
 
+	auto iterAp = std::find(m_vApplyBanker.begin(), m_vApplyBanker.end(), nUserUID );
+	if (iterAp != m_vApplyBanker.end())
+	{
+		m_vApplyBanker.erase(iterAp);
+	}
+
 	// check shen suanzi and da fu hao 
 	if (m_nBestBetPlayer == nUserUID)
 	{
@@ -582,6 +731,11 @@ void RedBlackRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
 	GameRoom::packRoomInfo(jsRoomInfo);
 	jsRoomInfo["bankerID"] = m_nBankerUID;
+	auto pb = getPlayerByUID( m_nBankerUID );
+	if (pb)
+	{
+		jsRoomInfo["bankerCoin"] = pb->getChips();
+	}
 
 	auto pBest = getPlayerByUID(getBestBetPlayer());
 	if ( pBest )
@@ -639,8 +793,41 @@ int32_t RedBlackRoom::getCoinNeedToBeBanker()
 	return 10000;
 }
 
-int32_t RedBlackRoom::getWinRateForCardType(CGoldenPeerCard::GoldenType eType)
+int32_t RedBlackRoom::getWinRateForCardType(CGoldenPeerCard::GoldenType eType, int8_t nPairKeyValue )
 {
+	switch (eType)
+	{
+	case CGoldenPeerCard::Golden_Double:
+	{
+		if (nPairKeyValue >= 8)
+		{
+			return 2;
+		}
+	}
+	break;
+	case CGoldenPeerCard::Golden_Straight:
+	{
+		return 3;
+	}
+	break;
+	case CGoldenPeerCard::Golden_Flush:
+	{
+		return 4;
+	}
+	break;
+	case CGoldenPeerCard::Golden_StraightFlush:
+	{
+		return 10;
+	}
+	break;
+	case CGoldenPeerCard::Golden_ThreeCards:
+	{
+		return 15;
+	}
+	break;
+	default:
+		return -1;
+	}
 	return -1;
 }
 
@@ -796,4 +983,15 @@ void RedBlackRoom::informRichAndBestBetPlayerUpdate()
 		jsmsg["richestCoin"] = 0;
 	}
 	sendRoomMsg(jsmsg, MSG_RB_UPDATE_RICH_AND_BEST );
+}
+
+void RedBlackRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID)
+{
+	if (pPlayer == nullptr)
+	{
+		return;
+	}
+	//{ idx: 23, uid : 23, isOnline : 0, chips : 23 ...}
+	GameRoom::visitPlayerInfo(pPlayer,jsPlayerInfo,nVisitorSessionID);
+	jsPlayerInfo["chips"] = pPlayer->getChips() - ((RedBlackPlayer*)pPlayer)->getBetCoin();
 }

@@ -26,6 +26,8 @@ public:
 
 		// add frame 
 		getRoom()->addReplayFrame(DDZ_Frame_WaitRobBanker, jsInfo);
+		m_tTuoGuanTimer.reset();
+		//checkTuoGuan();
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
@@ -74,6 +76,7 @@ public:
 			return true;
 		}
 
+		m_tTuoGuanTimer.reset();
 		// tell all players 
 		jsmsg["idx"] = pPlayer->getIdx();
 		pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_ROBOT_DZ );
@@ -102,6 +105,36 @@ public:
 		return true;
 	}
 
+	void checkTuoGuan()override
+	{
+		if (m_tTuoGuanTimer.isRunning())
+		{
+			return;
+		}
+
+		auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(getCurIdx());
+		if (p && p->isTuoGuan())
+		{
+			/// delay act ;
+			m_tTuoGuanTimer.reset();
+			m_tTuoGuanTimer.setInterval(TIME_TUOGUAN_DELAY_ACT);
+			m_tTuoGuanTimer.setIsAutoRepeat(false);
+			m_tTuoGuanTimer.setCallBack([this, p](CTimer* t, float f)
+			{
+				if (p->isTuoGuan() == false || p->getIdx() != getCurIdx())
+				{
+					return;
+				}
+ 
+				Json::Value jsAutoChu;
+				jsAutoChu["times"] = 0;
+				onMsg(jsAutoChu, MSG_DDZ_PLAYER_ROBOT_DZ, ID_MSG_PORT_CLIENT, p->getSessionID());
+
+			});
+			m_tTuoGuanTimer.start();
+		}
+	}
+
 	void onStateTimeUp()
 	{
 		auto pRoom = (DDZRoom*)getRoom();
@@ -115,8 +148,8 @@ public:
 
 		// auto robot banker , give up ;
 		Json::Value jsmsg;
-		jsmsg["robotTimes"] = 0;
-		onMsg(jsmsg, MSG_PLAYER_ROBOT_BANKER,ID_MSG_PORT_CLIENT,p->getSessionID());
+		jsmsg["times"] = 0;
+		onMsg(jsmsg, MSG_DDZ_PLAYER_ROBOT_DZ,ID_MSG_PORT_CLIENT,p->getSessionID());
 		return;
 	}
 	void roomInfoVisitor(Json::Value& js)override
@@ -146,7 +179,7 @@ protected:
 
 		Json::Value jsInfo;
 		jsInfo["idx"] = m_nCurWaitPlayerIdx;
-		getRoom()->sendRoomMsg(jsInfo, MSG_DDZ_ROOM_WAIT_ROBOT_DZ);
+		getRoom()->sendRoomMsg(jsInfo, MSG_DDZ_ROOM_WAIT_ROBOT_DZ );
 		return true;
 	}
 
@@ -257,4 +290,5 @@ protected:
 	uint8_t m_nCurWaitPlayerIdx;
 	uint8_t m_nBankerCandiate;
 	uint8_t m_nCurMaxRobotTimes;
+	CTimer m_tTuoGuanTimer;
 };

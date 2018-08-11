@@ -44,7 +44,8 @@ public:
 		jsFrame["idx"] = m_nWaitChuPlayerIdx;
 		getRoom()->addReplayFrame(DDZ_Frame_WaitChu, jsFrame);
 		// check tuoGuan 
-		checkTuoGuan();
+		//checkTuoGuan();
+		m_tTuoGuanTimer.reset();
 		setStateDuringTime(eTime_WaitPlayerAct);
 	}
 
@@ -241,6 +242,8 @@ public:
 		// tell other players ;
 		jsmsg["idx"] = pPlayer->getIdx();
 		getRoom()->sendRoomMsg(jsmsg,MSG_DDZ_ROOM_CHU);
+		m_tTuoGuanTimer.reset();
+		LOGFMTD( "do chu pai le uid = %u", pPlayer->getUserUID() );
 		if ( pPlayer->getPlayerCard()->getHoldCardCount() == 0 ) // game over 
 		{
 			delayEnterGameOverState();  // delay enter game over state ;
@@ -315,7 +318,7 @@ protected:
 		getRoom()->addReplayFrame(DDZ_Frame_WaitChu, jsFrame);
 		// check tuoGuan 
 		setStateDuringTime(eTime_WaitPlayerAct);
-		checkTuoGuan();
+		//checkTuoGuan();
 	}
 
 	void delayEnterGameOverState()
@@ -332,73 +335,67 @@ protected:
 			LOGFMTE( "why wait cur player is null ? idx = %d , roomID = %u",m_nWaitChuPlayerIdx , getRoom()->getRoomID() );
 			return;
 		}
-		Json::Value jsAutoChu;
-		onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
+
+		// do auto chu ;
+		doAutoChu();
 	}
 
 	void checkTuoGuan()override
 	{
+		if ( m_tTuoGuanTimer.isRunning() )
+		{
+			return;
+		}
+
 		auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx);
 		if (p && p->isTuoGuan())
 		{
-			// do auto chu 
-			auto nCurType = m_tCurMaxChuPai.tChuPaiType;
-			if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
-			{
-				nCurType = DDZ_Max;
-			}
-
-			std::vector<uint8_t> vAutChuCards;
-			auto isChu = p->getPlayerCard()->getTuoGuanChuCards(nCurType, m_tCurMaxChuPai.vCards, vAutChuCards);
-			Json::Value jsAutoChu;
-			if (isChu)
-			{
-				Json::Value jsArray;
-				jsAutoChu["type"] = nCurType;
-				for (auto& ref : vAutChuCards)
-				{
-					jsArray[jsArray.size()] = ref;
-				}
-				jsAutoChu["cards"] = jsArray;
-			}
-			onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
-
 			/// delay act ;
-			//m_tTuoGuanTimer.reset();
-			//m_tTuoGuanTimer.setInterval(TIME_TUOGUAN_DELAY_ACT);
-			//m_tTuoGuanTimer.setIsAutoRepeat(false);
-			//m_tTuoGuanTimer.setCallBack([this, p](CTimer* t, float f)
-			//{
-			//	if (p->isTuoGuan() == false || p->getIdx() != m_nWaitChuPlayerIdx)
-			//	{
-			//		return;
-			//	}
+			m_tTuoGuanTimer.reset();
+			m_tTuoGuanTimer.setInterval(TIME_TUOGUAN_DELAY_ACT);
+			m_tTuoGuanTimer.setIsAutoRepeat(false);
+			m_tTuoGuanTimer.setCallBack([this, p](CTimer* t, float f)
+			{
+				if (p->isTuoGuan() == false || p->getIdx() != m_nWaitChuPlayerIdx)
+				{
+					return;
+				}
 
-			//	// do auto chu 
-			//	auto nCurType = m_tCurMaxChuPai.tChuPaiType;
-			//	if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
-			//	{
-			//		nCurType = DDZ_Max;
-			//	}
+				doAutoChu();
 
-			//	std::vector<uint8_t> vAutChuCards;
-			//	auto isChu = p->getPlayerCard()->getTuoGuanChuCards(nCurType, m_tCurMaxChuPai.vCards, vAutChuCards);
-			//	Json::Value jsAutoChu;
-			//	if (isChu)
-			//	{
-			//		Json::Value jsArray;
-			//		jsAutoChu["type"] = nCurType;
-			//		for (auto& ref : vAutChuCards)
-			//		{
-			//			jsArray[jsArray.size()] = ref;
-			//		}
-			//		jsAutoChu["cards"] = jsArray;
-			//	}
-			//	onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
-
-			//});
-			//m_tTuoGuanTimer.start();
+			});
+			m_tTuoGuanTimer.start();
 		}
+	}
+
+	void doAutoChu()
+	{
+		auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx);
+		if (p == nullptr)
+		{
+			return;
+		}
+		// do auto chu 
+		auto nCurType = m_tCurMaxChuPai.tChuPaiType;
+		if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
+		{
+			nCurType = DDZ_Max;
+		}
+
+		std::vector<uint8_t> vAutChuCards;
+		auto isChu = p->getPlayerCard()->getTuoGuanChuCards(nCurType, m_tCurMaxChuPai.vCards, vAutChuCards);
+		Json::Value jsAutoChu;
+		if (isChu)
+		{
+			Json::Value jsArray;
+			jsAutoChu["type"] = nCurType;
+			for (auto& ref : vAutChuCards)
+			{
+				jsArray[jsArray.size()] = ref;
+			}
+			jsAutoChu["cards"] = jsArray;
+		}
+		onMsg(jsAutoChu, MSG_DDZ_PLAYER_CHU, ID_MSG_PORT_CLIENT, p->getSessionID());
 	}
 protected:
 	uint8_t m_nWaitChuPlayerIdx;

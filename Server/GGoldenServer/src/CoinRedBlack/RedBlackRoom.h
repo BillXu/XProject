@@ -42,13 +42,14 @@ public:
 	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0)override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	int32_t getCoinNeedToBeBanker();
-	int32_t getWinRateForCardType( CGoldenPeerCard::GoldenType eType );
+	int32_t getWinRateForCardType( CGoldenPeerCard::GoldenType eType, int8_t nPairKeyValue );
 	void doDistribute();
 	int32_t getBankerUID() { return m_nBankerUID; }
 	int32_t getPoolCapacityToBet( eBetPool ePool );
 	stBetPool& getPool( eBetPool ePool );
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	void informRichAndBestBetPlayerUpdate();
+	void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID);
 protected:
 	int32_t getRichestPlayerUID();
 	int32_t getBestBetPlayer();
@@ -62,4 +63,5 @@ protected:
 
 	int32_t m_nRichestPlayer;  // da fu hao ;
 	int32_t m_nBestBetPlayer;  // shen suan zi ;
+	bool m_isWillLeaveBanker;
 };

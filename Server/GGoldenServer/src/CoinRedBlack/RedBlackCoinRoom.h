@@ -9,4 +9,5 @@ public:
 	GameRoom* doCreatRealRoom()override;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
 	void onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)override;
+	void sendRoomInfo(uint32_t nSessionID)override;
 };

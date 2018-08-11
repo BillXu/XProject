@@ -99,6 +99,13 @@ bool RoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort
 			{
 				pRoomToEnter->onPlayerEnter(&tInfo);
 				pRoomToEnter->sendRoomInfo(tInfo.nSessionID);
+
+				Json::Value jsE;
+				// update stayin roomID
+				jsE["targetUID"] = tInfo.nUserUID;
+				jsE["roomID"] = pRoomToEnter->getRoomID();
+				jsE["port"] = getSvrApp()->getLocalSvrMsgPortType();
+				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, tInfo.nUserUID, eAsync_Inform_EnterRoom, jsE);
 			}
 		}, nUserID);
 	}

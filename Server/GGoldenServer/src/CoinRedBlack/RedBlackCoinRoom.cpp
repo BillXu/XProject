@@ -68,7 +68,7 @@ bool RedBlackCoinRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort 
 		}
 		m_vDelayLeave.insert(pp->getUserUID());
 		prealMsg["ret"] = 3;
-		sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+		sendMsgToPlayer(prealMsg, nMsgType, nSessionID); 
 		return true;
 	}
 	break;
@@ -96,4 +96,20 @@ void RedBlackCoinRoom::onPlayerDoLeaved(IGameRoom* pRoom, uint32_t nUserUID)
 	Json::Value jsLeve;
 	jsLeve["ret"] = 0;
 	sendMsgToPlayer(jsLeve, MSG_PLAYER_LEAVE_ROOM, ps->getSessionID() );
+}
+
+void RedBlackCoinRoom::sendRoomInfo(uint32_t nSessionID)
+{
+	Json::Value jsRoomInfo;
+	packRoomInfo(jsRoomInfo);
+	LOGFMTI("send room info game room");
+	auto p = getCoreRoom()->getPlayerBySessionID(nSessionID);
+	if (p)
+	{
+		jsRoomInfo["selfCoin"] = p->getChips() - ((RedBlackPlayer*)p)->getBetCoin();
+	}
+	sendMsgToPlayer(jsRoomInfo, MSG_ROOM_INFO, nSessionID);
+
+	// send players 
+	sendRoomPlayersInfo(nSessionID);
 }

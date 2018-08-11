@@ -128,8 +128,8 @@ public:
 			return false;
 		}
 
-		vResultCards.push_back(DDZ_MAKE_CARD(ePoker_Joker,15));
-		vResultCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 16));
+		vResultCards.push_back(DDZ_MAKE_CARD(ePoker_Joker,18));
+		vResultCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 19));
 		return true;
 	}
 };
@@ -148,7 +148,7 @@ public:
 		{
 			return false;
 		}
-		vResultCards.assign(vBoms.begin(),vBoms.begin() + 3 );
+		vResultCards.assign(vBoms.begin(),vBoms.begin() + 4 );
 		return true;
 	}
 };
@@ -676,21 +676,21 @@ public:
 
 		if (v2Cards.empty() == false)
 		{
-			vResultCards.insert(vResultCards.end(),v2Cards.begin(),v2Cards.begin() + 1 );
+			vResultCards.insert(vResultCards.end(),v2Cards.begin(),v2Cards.begin() + 2 );
 			nCurType = DDZ_Pair;
 			return true;
 		}
 
 		if (v3Cards.empty() == false)
 		{
-			vResultCards.insert(vResultCards.end(), v3Cards.begin(), v3Cards.begin() + 2);
+			vResultCards.insert(vResultCards.end(), v3Cards.begin(), v3Cards.begin() + 3);
 			nCurType = DDZ_3Pices;
 			return true;
 		}
 
 		if (v4Cards.empty() == false)
 		{
-			vResultCards.insert(vResultCards.end(), v4Cards.begin(), v4Cards.begin() + 3);
+			vResultCards.insert(vResultCards.end(), v4Cards.begin(), v4Cards.begin() + 4);
 			nCurType = DDZ_Bomb;
 			return true;
 		}

@@ -41,6 +41,13 @@ public:
 			}
 
 			auto pRedBlackRoom = (RedBlackRoom*)getRoom();
+			if (player->getUserUID() == pRedBlackRoom->getBankerUID())
+			{
+				prealMsg["ret"] = 5;
+				getRoom()->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+				return true;
+			}
+
 			if ( pRedBlackRoom->getPoolCapacityToBet((eBetPool)nPoolType) < nBetCoin )
 			{
 				prealMsg["ret"] = 2;

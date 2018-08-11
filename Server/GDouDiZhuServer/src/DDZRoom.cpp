@@ -254,7 +254,7 @@ bool DDZRoom::onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort,
 			return true;
 		}
 
-		getCurState()->checkTuoGuan();
+		//getCurState()->checkTuoGuan();
 		jsmsg["idx"] = pPlayer->getIdx();
 		sendRoomMsg(jsmsg, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
 		return true;

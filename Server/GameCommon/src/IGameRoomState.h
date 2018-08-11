@@ -22,6 +22,7 @@ public:
 	virtual void roomInfoVisitor(Json::Value& js) {}
 	virtual void update(float fDeta)
 	{
+		checkTuoGuan();
 		if (m_fStateDuring >= 0.0f)
 		{
 			m_fStateDuring -= fDeta;

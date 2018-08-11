@@ -525,6 +525,11 @@ enum eMsgType
 	MSG_RB_UPDATE_RICH_AND_BEST,
 	// svr : { richestUID : 235, richestCoin : 23 , bestBetUID : 234 , bestBetCoin : 23  }
 
+	MSG_RB_PLAYER_RESIGN_BANKER,
+	// client : null
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 you are not banker ;
+
 
 
 

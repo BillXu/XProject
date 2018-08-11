@@ -25,6 +25,7 @@ void RedBlackPlayer::onGameEnd()
 		m_vRecorders.pop_front();
 	}
 	
+	memset(m_vBetedCoin, 0, sizeof(m_vBetedCoin));
 	IGamePlayer::onGameEnd();
 }
 

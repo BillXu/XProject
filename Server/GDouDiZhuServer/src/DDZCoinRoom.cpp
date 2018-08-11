@@ -9,6 +9,11 @@ bool DDZCoinRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 		if (getPlayerByIdx(nidx) == nullptr)
 		{
 			getCoreRoom()->doPlayerSitDown(pEnterRoomPlayer,nidx);
+			auto p = getCoreRoom()->getPlayerByIdx(nidx);
+			if (p && p->haveState(eRoomPeer_WaitNextGame))
+			{
+				p->setState(eRoomPeer_Ready);
+			}
 			return true;
 		}
 	}
