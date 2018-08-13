@@ -607,7 +607,7 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 		uint8_t nL = getRoomID() % 10;
 		if ( getCoreRoom()->getRoomType() == eGame_Golden )
 		{
-			nL = 0;
+			nL = 100;
 		}
 		auto isInvoker = nIdx == nF || nL == nIdx;
 		uint32_t nTmpID = 0;
