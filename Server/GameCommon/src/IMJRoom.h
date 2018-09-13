@@ -20,6 +20,7 @@ public:
 	uint8_t getBankerIdx();
 	void setBankIdx(uint8_t nIdx);
 	void onPlayerSetReady( uint8_t nIdx );
+	void autoDoPlayerSetReady();
 	// mj function ;
 	virtual void onWaitPlayerAct(uint8_t nIdx, bool& isCanPass);
 	virtual uint8_t getAutoChuCardWhenWaitActTimeout(uint8_t nIdx);
@@ -44,6 +45,7 @@ public:
 	virtual bool isHaveLouHu() { return true; };
 	virtual bool isHaveLouPeng() { return false; }
 	void sendRoomInfo(uint32_t nSessionID)override;
+	void packRoomInfo(Json::Value& jsRoomInfo)override;
 protected:
 	uint8_t m_nBankerIdx;
 	FanxingChecker* m_pFanxingChecker;

@@ -1,4 +1,11 @@
 #include "LuoMJPlayer.h"
+void LuoMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
+	IMJPlayer::init(pData, nIdx);
+	m_jsBestCards.clear();
+	m_nBestFan = -1;
+	m_nExtraTime = 0;
+}
+
 IMJPlayerCard* LuoMJPlayer::getPlayerCard()
 {
 	return &m_tPlayerCard;
@@ -30,4 +37,15 @@ bool LuoMJPlayer::canBackGain(uint32_t nMaxOffset) {
 		return ((uint32_t)abs(getChips())) < nMaxOffset;
 	}
 	return true;
+}
+
+void LuoMJPlayer::setBestCards(uint16_t nFan) {
+	if (uint16_t(-1) == m_nBestFan || m_nBestFan < nFan) {
+		m_nBestFan = nFan;
+		((LuoMJPlayerCard*)getPlayerCard())->onVisitPlayerCardBaseInfo(m_jsBestCards);
+	}
+}
+
+void LuoMJPlayer::addExtraTime(float fTime) {
+	m_nExtraTime += fTime;
 }

@@ -281,6 +281,12 @@ bool CPlayerManager::onMsg( stMsg* pMessage , eMsgPort eSenderPort , uint32_t nS
 	return false ;
 }
 
+void CPlayerManager::doPlayerLogin(uint32_t nUID, uint32_t nSessionID, std::string pIP) {
+	auto pPlayer = getReserverPlayerObj();
+	pPlayer->onPlayerLogined(nSessionID, nUID, pIP.c_str());
+	addActivePlayer(pPlayer);
+}
+
 bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID)
 {
 	auto pTargetPlayer = getPlayerByUserUID(nTargetID);
@@ -407,9 +413,17 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		auto pIP = jsReqContent["ip"].asCString();
 		auto nSessionID = jsReqContent["sessionID"].asUInt();
 		auto pPlayer = getPlayerByUserUID(nUID);
+		uint32_t nClubID = 0;
+		if (jsReqContent["clubID"].isUInt()) {
+			nClubID = jsReqContent["clubID"].asUInt();
+		}
 		if ( pPlayer )
 		{
-			if ( nSessionID == pPlayer->getSessionID() )
+			if (nClubID) {
+				pPlayer->getBaseData()->onCreatedClub(nClubID);
+			}
+
+			if ( nSessionID == pPlayer->getSessionID() || nSessionID == 0 )
 			{
 				LOGFMTE("already logined this session , do login again uid = %u",nUID );
 				break;
@@ -421,6 +435,10 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		pPlayer = getReserverPlayerObj();
 		pPlayer->onPlayerLogined(nSessionID, nUID, pIP);
 		addActivePlayer(pPlayer);
+
+		if (nClubID) {
+			pPlayer->getBaseData()->onCreatedClub(nClubID);
+		}
 	}
 	break;
 	case eAsync_AgentAddRoomCard:

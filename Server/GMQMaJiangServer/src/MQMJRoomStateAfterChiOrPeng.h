@@ -36,6 +36,15 @@ public:
 		getRoom()->goToState(eRoomState_WaitPlayerChu, &jsValue);
 	}
 
+	void update(float fDeta)override
+	{
+		if (getWaitTime() > 15.0f) {
+			auto pPlayer = (MQMJPlayer*)getRoom()->getPlayerByIdx(m_nIdx);
+			pPlayer->addExtraTime(fDeta);
+		}
+		IGameRoomState::update(fDeta);
+	}
+
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
 	{
 		if (MSG_REQ_ACT_LIST == nMsgType)
@@ -75,7 +84,7 @@ public:
 
 		auto actType = prealMsg["actType"].asUInt();
 		auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = (IMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
+		auto pPlayer = (MQMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
 		do
 		{
@@ -103,6 +112,23 @@ public:
 			case eMJAct_Cyclone:
 			{
 				if (!pMJCard->canCycloneWithCard(nCard))
+				{
+					nRet = 3;
+				}
+			}
+			break;
+			case eMJAct_AnGang:
+			{
+				if (!pMJCard->canAnGangWithCard(nCard))
+				{
+					nRet = 3;
+				}
+			}
+			break;
+			case eMJAct_BuGang:
+			case eMJAct_BuGang_Declare:
+			{
+				if (!pMJCard->canBuGangWithCard(nCard))
 				{
 					nRet = 3;
 				}
@@ -139,6 +165,17 @@ public:
 		jsTran["act"] = actType;
 		jsTran["card"] = nCard;
 		jsTran["invokeIdx"] = m_nIdx;
+
+		if (eMJAct_BuGang_Declare == actType || eMJAct_BuGang == actType)
+		{
+			pPlayer->signFlag(IMJPlayer::eMJActFlag_DeclBuGang);
+			if (((IMJRoom*)getRoom())->isAnyPlayerRobotGang(m_nIdx, nCard))
+			{
+				getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
+				return true;
+			}
+		}
+
 		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
 		return true;
 	}

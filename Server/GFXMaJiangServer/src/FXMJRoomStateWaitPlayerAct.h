@@ -21,7 +21,7 @@ public:
 				if (pPlayer) {
 					auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
 					if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pCard->isTing()) {
-						setStateDuringTime(0);
+						setStateDuringTime(eTime_DoPlayerActChuPai);
 					}
 					else {
 						setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);
@@ -43,9 +43,10 @@ public:
 		{
 			m_isCanPass = false;
 			auto pRoom = (FXMJRoom*)getRoom();
-			auto pPlayer = pRoom->getPlayerByIdx(m_nIdx);
+			auto pPlayer = (FXMJPlayer*)pRoom->getPlayerByIdx(m_nIdx);
 			if (pPlayer) {
-				if (pPlayer->haveState(eRoomPeer_AlreadyHu)) {
+				auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+				if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pCard->isTing()) {
 					setStateDuringTime(0);
 				}
 				else {
@@ -160,6 +161,9 @@ public:
 				{
 					nRet = 3;
 				}
+				else if (prealMsg["ting"].isUInt()) {
+					nTing = prealMsg["ting"].asUInt();
+				}
 			}
 			break;
 			case eMJAct_BuGang:
@@ -168,6 +172,9 @@ public:
 				if (!pMJCard->canBuGangWithCard(nCard))
 				{
 					nRet = 3;
+				}
+				else if (prealMsg["ting"].isUInt()) {
+					nTing = prealMsg["ting"].asUInt();
 				}
 			}
 			break;
@@ -222,6 +229,9 @@ public:
 		jsTran["act"] = actType;
 		jsTran["card"] = nCard;
 		jsTran["invokeIdx"] = m_nIdx;
+		if (nTing) {
+			jsTran["ting"] = nTing;
+		}
 		if (eMJAct_BuGang_Declare == actType || eMJAct_BuGang == actType)
 		{
 			pPlayer->signFlag(IMJPlayer::eMJActFlag_DeclBuGang);
@@ -230,9 +240,6 @@ public:
 				getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
 				return true;
 			}
-		}
-		if (nTing) {
-			jsTran["ting"] = nTing;
 		}
 		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
 		return true;

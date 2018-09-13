@@ -27,10 +27,15 @@ public:
 	uint8_t getHuCard() { return m_nHuCard; }
 	void setHuCard(uint8_t nCard) { m_nHuCard = nCard; }
 
+	bool isEnableSB1() { return m_bEnableSB1; }
+	void signEnableSB1() { m_bEnableSB1 = true; }
+
 	bool isJiaHu();
 	bool isDanDiao();
 	bool isBianHu();
 	bool isHuOnly19();
+
+	uint8_t getHoldCardCnt();
 
 protected:
 	bool eraseVector(uint8_t p, VEC_CARD& typeVec);
@@ -38,12 +43,13 @@ protected:
 	bool check3Men();
 	bool check19();
 	bool canHuOnlyOneCard();
-	uint8_t getHoldCardCnt();
 
 protected:
 	VEC_CARD m_vCyclone;
 	uint8_t m_nHuCard;
 	bool m_bCanHuOnlyOne;
 	bool m_bCheckedCanHuOnlyOne;
+
+	bool m_bEnableSB1 = false;
 
 };

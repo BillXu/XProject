@@ -1,6 +1,7 @@
 #include "MJPrivateRoom.h"
 #include "log4z.h"
 #include "FXMJRoom.h"
+#include "FXMJPlayer.h"
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new FXMJRoom();
@@ -8,7 +9,11 @@ GameRoom* MJPrivateRoom::doCreatRealRoom()
 
 uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
 {
-	return 2;
+	if (nLevel > 3) {
+		return 6;
+	}
+	uint8_t vRounds[4] = { 6, 12, 18, 24 };
+	return vRounds[nLevel];
 }
 
 void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
@@ -17,7 +22,7 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 	auto pRoom = getCoreRoom();
 	for (uint8_t nIdx = 0; nIdx < pRoom->getSeatCnt(); ++nIdx)
 	{
-		auto pp = (IMJPlayer*)pRoom->getPlayerByIdx(nIdx);
+		auto pp = (FXMJPlayer*)pRoom->getPlayerByIdx(nIdx);
 		if (pp == nullptr)
 		{
 			LOGFMTE("why private player is null room id = %u idx = %u", getRoomID(), nIdx);
@@ -33,6 +38,8 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		jsPlayer["huCnt"] = pp->getHuCnt();
 		jsPlayer["mingGangCnt"] = pp->getMingGangCnt();
 		jsPlayer["ZMCnt"] = pp->getZiMoCnt();
+		jsPlayer["bankerCnt"] = pp->getBankerCnt();
+		jsPlayer["coolCnt"] = pp->getCoolCnt();
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
 	jsMsg["dismissID"] = m_nApplyDismissUID;

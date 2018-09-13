@@ -31,7 +31,7 @@ public:
 		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
 	}
 
-	void responeReqActList(uint32_t nSessionID)
+	virtual void responeReqActList(uint32_t nSessionID)
 	{
 		auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 		if (!pPlayer)

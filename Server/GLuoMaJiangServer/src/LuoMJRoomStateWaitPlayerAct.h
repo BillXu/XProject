@@ -66,8 +66,39 @@ public:
 		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
 	}
 
+	void update(float fDeta)override
+	{
+		if (getWaitTime() > 15.0f) {
+			auto pPlayer = (LuoMJPlayer*)getRoom()->getPlayerByIdx(m_nIdx);
+			pPlayer->addExtraTime(fDeta);
+		}
+		MJRoomStateWaitPlayerAct::update(fDeta);
+	}
+
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override {
-		if (MSG_PLAYER_ACT == nMsgType)
+		if (MSG_REQ_ACT_LIST == nMsgType)
+		{
+			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
+			if (pPlayer == nullptr)
+			{
+				LOGFMTE("you are not in room  why req act list");
+				return false;
+			}
+
+			if (m_nIdx != pPlayer->getIdx())
+			{
+				LOGFMTD("you are not cur act player , so omit you message");
+				return false;
+			}
+
+			if (m_isCanPass)
+			{
+				((IMJRoom*)getRoom())->onWaitPlayerAct(m_nIdx, m_isCanPass);
+			}
+			return true;
+		}
+
+		/*if (MSG_PLAYER_ACT == nMsgType)
 		{
 			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 
@@ -89,7 +120,7 @@ public:
 				}
 				return true;
 			}
-		}
+		}*/
 
 		if (MSG_PLAYER_ACT != nMsgType)
 		{
@@ -98,7 +129,7 @@ public:
 
 		auto actType = prealMsg["actType"].asUInt();
 		auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = (IMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
+		auto pPlayer = (LuoMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
 		do
 		{

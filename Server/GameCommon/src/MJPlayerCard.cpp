@@ -312,6 +312,38 @@ void MJPlayerCard::onVisitPlayerCardInfo(Json::Value& js, bool isSelf)
 	}
 }
 
+void MJPlayerCard::onVisitPlayerCardBaseInfo(Json::Value& js) {
+	// ming card ;
+	Json::Value jsMing;
+	for (auto& ref : m_vMingCardInfo)
+	{
+		Json::Value jsItem, jsCards;
+		jsItem["act"] = ref.eAct;
+		jsCards[jsCards.size()] = ref.nTargetCard;
+		if (ref.eAct == eMJAct_Chi)
+		{
+			for (auto& chi : ref.vWithCard)
+			{
+				jsCards[jsCards.size()] = chi;
+			}
+		}
+		jsItem["card"] = jsCards;
+		jsItem["invokerIdx"] = ref.nInvokerIdx;
+		jsMing[jsMing.size()] = jsItem;
+	}
+	js["ming"] = jsMing;
+
+	// hold ;
+	Json::Value jsHolds;
+	VEC_CARD vHold;
+	getHoldCard(vHold);
+	for (auto& refHold : vHold)
+	{
+		jsHolds[jsHolds.size()] = refHold;
+	}
+	js["holdCards"] = jsHolds;
+}
+
 bool MJPlayerCard::getHoldCardThatCanBuGang(VEC_CARD& vGangCards)
 {
 	for (auto& ref : m_vMingCardInfo)
@@ -704,10 +736,26 @@ void MJPlayerCard::removeHoldCard(uint8_t nCard)
 	return;
 }
 
+bool MJPlayerCard::CheckHoldCardAllShun(uint8_t nBaiDaCnt) {
+	VEC_CARD vNotShun;
+	uint8_t nAlreadyQueCnt = 0;
+	for (uint8_t nType = eCT_None; nType < eCT_Max; ++nType)
+	{
+		uint8_t nQueCnt = 0;
+		tryToFindMiniQueCnt(m_vCards[nType], isCardTypeMustKeZi(nType), vNotShun, nQueCnt, nBaiDaCnt - nAlreadyQueCnt);
+		nAlreadyQueCnt += nQueCnt;
+		if (nAlreadyQueCnt > nBaiDaCnt)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 {
 	// check all hold card is hun , ignore jiang ;
-	auto pCheckHoldCardAllShun = [this](uint8_t nBaiDaCnt)
+	/*auto pCheckHoldCardAllShun = [this](uint8_t nBaiDaCnt)
 	{
 		VEC_CARD vNotShun;
 		uint8_t nAlreadyQueCnt = 0;
@@ -722,7 +770,7 @@ bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 			}
 		}
 		return true;
-	};
+	};*/
  
 	// when baiDa not Be Jiang  
 	// find maybe jiang 
@@ -747,7 +795,7 @@ bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 		removeHoldCard(ref);
 		removeHoldCard(ref);
 		// check all card type is shun, without jiang ;
-		bool bOk = pCheckHoldCardAllShun(nBaiDaCnt);
+		bool bOk = CheckHoldCardAllShun(nBaiDaCnt);
 		// add back jiang 
 		addHoldCard(ref);
 		addHoldCard(ref);
@@ -762,7 +810,7 @@ bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 	// 2 baiDa as jiang 
 	if ( nBaiDaCnt >= 2 ) 
 	{
-		if (pCheckHoldCardAllShun(nBaiDaCnt - 2 ))
+		if (CheckHoldCardAllShun(nBaiDaCnt - 2 ))
 		{
 			nJiang = 0; // zero means baiDa as jiang ;
 			return true;
@@ -779,7 +827,7 @@ bool MJPlayerCard::isHoldCardCanHuNormal( uint8_t& nJiang, uint8_t nBaiDaCnt )
 			// remove jiang ;
 			removeHoldCard(ref);
 			// check all card type is shun, without jiang ;
-			bool bOk = pCheckHoldCardAllShun( nBaiDaCnt - 1 );
+			bool bOk = CheckHoldCardAllShun( nBaiDaCnt - 1 );
 			// add back jiang 
 			addHoldCard(ref);
 
@@ -837,7 +885,7 @@ uint8_t MJPlayerCard::getJiang()
 
 void MJPlayerCard::debugCardInfo()
 {
-	//return;
+	return;
 	LOGFMTD("card Info: \n");
 	VEC_CARD vHold;
 	getHoldCard(vHold);

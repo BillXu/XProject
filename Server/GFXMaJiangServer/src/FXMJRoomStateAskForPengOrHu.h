@@ -4,6 +4,12 @@ class FXMJRoomStateAskForPengOrHu
 	:public MJRoomStateAskForPengOrHu
 {
 public:
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
+	{
+		m_nTing = 0;
+		MJRoomStateAskForPengOrHu::enterState(pmjRoom, jsTranData);
+	}
+
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
 	{
 		if (MSG_PLAYER_ACT != nMsgType && MSG_REQ_ACT_LIST != nMsgType)
@@ -69,7 +75,7 @@ public:
 				break;
 			}
 
-			auto pMJCard = ((IMJPlayer*)pPlayer)->getPlayerCard();
+			auto pMJCard = (FXMJPlayerCard*)((IMJPlayer*)pPlayer)->getPlayerCard();
 			switch (actType)
 			{
 			case eMJAct_Hu:
@@ -103,8 +109,10 @@ public:
 					LOGFMTE("why you can not ming gang ? svr bug ");
 					break;
 				}
+				m_nTing = prealMsg["ting"].isUInt() ? prealMsg["ting"].asUInt() : 0;
 				m_vDoPengGangIdx.push_back(pPlayer->getIdx());
 				m_ePengGangAct = eMJAct_MingGang_Pre;
+				pMJCard->addPreGang(m_nCard);
 			}
 			break;
 			case eMJAct_Chi:
@@ -152,7 +160,7 @@ public:
 			// inform lou hu 
 			if (eMJAct_Pass == actType)
 			{
-				((IMJRoom*)getRoom())->onPlayerLouHu(pPlayer->getIdx(), m_nInvokeIdx);
+				((IMJRoom*)getRoom())->onPlayerLouHu(pPlayer->getIdx(), m_nCard);
 			}
 		}
 
@@ -192,4 +200,57 @@ public:
 		doAct();
 		return true;
 	}
+
+	bool doAct() override
+	{
+		if (m_vDoHuIdx.empty() == false)
+		{
+			LOGFMTD("some body do hu ");
+			// do transfer 
+			Json::Value jsTran;
+			jsTran["idx"] = m_vDoHuIdx.front();
+			jsTran["act"] = eMJAct_Hu;
+			jsTran["card"] = m_nCard;
+			jsTran["invokeIdx"] = m_nInvokeIdx;
+
+			Json::Value jsHuIdx;
+			for (auto& ref : m_vDoHuIdx)
+			{
+				jsHuIdx[jsHuIdx.size()] = ref;
+			}
+			jsTran["huIdxs"] = jsHuIdx;
+			getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+			return true;
+		}
+		else if (!m_vDoPengGangIdx.empty())
+		{
+			// gang or peng ;
+			Json::Value jsTran;
+			jsTran["idx"] = m_vDoPengGangIdx.front();
+			jsTran["act"] = m_ePengGangAct;
+			jsTran["card"] = m_nCard;
+			jsTran["invokeIdx"] = m_nInvokeIdx;
+			jsTran["ting"] = m_nTing;
+			getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+			return true;
+		}
+
+		// must do eat
+		if (m_vEatWithInfo.empty() == false)
+		{
+			Json::Value jsTran;
+			jsTran["idx"] = (m_nInvokeIdx + 1) % getRoom()->getSeatCnt();
+			jsTran["act"] = eMJAct_Chi;
+			jsTran["card"] = m_nCard;
+			jsTran["invokeIdx"] = m_nInvokeIdx;
+			jsTran["eatWithA"] = m_vEatWithInfo[0];
+			jsTran["eatWithB"] = m_vEatWithInfo[1];
+			getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+			return true;
+		}
+		return false;
+	}
+
+protected:
+	uint8_t m_nTing;
 };

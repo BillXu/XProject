@@ -75,6 +75,12 @@
     <ClInclude Include="src\LuoMJPoker.h">
       <Filter>src\LuoMJ</Filter>
     </ClInclude>
+    <ClInclude Include="src\LuoMJRoomStateWaitPlayerChu.h">
+      <Filter>src\LuoMJ\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJRoomStateWaitReady.h">
+      <Filter>src\LuoMJ\state</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

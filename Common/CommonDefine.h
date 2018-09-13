@@ -52,6 +52,7 @@ enum eClubEvent
 	eClubEvent_RespInvite,// { uid : 234 , nIsAgree : 0 }
 	eClubEvent_ResetPlayerPoints, // { uid : 23 , mgrUID : 23 }
 	eClubEvent_SetPlayerInitPoints, // { uid : 23 , mgrUID : 23, points : 23 }
+	eClubEvent_ApplyLeave,
 	eClubEvent_Max,
 };
 
@@ -112,6 +113,7 @@ enum eRoomState
 	eRoomState_AskForRobotGang, // 询问玩家抢杠胡， { invokeIdx : 2 , card : 23 }
 	eRoomState_WaitPlayerChu, // 等待玩家出牌 { idx : 2 }
 	eRoomState_AfterChiOrPeng, //吃碰后等待玩家操作
+	eRoomState_AfterGang, //杠后等待玩家操作（摸牌前）
 	eRoomState_MJ_Common_Max = 80, 
 
 	// bj specail 
@@ -367,6 +369,7 @@ enum eMailType
 	eMail_ClubDismiss, // { clubID : 23 , clubName : "abc"  }
 	eMail_ClubJoin, // { clubID : 23 } , sys pro
 	eMail_ClubLeave, // { clubID : 23 } , sys pro
+	eMail_ResponeClubApplyLeave, // { clubID : 23 , clubName : "abc", nIsAgree : 0 }
 
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;

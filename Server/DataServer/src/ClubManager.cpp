@@ -4,6 +4,7 @@
 #include "DataServerApp.h"
 #include "Player.h"
 #include "AsyncRequestQuene.h"
+#include "PlayerBaseData.h"
 ClubManager::~ClubManager()
 {
 	for (auto& ref : m_vClubs)
@@ -187,6 +188,116 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 	return pclub->onMsg(prealMsg, nMsgType, eSenderPort, nSenderID, nTargetID);
 }
 
+bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID) {
+	if (eAsync_HttpCmd_CreateClub == nRequestType) {
+		uint8_t nRet = 0;
+		if (jsReqContent["targetUID"].isNull()) {
+			nRet = 1;
+		}
+
+		if (isNameDuplicate(jsReqContent["name"].asString())) {
+			nRet = 2;
+		}
+
+		if (nRet) {
+			Json::Value jsAgentBack;
+			jsAgentBack["ret"] = nRet;
+			getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack);
+			return true;
+		}
+
+		auto nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nUID);
+		if (pPlayer == nullptr) {
+			Json::Value jssql;
+			char pBuffer[512] = { 0 };
+			sprintf_s(pBuffer, "SELECT userUID FROM playerbasedata where userUID = %u ;", nUID);
+			std::string str = pBuffer;
+			jssql["sql"] = pBuffer;
+			getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nUID, eAsync_DB_Select, jssql, [this, nSenderPort, nReqSerial, nSenderID, nUID, jsReqContent](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+			{
+				if (isTimeOut)
+				{
+					Json::Value jsAgentBack;
+					jsAgentBack["ret"] = 7;
+					getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack);
+					return;
+				}
+				Json::Value jsData = retContent["data"];
+				if (jsData.size() == 0)
+				{
+					Json::Value jsAgentBack;
+					jsAgentBack["ret"] = 3;
+					getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack);
+					LOGFMTE("why read player uid = %u create club is null ? ", nUID);
+					return;
+				}
+				
+				auto pPlayerManager = DataServerApp::getInstance()->getPlayerMgr();
+				pPlayerManager->doPlayerLogin(nUID);
+				auto pPlayer = pPlayerManager->getPlayerByUserUID(nUID);
+				if (pPlayer == nullptr) {
+					Json::Value jsAgentBack;
+					jsAgentBack["ret"] = 4;
+					getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack);
+					LOGFMTE("why read player uid = %u do not have this player create club ? ", nUID);
+					return;
+				}
+
+				auto pClub = new Club();
+				auto jsCreateOpts = jsReqContent["opts"];
+				auto sCreateName = jsReqContent["name"].asString();
+				pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, 1000, 8);
+				pClub->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
+				m_vClubs[pClub->getClubID()] = pClub;
+				pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
+
+				// save to db 
+				Json::StyledWriter jsw;
+				auto strOpts = jsw.write(jsCreateOpts);
+				Json::Value jssql;
+				char pBuffer[2048] = { 0 };
+				sprintf_s(pBuffer, sizeof(pBuffer), "insert into clubs ( clubID,ownerUID,name,opts ) values ( %u,%u,'%s','%s');", pClub->getClubID(), pClub->getCreatorUID(), sCreateName.c_str(), strOpts.c_str());
+				jssql["sql"] = pBuffer;
+				getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Add, jssql);
+				LOGFMTE("player uid = %u create club = %u ? ", nUID, pClub->getClubID());
+
+				Json::Value jsAgentBack;
+				jsAgentBack["ret"] = 0;
+				jsAgentBack["clubID"] = pClub->getClubID();
+				getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack);
+			}
+			);
+		}
+		else {
+			auto pClub = new Club();
+			auto jsCreateOpts = jsReqContent["opts"];
+			auto sCreateName = jsReqContent["name"].asString();
+			pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, 1000, 8);
+			pClub->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
+			m_vClubs[pClub->getClubID()] = pClub;
+			pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
+
+			// save to db 
+			Json::StyledWriter jsw;
+			auto strOpts = jsw.write(jsCreateOpts);
+			Json::Value jssql;
+			char pBuffer[2048] = { 0 };
+			sprintf_s(pBuffer, sizeof(pBuffer), "insert into clubs ( clubID,ownerUID,name,opts ) values ( %u,%u,'%s','%s');", pClub->getClubID(), pClub->getCreatorUID(), sCreateName.c_str(), strOpts.c_str());
+			jssql["sql"] = pBuffer;
+			getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Add, jssql);
+			LOGFMTE("player uid = %u create club = %u ? ", nUID, pClub->getClubID());
+
+			Json::Value jsAgentBack;
+			jsAgentBack["ret"] = 0;
+			jsAgentBack["clubID"] = pClub->getClubID();
+			getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack);
+		}
+		return true;
+	}
+	return false;
+}
+
 bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)
 {
 	if ( eAsync_HttpCmd_AddClubDiamond == nRequestType )
@@ -317,7 +428,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 			Json::Reader jsr;
 			Json::Value jsOpts;
 			jsr.parse(jsRow["opts"].asString(), jsOpts );
-			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(),jsRow["diamond"].asUInt(),jsRow["notice"].asString());
+			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(), jsRow["cprState"].asUInt(), jsRow["diamond"].asUInt(),jsRow["notice"].asString());
 			m_vClubs[p->getClubID()] = p;
 		}
 
@@ -380,4 +491,30 @@ bool ClubManager::isNameDuplicate(std::string& strName)
 		}
 	}
 	return false;
+}
+
+uint32_t ClubManager::parePortTypte(uint32_t nRoomID)
+{
+	// begin(2) , portTypeCrypt (2),commonNum(2)
+	int32_t nComNum = nRoomID % 100;
+	int32_t portTypeCrypt = ((int32_t)(nRoomID / 100)) % 100;
+	if (nComNum >= 50)
+	{
+		portTypeCrypt = portTypeCrypt + 100 - nComNum;
+	}
+	else
+	{
+		portTypeCrypt = portTypeCrypt + 100 + nComNum;
+	}
+
+	return (portTypeCrypt %= 100);
+}
+
+Club* ClubManager::getClub(uint32_t nClubID) {
+	for (auto& ref : m_vClubs) {
+		if (ref.first == nClubID) {
+			return ref.second;
+		}
+	}
+	return nullptr;
 }

@@ -10,6 +10,7 @@ public:
 	bool init( uint16_t nFrameType,Json::Value& jsFramArg )
 	{
 		m_nFrameType = nFrameType;
+		m_jsFrameArg = jsFramArg;
 		return true;
 	}
 
@@ -80,7 +81,7 @@ public:
 	bool doSaveReplayToDB( CAsyncRequestQuene* pSyncQuene )
 	{
 #ifdef _DEBUG
-		return true;
+		//return true;
 #endif // _DEBUG
 		Json::Value jsReplay;
 		toJson(jsReplay);
@@ -96,9 +97,9 @@ public:
 
 		Json::Value jssql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer), "insert into gamereplay (replayID,roomType,time,detail ) values (%u,%u,now(),", getReplayID(), m_nRoomType );
+		sprintf_s(pBuffer, sizeof(pBuffer), "insert into gamereplay (replayID,roomType,time,detail ) values (%u,%u,now(),'", getReplayID(), m_nRoomType );
 		std::ostringstream ss;
-		ss << pBuffer << strJs << " ) ;";
+		ss << pBuffer << strJs << "');";
 		jssql["sql"] = ss.str();
 		pSyncQuene->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getReplayID(), eAsync_DB_Add, jssql);
 		return true;

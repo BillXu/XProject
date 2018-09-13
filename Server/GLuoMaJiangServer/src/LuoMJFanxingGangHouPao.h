@@ -9,7 +9,7 @@ public:
 	uint16_t getFanxingType()override { return eFanxing_GangHouPao; };
 	bool checkFanxing(IMJPlayerCard* pPlayerCard, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom)override
 	{
-		if (pPlayer->getIdx() != nInvokerIdx)
+		if (pPlayer->getIdx() == nInvokerIdx)
 		{
 			return false;
 		}

@@ -104,6 +104,8 @@
     <ClInclude Include="src\MQMJRoomStateAskForRobotGang.h" />
     <ClInclude Include="src\MQMJRoomStateDoPlayerAct.h" />
     <ClInclude Include="src\MQMJRoomStateWaitPlayerAct.h" />
+    <ClInclude Include="src\MQMJRoomStateWaitPlayerChu.h" />
+    <ClInclude Include="src\MQMJRoomStateWaitReady.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />

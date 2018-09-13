@@ -65,6 +65,7 @@ public:
 	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)override;
 	void doRemovePlayer(CPlayer* pOfflinePlayer);
 	bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)override;
+	void doPlayerLogin(uint32_t nUID, uint32_t nSessionID = 0, std::string pIP = "0");
 protected:
 	bool onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
 	void addActivePlayer( CPlayer* pNewPlayer );

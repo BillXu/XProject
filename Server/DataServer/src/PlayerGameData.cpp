@@ -8,6 +8,8 @@
 #include "PlayerManager.h"
 #include "ISeverApp.h"
 #include <algorithm>
+#include "DataServerApp.h"
+#include "Club.h"
 #define MAX_WHITE_LIST_CNT 50
 CPlayerGameData::~CPlayerGameData()
 {
@@ -41,6 +43,7 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 		auto nRoomID = jsReqContent["roomID"].asUInt();
 		auto nSessionID = jsReqContent["sessionID"].asUInt();
 		auto nPort = (eMsgPort)(jsReqContent["port"].asUInt());
+		auto nClubID = jsReqContent["clubID"].asUInt();
 		if ( getStayInRoom().isEmpty() == false && ( nRoomID != getStayInRoom().nRoomID || nPort != getStayInRoom().nSvrPort ))
 		{
 			jsResult["ret"] = 1;
@@ -53,6 +56,20 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 			jsResult["ret"] = 2;
 			LOGFMTW("uid = %u , session id error , can not enter room id = %u",getPlayer()->getUserUID(),nRoomID );
 			break;
+		}
+
+		if (nClubID) {
+			auto pClub = DataServerApp::getInstance()->getClubMgr()->getClub(nClubID);
+			if (pClub == nullptr || pClub->getMember(getPlayer()->getUserUID()) == nullptr) {
+				jsResult["ret"] = 3;
+				LOGFMTW("uid = %u is not one of club id = %u, can not enter room id = %u", getPlayer()->getUserUID(), nClubID, nRoomID);
+				break;
+			}
+			auto pMember = pClub->getMember(getPlayer()->getUserUID());
+			if (pMember->nPlayTime == 1) {
+				jsResult["ret"] = 4;
+				break;
+			}
 		}
 
 		jsResult["ret"] = 0;

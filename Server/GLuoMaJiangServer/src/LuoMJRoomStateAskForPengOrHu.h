@@ -4,6 +4,53 @@ class LuoMJRoomStateAskForPengOrHu
 	:public MJRoomStateAskForPengOrHu
 {
 public:
+	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
+	{
+		MJRoomStateAskForPengOrHu::enterState(pmjRoom, jsTranData);
+
+		// wait truastee;
+		m_vWaitActIdx = m_vWaitHuIdx;
+		m_vWaitActIdx.insert(m_vWaitActIdx.end(), m_vWaitPengGangIdx.begin(), m_vWaitPengGangIdx.end());
+		if (m_isNeedWaitEat)
+		{
+			auto neatidx = (m_nInvokeIdx + 1) % getRoom()->getSeatCnt();
+			m_vWaitActIdx.push_back(neatidx);
+		}
+
+		std::sort(m_vWaitActIdx.begin(), m_vWaitActIdx.end());
+		m_vWaitActIdx.erase(std::unique(m_vWaitActIdx.begin(), m_vWaitActIdx.end()), m_vWaitActIdx.end());
+
+		Json::Value jsMsg, jsWait;
+		for (auto& ref : m_vWaitActIdx) {
+			jsWait[jsWait.size()] = ref;
+		}
+		jsMsg["waitIdx"] = jsWait;
+		pmjRoom->sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_WAIT_IDX);
+	}
+
+	void responeReqActList(uint32_t nSessionID)override
+	{
+		MJRoomStateAskForPengOrHu::responeReqActList(nSessionID);
+		Json::Value jsMsg, jsWait;
+		for (auto& ref : m_vWaitActIdx) {
+			jsWait[jsWait.size()] = ref;
+		}
+		jsMsg["waitIdx"] = jsWait;
+		getRoom()->sendMsgToPlayer(jsMsg, MSG_ROOM_PLAYER_WAIT_IDX, nSessionID);
+	}
+
+	void update(float fDeta)override
+	{
+		if (getWaitTime() > 15.0f) {
+			for (auto& ref : m_vWaitActIdx) {
+				auto pPlayer = (LuoMJPlayer*)getRoom()->getPlayerByIdx(ref);
+				pPlayer->addExtraTime(fDeta);
+			}
+		}
+		
+		MJRoomStateAskForPengOrHu::update(fDeta);
+	}
+
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
 	{
 		if (MSG_PLAYER_ACT != nMsgType && MSG_REQ_ACT_LIST != nMsgType)
@@ -19,7 +66,7 @@ public:
 
 		auto actType = prealMsg["actType"].asUInt();
 		//auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
+		auto pPlayer = (LuoMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
 		do
 		{
@@ -168,18 +215,38 @@ public:
 			}
 		}
 
+		auto iterWait = std::find(m_vWaitActIdx.begin(), m_vWaitActIdx.end(), pPlayer->getIdx());
+		if (iterWait != m_vWaitActIdx.end()) {
+			m_vWaitActIdx.erase(iterWait);
+		}
+
+		bool needWait = false;
+
 		if (m_vWaitHuIdx.empty() == false)  // wait hu ;
 		{
-			return true;
+			needWait = true;
+			//return true;
 		}
 
 		if (m_vDoHuIdx.empty() && m_vWaitPengGangIdx.empty() == false)  // wait peng gang ;
 		{
-			return true;
+			needWait = true;
+			//return true;
 		}
 
 		if (m_vDoHuIdx.empty() && m_vDoPengGangIdx.empty() && m_isNeedWaitEat && m_vEatWithInfo.empty())  // wait eat
 		{
+			needWait = true;
+			//return true;
+		}
+
+		if (needWait) {
+			Json::Value jsMsg, jsWait;
+			for (auto& ref : m_vWaitActIdx) {
+				jsWait[jsWait.size()] = ref;
+			}
+			jsMsg["waitIdx"] = jsWait;
+			getRoom()->sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_WAIT_IDX);
 			return true;
 		}
 
@@ -192,4 +259,7 @@ public:
 		doAct();
 		return true;
 	}
+
+protected:
+	std::vector<uint16_t> m_vWaitActIdx;
 };

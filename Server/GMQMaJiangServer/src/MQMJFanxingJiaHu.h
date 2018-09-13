@@ -10,10 +10,10 @@ public:
 	uint16_t getFanxingType()override { return eFanxing_JiaHu; };
 	bool checkFanxing(IMJPlayerCard* pPlayerCard, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom)override
 	{
-		if (pPlayer->getIdx() != nInvokerIdx)
+		/*if (pPlayer->getIdx() != nInvokerIdx)
 		{
 			return false;
-		}
+		}*/
 
 		return ((MQMJPlayerCard*)pPlayerCard)->isHuOnly19() || ((MQMJPlayerCard*)pPlayerCard)->isDanDiao() || ((MQMJPlayerCard*)pPlayerCard)->isJiaHu();
 	}

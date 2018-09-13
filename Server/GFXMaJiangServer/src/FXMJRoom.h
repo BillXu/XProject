@@ -57,6 +57,7 @@ public:
 	bool isCanGoOnMoPai()override;
 	bool canStartGame() override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
+	void onPlayerLouHu(uint8_t nIdx, uint8_t nCard)override;
 
 	void doProduceNewBanker();
 	void setNextBankerIdx(uint8_t nHuIdx = -1);
@@ -79,6 +80,8 @@ public:
 	bool isPlayerRootDirectGang(uint8_t nInvokerIdx, uint8_t nCard);
 	void onAskForRobotDirectGang(uint8_t nInvokeIdx, uint8_t nActIdx, uint8_t nCard, std::vector<uint8_t>& vOutCandinates);
 	void onPlayerTing(uint8_t nIdx, uint8_t nTing = 1);
+	bool onWaitPlayerGangTing(uint8_t nIdx);
+	void onPlayerSingalMo(uint8_t nIdx);
 
 	uint8_t getFanLimit();
 	bool isDPOnePay();
@@ -89,6 +92,8 @@ public:
 	bool isEnableSB1();
 	bool isEnableFollow();
 	bool isEnableZha5();
+	bool isEnableCool();
+	bool isEnablePJH();
 
 	void addGain(uint8_t nIdx, stSettleGain stGain);
 	void clearGain();

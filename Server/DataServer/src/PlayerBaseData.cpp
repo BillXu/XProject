@@ -32,6 +32,7 @@ CPlayerBaseData::~CPlayerBaseData()
 void CPlayerBaseData::init()
 {
 	m_stBaseData.reset();
+	m_vCreatedClubIDs.clear();
 	m_stBaseData.nUserUID = getPlayer()->getUserUID() ;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
@@ -43,6 +44,7 @@ void CPlayerBaseData::init()
 void CPlayerBaseData::reset()
 {
 	m_stBaseData.reset();
+	m_vCreatedClubIDs.clear();
 	m_bMoneyDataDirty = false;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
@@ -61,7 +63,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_stBaseData.nUserUID = getPlayer()->getUserUID();
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,clubs FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,clubs,takeCharityTimes,lastTakeCardGiftTime FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -86,6 +88,8 @@ void CPlayerBaseData::onPlayerLogined()
 		m_stBaseData.nDiamoned = jsRow["diamond"].asUInt();
 		m_stBaseData.nEmojiCnt = jsRow["emojiCnt"].asUInt();
 		m_stBaseData.nSex = jsRow["sex"].asUInt();
+		m_stBaseData.nTakeCharityTimes = jsRow["takeCharityTimes"].asUInt();
+		m_stBaseData.tLastTakeCardGiftTime = jsRow["lastTakeCardGiftTime"].asUInt();
 
 		Json::Value jsClubs;
 		Json::Reader jsR;
@@ -150,6 +154,56 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		sendMsg(jsmsg, nmsgType);
 		return true;
 	}
+	else if (MSG_GET_SHARE_PRIZE == nmsgType) {
+		uint8_t shareTimes = m_stBaseData.nTakeCharityTimes;
+		uint8_t allSharedTimes = shareTimes >> 1;
+		uint8_t sharedTimeLimit = 0;
+
+		if (sharedTimeLimit && allSharedTimes > sharedTimeLimit) {
+			recvValue["diamond"] = 0;
+			recvValue["sharetimes"] = shareTimes;
+			sendMsg(recvValue, nmsgType);
+			return true;
+		}
+
+		uint8_t curFlag = shareTimes & 0x1;
+		// check times limit state ;
+		time_t tNow = time(nullptr);
+		struct tm pTimeCur;
+		struct tm pTimeLast;
+		pTimeCur = *localtime(&tNow);
+		time_t nLastTakeTime = m_stBaseData.tLastTakeCardGiftTime;
+		pTimeLast = *localtime(&nLastTakeTime);
+		if (pTimeCur.tm_year == pTimeLast.tm_year && pTimeCur.tm_yday == pTimeLast.tm_yday) // the same day ; do nothing
+		{
+
+		}
+		else
+		{
+			curFlag = 0; // new day reset times ;
+		}
+
+		if (curFlag >= 1)
+		{
+			recvValue["diamond"] = 0;
+			recvValue["sharetimes"] = shareTimes;
+			sendMsg(recvValue, nmsgType);
+			return true;
+		}
+
+		m_bPlayerInfoDirty = true;
+		allSharedTimes++;
+		curFlag = 1;
+		m_stBaseData.nTakeCharityTimes = (allSharedTimes << 1) | curFlag;
+		//++m_stBaseData.nTakeCharityTimes;
+		m_stBaseData.tLastTakeCardGiftTime = time(NULL);
+		uint32_t nGiveDiamond = 1;
+		modifyMoney(nGiveDiamond, true);
+		recvValue["diamond"] = nGiveDiamond;
+		recvValue["sharetimes"] = m_stBaseData.nTakeCharityTimes;
+		sendMsg(recvValue, nmsgType);
+		return true;
+	}
 
 	return false ;
 }
@@ -171,6 +225,8 @@ void CPlayerBaseData::sendBaseDataToClient()
 	jsBaseData["coin"] = getCoin();
 	jsBaseData["emojiCnt"] = getEmojiCnt();
 	jsBaseData["ip"] = getPlayer()->getIp();
+	jsBaseData["takeCharityTimes"] = m_stBaseData.nTakeCharityTimes;
+	jsBaseData["lastTakeCardGiftTime"] = m_stBaseData.tLastTakeCardGiftTime;
 
 	Json::Value jsArrayClub;
 	for (auto& ref : m_stBaseData.vJoinedClubIDs)
@@ -211,7 +267,7 @@ void CPlayerBaseData::timerSave()
 
 		Json::Value jssql;
 		char pBuffer[1024] = { 0 };
-		sprintf_s(pBuffer, "update playerbasedata set nickName = '%s' ,sex = %u , headIcon = '%s',clubs = '%s' where userUID = %u ;", getPlayerName(),getSex(),getHeadIcon(), strClubs.c_str(),getPlayer()->getUserUID());
+		sprintf_s(pBuffer, "update playerbasedata set nickName = '%s' ,sex = %u , headIcon = '%s',clubs = '%s',takeCharityTimes = %u,lastTakeCardGiftTime = %u where userUID = %u ;", getPlayerName(),getSex(),getHeadIcon(), strClubs.c_str(), m_stBaseData.nTakeCharityTimes, m_stBaseData.tLastTakeCardGiftTime, getPlayer()->getUserUID());
 		std::string str = pBuffer;
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -295,6 +351,13 @@ void CPlayerBaseData::onLeaveClub(uint32_t nClubID)
 	{
 		LOGFMTE("player not in club = %u , uid = %u, how to leave", nClubID, m_stBaseData.nUserUID);
 	}
+
+	iter = std::find(m_vCreatedClubIDs.begin(), m_vCreatedClubIDs.end(), nClubID);
+	if (iter != m_vCreatedClubIDs.end())
+	{
+		LOGFMTE("player do dismiss club = %u , uid = %u", nClubID, m_stBaseData.nUserUID);
+		m_vCreatedClubIDs.erase(iter);
+	}
 }
 
 void CPlayerBaseData::onJoinClub(uint32_t nClubID)
@@ -309,3 +372,19 @@ void CPlayerBaseData::onJoinClub(uint32_t nClubID)
 	m_bPlayerInfoDirty = true;
 }
 
+void CPlayerBaseData::onCreatedClub(uint32_t nClubID) {
+	auto iter = std::find(m_vCreatedClubIDs.begin(), m_vCreatedClubIDs.end(), nClubID);
+	if (iter != m_vCreatedClubIDs.end())
+	{
+		LOGFMTE("why create twice club = %u , uid = %u", nClubID, m_stBaseData.nUserUID);
+		return;
+	}
+	m_vCreatedClubIDs.push_back(nClubID);
+}
+
+bool CPlayerBaseData::canRemovePlayer() {
+	if (m_vCreatedClubIDs.size()) {
+		return false;
+	}
+	return true;
+}

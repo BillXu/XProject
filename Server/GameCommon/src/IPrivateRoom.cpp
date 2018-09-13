@@ -6,7 +6,7 @@
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include <time.h>
-#define TIME_WAIT_REPLY_DISMISS 180
+#define TIME_WAIT_REPLY_DISMISS 120
 #define TIME_AUTO_DISMISS (60*60*5)
 IPrivateRoom::~IPrivateRoom()
 {
@@ -339,6 +339,9 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 				return true;
 			}
 			
+			Json::Value jsMsg;
+			jsMsg["ret"] = 0;
+			sendMsgToPlayer(jsMsg, MSG_APPLY_DISMISS_VIP_ROOM, nSessionID);
 			doRoomGameOver(true);
 			return true;
 		}
@@ -639,6 +642,25 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	// consume diamond 
 	if ( m_isOneRoundNormalEnd == false )
 	{
+		if (isClubRoom()) {
+			Json::Value js, jsPlayers;
+			auto nCnt = m_pRoom->getSeatCnt();
+			for (uint8_t nIdx = 0; nIdx < nCnt; ++nIdx) {
+				auto pPlayer = m_pRoom->getPlayerByIdx(nIdx);
+				if (!pPlayer)
+				{
+					//LOGFMTE( "player is null , comuse diamond idx = %u , room id = %u",nIdx , getRoomID() );
+					continue;
+				}
+				jsPlayers[jsPlayers.size()] = pPlayer->getUserUID();
+			}
+			js["players"] = jsPlayers;
+			js["roomID"] = getRoomID();
+			js["clubID"] = getClubID();
+			auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getClubID(), eAsync_ClubRoomONE, js);
+		}
+
 		m_isOneRoundNormalEnd = true;
 	}
 
@@ -713,6 +735,7 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 		if ( isClubRoom() )
 		{
 			jsReq["clubID"] = m_nClubID;
+			jsReq["roomID"] = getRoomID();
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_ClubGiveBackDiamond, jsReq);
 			LOGFMTD("room id = %u dissmiss give back clubId = %u diamond = %u", getRoomID(), m_nClubID, jsReq["diamond"].asUInt());
 		}

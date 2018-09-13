@@ -88,7 +88,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\FXMJFanxingMenQing.h" />
+    <ClInclude Include="src\FXMJFanxingQingYiSe.h" />
     <ClInclude Include="src\FXMJRoomStateWaitPlayerChu.h" />
+    <ClInclude Include="src\FXMJRoomStateWaitPlayerGangTing.h" />
     <ClInclude Include="src\MJPrivateRoom.h" />
     <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJServer.h" />

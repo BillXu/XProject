@@ -8,6 +8,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
+		m_nTing = 0;
 		m_nActIdx = jsTranData["idx"].asUInt();
 		m_eActType = jsTranData["act"].asUInt();
 		if (jsTranData["card"].isNull() == false)
@@ -62,15 +63,31 @@ public:
 		}
 		break;
 		case eMJAct_Mo:
-		case eMJAct_BuGang:
 		case eMJAct_BuGang_Declare:
-		case eMJAct_AnGang:
-		case eMJAct_MingGang:
 		case eMJAct_Cyclone:
 		{
 			Json::Value jsValue;
 			jsValue["idx"] = m_nActIdx;
 			getRoom()->goToState(eRoomState_WaitPlayerAct, &jsValue);
+		}
+		break;
+		case eMJAct_BuGang:
+		case eMJAct_AnGang:
+		case eMJAct_MingGang:
+		{
+			if (m_nTing) {
+				Json::Value jsValue;
+				jsValue["idx"] = m_nActIdx;
+				getRoom()->goToState(eRoomState_AfterGang, &jsValue);
+			}
+			else {
+				auto pRoom = (FXMJRoom*)getRoom();
+				pRoom->onPlayerSingalMo(m_nActIdx);
+
+				Json::Value jsValue;
+				jsValue["idx"] = m_nActIdx;
+				getRoom()->goToState(eRoomState_WaitPlayerAct, &jsValue);
+			}
 		}
 		break;
 		case eMJAct_MingGang_Pre:
@@ -80,6 +97,7 @@ public:
 			jsTran["act"] = eMJAct_MingGang_Pre;
 			jsTran["card"] = m_nCard;
 			jsTran["invokeIdx"] = m_nActIdx;
+			jsTran["ting"] = m_nTing;
 			getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
 		}
 		break;
@@ -153,23 +171,39 @@ protected:
 			break;
 		case eMJAct_MingGang:
 			pRoom->onPlayerMingGang(m_nActIdx, m_nCard, m_nInvokeIdx);
+			/*if (m_nTing) {
+				pRoom->onPlayerTing(m_nActIdx, m_nTing);
+			}
+			pRoom->onPlayerSingalMo(m_nActIdx);*/
 			break;
 		case eMJAct_MingGang_Pre:
 		{
 			if (pRoom->isPlayerRootDirectGang(m_nInvokeIdx, m_nCard) == false) {
 				pRoom->onPlayerMingGang(m_nActIdx, m_nCard, m_nInvokeIdx);
+				/*if (m_nTing) {
+					pRoom->onPlayerTing(m_nActIdx, m_nTing);
+				}
+				pRoom->onPlayerSingalMo(m_nActIdx);*/
 				m_eActType = eMJAct_MingGang;
 			}
 			break;
 		}
 		case eMJAct_AnGang:
 			pRoom->onPlayerAnGang(m_nActIdx, m_nCard);
+			/*if (m_nTing) {
+				pRoom->onPlayerTing(m_nActIdx, m_nTing);
+			}
+			pRoom->onPlayerSingalMo(m_nActIdx);*/
 			break;
 		case eMJAct_Cyclone:
 			pRoom->onPlayerCyclone(m_nActIdx, m_nCard);
 			break;
 		case eMJAct_BuGang:
 			pRoom->onPlayerBuGang(m_nActIdx, m_nCard);
+			/*if (m_nTing) {
+				pRoom->onPlayerTing(m_nActIdx, m_nTing);
+			}
+			pRoom->onPlayerSingalMo(m_nActIdx);*/
 			break;
 		case eMJAct_Hu:
 		{
@@ -221,7 +255,7 @@ protected:
 			return eTime_DoPlayerAct_Hu;
 			break;
 		case eMJAct_Chu:
-			return eTime_DoPlayerActChuPai;
+			return 0;
 		default:
 			LOGFMTE("unknown act type = %u can not return act time", m_eActType);
 			return 0;

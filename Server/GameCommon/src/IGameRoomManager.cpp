@@ -290,6 +290,10 @@ bool IGameRoomManager::onPublicMsg(Json::Value& prealMsg, uint16_t nMsgType, eMs
 			jsReq["roomID"] = nRoomID;
 			jsReq["sessionID"] = nSenderID;
 			jsReq["port"] = getSvrApp()->getLocalSvrMsgPortType();
+			auto pRoom = (IPrivateRoom*)getRoomByID(nRoomID);
+			if (pRoom) {
+				jsReq["clubID"] = pRoom->getClubID();
+			}
 			auto pAsync = getSvrApp()->getAsynReqQueue();
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Request_EnterRoomInfo, jsReq, [pAsync, nRoomID, nSenderID, this, nUserID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 			{
@@ -741,7 +745,7 @@ void IGameRoomManager::prepareRoomIDs()
 	std::random_shuffle(m_vRoomIDs.begin(), m_vRoomIDs.end());
 }
 
-//uint32_t parePortTypte(uint32_t nRoomID)
+//uint32_t IGameRoomManager::parePortTypte(uint32_t nRoomID)
 //{
 //	// begin(2) , portTypeCrypt (2),commonNum(2)
 //	int32_t nComNum = nRoomID % 100;

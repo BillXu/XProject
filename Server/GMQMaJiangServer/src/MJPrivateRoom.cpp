@@ -1,6 +1,7 @@
 #include "MJPrivateRoom.h"
 #include "log4z.h"
 #include "MQMJRoom.h"
+#include "MQMJPlayer.h"
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new MQMJRoom();
@@ -8,7 +9,11 @@ GameRoom* MJPrivateRoom::doCreatRealRoom()
 
 uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
 {
-	return 2;
+	if (nLevel > 1) {
+		return 1;
+	}
+	uint8_t vRounds[2] = { 8, 16 };
+	return vRounds[nLevel];
 }
 
 void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
@@ -17,7 +22,7 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 	auto pRoom = getCoreRoom();
 	for (uint8_t nIdx = 0; nIdx < pRoom->getSeatCnt(); ++nIdx)
 	{
-		auto pp = (IMJPlayer*)pRoom->getPlayerByIdx(nIdx);
+		auto pp = (MQMJPlayer*)pRoom->getPlayerByIdx(nIdx);
 		if (pp == nullptr)
 		{
 			LOGFMTE("why private player is null room id = %u idx = %u", getRoomID(), nIdx);
@@ -33,6 +38,8 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		jsPlayer["huCnt"] = pp->getHuCnt();
 		jsPlayer["mingGangCnt"] = pp->getMingGangCnt();
 		jsPlayer["ZMCnt"] = pp->getZiMoCnt();
+		jsPlayer["bestCards"] = pp->getBestCards();
+		jsPlayer["extraTime"] = pp->getExtraTime();
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
 	jsMsg["dismissID"] = m_nApplyDismissUID;
@@ -42,4 +49,12 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 
 bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 	return true;
+}
+
+void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
+	IPrivateRoom::onStartGame(pRoom);
+	if (m_nLeftRounds == getInitRound(m_nRoundLevel))
+	{
+		//((MQMJRoom*)pRoom)->doRandomChangeSeat();
+	}
 }

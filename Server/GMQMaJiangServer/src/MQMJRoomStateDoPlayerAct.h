@@ -172,9 +172,8 @@ protected:
 			return eTime_DoPlayerAct_Gang;
 		case eMJAct_Hu:
 			return eTime_DoPlayerAct_Hu;
-			break;
 		case eMJAct_Chu:
-			return eTime_DoPlayerActChuPai;
+			return 0;
 		default:
 			LOGFMTE("unknown act type = %u can not return act time", m_eActType);
 			return 0;

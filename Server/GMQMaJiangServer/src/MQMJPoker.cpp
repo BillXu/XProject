@@ -31,9 +31,10 @@ uint8_t MQMJPoker::getCardByIdx(uint16_t nIdx, bool isReverse) {
 }
 
 void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
-//#ifndef _DEBUG
+#ifndef _DEBUG
 	return;
-//#endif // !_DEBUG
+#endif // !_DEBUG
+	return;
 
 	uint8_t tCard;
 	//1

@@ -22,6 +22,7 @@ public:
 	virtual void roomInfoVisitor(Json::Value& js) {}
 	virtual void update(float fDeta)
 	{
+		m_nWaitTime += fDeta;
 		if (m_fStateDuring >= 0.0f)
 		{
 			m_fStateDuring -= fDeta;
@@ -31,12 +32,18 @@ public:
 			}
 		}
 	}
-	void setStateDuringTime(float fTime){ m_fStateDuring = fTime; }
+	virtual void setStateDuringTime(float fTime)
+	{
+		m_nWaitTime = 0;
+		m_fStateDuring = fTime;
+	}
 	float getStateDuring(){ return m_fStateDuring; }
+	float getWaitTime() { return m_nWaitTime; }
 	GameRoom* getRoom(){ return m_pRoom; }
 	uint32_t getNextStateID() { return m_nNextStateID; }
 private:
 	float m_fStateDuring;
 	GameRoom* m_pRoom;
 	uint32_t m_nNextStateID;
+	float m_nWaitTime;
 };

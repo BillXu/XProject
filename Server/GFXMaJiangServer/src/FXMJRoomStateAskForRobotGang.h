@@ -13,6 +13,7 @@ public:
 		m_nCard = jsTranData["card"].asUInt();
 		m_nActIdx = jsTranData["idx"].asUInt();
 		m_nActType = jsTranData["act"].asUInt();
+		m_nTing = jsTranData["ting"].asUInt();
 		m_vWaitIdx.clear();
 		auto pRoom = (FXMJRoom*)getRoom();
 		if (m_nActType == eMJAct_MingGang_Pre) {
@@ -113,6 +114,7 @@ public:
 			else {
 				jsTran["act"] = eMJAct_BuGang;
 			}
+			jsTran["ting"] = m_nTing;
 			getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
 		}
 		else
@@ -140,4 +142,6 @@ public:
 protected:
 	uint8_t m_nActType;
 	uint8_t m_nActIdx;
+
+	uint8_t m_nTing;
 };

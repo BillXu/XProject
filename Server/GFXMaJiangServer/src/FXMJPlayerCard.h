@@ -1,5 +1,6 @@
 #pragma once
 #include "MJPlayerCard.h"
+class FXMJFanxingChecker;
 class FXMJPlayerCard
 	:public MJPlayerCard
 {
@@ -17,14 +18,18 @@ public:
 	bool canCycloneWithCard(uint8_t nCard);
 	bool onCyclone(uint8_t nCard, uint8_t nGangGetCard);
 	bool onDirectGang(uint8_t nCard, uint8_t nGangGetCard, uint16_t nInvokerIdx) override;
+	bool onDirectGang(uint8_t nCard, uint16_t nInvokerIdx);
 	bool onAnGang(uint8_t nCard, uint8_t nGangGetCard) override;
+	bool onAnGang(uint8_t nCard);
+	bool onBuGang(uint8_t nCard);
 	bool getCycloneCard(VEC_CARD& vCycloneCard);
 	bool canHuWitCard(uint8_t nCard) override;
+	bool canRotDirectGang(uint8_t nCard);
 	bool checkCanHuWithCard(uint8_t nCard);
 	bool checkHoldCardCanHu();
 	bool isHoldCardCanHu(uint8_t& nJiang) override;
 	bool isTingPai() override;
-	bool tingCheck();
+	bool tingCheck(uint8_t nGangCard = 0);
 	bool tingCheck(VEC_CARD& vCards);
 	bool isEanble7Pair()override { return m_bEnable7Pair; }
 	void signEnable7Pair() { m_bEnable7Pair = true; }
@@ -46,6 +51,10 @@ public:
 	void clearTing();
 	bool canHuOnlyOneCard();
 	bool isPreGang() { return m_vPreGang.empty() == false; }
+	void addPreGang(uint8_t nPreGangCard) { m_vPreGang.push_back(nPreGangCard); }
+	void clearPreGang() { m_vPreGang.clear(); }
+	uint8_t getHuLevel(uint8_t nHuCard);
+	void onPlayerLouHu(uint8_t nCard);
 
 protected:
 	bool eraseVector(uint8_t p, VEC_CARD& typeVec);
@@ -55,6 +64,7 @@ protected:
 	bool checkMenQing();
 	bool checkSB1();
 	uint8_t getHoldCardCnt();
+	uint8_t getHoldCardCnt(uint8_t nCard);
 
 protected:
 	VEC_CARD m_vPreGang;
@@ -66,5 +76,6 @@ protected:
 	bool m_bEnableSB1 = false;
 	VEC_CARD m_vTingCards;
 	bool m_bCool;
+	uint8_t m_nLouHuLevel = 0;
 
 };

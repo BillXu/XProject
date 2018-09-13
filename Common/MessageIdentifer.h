@@ -657,7 +657,24 @@ enum eMsgType
 
 	MSG_ROOM_FXMJ_PLAYER_TING,
 
+	MSG_ROOM_FXMJ_WAIT_GANG_TING, //阜新麻将等待玩家杠后是否听牌
 
+	MSG_ROOM_FXMJ_DO_GANG_TING, //阜新麻将玩家选择杠听操作结果
+
+	MSG_CLUB_CREATE_PRIVATE_ROOM, //阜新麻将俱乐部玩家自建房间
+
+	MSG_ROOM_FXMJ_PLAYER_ONFOLLOW, //阜新麻将玩家打牌跟庄
+
+	MSG_ROOM_FXMJ_REAL_TIME_CELL, //阜新麻将实时结算
+
+	MSG_ROOM_PLAYER_EXCHANGE_SEAT, //麻将玩家重新分配位置
+
+	MSG_ROOM_PLAYER_WAIT_IDX, //麻将发送等待玩家索引
+
+	MSG_CLUB_PLAYER_APPLY_LEAVE, //阜新麻将玩家申请离开俱乐部
+
+	MSG_GET_SHARE_PRIZE, //分享送钻
+	// sur : {diamond : 0, sharetimes : 0}
 
 
 

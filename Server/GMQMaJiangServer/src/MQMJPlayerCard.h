@@ -32,13 +32,14 @@ public:
 	bool isBianHu();
 	bool isHuOnly19();
 
+	uint8_t getHoldCardCnt();
+
 protected:
 	bool eraseVector(uint8_t p, VEC_CARD& typeVec);
 	bool checkKezi();
 	bool check3Men();
 	bool check19();
 	bool canHuOnlyOneCard();
-	uint8_t getHoldCardCnt();
 
 protected:
 	VEC_CARD m_vCyclone;

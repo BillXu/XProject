@@ -48,6 +48,12 @@ CPlayerManager* DataServerApp::getPlayerMgr()
 	return p ;
 }
 
+ClubManager* DataServerApp::getClubMgr()
+{
+	auto p = (ClubManager*)getModuleByType(eMod_Club);
+	return p;
+}
+
 MailModule* DataServerApp::getMailModule()
 {
 	auto p = (MailModule*)getModuleByType(eMod_Mail);

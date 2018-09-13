@@ -57,7 +57,7 @@ public:
 		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
 	}
 
-	void responeReqActList( uint32_t nSessionID )
+	virtual void responeReqActList( uint32_t nSessionID )
 	{
 		auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 		if (!pPlayer)
@@ -304,7 +304,7 @@ public:
 
 	uint8_t getCurIdx()override{ return m_nInvokeIdx; }
 
-	bool doAct()
+	virtual bool doAct()
 	{
 		if (m_vDoHuIdx.empty() == false)
 		{

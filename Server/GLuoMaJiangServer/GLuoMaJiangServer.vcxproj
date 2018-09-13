@@ -89,6 +89,8 @@
   <ItemGroup>
     <ClInclude Include="src\LuoMJFanxingHaiDiLaoYue.h" />
     <ClInclude Include="src\LuoMJPoker.h" />
+    <ClInclude Include="src\LuoMJRoomStateWaitPlayerChu.h" />
+    <ClInclude Include="src\LuoMJRoomStateWaitReady.h" />
     <ClInclude Include="src\MJPrivateRoom.h" />
     <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJServer.h" />

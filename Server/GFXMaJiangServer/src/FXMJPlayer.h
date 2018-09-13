@@ -5,6 +5,7 @@ class FXMJPlayer
 	:public IMJPlayer
 {
 public:
+	void init(stEnterRoomData* pData, uint16_t nIdx)override;
 	IMJPlayerCard* getPlayerCard()override;
 	void onGameWillStart()override;
 	void clearGangFlag() { clearFlag(eMJActFlag_Gang); }
@@ -14,6 +15,14 @@ public:
 	void signEnable7Pair() { m_tPlayerCard.signEnable7Pair(); }
 	void signEnableOOT() { m_tPlayerCard.signEnableOOT(); }
 	void signEnableSB1() { m_tPlayerCard.signEnableSB1(); }
+
+	void addBankerCnt() { m_nBankerCnt++; }
+	uint8_t getBankerCnt() { return m_nBankerCnt; }
+	void addCoolCnt() { m_nCoolCnt++; }
+	uint8_t getCoolCnt() { return m_nCoolCnt; }
 protected:
 	FXMJPlayerCard m_tPlayerCard;
+
+	uint8_t m_nBankerCnt = 0;
+	uint8_t m_nCoolCnt = 0;
 };

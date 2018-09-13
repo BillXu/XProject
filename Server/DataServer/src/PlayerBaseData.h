@@ -33,8 +33,11 @@ public:
 	double getGPS_W() { return m_stBaseData.dfW; }
 	void onLeaveClub( uint32_t nClubID );
 	void onJoinClub( uint32_t nClubID );
+	void onCreatedClub(uint32_t nClubID);
+	bool canRemovePlayer()override;
 private:
 	stServerBaseData m_stBaseData ;
+	std::vector<uint32_t> m_vCreatedClubIDs;
 	bool m_bMoneyDataDirty;
 	bool m_bPlayerInfoDirty;
 	bool m_isReadingDB;

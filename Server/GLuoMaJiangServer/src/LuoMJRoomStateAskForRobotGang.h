@@ -23,6 +23,35 @@ public:
 		}
 		assert(m_vWaitIdx.empty() == false && "invalid argument");
 		m_vDoHuIdx.clear();
+
+		Json::Value jsMsg, jsWait;
+		for (auto& ref : m_vWaitIdx) {
+			jsWait[jsWait.size()] = ref;
+		}
+		jsMsg["waitIdx"] = jsWait;
+		pmjRoom->sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_WAIT_IDX);
+	}
+
+	void responeReqActList(uint32_t nSessionID)override {
+		MJRoomStateAskForRobotGang::responeReqActList(nSessionID);
+		Json::Value jsMsg, jsWait;
+		for (auto& ref : m_vWaitIdx) {
+			jsWait[jsWait.size()] = ref;
+		}
+		jsMsg["waitIdx"] = jsWait;
+		getRoom()->sendMsgToPlayer(jsMsg, MSG_ROOM_PLAYER_WAIT_IDX, nSessionID);
+	}
+
+	void update(float fDeta)override
+	{
+		if (getWaitTime() > 15.0f) {
+			for (auto& ref : m_vWaitIdx) {
+				auto pPlayer = (LuoMJPlayer*)getRoom()->getPlayerByIdx(ref);
+				pPlayer->addExtraTime(fDeta);
+			}
+		}
+		
+		MJRoomStateAskForRobotGang::update(fDeta);
 	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override
@@ -40,7 +69,7 @@ public:
 
 		auto actType = prealMsg["actType"].asUInt();
 		//auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
+		auto pPlayer = (LuoMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
 		do
 		{
@@ -96,6 +125,12 @@ public:
 
 		if (m_vWaitIdx.empty() == false)
 		{
+			Json::Value jsMsg, jsWait;
+			for (auto& ref : m_vWaitIdx) {
+				jsWait[jsWait.size()] = ref;
+			}
+			jsMsg["waitIdx"] = jsWait;
+			getRoom()->sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_WAIT_IDX);
 			return true;
 		}
 

@@ -82,12 +82,17 @@ public:
 	bool isDPOnePay();
 	uint8_t getBaseScore();
 	uint32_t getGuang();
+	bool isEnableSB1();
+	bool isEnableCaiGang();
 
 	void addGain(uint8_t nIdx, stSettleGain stGain);
 	void clearGain();
 	void backGain(uint8_t nIdx);
 
 	bool isHaveCyclone() { return false; }
+
+	void doRandomChangeSeat();
+	bool doChangeSeat(uint16_t nIdx, uint16_t nWithIdx);
 
 protected:
 	void addSettle(stSettle& tSettle);

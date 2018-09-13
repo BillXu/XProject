@@ -4,7 +4,7 @@
 #include "FanxingDuiDuiHu.h"
 #include "FanxingGangKai.h"
 #include "FanxingQiangGang.h"
-#include "FanxingQingYiSe.h"
+#include "FXMJFanxingQingYiSe.h"
 #include "FanxingShuang7Dui.h"
 #include "FXMJFanxingGangHouPao.h"
 #include "FXMJFanxingJiaHu.h"
@@ -20,7 +20,7 @@ public:
 		addFanxing(new FanxingQiangGang());
 		addFanxing(new FXMJFanxingGangHouPao());
 		addFanxing(new Fanxing7Dui());
-		addFanxing(new FanxingQingYiSe());
+		addFanxing(new FXMJFanxingQingYiSe());
 		addFanxing(new FXMJFanxingMenQing());
 	}
 

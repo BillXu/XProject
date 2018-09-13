@@ -701,6 +701,7 @@ void GameRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["stateInfo"] = jsStateInfo;
 	jsRoomInfo["state"] = getCurState()->getStateID();
 	jsRoomInfo["stateTime"] = uint8_t(getCurState()->getStateDuring() + 0.8);
+	jsRoomInfo["stateWaitTime"] = getCurState()->getWaitTime();
 }
 
 void GameRoom::sendRoomPlayersInfo(uint32_t nSessionID)

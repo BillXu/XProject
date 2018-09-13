@@ -32,6 +32,7 @@ public:
 	bool canAnGangWithCard(uint8_t nCard)override;
 	bool canBuGangWithCard(uint8_t nCard)override;
 	void onVisitPlayerCardInfo(Json::Value& js, bool isSelf)override;
+	virtual void onVisitPlayerCardBaseInfo(Json::Value& js);
 	bool getHoldCardThatCanAnGang(VEC_CARD& vGangCards)override;
 	bool getHoldCardThatCanBuGang(VEC_CARD& vGangCards)override;
 
@@ -59,6 +60,8 @@ public:
 	uint32_t getNewestFetchedCard()final;
 	void addLouPengedCard( uint8_t nLouPengedCard )final;
 	uint8_t getJiang();
+
+	bool CheckHoldCardAllShun(uint8_t nBaiDaCnt = 0);
 protected:
 	void addHoldCard( uint8_t nCard );
 	void removeHoldCard(uint8_t nCard);

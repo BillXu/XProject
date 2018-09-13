@@ -10,7 +10,7 @@
 #include "FXMJRoomStateAfterChiOrPeng.h"
 #include "FXMJRoomStateAskForRobotGang.h"
 #include "FXMJRoomStateAskForPengOrHu.h"
-#include "FanxingChecker.h"
+#include "FXMJRoomStateWaitPlayerGangTing.h"
 #include "Fanxing7Dui.h"
 #include "FanxingDuiDuiHu.h"
 #include "MJReplayFrameType.h"
@@ -31,7 +31,7 @@ bool FXMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	// add room state ;
 	IGameRoomState* p[] = { new CMJRoomStateWaitReady(), new FXMJRoomStateWaitPlayerChu(),new FXMJRoomStateWaitPlayerAct(),
 		new MJRoomStateStartGame(),new MJRoomStateGameEnd(),new FXMJRoomStateDoPlayerAct(),new FXMJRoomStateAskForRobotGang(),
-		new FXMJRoomStateAskForPengOrHu(), new FXMJRoomStateAfterChiOrPeng()
+		new FXMJRoomStateAskForPengOrHu(), new FXMJRoomStateAfterChiOrPeng(), new FXMJRoomStateWaitPlayerGangTing()
 	};
 	for ( auto& pS : p )
 	{
@@ -247,6 +247,11 @@ void FXMJRoom::doProduceNewBanker() {
 	}
 
 	m_nNextBankerIdx = getBankerIdx();
+
+	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(getBankerIdx());
+	if (pPlayer) {
+		pPlayer->addBankerCnt();
+	}
 }
 
 void FXMJRoom::setNextBankerIdx(uint8_t nHuIdx) {
@@ -287,6 +292,8 @@ void FXMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
 		pPlayer->clearFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
 	}
+	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+	pCard->onPlayerLouHu(nCard);
 	if (m_bCheckFollow) {
 		if (m_nFollowCard) {
 			if (m_nFollowCard == nCard) {
@@ -337,7 +344,41 @@ void FXMJRoom::onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx) {
 
 void FXMJRoom::onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx) {
 	onPrePlayerGang();
-	IMJRoom::onPlayerMingGang(nIdx, nCard, nInvokeIdx);
+	//IMJRoom::onPlayerMingGang(nIdx, nCard, nInvokeIdx);
+	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+	auto pInvoker = (FXMJPlayer*)getPlayerByIdx(nInvokeIdx);
+	if (!pPlayer || !pInvoker)
+	{
+		LOGFMTE("why this player is null idx = %u , can not ming gang", nIdx);
+		return;
+	}
+	pPlayer->signFlag(IMJPlayer::eMJActFlag_MingGang);
+	pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
+	pPlayer->addMingGangCnt();
+
+	//auto nGangGetCard = getPoker()->distributeOneCard();
+	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+	if (pCard->onDirectGang(nCard, nInvokeIdx) == false)
+	{
+		LOGFMTE("nidx = %u ming gang card = %u error,", nIdx, nCard);
+	}
+	pInvoker->getPlayerCard()->onCardBeGangPengEat(nCard);
+	pCard->clearPreGang();
+
+	// send msg 
+	Json::Value msg;
+	msg["idx"] = nIdx;
+	msg["actType"] = eMJAct_MingGang;
+	msg["card"] = nCard;
+	//msg["gangCard"] = nGangGetCard;
+	sendRoomMsg(msg, MSG_ROOM_ACT);
+
+	Json::Value jsFrameArg;
+	jsFrameArg["idx"] = nIdx;
+	jsFrameArg["gang"] = nCard;
+	//jsFrameArg["newCard"] = nGangGetCard;
+	jsFrameArg["invokerIdx"] = nInvokeIdx;
+	addReplayFrame(eMJFrame_MingGang, jsFrameArg);
 
 	stSettle st;
 	st.eSettleReason = eMJAct_MingGang;
@@ -362,13 +403,42 @@ void FXMJRoom::onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)
 	st.addWin(nIdx, nWinCoin);
 	addSettle(st);
 
-	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+	//auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
 	pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone);
 }
 
 void FXMJRoom::onPlayerAnGang(uint8_t nIdx, uint8_t nCard) {
 	onPrePlayerGang();
-	IMJRoom::onPlayerAnGang(nIdx, nCard);
+	//IMJRoom::onPlayerAnGang(nIdx, nCard);
+	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+	if (!pPlayer)
+	{
+		LOGFMTE("why this player is null idx = %u , can not an gang", nIdx);
+		return;
+	}
+	pPlayer->signFlag(IMJPlayer::eMJActFlag_AnGang);
+	pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
+	pPlayer->addAnGangCnt();
+	//auto nGangGetCard = getPoker()->distributeOneCard();
+	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+	if (pCard->onAnGang(nCard) == false)
+	{
+		LOGFMTE("nidx = %u an gang card = %u error,", nIdx, nCard);
+	}
+
+	// send msg ;
+	Json::Value msg;
+	msg["idx"] = nIdx;
+	msg["actType"] = eMJAct_AnGang;
+	msg["card"] = nCard;
+	//msg["gangCard"] = nGangGetCard;
+	sendRoomMsg(msg, MSG_ROOM_ACT);
+
+	Json::Value jsFrameArg;
+	jsFrameArg["idx"] = nIdx;
+	jsFrameArg["gang"] = nCard;
+	//jsFrameArg["newCard"] = nGangGetCard;
+	addReplayFrame(eMJFrame_AnGang, jsFrameArg);
 
 	stSettle st;
 	st.eSettleReason = eMJAct_AnGang;
@@ -392,7 +462,7 @@ void FXMJRoom::onPlayerAnGang(uint8_t nIdx, uint8_t nCard) {
 	st.addWin(nIdx, nWinCoin);
 	addSettle(st);
 
-	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+	//auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
 	pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone);
 }
 
@@ -466,17 +536,8 @@ void FXMJRoom::onPlayerBuGang(uint8_t nIdx, uint8_t nCard) {
 					continue;
 				}
 				else {
-					for (auto& pp : m_vPlayers) {
-						if (pp) {
-							if (pp->getIdx() == nIdx) {
-								continue;
-							}
-							else {
-								st.addLose(pp->getIdx(), nLoseCoin);
-								nWinCoin += nLoseCoin;
-							}
-						}
-					}
+					st.addLose(pp->getIdx(), nLoseCoin);
+					nWinCoin += nLoseCoin;
 				}
 			}
 		}
@@ -484,7 +545,38 @@ void FXMJRoom::onPlayerBuGang(uint8_t nIdx, uint8_t nCard) {
 		addSettle(st);
 	}
 	onPrePlayerGang();
-	IMJRoom::onPlayerBuGang(nIdx, nCard);
+	//IMJRoom::onPlayerBuGang(nIdx, nCard);
+	//auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
+	if (!pPlayer)
+	{
+		LOGFMTE("why this player is null idx = %u , can not bu gang", nIdx);
+		return;
+	}
+	pPlayer->signFlag(IMJPlayer::eMJActFlag_BuGang);
+	pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
+	pPlayer->clearFlag(IMJPlayer::eMJActFlag_DeclBuGang);
+
+	//auto nGangCard = getPoker()->distributeOneCard();
+	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+	if (pCard->onBuGang(nCard) == false)
+	{
+		LOGFMTE("nidx = %u bu gang card = %u error,", nIdx, nCard);
+	}
+	pPlayer->addMingGangCnt();
+	// send msg 
+	Json::Value msg;
+	msg["idx"] = nIdx;
+	msg["actType"] = eMJAct_BuGang_Done;
+	msg["card"] = nCard;
+	//msg["gangCard"] = nGangCard;
+	sendRoomMsg(msg, MSG_ROOM_ACT);
+
+	Json::Value jsFrameArg;
+	jsFrameArg["idx"] = nIdx;
+	jsFrameArg["gang"] = nCard;
+	//jsFrameArg["newCard"] = nGangCard;
+	addReplayFrame(eMJFrame_BuGang, jsFrameArg);
+
 	pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone);
 }
 
@@ -549,22 +641,23 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		for (auto& pLosePlayer : m_vPlayers)
 		{
 			if (pLosePlayer) {
+				auto t_nFanCnt = nFanCnt;
 				if (pLosePlayer == pZiMoPlayer)
 				{
 					continue;
 				}
 				if (pLosePlayer->getIdx() == getBankerIdx() || nInvokeIdx == getBankerIdx()) {
-					nFanCnt += 1;
+					t_nFanCnt += 1;
 				}
 				if (m_cFanxingChecker.checkFanxing(eFanxing_MengQing, (FXMJPlayer*)pLosePlayer, nInvokeIdx, this)) {
-					nFanCnt += 1;
+					t_nFanCnt += 1;
 				}
 
-				if (getFanLimit() && nFanCnt > getFanLimit()) {
-					nFanCnt = getFanLimit();
+				if (getFanLimit() && t_nFanCnt > getFanLimit()) {
+					t_nFanCnt = getFanLimit();
 				}
 				uint32_t nLoseCoin = 1;
-				for (int32_t i = 0; i < nFanCnt; ++i) {
+				for (int32_t i = 0; i < t_nFanCnt; ++i) {
 					nLoseCoin *= 2;//paixing fan
 					if (nLoseCoin == 4) {
 						nLoseCoin = 5;
@@ -592,6 +685,7 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		jsDetail["dianPaoIdx"] = pLosePlayer->getIdx();
 		pLosePlayer->addDianPaoCnt();
 		std::vector<uint8_t> vOrderHu;
+		uint8_t nHuLevel = 0;
 		if (vHuIdx.size() > 0)
 		{
 			for (uint8_t offset = 1; offset <= 3; ++offset)
@@ -601,10 +695,31 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 				auto iter = std::find(vHuIdx.begin(), vHuIdx.end(), nCheckIdx);
 				if (iter != vHuIdx.end())
 				{
-					vOrderHu.push_back(nCheckIdx);
-					setNextBankerIdx(nCheckIdx);
-					break;
+					auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nCheckIdx);
+					if (pPlayer) {
+						if (isEnablePJH()) {
+							auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+							auto tHuLevle = pCard->getHuLevel(nCard);
+							if (tHuLevle > nHuLevel) {
+								nHuLevel = tHuLevle;
+								vOrderHu.clear();
+								vOrderHu.push_back(nCheckIdx);
+								if (nHuLevel == 3) {
+									break;
+								}
+							}
+						}
+						else {
+							vOrderHu.clear();
+							vOrderHu.push_back(nCheckIdx);
+							break;
+						}
+					}
 				}
+			}
+
+			if (vOrderHu.size()) {
+				setNextBankerIdx(vOrderHu[0]);
 			}
 		}
 
@@ -1043,7 +1158,7 @@ uint32_t FXMJRoom::getGuang() {
 }
 
 bool FXMJRoom::isEnable7Pair() {
-	return m_jsOpts["7pair"].asBool();
+	return m_jsOpts["pair7"].asBool();
 }
 
 bool FXMJRoom::isEnableOOT() {
@@ -1062,8 +1177,69 @@ bool FXMJRoom::isEnableZha5() {
 	return m_jsOpts["zha5"].asBool();
 }
 
+bool FXMJRoom::isEnableCool() {
+	return m_jsOpts["cool"].asBool();
+}
+
+bool FXMJRoom::isEnablePJH() {
+	return m_jsOpts["pjh"].asBool();
+}
+
 void FXMJRoom::addSettle(stSettle& tSettle) {
 	m_vSettle.push_back(tSettle);
+
+	Json::Value jsItem, jsRDetail;
+	jsItem["actType"] = tSettle.eSettleReason;
+	if (tSettle.eSettleReason == eMJAct_Hu) {
+		jsItem["msg"] = tSettle.jsHuMsg;
+	}
+
+	uint32_t nTotalGain = 0;
+	for (auto& refl : tSettle.vLoseIdx)
+	{
+		auto pPlayer = (FXMJPlayer*)getPlayerByIdx(refl.first);
+		if (pPlayer) {
+			auto nGain = pPlayer->addGuangSingleOffset(-1 * (int32_t)refl.second, getGuang());
+			nTotalGain += nGain;
+			if (nGain && tSettle.vWinIdxs.size()) {
+				stSettleGain ssg;
+				ssg.nGainChips = nGain;
+				ssg.nTargetIdx = tSettle.vWinIdxs[0];
+				addGain(refl.first, ssg);
+			}
+			Json::Value jsPlayer;
+			jsPlayer["idx"] = refl.first;
+			jsPlayer["offset"] = -1 * refl.second;
+			jsRDetail[jsRDetail.size()] = jsPlayer;
+		}
+	}
+
+	for (auto& refl : tSettle.vWinIdxs)
+	{
+		auto pPlayer = getPlayerByIdx(refl.first);
+		uint32_t nTempWin = 0;
+		if (nTotalGain > refl.second) {
+			nTempWin = 0;
+			nTotalGain -= refl.second;
+		}
+		else {
+			nTempWin = refl.second - nTotalGain;
+			nTotalGain = 0;
+		}
+		if (pPlayer) {
+			pPlayer->addSingleOffset(nTempWin);
+			if (nTempWin) {
+				backGain(refl.first);
+			}
+			Json::Value jsPlayer;
+			jsPlayer["idx"] = refl.first;
+			jsPlayer["offset"] = refl.second;
+			jsRDetail[jsRDetail.size()] = jsPlayer;
+		}
+	}
+	jsItem["detial"] = jsRDetail;
+
+	sendRoomMsg(jsItem, MSG_ROOM_FXMJ_REAL_TIME_CELL);
 }
 
 void FXMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
@@ -1074,19 +1250,19 @@ void FXMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
 			jsItem["msg"] = ref.jsHuMsg;
 		}
 
-		uint32_t nTotalGain = 0;
+		//uint32_t nTotalGain = 0;
 		for (auto& refl : ref.vLoseIdx)
 		{
 			auto pPlayer = (FXMJPlayer*)getPlayerByIdx(refl.first);
 			if (pPlayer) {
-				auto nGain = pPlayer->addGuangSingleOffset(-1 * (int32_t)refl.second, getGuang());
+				/*auto nGain = pPlayer->addGuangSingleOffset(-1 * (int32_t)refl.second, getGuang());
 				nTotalGain += nGain;
 				if (nGain && ref.vWinIdxs.size()) {
 					stSettleGain ssg;
 					ssg.nGainChips = nGain;
 					ssg.nTargetIdx = ref.vWinIdxs[0];
 					addGain(refl.first, ssg);
-				}
+				}*/
 				Json::Value jsPlayer;
 				jsPlayer["idx"] = refl.first;
 				jsPlayer["offset"] = -1 * refl.second;
@@ -1097,7 +1273,7 @@ void FXMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
 		for (auto& refl : ref.vWinIdxs)
 		{
 			auto pPlayer = getPlayerByIdx(refl.first);
-			uint32_t nTempWin = 0;
+			/*uint32_t nTempWin = 0;
 			if (nTotalGain > refl.second) {
 				nTempWin = 0;
 				nTotalGain -= refl.second;
@@ -1105,12 +1281,12 @@ void FXMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
 			else {
 				nTempWin = refl.second - nTotalGain;
 				nTotalGain = 0;
-			}
+			}*/
 			if (pPlayer) {
-				pPlayer->addSingleOffset(nTempWin);
+				/*pPlayer->addSingleOffset(nTempWin);
 				if (nTempWin) {
 					backGain(refl.first);
-				}
+				}*/
 				Json::Value jsPlayer;
 				jsPlayer["idx"] = refl.first;
 				jsPlayer["offset"] = refl.second;
@@ -1218,9 +1394,9 @@ void FXMJRoom::onAskForRobotDirectGang(uint8_t nInvokeIdx, uint8_t nActIdx, uint
 	Json::Value jsFrameArg, jsMsg, jsActs;
 
 	if (pPlayer) {
-		auto pMJCard = pPlayer->getPlayerCard();
+		auto pMJCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
 
-		if (pMJCard->canHuWitCard(nCard))
+		if (pMJCard->canRotDirectGang(nCard))
 		{
 			jsActs[jsActs.size()] = eMJAct_Hu;
 			vOutCandinates.push_back(nActIdx);
@@ -1233,7 +1409,7 @@ void FXMJRoom::onAskForRobotDirectGang(uint8_t nInvokeIdx, uint8_t nActIdx, uint
 		}
 
 		jsMsg["acts"] = jsActs;
-		sendMsgToPlayer(jsMsg, MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD, nActIdx);
+		sendMsgToPlayer(jsMsg, MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD, pPlayer->getSessionID());
 	}
 
 	// add frame 
@@ -1284,11 +1460,50 @@ void FXMJRoom::onPlayerTing(uint8_t nIdx, uint8_t nTing) {
 		if (pCard->isTing() == false && pCard->isTingPai()) {
 			Json::Value jsMsg;
 			if (nTing == 2) {
-				pCard->signCool();
+				if (isEnableCool()) {
+					pCard->signCool();
+					pPlayer->addCoolCnt();
+				}
+				else {
+					nTing = 1;
+				}
 			}
 			jsMsg["idx"] = nIdx;
 			jsMsg["ting"] = nTing;
 			sendRoomMsg(jsMsg, MSG_ROOM_FXMJ_PLAYER_TING);
+
+			addReplayFrame(eMJFrame_Ting, jsMsg);
 		}
+	}
+}
+
+bool FXMJRoom::onWaitPlayerGangTing(uint8_t nIdx) {
+	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+
+	if (pPlayer == nullptr) {
+		return false;
+	}
+
+	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+	if (pCard->isTing()) {
+		return false;
+	}
+
+	Json::Value jsMsg;
+	jsMsg["idx"] = nIdx;
+	sendRoomMsg(jsMsg, MSG_ROOM_FXMJ_WAIT_GANG_TING);
+
+	return true;
+}
+
+void FXMJRoom::onPlayerSingalMo(uint8_t nIdx) {
+	IMJRoom::onPlayerMo(nIdx);
+}
+
+void FXMJRoom::onPlayerLouHu(uint8_t nIdx, uint8_t nCard) {
+	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+	if (pPlayer) {
+		auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+		pCard->onPlayerLouHu(nCard);
 	}
 }

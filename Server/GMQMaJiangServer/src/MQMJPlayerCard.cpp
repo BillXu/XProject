@@ -441,9 +441,9 @@ bool MQMJPlayerCard::isJiaHu() {
 	if (getHoldCardCnt() < 5) {
 		return false;
 	}
-	if (canHuOnlyOneCard() == false) {
+	/*if (canHuOnlyOneCard() == false) {
 		return false;
-	}
+	}*/
 	auto nCard = getHuCard();
 	if (isHaveCard(nCard) == false) {
 		return false;
@@ -463,37 +463,48 @@ bool MQMJPlayerCard::isJiaHu() {
 	uint8_t nCnt = std::count_if(vCards.begin(), vCards.end(), [nCard](uint8_t& tCard) {
 		return nCard == tCard;
 	});
-	uint8_t nCntPre = std::count_if(vCards.begin(), vCards.end(), [nValue, nType](uint8_t& tCard) {
-		return make_Card_Num(nType, nValue - 1) == tCard;
+	auto nCardPre = make_Card_Num(nType, nValue - 1);
+	uint8_t nCntPre = std::count_if(vCards.begin(), vCards.end(), [nCardPre](uint8_t& tCard) {
+		return nCardPre == tCard;
 	});
 	if (nCntPre < nCnt) {
 		return false;
 	}
-	uint8_t nCntAfter = std::count_if(vCards.begin(), vCards.end(), [nValue, nType](uint8_t& tCard) {
-		return make_Card_Num(nType, nValue + 1) == tCard;
+	auto nCardAfter = make_Card_Num(nType, nValue + 1);
+	uint8_t nCntAfter = std::count_if(vCards.begin(), vCards.end(), [nCardAfter](uint8_t& tCard) {
+		return nCardAfter == tCard;
 	});
 	if (nCntAfter < nCnt) {
 		return false;
 	}
 
-	return true;
+	bool bFlag = false;
+	auto nJiang = m_nJIang;
+	removeHoldCard(nCard);
+	removeHoldCard(nCardPre);
+	removeHoldCard(nCardAfter);
+	bFlag = MJPlayerCard::isHoldCardCanHu(m_nJIang);
+	addHoldCard(nCard);
+	addHoldCard(nCardPre);
+	addHoldCard(nCardAfter);
+	m_nJIang = nJiang;
+	return bFlag;
 }
 
 bool MQMJPlayerCard::isDanDiao() {
 	if (getHoldCardCnt() < 3) {
 		return true;
 	}
-	if (canHuOnlyOneCard() == false) {
+	/*if (canHuOnlyOneCard() == false) {
 		return false;
-	}
+	}*/
 	auto nCard = getHuCard();
 	if (isHaveCard(nCard) == false) {
 		return false;
 	}
-	if (m_nJIang != nCard) {
+	/*if (m_nJIang != nCard) {
 		return false;
-	}
-	auto nJiang = m_nJIang;
+	}*/
 	auto nType = card_Type(nCard);
 	auto vCards = m_vCards[nType];
 
@@ -503,7 +514,16 @@ bool MQMJPlayerCard::isDanDiao() {
 	if (nCnt < 2) {
 		return false;
 	}
-	return true;
+	if (m_nJIang == nCard) {
+		return true;
+	}
+	bool bFlag = false;
+	removeHoldCard(nCard);
+	removeHoldCard(nCard);
+	bFlag = CheckHoldCardAllShun();
+	addHoldCard(nCard);
+	addHoldCard(nCard);
+	return bFlag;
 }
 
 bool MQMJPlayerCard::isBianHu() {

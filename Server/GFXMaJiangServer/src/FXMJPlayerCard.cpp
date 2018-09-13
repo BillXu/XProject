@@ -9,7 +9,8 @@ void FXMJPlayerCard::reset() {
 	m_bCanHuOnlyOne = false;
 	m_bCheckedCanHuOnlyOne = false;
 	clearTing();
-	m_vPreGang.clear();
+	clearPreGang();
+	m_nLouHuLevel = 0;
 }
 
 bool FXMJPlayerCard::canEatCard(uint8_t nCard) {
@@ -56,7 +57,7 @@ bool FXMJPlayerCard::canMingGangWithCard(uint8_t nCard) {
 			removeHoldCard(nCard);
 			removeHoldCard(nCard);
 			removeHoldCard(nCard);
-			flag = tingCheck();
+			flag = tingCheck(nCard);
 			addHoldCard(nCard);
 			addHoldCard(nCard);
 			addHoldCard(nCard);
@@ -84,7 +85,7 @@ bool FXMJPlayerCard::canAnGangWithCard(uint8_t nCard) {
 				removeHoldCard(nCard);
 				removeHoldCard(nCard);
 				removeHoldCard(nCard);
-				flag = tingCheck();
+				flag = tingCheck(nCard);
 				addHoldCard(nCard);
 				addHoldCard(nCard);
 				addHoldCard(nCard);
@@ -107,7 +108,7 @@ bool FXMJPlayerCard::canBuGangWithCard(uint8_t nCard) {
 
 void FXMJPlayerCard::onVisitPlayerCardInfo(Json::Value& js, bool isSelf) {
 	MJPlayerCard::onVisitPlayerCardInfo(js, isSelf);
-	js["ting"] = isTing() ? 1 : 0;
+	js["ting"] = isTing() ? (isCool() ? 2 : 1) : 0;
 }
 
 bool FXMJPlayerCard::getHoldCardThatCanAnGang(VEC_CARD& vGangCards) {
@@ -254,6 +255,39 @@ bool FXMJPlayerCard::onDirectGang(uint8_t nCard, uint8_t nGangGetCard, uint16_t 
 	return flag;
 }
 
+bool FXMJPlayerCard::onDirectGang(uint8_t nCard, uint16_t nInvokerIdx) {
+	auto eType = card_Type(nCard);
+	if (eType >= eCT_Max)
+	{
+		LOGFMTE("onMingGang parse card type error so do not have this card = %u", nCard);
+		return false;
+	}
+
+	auto& vCard = m_vCards[eType];
+	auto nEraseCnt = 3;
+	while (nEraseCnt-- > 0)
+	{
+		auto iter = std::find(vCard.begin(), vCard.end(), nCard);
+		vCard.erase(iter);
+	}
+
+	// sign ming gang info 
+	VEC_INVOKE_ACT_INFO::value_type tMingGang;
+	tMingGang.nTargetCard = nCard;
+	tMingGang.nInvokerIdx = (uint8_t)nInvokerIdx;
+	tMingGang.eAct = eMJAct_MingGang;
+	m_vMingCardInfo.push_back(tMingGang);
+
+	//debugCardInfo();
+
+	if (isTing()) {
+		VEC_CARD vCards;
+		tingCheck(vCards);
+		m_vTingCards.assign(vCards.begin(), vCards.end());
+	}
+	return true;
+}
+
 bool FXMJPlayerCard::onAnGang(uint8_t nCard, uint8_t nGangGetCard) {
 	bool flag = MJPlayerCard::onAnGang(nCard, nGangGetCard);
 	if (flag && isTing()) {
@@ -262,6 +296,63 @@ bool FXMJPlayerCard::onAnGang(uint8_t nCard, uint8_t nGangGetCard) {
 		m_vTingCards.assign(vCards.begin(), vCards.end());
 	}
 	return flag;
+}
+
+bool FXMJPlayerCard::onAnGang(uint8_t nCard) {
+	auto eType = card_Type(nCard);
+	if (eType >= eCT_Max)
+	{
+		LOGFMTE("onAnGang parse card type error so do not have this card = %u", nCard);
+		return false;
+	}
+
+	auto& vCard = m_vCards[eType];
+	auto nEraseCnt = 4;
+	while (nEraseCnt-- > 0)
+	{
+		auto iter = std::find(vCard.begin(), vCard.end(), nCard);
+		vCard.erase(iter);
+	}
+
+	//addCardToVecAsc(m_vGanged, nCard);
+	VEC_INVOKE_ACT_INFO::value_type tAnGang;
+	tAnGang.nTargetCard = nCard;
+	tAnGang.nInvokerIdx = 0;
+	tAnGang.eAct = eMJAct_AnGang;
+	m_vMingCardInfo.push_back(tAnGang);
+	//debugCardInfo();
+
+	if (isTing()) {
+		VEC_CARD vCards;
+		tingCheck(vCards);
+		m_vTingCards.assign(vCards.begin(), vCards.end());
+	}
+	return true;
+}
+
+bool FXMJPlayerCard::onBuGang(uint8_t nCard) {
+	auto eType = card_Type(nCard);
+	if (eType >= eCT_Max)
+	{
+		LOGFMTE("onMingGang parse card type error so do not have this card = %u", nCard);
+		return false;
+	}
+
+	// remove hold card 
+	removeHoldCard(nCard);
+
+	// remove peng 
+	auto iterPeng = std::find_if(m_vMingCardInfo.begin(), m_vMingCardInfo.end(), [nCard](VEC_INVOKE_ACT_INFO::value_type& ref) { return ref.nTargetCard == nCard && ref.eAct == eMJAct_Peng; });
+	if (iterPeng == m_vMingCardInfo.end())
+	{
+		LOGFMTE("not peng , hao to bu gang ? %u ", nCard);
+		return false;
+	}
+	// sign Bu gang info 
+	iterPeng->eAct = eMJAct_BuGang;
+
+	//debugCardInfo();
+	return true;
 }
 
 bool FXMJPlayerCard::onCyclone(uint8_t nCard, uint8_t nGangGetCard) {
@@ -348,6 +439,21 @@ bool FXMJPlayerCard::canHuWitCard(uint8_t nCard) {
 	if (m_bCool) {
 		return false;
 	}
+	auto flag = std::find(m_vTingCards.begin(), m_vTingCards.end(), nCard) != m_vTingCards.end();
+	if (flag) {
+		if (m_nLouHuLevel) {
+			if (m_nLouHuLevel == 3 || getHuLevel(nCard) < 3) {
+				flag = false;
+			}
+		}
+	}
+	return flag;
+}
+
+bool FXMJPlayerCard::canRotDirectGang(uint8_t nCard) {
+	if (m_bCool) {
+		return false;
+	}
 	return std::find(m_vTingCards.begin(), m_vTingCards.end(), nCard) != m_vTingCards.end();
 }
 
@@ -383,7 +489,7 @@ bool FXMJPlayerCard::isTingPai() {
 	if (flag) {
 		VEC_CARD vTingCards;
 		for (uint8_t nType = eCT_None; nType < eCT_Max; nType++) {
-			if (nType < m_vCards->size()) {
+			if (nType < eCT_Max) {
 				auto vCard = m_vCards[nType];
 				if (vCard.empty()) {
 					continue;
@@ -414,10 +520,14 @@ bool FXMJPlayerCard::isTingPai() {
 	return flag;
 }
 
-bool FXMJPlayerCard::tingCheck() {
+bool FXMJPlayerCard::tingCheck(uint8_t nGangCard) {
 	//TODO...
 	if (m_vTingCards.empty()) {
 		return false;
+	}
+
+	if (nGangCard) {
+		addPreGang(nGangCard);
 	}
 
 	//VEC_CARD vCards;
@@ -426,6 +536,8 @@ bool FXMJPlayerCard::tingCheck() {
 			return true;
 		}
 	}
+
+	clearPreGang();
 	return false;
 }
 
@@ -508,6 +620,9 @@ bool FXMJPlayerCard::checkKezi() {
 	else if (getCycloneCard(vTemp)) {
 		return true;
 	}
+	else if (m_vPreGang.size()) {
+		return true;
+	}
 	else {
 		bool flag = false;
 		for (uint8_t nType = eCT_Wan; nType <= eCT_Jian; nType++) {
@@ -543,6 +658,7 @@ bool FXMJPlayerCard::check3Men() {
 	getAnGangedCard(vTemp);
 	getMingGangedCard(vTemp);
 	getCycloneCard(vTemp);
+	vTemp.insert(vTemp.end(), m_vPreGang.begin(), m_vPreGang.end());
 
 	uint8_t nTypeCnt = 0;
 
@@ -574,6 +690,7 @@ bool FXMJPlayerCard::check19() {
 	getAnGangedCard(vTemp);
 	getMingGangedCard(vTemp);
 	getCycloneCard(vTemp);
+	vTemp.insert(vTemp.end(), m_vPreGang.begin(), m_vPreGang.end());
 
 	if (std::find_if(vTemp.begin(), vTemp.end(), [](uint8_t &tCard) {
 		auto tType = card_Type(tCard);
@@ -628,13 +745,13 @@ bool FXMJPlayerCard::checkSB1() {
 }
 
 bool FXMJPlayerCard::canHuOnlyOneCard() {
-	if (m_bCheckedCanHuOnlyOne) {
+	/*if (m_bCheckedCanHuOnlyOne) {
 		return m_bCanHuOnlyOne;
-	}
+	}*/
 
 	if (getHoldCardCnt() < 3) {
-		m_bCanHuOnlyOne = true;
-		m_bCheckedCanHuOnlyOne = true;
+		/*m_bCanHuOnlyOne = true;
+		m_bCheckedCanHuOnlyOne = true;*/
 		return true;
 	}
 
@@ -644,7 +761,9 @@ bool FXMJPlayerCard::canHuOnlyOneCard() {
 		//m_bCanHuOnlyOne = false;
 		return false;
 	}
-	auto nJiang = m_nJIang;
+
+	return m_vTingCards.size() == 1;
+	/*auto nJiang = m_nJIang;
 	removeHoldCard(nHuCard);
 
 	bool bBreak = false;
@@ -690,7 +809,7 @@ bool FXMJPlayerCard::canHuOnlyOneCard() {
 	m_nJIang = nJiang;
 
 	m_bCheckedCanHuOnlyOne = true;
-	return m_bCanHuOnlyOne;
+	return m_bCanHuOnlyOne;*/
 }
 
 uint8_t FXMJPlayerCard::getHoldCardCnt() {
@@ -699,7 +818,38 @@ uint8_t FXMJPlayerCard::getHoldCardCnt() {
 	return vHoldCard.size();
 }
 
+uint8_t FXMJPlayerCard::getHoldCardCnt(uint8_t nCard) {
+	auto nType = card_Type(nCard);
+	if (nType > eCT_None && nType < eCT_Max) {
+		auto& vCard = m_vCards[nType];
+		return std::count_if(vCard.begin(), vCard.end(), [nCard](const uint8_t tCard) {
+			return tCard == nCard;
+		});
+	}
+	return 0;
+}
+
 void FXMJPlayerCard::clearTing() {
 	m_vTingCards.clear();
 	m_bCool = false;
+}
+
+uint8_t FXMJPlayerCard::getHuLevel(uint8_t nHuCard) {
+	uint8_t nHuLevel = 1;
+	addHoldCard(nHuCard);
+	FanxingDuiDuiHu fdd;
+	if (fdd.checkFanxing(this, nullptr, 0, nullptr)) {
+		nHuLevel = 2;
+		if (getHoldCardCnt(nHuCard) == 2) {
+			nHuLevel = 3;
+		}
+	}
+	removeHoldCard(nHuCard);
+	return nHuLevel;
+}
+
+void FXMJPlayerCard::onPlayerLouHu(uint8_t nCard) {
+	if (std::find(m_vTingCards.begin(), m_vTingCards.end(), nCard) != m_vTingCards.end()) {
+		m_nLouHuLevel = getHuLevel(nCard);
+	}
 }

@@ -129,6 +129,20 @@ void IMJRoom::onPlayerSetReady(uint8_t nIdx)
 	sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_READY);
 }
 
+void IMJRoom::autoDoPlayerSetReady() {
+	for (auto& ref : m_vPlayers) {
+		if (ref) {
+			if (ref->haveState(eRoomPeer_Ready) || ref->haveState(eRoomPeer_WaitNextGame) == false) {
+				continue;
+			}
+			ref->setState(eRoomPeer_Ready);
+			Json::Value jsMsg;
+			jsMsg["idx"] = ref->getIdx();
+			sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_READY);
+		}
+	}
+}
+
 void IMJRoom::onStartGame()
 {
 	GameRoom::onStartGame();
@@ -809,6 +823,7 @@ void IMJRoom::sendRoomInfo(uint32_t nSessionID)
 	// send hold card
 }
 
-
-
-
+void IMJRoom::packRoomInfo(Json::Value& jsRoomInfo) {
+	GameRoom::packRoomInfo(jsRoomInfo);
+	jsRoomInfo["leftCards"] = getPoker()->getLeftCardCount();
+}

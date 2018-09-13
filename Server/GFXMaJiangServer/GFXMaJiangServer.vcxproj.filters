@@ -75,6 +75,12 @@
     <ClInclude Include="src\FXMJFanxingMenQing.h">
       <Filter>src\FXMJ\Fanxing</Filter>
     </ClInclude>
+    <ClInclude Include="src\FXMJFanxingQingYiSe.h">
+      <Filter>src\FXMJ\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FXMJRoomStateWaitPlayerGangTing.h">
+      <Filter>src\FXMJ\state</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

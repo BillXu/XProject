@@ -90,6 +90,10 @@ public:
 
 	bool canGang();
 	void onPrePlayerGang();
+	bool needChu();
+
+	void doRandomChangeSeat();
+	bool doChangeSeat(uint16_t nIdx, uint16_t nWithIdx);
 protected:
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime);

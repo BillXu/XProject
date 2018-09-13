@@ -25,6 +25,8 @@ struct stPlayerDetailData
 struct stServerBaseData
 	:public stPlayerDetailData
 {
+	uint8_t nTakeCharityTimes;
+	uint32_t tLastTakeCardGiftTime;
 	std::vector<uint32_t> vJoinedClubIDs;
 	void reset()
 	{

@@ -103,6 +103,7 @@ public:
 	 }
 
 	uint16_t getIdx() { return m_nIdx; }
+	void setIdx(uint16_t nIdx) { m_nIdx = nIdx; }
 	bool isOnline() { return m_isOnline; }
 	virtual void setIsOnline(bool isOnline) { m_isOnline = isOnline; }
 	virtual bool recorderVisitor(std::shared_ptr<IPlayerRecorder> ptrPlayerReocrder)
