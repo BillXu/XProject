@@ -36,7 +36,7 @@ void IMJPlayer::onGameDidEnd()
 }
 
 void IMJPlayer::onGameEnd()
-{
+{ 
 	IGamePlayer::onGameEnd();
 	//setState(eRoomPeer_WaitNextGame);
 	//clearGangFlag();

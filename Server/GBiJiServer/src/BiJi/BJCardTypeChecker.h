@@ -19,6 +19,7 @@ public:
 	bool isThisCardType(std::vector<uint8_t>& vecCards, uint32_t& nWeight, eBJCardType& cardType)override
 	{
 		std::vector<uint8_t> vFaceValue;
+		auto nMaxType = BJ_PARSE_TYPE(vecCards.back());
 		for (auto& ref : vecCards)
 		{
 			if (BJ_PARSE_TYPE(ref) == ePoker_Joker) // pick out joker
@@ -28,6 +29,10 @@ public:
 
 			auto nV = BJ_PARSE_VALUE(ref);
 			vFaceValue.push_back((nV == 1 ? 14 : nV));
+			if ( 1 == nV )
+			{
+				nMaxType = BJ_PARSE_TYPE(ref);
+			}
 		}
 		std::sort(vFaceValue.begin(), vFaceValue.end());
 		if (vecCards.size() != 3)
@@ -38,7 +43,7 @@ public:
 		std::sort(vecCards.begin(), vecCards.end());
 		// make weight ;
 		cardType = CardType_None;
-		nWeight = (cardType << 16) | (vFaceValue[2] << 12) | (vFaceValue[1] << 8) | (vFaceValue[0] << 4) | (BJ_PARSE_TYPE(vecCards.back()));
+		nWeight = (cardType << 16) | (vFaceValue[2] << 12) | (vFaceValue[1] << 8) | (vFaceValue[0] << 4) | (nMaxType);
 		return true;
 	}
 };
