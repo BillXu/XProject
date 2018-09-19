@@ -112,6 +112,7 @@
     <ClCompile Include="src\MJPrivateRoom.cpp" />
     <ClCompile Include="src\MJRoomManager.cpp" />
     <ClCompile Include="src\MJServer.cpp" />
+    <ClCompile Include="src\MQMJFanxingHaiDiLaoYue.cpp" />
     <ClCompile Include="src\MQMJPoker.cpp" />
     <ClCompile Include="src\MQMJRoom.cpp" />
     <ClCompile Include="src\MQMJPlayer.cpp" />

@@ -61,6 +61,7 @@ public:
 	uint16_t getSeatCnt() override;
 
 	bool isRoomOver() override;
+	virtual void decreaseLeftRound();
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();

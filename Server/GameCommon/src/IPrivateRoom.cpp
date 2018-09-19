@@ -6,6 +6,7 @@
 #include "ISeverApp.h"
 #include "AsyncRequestQuene.h"
 #include <time.h>
+#include "IMJRoom.h"
 #define TIME_WAIT_REPLY_DISMISS 120
 #define TIME_AUTO_DISMISS (60*60*5)
 IPrivateRoom::~IPrivateRoom()
@@ -284,6 +285,15 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			m_pRoom->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
 			LOGFMTE("can not start game , player cnt is two few  session id %u", nSessionID);
 			return true;
+		}
+
+		if (dynamic_cast<IMJRoom*>(m_pRoom) != nullptr) {
+			if (getPlayerCnt() != getSeatCnt()) {
+				prealMsg["ret"] = 3;
+				m_pRoom->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+				LOGFMTE("can not start mj game , player cnt is two few  session id %u", nSessionID);
+				return true;
+			}
 		}
 
 		m_isOpen = true;
@@ -637,7 +647,8 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 {
 	// decrease round 
-	--m_nLeftRounds;
+	decreaseLeftRound();
+	//--m_nLeftRounds;
 	
 	// consume diamond 
 	if ( m_isOneRoundNormalEnd == false )
@@ -704,6 +715,10 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 
 bool IPrivateRoom::isRoomOver() {
 	return 0 == m_nLeftRounds || getCoreRoom()->isRoomOver();
+}
+
+void IPrivateRoom::decreaseLeftRound() {
+	--m_nLeftRounds;
 }
 
 uint32_t IPrivateRoom::getCurRoundIdx()

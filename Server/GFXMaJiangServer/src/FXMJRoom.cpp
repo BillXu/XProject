@@ -24,6 +24,7 @@ bool FXMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_bCheckFollow = false;
 	m_nFollowCard = 0;
 	m_nFollowCnt = 0;
+	clearOneCircleEnd();
 	//m_nGangCnt = 0;
 	//m_nDice = 0;
 	//m_nR7 = 0;
@@ -264,6 +265,9 @@ void FXMJRoom::setNextBankerIdx(uint8_t nHuIdx) {
 		}
 		else {
 			m_nNextBankerIdx = nHuIdx == getBankerIdx() ? nHuIdx : getNextActPlayerIdx(getBankerIdx());
+			if (m_nNextBankerIdx == 0 && getBankerIdx()) {
+				signOneCircleEnd();
+			}
 		}
 	}
 
@@ -1183,6 +1187,10 @@ bool FXMJRoom::isEnableCool() {
 
 bool FXMJRoom::isEnablePJH() {
 	return m_jsOpts["pjh"].asBool();
+}
+
+bool FXMJRoom::isCircle() {
+	return m_jsOpts["circle"].asBool();
 }
 
 void FXMJRoom::addSettle(stSettle& tSettle) {

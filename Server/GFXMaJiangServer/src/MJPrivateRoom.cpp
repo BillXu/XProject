@@ -12,7 +12,7 @@ uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
 	if (nLevel > 3) {
 		return 6;
 	}
-	uint8_t vRounds[4] = { 6, 12, 18, 24 };
+	uint8_t vRounds[8] = { 1, 2, 3, 4, 6, 12, 18, 24 };
 	return vRounds[nLevel];
 }
 
@@ -48,5 +48,24 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 }
 
 bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
-	return true;
+	return m_isOpen;
+}
+
+bool MJPrivateRoom::isCircle() {
+	auto pRoom = (FXMJRoom*)getCoreRoom();
+	return pRoom->isCircle();
+}
+
+void MJPrivateRoom::decreaseLeftRound() {
+	if (isCircle()) {
+		auto pRoom = (FXMJRoom*)getCoreRoom();
+		if (pRoom->isOneCircleEnd()) {
+			pRoom->clearOneCircleEnd();
+		}
+		else {
+			return;
+		}
+	}
+	
+	IPrivateRoom::decreaseLeftRound();
 }

@@ -601,6 +601,13 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			jsUserData["uid"] = retContent["uid"];
 			auto nDiamond = retContent["diamond"].asUInt();
 			auto nAlreadyRoomCnt = retContent["alreadyRoomCnt"].asUInt();
+			uint8_t nDaiKai = jsUserData["isDK"].isUInt() ? jsUserData["isDK"].asUInt() : 0;
+			if (nDaiKai) {
+				if (nAlreadyRoomCnt > 20) {
+					nRet = 7;
+					break;
+				}
+			}
 
 			auto nRoomType = jsUserData["gameType"].asUInt();
 			auto nLevel = jsUserData["level"].asUInt();
@@ -670,6 +677,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			jsInformCreatRoom["targetUID"] = nUserID;
 			jsInformCreatRoom["roomID"] = nRoomID;
 			jsInformCreatRoom["port"] = pAsync->getSvrApp()->getLocalSvrMsgPortType();
+			jsInformCreatRoom["isDK"] = nDaiKai;
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_CreatedRoom, jsInformCreatRoom );
 			 
 			// consume diamond 
@@ -690,6 +698,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 		Json::Value jsRet;
 		jsRet["ret"] = nRet;
 		jsRet["roomID"] = nRoomID;
+		jsRet["isDK"] = jsUserData["isDK"].isUInt() ? jsUserData["isDK"].asUInt() : 0;
 		sendMsg(jsRet, MSG_CREATE_ROOM, nSenderID, nSenderID, ID_MSG_PORT_CLIENT);
 		LOGFMTD("uid = %u create room ret = %u , room id = %u", nUserID,nRet,nRoomID );
 	},prealMsg,nUserID );

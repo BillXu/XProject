@@ -28,6 +28,7 @@ public:
 	void start();
 	bool isRunning();
 	void clearTime();
+	static long long int getMilionTime();
 protected:
 	void Update( float fTimeElaps );
 	uint32_t getTimerID();

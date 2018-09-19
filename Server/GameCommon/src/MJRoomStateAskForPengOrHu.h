@@ -229,7 +229,7 @@ public:
 				m_vEatWithInfo.clear();
 				m_vEatWithInfo.push_back(jsE[0u].asUInt());
 				m_vEatWithInfo.push_back(jsE[1u].asUInt());
-				if ( !pMJCard->canEatCard(m_nCard))
+				if ( !pMJCard->canEatCard(m_nCard, m_vEatWithInfo[0], m_vEatWithInfo[1]))
 				{
 					LOGFMTE("why you can not eat ? svr bug ");
 					nRet = 2;

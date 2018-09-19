@@ -1355,7 +1355,7 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 		uint8_t nRet = 0;
 		do
 		{
-			if (jsReqContent["detial"].isNull())
+			if (jsReqContent["detail"].isNull())
 			{
 				nRet = 5;
 				break;

@@ -28,7 +28,7 @@ public:
 	bool isHaveCard(uint8_t nCard) final;  // holdCard ;
 	bool canMingGangWithCard(uint8_t nCard) override;
 	bool canPengWithCard(uint8_t nCard) override;
-	bool canEatCard(uint8_t nCard) override;
+	bool canEatCard(uint8_t nCard, uint8_t nWith1 = 0, uint8_t nWith2 = 0) override;
 	bool canAnGangWithCard(uint8_t nCard)override;
 	bool canBuGangWithCard(uint8_t nCard)override;
 	void onVisitPlayerCardInfo(Json::Value& js, bool isSelf)override;

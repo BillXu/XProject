@@ -119,7 +119,7 @@ bool MJPlayerCard::canPengWithCard(uint8_t nCard)
 	return nCnt >= 2;
 }
 
-bool MJPlayerCard::canEatCard(uint8_t nCard )
+bool MJPlayerCard::canEatCard(uint8_t nCard, uint8_t nWith1, uint8_t nWith2)
 {
 	auto eType = card_Type(nCard);
 	if (eType >= eCT_Max)
@@ -131,6 +131,32 @@ bool MJPlayerCard::canEatCard(uint8_t nCard )
 	if (eType != eCT_Tiao && eCT_Tong != eType && eCT_Wan != eType)
 	{
 		LOGFMTD("only wan , tiao , tong can do eat act");
+		return false;
+	}
+
+	if (nWith1 && nWith2) {
+		auto tType = card_Type(nWith1);
+		if (tType != eType || isHaveCard(nWith1) == false) {
+			LOGFMTE("canEatCard parse card type error with card = %u", nWith1);
+			return false;
+		}
+
+		tType = card_Type(nWith2);
+		if (tType != eType || isHaveCard(nWith2) == false) {
+			LOGFMTE("canEatCard parse card type error with card = %u", nWith2);
+			return false;
+		}
+
+		std::vector<uint8_t> vt_Cards;
+		vt_Cards.push_back(nCard);
+		vt_Cards.push_back(nWith1);
+		vt_Cards.push_back(nWith2);
+
+		std::sort(vt_Cards.begin(), vt_Cards.end());
+		if (vt_Cards[0] + 1 == vt_Cards[1] && vt_Cards[1] + 1 == vt_Cards[2]) {
+			return true;
+		}
+		LOGFMTE("canEatCard error can not eat card = %u, with card = %u and card = %u", nCard, nWith1, nWith2);
 		return false;
 	}
 

@@ -9,7 +9,7 @@ void LuoMJPlayerCard::reset() {
 	m_bCheckedCanHuOnlyOne = false;
 }
 
-bool LuoMJPlayerCard::canEatCard(uint8_t nCard) {
+bool LuoMJPlayerCard::canEatCard(uint8_t nCard, uint8_t nWithA, uint8_t nWithB) {
 	if (isEnableSB1() == false) {
 		VEC_CARD vCards;
 		getHoldCard(vCards);
@@ -17,7 +17,7 @@ bool LuoMJPlayerCard::canEatCard(uint8_t nCard) {
 			return false;
 		}
 	}
-	return MJPlayerCard::canEatCard(nCard);
+	return MJPlayerCard::canEatCard(nCard, nWithA, nWithB);
 }
 
 bool LuoMJPlayerCard::canPengWithCard(uint8_t nCard) {

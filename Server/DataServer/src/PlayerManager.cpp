@@ -636,8 +636,10 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 				return pPlayer->onAsyncRequest(nRequestType, jsReqContent, jsResult);
 			}
 		}
+		else {
+			return false;
+		}
 	}
-
 	}
 	return true ;
 }

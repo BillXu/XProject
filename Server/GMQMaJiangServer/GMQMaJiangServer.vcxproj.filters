@@ -107,5 +107,8 @@
     <ClCompile Include="src\MQMJPoker.cpp">
       <Filter>src\MQMJ</Filter>
     </ClCompile>
+    <ClCompile Include="src\MQMJFanxingHaiDiLaoYue.cpp">
+      <Filter>src\MQMJ\Fanxing</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

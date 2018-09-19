@@ -9,13 +9,13 @@ void MQMJPlayerCard::reset() {
 	m_bCheckedCanHuOnlyOne = false;
 }
 
-bool MQMJPlayerCard::canEatCard(uint8_t nCard) {
+bool MQMJPlayerCard::canEatCard(uint8_t nCard, uint8_t nWithA, uint8_t nWithB) {
 	VEC_CARD vCards;
 	getHoldCard(vCards);
 	if (vCards.size() < 5) {
 		return false;
 	}
-	return MJPlayerCard::canEatCard(nCard);
+	return MJPlayerCard::canEatCard(nCard, nWithA, nWithB);
 }
 
 bool MQMJPlayerCard::canPengWithCard(uint8_t nCard) {
@@ -467,14 +467,14 @@ bool MQMJPlayerCard::isJiaHu() {
 	uint8_t nCntPre = std::count_if(vCards.begin(), vCards.end(), [nCardPre](uint8_t& tCard) {
 		return nCardPre == tCard;
 	});
-	if (nCntPre < nCnt) {
+	if (nCntPre < 1) {
 		return false;
 	}
 	auto nCardAfter = make_Card_Num(nType, nValue + 1);
 	uint8_t nCntAfter = std::count_if(vCards.begin(), vCards.end(), [nCardAfter](uint8_t& tCard) {
 		return nCardAfter == tCard;
 	});
-	if (nCntAfter < nCnt) {
+	if (nCntAfter < 1) {
 		return false;
 	}
 

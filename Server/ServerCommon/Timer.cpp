@@ -2,6 +2,7 @@
 #include "log4z.h"
 #include <time.h>
 #include <cassert>
+#include <chrono>
 // timer
 uint32_t CTimer::s_TimerCount = 0 ;
 CTimer::CTimer()
@@ -76,6 +77,13 @@ bool CTimer::isRunning()
 void CTimer::clearTime()
 {
 	m_fIntervalKeeper = 0;
+}
+
+long long int CTimer::getMilionTime()
+{
+	auto time_now = std::chrono::system_clock::now();
+	auto duration_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_now.time_since_epoch());
+	return duration_in_ms.count();
 }
 
 void CTimer::reset()

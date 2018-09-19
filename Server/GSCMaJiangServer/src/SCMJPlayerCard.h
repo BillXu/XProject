@@ -8,7 +8,7 @@ public:
 	void reset() override;
 	bool canPengWithCard(uint8_t nCard) override;
 	bool canMingGangWithCard(uint8_t nCard) override;
-	bool canEatCard(uint8_t nCard) override { return false; }
+	bool canEatCard(uint8_t nCard, uint8_t nWithA = 0, uint8_t nWithB = 0) override { return false; }
 	bool canAnGangWithCard(uint8_t nCard)override;
 	bool canBuGangWithCard(uint8_t nCard)override;
 	void onVisitPlayerCardInfo(Json::Value& js, bool isSelf)override;

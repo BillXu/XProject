@@ -37,50 +37,50 @@ void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 	return;
 
 	uint8_t tCard;
-	//1
-	tCard = makeCardNumber(eCT_Feng, 1);
-	vMakedCards.push_back(tCard);
+	////1
+	//tCard = makeCardNumber(eCT_Wan, 3);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 2);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Wan, 3);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 3);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tong, 5);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 4);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tong, 5);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Jian, 1);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 4);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Jian, 2);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 4);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Jian, 3);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 4);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 1);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 7);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 2);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 7);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 2);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 7);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 3);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 9);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 3);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 9);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 4);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 9);
+	//vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 4);
-	vMakedCards.push_back(tCard);
+	//tCard = makeCardNumber(eCT_Tiao, 4);
+	//vMakedCards.push_back(tCard);
 
-	//2
+	////2
 	tCard = makeCardNumber(eCT_Feng, 1);
 	vMakedCards.push_back(tCard);
 

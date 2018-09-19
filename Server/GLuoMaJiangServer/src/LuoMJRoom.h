@@ -51,7 +51,8 @@ public:
 	void onStartGame()override;
 	void onGameEnd()override;
 	IPoker* getPoker()override;
-	bool isHaveLouPeng()override { return true; }
+	bool isHaveLouPeng()override { return false; }
+	bool isHaveLouHu()override { return false; }
 	bool isGameOver()override;
 	bool isCanGoOnMoPai()override;
 	bool canStartGame() override;

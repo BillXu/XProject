@@ -20,7 +20,7 @@ public:
 	virtual bool canAnGangWithCard(uint8_t nCard) = 0;
 	virtual bool canBuGangWithCard(uint8_t nCard) = 0;
 	virtual bool canPengWithCard(uint8_t nCard) = 0;
-	virtual bool canEatCard(uint8_t nCard) = 0 ;
+	virtual bool canEatCard(uint8_t nCard, uint8_t nWith1 = 0, uint8_t nWith2 = 0) = 0 ;
 	virtual bool getHoldCardThatCanAnGang(VEC_CARD& vGangCards) = 0;
 	virtual bool getHoldCardThatCanBuGang(VEC_CARD& vGangCards) = 0;
 

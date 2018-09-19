@@ -13,7 +13,7 @@ void FXMJPlayerCard::reset() {
 	m_nLouHuLevel = 0;
 }
 
-bool FXMJPlayerCard::canEatCard(uint8_t nCard) {
+bool FXMJPlayerCard::canEatCard(uint8_t nCard, uint8_t nWithA, uint8_t nWithB) {
 	if (isTing()) {
 		return false;
 	}
@@ -22,7 +22,7 @@ bool FXMJPlayerCard::canEatCard(uint8_t nCard) {
 	if (vCards.size() < 5) {
 		return false;
 	}*/
-	return MJPlayerCard::canEatCard(nCard);
+	return MJPlayerCard::canEatCard(nCard, nWithA, nWithB);
 }
 
 bool FXMJPlayerCard::canPengWithCard(uint8_t nCard) {

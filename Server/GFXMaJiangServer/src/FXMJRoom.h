@@ -94,6 +94,7 @@ public:
 	bool isEnableZha5();
 	bool isEnableCool();
 	bool isEnablePJH();
+	bool isCircle();
 
 	void addGain(uint8_t nIdx, stSettleGain stGain);
 	void clearGain();
@@ -103,6 +104,9 @@ public:
 	void onPrePlayerGang();
 
 	bool isHaveCyclone() { return false; }
+	bool isOneCircleEnd() { return m_bOneCircleEnd; }
+	void signOneCircleEnd() { m_bOneCircleEnd = true; }
+	void clearOneCircleEnd() { m_bOneCircleEnd = false; }
 protected:
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime);
@@ -115,6 +119,7 @@ protected:
 	FXMJFanxingChecker m_cFanxingChecker;
 
 	uint8_t m_nNextBankerIdx;
+	bool m_bOneCircleEnd;
 	std::vector<std::vector<stSettleGain>> m_vGainChip;
 	/*uint8_t m_nGangCnt;
 	uint8_t m_nDice;

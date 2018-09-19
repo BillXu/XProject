@@ -838,6 +838,7 @@ void MQMJRoom::onAskForPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, std::
 			{
 				isNeedWaitEat = true;
 				jsActs[jsActs.size()] = eMJAct_Chi;
+				LOGFMTE("room = %u send player = %u can eat card = %u", getRoomID(), ref->getUserUID(), nCard);
 			}
 		}
 
