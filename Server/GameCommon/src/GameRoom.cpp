@@ -447,7 +447,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 				break;
 			}
 
-			if ( nIdx > getSeatCnt() ) // find empty pos
+			if ( nIdx >= getSeatCnt() ) // find empty pos
 			{
 				auto nCheckIdx = rand() % getSeatCnt();
 				for ( ; nCheckIdx < getSeatCnt() * 2; ++nCheckIdx)
@@ -462,7 +462,7 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 			}
 
 			pPlayer = getPlayerByIdx(nIdx);
-			if (pPlayer)
+			if (pPlayer || nIdx >= getSeatCnt())
 			{
 				nRet = 1;
 				break;

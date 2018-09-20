@@ -1217,58 +1217,58 @@ bool MQMJRoom::canStartGame() {
 
 bool MQMJRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-	GameRoom::onPlayerEnter(pEnterRoomPlayer);
+	//GameRoom::onPlayerEnter(pEnterRoomPlayer);
 	// check if already in room ;
-	uint8_t nEmptyIdx = rand() % getSeatCnt();
-	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
-	{
-		nEmptyIdx = (nEmptyIdx + nIdx) % getSeatCnt();
-		if (getPlayerByIdx(nEmptyIdx) == nullptr)
-		{
-			//nEmptyIdx = nIdx;
-			break;
-		}
-	}
-
-	if (nEmptyIdx == (uint8_t)-1)
-	{
-		//LOGFMTE("why player enter , but do not have empty seat");
-		return true;
-	}
-
-	doPlayerSitDown(pEnterRoomPlayer, nEmptyIdx);
-	return true;
-
-	// check is already sit down ?
-	//auto psitDown = getPlayerByUID(pEnterRoomPlayer->nUserUID);
-	//if (psitDown)
+	//uint8_t nEmptyIdx = rand() % getSeatCnt();
+	//for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
 	//{
-	//	LOGFMTE("this player is already sitdown uid = %u , room id = %u , why enter room again ?", psitDown->getUserUID(), getRoomID());
-	//	//sendRoomInfo(pEnterRoomPlayer->nSessionID);
+	//	nEmptyIdx = (nEmptyIdx + nIdx) % getSeatCnt();
+	//	if (getPlayerByIdx(nEmptyIdx) == nullptr)
+	//	{
+	//		//nEmptyIdx = nIdx;
+	//		break;
+	//	}
+	//}
+
+	//if (nEmptyIdx == (uint8_t)-1)
+	//{
+	//	//LOGFMTE("why player enter , but do not have empty seat");
 	//	return true;
 	//}
 
-	//auto iterStand = m_vStandPlayers.find(pEnterRoomPlayer->nUserUID);
-	//if (iterStand == m_vStandPlayers.end())
-	//{
-	//	if (m_vStandPlayers.size() > 50) {
-	//		LOGFMTD("room id = %u , player uid = %u enter room error, room is full!", getRoomID(), pEnterRoomPlayer->nUserUID);
-	//		return true;
-	//	}
-
-	//	auto p = new stStandPlayer();
-	//	p->nSessionID = pEnterRoomPlayer->nSessionID;
-	//	p->nUserUID = pEnterRoomPlayer->nUserUID;
-	//	m_vStandPlayers[p->nUserUID] = p;
-	//	LOGFMTD("room id = %u , player uid = %u enter room chip = %u", getRoomID(), p->nUserUID, pEnterRoomPlayer->nChip);
-	//}
-	//else
-	//{
-	//	LOGFMTE("room id = %u uid = %u already in this room why enter again ?", getRoomID(), pEnterRoomPlayer->nUserUID);
-	//	iterStand->second->nSessionID = pEnterRoomPlayer->nSessionID;
-	//}
-	////sendRoomInfo(pEnterRoomPlayer->nSessionID);
+	//doPlayerSitDown(pEnterRoomPlayer, nEmptyIdx);
 	//return true;
+
+	// check is already sit down ?
+	auto psitDown = getPlayerByUID(pEnterRoomPlayer->nUserUID);
+	if (psitDown)
+	{
+		LOGFMTE("this player is already sitdown uid = %u , room id = %u , why enter room again ?", psitDown->getUserUID(), getRoomID());
+		//sendRoomInfo(pEnterRoomPlayer->nSessionID);
+		return true;
+	}
+
+	auto iterStand = m_vStandPlayers.find(pEnterRoomPlayer->nUserUID);
+	if (iterStand == m_vStandPlayers.end())
+	{
+		if (m_vStandPlayers.size() > 50) {
+			LOGFMTD("room id = %u , player uid = %u enter room error, room is full!", getRoomID(), pEnterRoomPlayer->nUserUID);
+			return true;
+		}
+
+		auto p = new stStandPlayer();
+		p->nSessionID = pEnterRoomPlayer->nSessionID;
+		p->nUserUID = pEnterRoomPlayer->nUserUID;
+		m_vStandPlayers[p->nUserUID] = p;
+		LOGFMTD("room id = %u , player uid = %u enter room chip = %u", getRoomID(), p->nUserUID, pEnterRoomPlayer->nChip);
+	}
+	else
+	{
+		LOGFMTE("room id = %u uid = %u already in this room why enter again ?", getRoomID(), pEnterRoomPlayer->nUserUID);
+		iterStand->second->nSessionID = pEnterRoomPlayer->nSessionID;
+	}
+	//sendRoomInfo(pEnterRoomPlayer->nSessionID);
+	return true;
 }
 
 void MQMJRoom::doRandomChangeSeat() {

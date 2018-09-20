@@ -62,7 +62,7 @@ bool CCenterServerApp:: Init()
 
 	for ( uint16_t ndx = ID_MSG_PORT_NONE ; ndx < ID_MSG_PORT_MAX ; ++ndx )
 	{
-		auto nSvrCnt = ( ndx == ID_MSG_PORT_GATE ? 5 : 1 );
+		auto nSvrCnt = ( ndx == ID_MSG_PORT_GATE ? 10 : 1 );
 		m_vTargetServers[ndx].init((eMsgPort)ndx, nSvrCnt) ;
 		LOGFMTE("temp set max svr cnt = %u",nSvrCnt );
 	}

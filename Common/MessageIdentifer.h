@@ -676,6 +676,8 @@ enum eMsgType
 	MSG_GET_SHARE_PRIZE, //·ÖÏíËÍ×ê
 	// sur : {diamond : 0, sharetimes : 0}
 
+	MSG_PLAYER_REFRESH_GATE_IP, //Ë¢ÐÂgateIP
+
 
 
 

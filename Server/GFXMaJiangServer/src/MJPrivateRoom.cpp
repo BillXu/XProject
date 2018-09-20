@@ -48,6 +48,11 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 }
 
 bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
+	if (isClubRoom() && m_isOpen == false) {
+		if (getPlayerCnt() == getSeatCnt()) {
+			m_isOpen = true;
+		}
+	}
 	return m_isOpen;
 }
 
@@ -68,4 +73,8 @@ void MJPrivateRoom::decreaseLeftRound() {
 	}
 	
 	IPrivateRoom::decreaseLeftRound();
+}
+
+bool MJPrivateRoom::applyDoDismissCheck() {
+	return m_vPlayerAgreeDismissRoom.size() + 1 >= getPlayerCnt();
 }

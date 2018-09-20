@@ -52,6 +52,7 @@ class CPlayerManager
 public:
 	typedef std::map<uint32_t, CPlayer*> MAP_UID_PLAYERS ;
 	typedef std::list<CPlayer*> LIST_PLAYERS ;
+	typedef std::map<uint32_t, std::vector<std::string>> MAP_ID_GATE_IP;
 public:
 	CPlayerManager();
 	~CPlayerManager();
@@ -66,6 +67,8 @@ public:
 	void doRemovePlayer(CPlayer* pOfflinePlayer);
 	bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)override;
 	void doPlayerLogin(uint32_t nUID, uint32_t nSessionID = 0, std::string pIP = "0");
+	bool initGateIP();
+	std::string getGateIP(uint8_t nGateLevel, uint32_t nUserID);
 protected:
 	bool onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
 	void addActivePlayer( CPlayer* pNewPlayer );
@@ -79,4 +82,5 @@ protected:
 	LIST_PLAYERS m_vWillDeletePlayers;
 
 	CPlayerBrifDataCacher m_tPlayerDataCaher ;
+	MAP_ID_GATE_IP m_mGateIP;
 };

@@ -107,6 +107,8 @@ enum eAsyncReq
 	eAsync_HttpCmd_ClubKickPlayer, // { clubID : 123, uid = 123, kickUID : 123 } // { ret : 0 }
 	eAsync_HttpCmd_CloseClub, // { clubID : 123, uid = 123, isPause = 1/0 } // { ret : 0 }
 	eAsync_HttpCmd_UpdateClubCPRState, // { clubID : 123, uid = 123, state = 1/0 } // { ret : 0 }
+	eAsync_GameOver, // one game end { playerUID = 123 }
+	eAsync_HttpCmd_UpdateGateLevel, // { targetUID : 123, gateLevel : 1 } // { ret : 0 }
 
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;

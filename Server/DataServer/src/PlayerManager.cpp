@@ -217,6 +217,8 @@ void CPlayerBrifDataCacher::checkState()
 CPlayerManager::CPlayerManager()
 {
 	m_vAllActivePlayers.clear();
+
+	initGateIP();
 }
 
 CPlayerManager::~CPlayerManager()
@@ -407,6 +409,43 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_HttpCmd_UpdateGateLevel:
+	{
+		if (jsReqContent["gateLevel"].isUInt() == false) {
+			jsResult["ret"] = 2;
+			break;
+		}
+		uint8_t nGateLevel = jsReqContent["gateLevel"].asUInt();
+		if (nGateLevel == 0 || nGateLevel > 3) {
+			jsResult["ret"] = 2;
+			break;
+		}
+		uint32_t nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (pPlayer) {
+			if (pPlayer->getBaseData()->getGateLevel() >= nGateLevel) {
+				jsResult["ret"] = 2;
+				break;
+			}
+			jsResult["ret"] = 0;
+			jsResult["gateLevel"] = nGateLevel;
+			pPlayer->getBaseData()->setGateLevel(nGateLevel);
+		}
+		else {
+			jsResult["ret"] = 1;
+		}
+	}
+	break;
+	case eAsync_GameOver:
+	{
+		uint32_t nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (pPlayer)
+		{
+			pPlayer->getBaseData()->addGameCnt();
+		}
+	}
+	break;
 	case eAsync_Player_Logined:
 	{
 		auto nUID = jsReqContent["uid"].asUInt();
@@ -892,4 +931,62 @@ bool CPlayerManager::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uin
 		}
 	}
 	return false;
+}
+
+bool CPlayerManager::initGateIP() {
+	m_mGateIP.clear();
+	//TODO...
+	for (uint8_t i = 1; i < 4; i++) {
+		std::vector<std::string> vIPs;
+		switch (i) {
+		case 1:
+		{
+			vIPs.push_back("101.132.254.38");
+
+			//vIPs.push_back("101.132.254.32");
+			//vIPs.push_back("101.132.248.195");
+		}
+		break;
+		case 2:
+		{
+			//vIPs.push_back("101.132.252.171");
+			vIPs.push_back("101.132.254.38");
+
+			//vIPs.push_back("101.132.254.32");
+			//vIPs.push_back("101.132.248.195");
+
+			//´ý¹Ø±Õ
+			/*vIPs.push_back("139.196.160.221");
+			vIPs.push_back("139.196.161.74");
+			vIPs.push_back("106.15.104.121");*/
+		}
+		break;
+		case 3:
+		{
+			vIPs.push_back("101.132.254.32");
+			vIPs.push_back("101.132.248.195");
+			vIPs.push_back("106.15.137.9");
+			//vIPs.push_back("101.132.252.171");
+		}
+		break;
+		}
+		m_mGateIP[i] = vIPs;
+	}
+
+	return true;
+}
+
+std::string CPlayerManager::getGateIP(uint8_t nGateLevel, uint32_t nUserID) {
+	std::string sGateIP;
+	if (nGateLevel && m_mGateIP.find(nGateLevel) != m_mGateIP.end()) {
+		auto& gateIPs = m_mGateIP[nGateLevel];
+		uint32_t nGateCnt = gateIPs.size();
+		if (nGateCnt) {
+			uint32_t nGateIdx = nUserID % nGateCnt;
+			if (nGateIdx < nGateCnt) {
+				sGateIP = gateIPs[nGateIdx];
+			}
+		}
+	}
+	return sGateIP;
 }

@@ -173,6 +173,7 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 		{
 			auto nDiamondCnt = pMail->jsDetail["diamondCnt"].asUInt();
 			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt, true );
+			getPlayer()->getBaseData()->addTotalDiamond((int32_t)nDiamondCnt);
 		}
 		else
 		{
@@ -186,6 +187,7 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 		{
 			auto nDiamondCnt = pMail->jsDetail["cardOffset"].asInt();
 			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt, true);
+			getPlayer()->getBaseData()->addTotalDiamond((int32_t)nDiamondCnt);
 		}
 		else
 		{

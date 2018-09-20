@@ -63,7 +63,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_stBaseData.nUserUID = getPlayer()->getUserUID();
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,clubs,takeCharityTimes,lastTakeCardGiftTime FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,clubs,takeCharityTimes,lastTakeCardGiftTime,totalDiamond,totalGame,gateLevel FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -90,6 +90,9 @@ void CPlayerBaseData::onPlayerLogined()
 		m_stBaseData.nSex = jsRow["sex"].asUInt();
 		m_stBaseData.nTakeCharityTimes = jsRow["takeCharityTimes"].asUInt();
 		m_stBaseData.tLastTakeCardGiftTime = jsRow["lastTakeCardGiftTime"].asUInt();
+		m_stBaseData.nTotalDiamond = jsRow["totalDiamond"].asUInt();
+		m_stBaseData.nTotalGame = jsRow["totalGame"].asUInt();
+		m_stBaseData.nGateLevel = jsRow["gateLevel"].asUInt();
 
 		Json::Value jsClubs;
 		Json::Reader jsR;
@@ -267,7 +270,7 @@ void CPlayerBaseData::timerSave()
 
 		Json::Value jssql;
 		char pBuffer[1024] = { 0 };
-		sprintf_s(pBuffer, "update playerbasedata set nickName = '%s' ,sex = %u , headIcon = '%s',clubs = '%s',takeCharityTimes = %u,lastTakeCardGiftTime = %u where userUID = %u ;", getPlayerName(),getSex(),getHeadIcon(), strClubs.c_str(), m_stBaseData.nTakeCharityTimes, m_stBaseData.tLastTakeCardGiftTime, getPlayer()->getUserUID());
+		sprintf_s(pBuffer, "update playerbasedata set nickName = '%s' ,sex = %u , headIcon = '%s',clubs = '%s',takeCharityTimes = %u,lastTakeCardGiftTime = %u,totalDiamond = %u,totalGame = %u,gateLevel = %u where userUID = %u ;", getPlayerName(),getSex(),getHeadIcon(), strClubs.c_str(), m_stBaseData.nTakeCharityTimes, m_stBaseData.tLastTakeCardGiftTime, m_stBaseData.nTotalDiamond, m_stBaseData.nTotalGame, m_stBaseData.nGateLevel, getPlayer()->getUserUID());
 		std::string str = pBuffer;
 		jssql["sql"] = pBuffer;
 		auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -387,4 +390,85 @@ bool CPlayerBaseData::canRemovePlayer() {
 		return false;
 	}
 	return true;
+}
+
+void CPlayerBaseData::SendGateIP() {
+	if (getGateLevel()) {
+		auto sGateIP = getPlayer()->getPlayerMgr()->getGateIP(getGateLevel(), getPlayer()->getUserUID());
+		if (sGateIP.empty() == false) {
+			Json::Value jsMsg;
+			jsMsg["IP"] = sGateIP.c_str();
+			getPlayer()->sendMsgToClient(jsMsg, MSG_PLAYER_REFRESH_GATE_IP);
+		}
+	}
+}
+
+uint8_t CPlayerBaseData::getGateLevel() {
+	return m_stBaseData.nGateLevel;
+}
+
+void CPlayerBaseData::setGateLevel(uint8_t nGateLevel) {
+	m_stBaseData.nGateLevel = nGateLevel;
+	SendGateIP();
+	m_bPlayerInfoDirty = true;
+}
+
+void CPlayerBaseData::addGameCnt() {
+	m_stBaseData.nTotalGame++;
+
+	if (m_stBaseData.nTotalGame == 8) {
+		//m_stBaseData.nGateLevel = 1;
+		if (getGateLevel() < 1) {
+			setGateLevel(1);
+		}
+	}
+	else if (m_stBaseData.nTotalGame == 40) {
+		//m_stBaseData.nGateLevel = 2;
+		if (getGateLevel() < 2) {
+			setGateLevel(2);
+		}
+	}
+	else if (m_stBaseData.nTotalGame == 80) {
+		//m_stBaseData.nGateLevel = 3;
+		if (getGateLevel() < 3) {
+			setGateLevel(3);
+		}
+	}
+
+	m_bPlayerInfoDirty = true;
+}
+
+void CPlayerBaseData::addTotalDiamond(int32_t nDiamond) {
+	if (nDiamond < 0) {
+		if (-1 * nDiamond > m_stBaseData.nTotalDiamond) {
+			m_stBaseData.nTotalDiamond = 0;
+		}
+		else {
+			m_stBaseData.nTotalDiamond += nDiamond;
+		}
+	}
+	else {
+		m_stBaseData.nTotalDiamond += nDiamond;
+	}
+
+	if (m_stBaseData.nTotalDiamond > 999) {
+		//m_stBaseData.nGateLevel = 3;
+		if (getGateLevel() < 3) {
+			setGateLevel(3);
+		}
+	}
+	else if (m_stBaseData.nTotalDiamond > 99) {
+		//m_stBaseData.nGateLevel = 2;
+		if (getGateLevel() < 2) {
+			setGateLevel(2);
+		}
+	}
+	else if (m_stBaseData.nTotalDiamond > 9) {
+		//m_stBaseData.nGateLevel = 1;
+		if (getGateLevel() < 1) {
+			setGateLevel(1);
+		}
+	}
+
+	m_bPlayerInfoDirty = true;
 }

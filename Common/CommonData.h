@@ -27,6 +27,9 @@ struct stServerBaseData
 {
 	uint8_t nTakeCharityTimes;
 	uint32_t tLastTakeCardGiftTime;
+	uint32_t nTotalDiamond;
+	uint32_t nTotalGame;
+	uint8_t nGateLevel;
 	std::vector<uint32_t> vJoinedClubIDs;
 	void reset()
 	{

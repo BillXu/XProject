@@ -35,6 +35,11 @@ public:
 	void onJoinClub( uint32_t nClubID );
 	void onCreatedClub(uint32_t nClubID);
 	bool canRemovePlayer()override;
+	void SendGateIP();
+	uint8_t getGateLevel();
+	void setGateLevel(uint8_t nGateLevel);
+	void addGameCnt();
+	void addTotalDiamond(int32_t nDiamond);
 private:
 	stServerBaseData m_stBaseData ;
 	std::vector<uint32_t> m_vCreatedClubIDs;

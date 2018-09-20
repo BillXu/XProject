@@ -53,6 +53,7 @@ public:
 	uint16_t getPlayerCnt()override;
 	bool isClubRoom() { return m_nClubID > 0; }
 	uint32_t getClubID() { return m_nClubID; }
+	bool isDKRoom() { return m_bDaiKai; }
 
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)override;
@@ -62,6 +63,7 @@ public:
 
 	bool isRoomOver() override;
 	virtual void decreaseLeftRound();
+	virtual bool applyDoDismissCheck();
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();
@@ -78,6 +80,7 @@ protected:
 	uint32_t m_nTempOwnerUID;
 	uint32_t m_nAutoStartCnt;
 	uint32_t m_nClubID;
+	bool m_bDaiKai;
 	ePayRoomCardType m_nPayType;
 	bool m_isEnableWhiteList;
 

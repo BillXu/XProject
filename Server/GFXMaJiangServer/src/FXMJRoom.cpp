@@ -748,8 +748,10 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 
 			std::vector<eFanxingType> vType;
 			uint16_t nFanCnt = 2;//dianpaofan
+			bool isTingPao = false;
 			if (((FXMJPlayerCard*)pLosePlayer->getPlayerCard())->isTing()) {
 				nFanCnt = 0;
+				isTingPao = true;
 			}
 			pHuPlayerCard->onDoHu(nInvokeIdx, nCard, pLosePlayer->haveGangFlag());
 			m_cFanxingChecker.checkFanxing(vType, pHuPlayer, nInvokeIdx, this);
@@ -777,34 +779,71 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 				}
 			}
 
-			if (nHuIdx == getBankerIdx() || nInvokeIdx == getBankerIdx()) {
-				nFanCnt++;
-			}
+			uint32_t nWinCoin = 0;
+			if (isTingPao) {
+				for (auto& ref : m_vPlayers) {
+					if (ref->getIdx() == pHuPlayer->getIdx()) {
+						continue;
+					}
+					auto tFanCnt = nFanCnt;
+					uint32_t tWinCoin = 1;
+					if (nHuIdx == getBankerIdx() || ref->getIdx() == getBankerIdx()) {
+						tFanCnt++;
+					}
 
-			if (m_cFanxingChecker.checkFanxing(eFanxing_MengQing, pLosePlayer, nInvokeIdx, this)) {
-				nFanCnt++;
-			}
+					if (m_cFanxingChecker.checkFanxing(eFanxing_MengQing, (IMJPlayer*)ref, nInvokeIdx, this)) {
+						tFanCnt++;
+					}
 
-			if (getFanLimit() && nFanCnt > getFanLimit()) {
-				nFanCnt = getFanLimit();
-			}
-			uint32_t nWinCoin = 1;
-			for (int32_t i = 0; i < nFanCnt; ++i) {
-				nWinCoin *= 2;//paixing fan
-				if (nWinCoin == 4) {
-					nWinCoin = 5;
+					if (getFanLimit() && tFanCnt > getFanLimit()) {
+						tFanCnt = getFanLimit();
+					}
+
+					for (int32_t i = 0; i < tFanCnt; ++i) {
+						tWinCoin *= 2;//paixing fan
+						if (tWinCoin == 4) {
+							tWinCoin = 5;
+						}
+					}
+
+					if (isEnableZha5()) {
+						tWinCoin += 10;
+					}
+
+					nWinCoin += tWinCoin;
+					st.addLose(ref->getIdx(), tWinCoin);
 				}
+				st.addWin(nHuIdx, nWinCoin);
 			}
+			else {
+				if (nHuIdx == getBankerIdx() || nInvokeIdx == getBankerIdx()) {
+					nFanCnt++;
+				}
 
-			if (isEnableZha5()) {
-				nWinCoin += 10 + 5 * (getSeatCnt() - 2);
+				if (m_cFanxingChecker.checkFanxing(eFanxing_MengQing, pLosePlayer, nInvokeIdx, this)) {
+					nFanCnt++;
+				}
+
+				if (getFanLimit() && nFanCnt > getFanLimit()) {
+					nFanCnt = getFanLimit();
+				}
+				nWinCoin = 1;
+				for (int32_t i = 0; i < nFanCnt; ++i) {
+					nWinCoin *= 2;//paixing fan
+					if (nWinCoin == 4) {
+						nWinCoin = 5;
+					}
+				}
+
+				if (isEnableZha5()) {
+					nWinCoin += 10 + 5 * (getSeatCnt() - 2);
+				}
+
+				st.addWin(nHuIdx, nWinCoin);
+				st.addLose(nInvokeIdx, nWinCoin);
 			}
-
-			st.addWin(nHuIdx, nWinCoin);
-			st.addLose(nInvokeIdx, nWinCoin);
 
 			jsHuPlayers[jsHuPlayers.size()] = jsHuPlayer;
-
 			LOGFMTD("room id = %u player = %u hu", getRoomID(), nHuIdx);
 		}
 
