@@ -35,7 +35,7 @@ public:
 	virtual bool onLogicMsg( Json::Value& recvValue , uint16_t nmsgType, eMsgPort eSenderPort , uint32_t nSenderID, uint32_t nTargetID );
 	void responeAsyncRequest( uint8_t nTargetPort, uint32_t nReqSerialID, uint32_t nTargetID, Json::Value& jsResult, uint32_t nSenderID = 0  );
 	virtual bool onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult );
-	virtual bool onAsyncRequestDelayResp( uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort , uint32_t nSenderID , uint16_t nTargetID );
+	virtual bool onAsyncRequestDelayResp( uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort , uint32_t nSenderID , uint32_t nTargetID );
 	virtual void update(float fDeta );
 	virtual uint16_t getLocalSvrMsgPortType() = 0 ; // et : ID_MSG_PORT_DATA , ID_MSG_PORT_TAXAS
 	virtual uint16_t getTargetSvrPortType();

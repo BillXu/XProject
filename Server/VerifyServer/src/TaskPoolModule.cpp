@@ -46,7 +46,7 @@ bool CTaskPoolModule::onAsyncRequest(uint16_t nRequestType , const Json::Value& 
 	return true ;
 }
 
-bool CTaskPoolModule::onAsyncRequestDelayResp( uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID )
+bool CTaskPoolModule::onAsyncRequestDelayResp( uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID )
 {
 	if (eAsync_Make_Order == nRequestType)
 	{
