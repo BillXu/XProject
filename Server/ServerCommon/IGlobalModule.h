@@ -23,7 +23,7 @@ public:
 	virtual bool onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID ){ return false ;}
 	virtual bool onMsg(Json::Value& prealMsg ,uint16_t nMsgType, eMsgPort eSenderPort , uint32_t nSenderID , uint32_t nTargetID ){ return false ;}
 	virtual bool onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult ){ return false ;};
-	virtual bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID) { return false; }
+	virtual bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID) { return false; }
 	virtual void update(float fDeta )
 	{
 		m_fTicket -= fDeta ;
