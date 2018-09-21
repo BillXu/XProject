@@ -10,7 +10,7 @@ public:
 	void update(float fdeta)override;
 	void onExit()override;
 	DBRWModule* getDBModule() { return &m_tDBRW; }
-	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)override;
+	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID )override;
 protected:
 	DBRWModule m_tDBRW;
 };

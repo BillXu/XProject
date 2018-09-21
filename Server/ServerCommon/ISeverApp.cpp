@@ -460,7 +460,7 @@ bool IServerApp::onAsyncRequest(uint16_t nRequestType , const Json::Value& jsReq
 	return false ;
 }
 
-bool IServerApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)
+bool IServerApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID)
 {
 	for (auto pp : m_vAllModule)
 	{
