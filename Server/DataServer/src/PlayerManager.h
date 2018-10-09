@@ -63,12 +63,13 @@ public:
 	void update(float fDeta )override ;
 	void onExit()override ;
 	bool onAsyncRequest( uint16_t nRequestType , const Json::Value& jsReqContent, Json::Value& jsResult )override ;
-	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)override;
+	bool onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID)override;
 	void doRemovePlayer(CPlayer* pOfflinePlayer);
 	bool onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uint16_t nSvrMaxCnt)override;
 	void doPlayerLogin(uint32_t nUID, uint32_t nSessionID = 0, std::string pIP = "0");
 	bool initGateIP();
 	std::string getGateIP(uint8_t nGateLevel, uint32_t nUserID);
+	std::string getSpecialGateIP(uint32_t nUserID);
 protected:
 	bool onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
 	void addActivePlayer( CPlayer* pNewPlayer );

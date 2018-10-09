@@ -32,13 +32,24 @@ public:
 	}
 
 	void checkFanxing(std::vector<eFanxingType>& vFanxing, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom)override {
+		bool isDDH = false;
 		for (auto& ref : m_vFanxing)
 		{
-			if (ref.first == eFanxing_JiaHu && std::find(vFanxing.begin(), vFanxing.end(), eFanxing_BianHu) != vFanxing.end()) {
+			if (ref.first == eFanxing_JiaHu) {
+				if (std::find(vFanxing.begin(), vFanxing.end(), eFanxing_QiDui) != vFanxing.end()) {
+					continue;
+				}
+
+				if (((FXMJFanxingJiaHu*)(ref.second))->checkJiaHu(pPlayer->getPlayerCard(), pPlayer, nInvokerIdx, pmjRoom, isDDH)) {
+					vFanxing.push_back((eFanxingType)ref.first);
+				}
 				continue;
 			}
 			if (ref.second->checkFanxing(pPlayer->getPlayerCard(), pPlayer, nInvokerIdx, pmjRoom))
 			{
+				if (ref.first == eFanxing_DuiDuiHu) {
+					isDDH = true;
+				}
 				vFanxing.push_back((eFanxingType)ref.first);
 			}
 		}

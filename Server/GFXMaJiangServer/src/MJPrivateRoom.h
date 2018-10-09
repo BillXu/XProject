@@ -12,4 +12,5 @@ public:
 	bool isCircle();
 	void decreaseLeftRound()override;
 	bool applyDoDismissCheck()override;
+	void packCreateUIDInfo(Json::Value& jsRoomInfo)override {}
 };

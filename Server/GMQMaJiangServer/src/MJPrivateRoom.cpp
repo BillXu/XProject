@@ -9,6 +9,10 @@ GameRoom* MJPrivateRoom::doCreatRealRoom()
 
 uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
 {
+#ifdef _DEBUG
+	return 2;
+#endif // _DEBUG
+
 	if (nLevel > 1) {
 		return 1;
 	}

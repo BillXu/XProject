@@ -46,6 +46,7 @@ public:
 	virtual bool isHaveLouPeng() { return false; }
 	void sendRoomInfo(uint32_t nSessionID)override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
+	virtual bool canGang();
 protected:
 	uint8_t m_nBankerIdx;
 	FanxingChecker* m_pFanxingChecker;

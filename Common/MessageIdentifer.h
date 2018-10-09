@@ -192,6 +192,9 @@ enum eMsgType
 	MSG_ROOM_TEMP_OWNER_UPDATED,
 	// svr : { uid : 23 }
 
+	MSG_ROOM_KICK_PLAYER,
+	// svr : { uid : 23 , targetUID : 123 }
+
 	MSG_PLAYER_SET_READY = 600,   	// player do ready
 	// client : { dstRoomID : 2345 } ;
 	// svr : { ret : 1 , curState : 23 } // 1 you are not in room , 2 you are not state waitNextGame, tell curState ;
@@ -432,6 +435,10 @@ enum eMsgType
 	// svr : { ret : 0 ,clubID : 23 , uid : 23 }
 	// ret : 0 success , 1 privilige is invalid , 2 player is not in club ;
 
+	MSG_CLUB_CREATE_PRIVATE_ROOM, //阜新麻将俱乐部玩家自建房间
+
+	MSG_CLUB_PLAYER_APPLY_LEAVE, //阜新麻将玩家申请离开俱乐部
+
 	MSG_CLUB_MSG_END = 2900,
 
 	// mj specail msg ;
@@ -661,7 +668,7 @@ enum eMsgType
 
 	MSG_ROOM_FXMJ_DO_GANG_TING, //阜新麻将玩家选择杠听操作结果
 
-	MSG_CLUB_CREATE_PRIVATE_ROOM, //阜新麻将俱乐部玩家自建房间
+	MSGNU_CLUB_CREATE_PRIVATE_ROOM, //阜新麻将俱乐部玩家自建房间
 
 	MSG_ROOM_FXMJ_PLAYER_ONFOLLOW, //阜新麻将玩家打牌跟庄
 
@@ -671,7 +678,7 @@ enum eMsgType
 
 	MSG_ROOM_PLAYER_WAIT_IDX, //麻将发送等待玩家索引
 
-	MSG_CLUB_PLAYER_APPLY_LEAVE, //阜新麻将玩家申请离开俱乐部
+	MSGNU_CLUB_PLAYER_APPLY_LEAVE, //阜新麻将玩家申请离开俱乐部
 
 	MSG_GET_SHARE_PRIZE, //分享送钻
 	// sur : {diamond : 0, sharetimes : 0}

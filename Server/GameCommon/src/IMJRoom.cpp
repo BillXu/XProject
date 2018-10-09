@@ -599,7 +599,7 @@ bool IMJRoom::isAnyPlayerPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard)
 			return true;
 		}
 
-		if ( isCanGoOnMoPai() && pMJCard->canMingGangWithCard(nCard) ) // must can gang , will not run here , will return when check peng ;
+		if ( canGang() && pMJCard->canMingGangWithCard(nCard) ) // must can gang , will not run here , will return when check peng ;
 		{
 			return true;
 		}
@@ -785,6 +785,10 @@ bool IMJRoom::isGameOver()
 bool IMJRoom::isCanGoOnMoPai()
 {
 	return getPoker()->getLeftCardCount() > 0 ;
+}
+
+bool IMJRoom::canGang() {
+	return isCanGoOnMoPai();
 }
 
 void IMJRoom::onPlayerLouHu(uint8_t nIdx, uint8_t nInvokerIdx)

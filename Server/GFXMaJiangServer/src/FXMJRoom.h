@@ -74,6 +74,9 @@ public:
 	void onWaitPlayerAct(uint8_t nIdx, bool& isCanPass)override;
 	bool onWaitPlayerActAfterCP(uint8_t nIdx);
 	void onAskForPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, std::vector<uint16_t>& vOutWaitHuIdx, std::vector<uint16_t>& vOutWaitPengGangIdx, bool& isNeedWaitEat)override;
+	void onAskForHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, uint8_t& nOutWaitHuIdx, const std::vector<uint8_t>& vAlreadyActIdx);
+	void onAskForPengGangThisCard(uint8_t nInvokeIdx, uint8_t nCard, uint8_t& nOutWaitPengIdx, const std::vector<uint8_t>& vAlreadyActIdx);
+	void onAskForEatThisCard(uint8_t nInvokeIdx, uint8_t nCard, uint8_t& nOutWaitEatIdx, const std::vector<uint8_t>& vAlreadyActIdx);
 	bool isAnyPlayerRobotGang(uint8_t nInvokeIdx, uint8_t nCard)override;
 	void onAskForRobotGang(uint8_t nInvokeIdx, uint8_t nCard, std::vector<uint8_t>& vOutCandinates)override;
 	uint8_t getNextActPlayerIdx(uint8_t nCurActIdx)override;
@@ -100,7 +103,7 @@ public:
 	void clearGain();
 	void backGain(uint8_t nIdx);
 
-	bool canGang();
+	bool canGang() override;
 	void onPrePlayerGang();
 
 	bool isHaveCyclone() { return false; }

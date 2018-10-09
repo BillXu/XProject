@@ -36,7 +36,7 @@ void CLogSvrApp::onExit()
 	LOGFMTI("DBServer ShutDown!");
 }
 
-bool CLogSvrApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID)
+bool CLogSvrApp::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID)
 {
 	if (IServerApp::onAsyncRequestDelayResp(nRequestType, nReqSerial, jsReqContent, nSenderPort, nSenderID, nTargetID))
 	{

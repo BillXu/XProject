@@ -35,6 +35,7 @@ class MJReplayGame
 public:
 	void init( uint32_t nRoomType ,Json::Value& jsRoomOpts )
 	{
+		m_nRoomType = nRoomType;
 		setReplayRoomInfo(jsRoomOpts);
 	}
 	

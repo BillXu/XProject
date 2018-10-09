@@ -25,7 +25,7 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_ptrRoomRecorder->init(nSeialNum, nRoomID, getRoomType(), vJsOpts["uid"].asUInt(),vJsOpts["clubID"].asUInt() ,vJsOpts);
 
 	m_ptrGameReplay = std::make_shared<MJReplayGame>();
-	m_ptrGameReplay->init( getRoomType(),vJsOpts);
+	m_ptrGameReplay->init(m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType(), vJsOpts);
 	return true;
 }
 
@@ -417,6 +417,20 @@ void GameRoom::sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nO
 	}
 }
 
+void GameRoom::sendRoomMsgToStander(Json::Value& prealMsg, uint16_t nMsgType) {
+	// stand player 
+	for (auto& ref : m_vStandPlayers)
+	{
+		auto p = ref.second;
+		if (p == nullptr)
+		{
+			continue;
+		}
+
+		sendMsgToPlayer(prealMsg, nMsgType, p->nSessionID);
+	}
+}
+
 void GameRoom::sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID )
 {
 	getRoomMgr()->sendMsg(prealMsg, nMsgType, getRoomID(), nSessionID,ID_MSG_PORT_CLIENT );
@@ -584,6 +598,17 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 		sendMsgToPlayer(js, nMsgType, nSessionID);
 	}
 	break;
+	case MSG_ROOM_KICK_PLAYER:
+	{
+		Json::Value js;
+		uint32_t nTargetUID = prealMsg["targetUID"].asUInt();
+		uint8_t nRet = doPlayerLeaveRoom(nTargetUID) ? 0 : 2;
+		js["ret"] = nRet;
+		js["roomID"] = getRoomID();
+		sendMsgToPlayer(js, nMsgType, nSessionID);
+		LOGFMTE("do player uid = %u kick player uid = %u, ret = %u", prealMsg["uid"].asUInt(), nTargetUID, nRet);
+	}
+	break;
 	case MSG_PLAYER_INTERACT_EMOJI:
 	{
 		auto pPlayer = getPlayerBySessionID(nSessionID);
@@ -717,10 +742,10 @@ void GameRoom::sendRoomPlayersInfo(uint32_t nSessionID)
 		}
 	}
 
-	if ( jsArraPlayers.size() == 0 )
+	/*if ( jsArraPlayers.size() == 0 )
 	{
 		return;
-	}
+	}*/
 	Json::Value jsPlayersInfo;
 	jsPlayersInfo["players"] = jsArraPlayers;
 	LOGFMTI( "send playes info" );

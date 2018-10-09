@@ -277,7 +277,8 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 		{
 			LOGFMTE("do reconnect why cur player is nullptr ?");
 			bReconnectOk = false;
-			nSessionID = pCurGate->getSessionID();
+			return true;
+			//nSessionID = pCurGate->getSessionID();
 		}
 
 		if (bReconnectOk)
@@ -297,6 +298,9 @@ bool CGateClientMgr::onMsg( Json::Value& jsMsg, CONNECT_ID nNetID )
 			msgRet.nTargetID = pCurGate->getBindUID();
 			sprintf_s(msgRet.cIP, sizeof(msgRet.cIP), "%s", pCurGate->getIP());
 			CGateServer::SharedGateServer()->sendMsg(&msgRet, sizeof(msgRet), pCurGate->getSessionID());
+		}
+		else {
+			//nSessionID = pCurGate->getSessionID();
 		}
 
 		// send msg to client ;

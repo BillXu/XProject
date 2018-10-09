@@ -100,6 +100,9 @@ void MQMJRoom::sendStartGameMsg() {
 	jsMsg["bankerIdx"] = getBankerIdx();
 	jsMsg["r7"] = m_nR7;
 	jsMsg["r15"] = m_nR15;
+	//给围观者发送开始消息
+	sendRoomMsgToStander(jsMsg, MSG_ROOM_MQMJ_GAME_START);
+
 	Json::Value arrPeerCards;
 	for (auto& pPlayer : m_vPlayers)
 	{
@@ -996,7 +999,7 @@ void MQMJRoom::addSettle(stSettle& tSettle) {
 			if (nGain && tSettle.vWinIdxs.size()) {
 				stSettleGain ssg;
 				ssg.nGainChips = nGain;
-				ssg.nTargetIdx = tSettle.vWinIdxs[0];
+				ssg.nTargetIdx = tSettle.vWinIdxs.begin()->first;
 				addGain(refl.first, ssg);
 			}
 			Json::Value jsPlayer;
@@ -1218,7 +1221,7 @@ bool MQMJRoom::canStartGame() {
 bool MQMJRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 {
 	//GameRoom::onPlayerEnter(pEnterRoomPlayer);
-	// check if already in room ;
+	////check if already in room ;
 	//uint8_t nEmptyIdx = rand() % getSeatCnt();
 	//for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
 	//{
@@ -1272,6 +1275,14 @@ bool MQMJRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 }
 
 void MQMJRoom::doRandomChangeSeat() {
+	/*Json::Value jsMsg, jsPlayerPre, jsPlayersPre;
+	for (auto ref : m_vPlayers) {
+		jsPlayerPre["idx"] = ref->getIdx();
+		jsPlayerPre["uid"] = ref->getUserUID();
+		jsPlayersPre[jsPlayersPre.size()] = jsPlayerPre;
+	}
+	jsMsg["detailPre"] = jsPlayersPre;*/
+
 	std::vector<uint16_t> vChanged;
 	for (uint16_t i = 0; i < getSeatCnt(); i++) {
 		if (std::find(vChanged.begin(), vChanged.end(), i) == vChanged.end()) {
@@ -1285,13 +1296,13 @@ void MQMJRoom::doRandomChangeSeat() {
 			}
 		}
 	}
-	Json::Value jsMsg, jsPlayers, jsPlayer;
+	Json::Value jsMsg, jsPlayersEnd, jsPlayerEnd;
 	for (auto ref : m_vPlayers) {
-		jsPlayer["idx"] = ref->getIdx();
-		jsPlayer["uid"] = ref->getUserUID();
-		jsPlayers[jsPlayers.size()] = jsPlayer;
+		jsPlayerEnd["idx"] = ref->getIdx();
+		jsPlayerEnd["uid"] = ref->getUserUID();
+		jsPlayersEnd[jsPlayersEnd.size()] = jsPlayerEnd;
 	}
-	jsMsg["detail"] = jsPlayers;
+	jsMsg["detail"] = jsPlayersEnd;
 	sendRoomMsg(jsMsg, MSG_ROOM_PLAYER_EXCHANGE_SEAT);
 }
 

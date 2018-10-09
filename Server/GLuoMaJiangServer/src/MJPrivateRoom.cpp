@@ -55,6 +55,6 @@ void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
 	IPrivateRoom::onStartGame(pRoom);
 	if (m_nLeftRounds == getInitRound(m_nRoundLevel))
 	{
-		//((LuoMJRoom*)pRoom)->doRandomChangeSeat();
+		((LuoMJRoom*)pRoom)->doRandomChangeSeat();
 	}
 }

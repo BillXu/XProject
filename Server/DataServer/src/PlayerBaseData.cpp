@@ -12,6 +12,7 @@
 #include "AsyncRequestQuene.h"
 #include <assert.h>
 #include "PlayerGameData.h"
+#include "Club.h"
 #pragma warning( disable : 4996 )
 CPlayerBaseData::CPlayerBaseData(CPlayer* player )
 	:IPlayerComponent(player)
@@ -244,6 +245,7 @@ void CPlayerBaseData::sendBaseDataToClient()
 		jsBaseData["stayRoomID"] = pStay.nRoomID;
 	}
 	sendMsg(jsBaseData, MSG_PLAYER_BASE_DATA);
+	SendGateIP();
 	LOGFMTD("send msg to client base data uid = %u", getPlayer()->getUserUID() );
 }
 
@@ -317,6 +319,15 @@ bool CPlayerBaseData::modifyMoney( int32_t nOffset, bool bDiamond )
 
 	nRefMoney += nOffset;
 	m_bMoneyDataDirty = true;
+
+	if (bDiamond && nOffset > 0) {
+		for (auto& ref : m_vCreatedClubIDs) {
+			auto pClub = DataServerApp::getInstance()->getClubMgr()->getClub(ref);
+			if (pClub && pClub->getCreatorUID() == m_stBaseData.nUserUID) {
+				pClub->clearLackDiamond();
+			}
+		}
+	}
 	return true;
 }
 
@@ -394,11 +405,23 @@ bool CPlayerBaseData::canRemovePlayer() {
 
 void CPlayerBaseData::SendGateIP() {
 	if (getGateLevel()) {
-		auto sGateIP = getPlayer()->getPlayerMgr()->getGateIP(getGateLevel(), getPlayer()->getUserUID());
-		if (sGateIP.empty() == false) {
-			Json::Value jsMsg;
-			jsMsg["IP"] = sGateIP.c_str();
-			getPlayer()->sendMsgToClient(jsMsg, MSG_PLAYER_REFRESH_GATE_IP);
+		if (((m_stBaseData.nTotalDiamond == 0 && m_stBaseData.nTotalGame < 16) ||
+			(m_stBaseData.nTotalDiamond < 200 && m_stBaseData.nTotalGame < 8)) &&
+			(getGateLevel() == 1 || getGateLevel() == 2)) {
+			auto sGateIP = getPlayer()->getPlayerMgr()->getSpecialGateIP(getPlayer()->getUserUID());
+			if (sGateIP.empty() == false) {
+				Json::Value jsMsg;
+				jsMsg["IP"] = sGateIP.c_str();
+				getPlayer()->sendMsgToClient(jsMsg, MSG_PLAYER_REFRESH_GATE_IP);
+			}
+		}
+		else {
+			auto sGateIP = getPlayer()->getPlayerMgr()->getGateIP(getGateLevel(), getPlayer()->getUserUID());
+			if (sGateIP.empty() == false) {
+				Json::Value jsMsg;
+				jsMsg["IP"] = sGateIP.c_str();
+				getPlayer()->sendMsgToClient(jsMsg, MSG_PLAYER_REFRESH_GATE_IP);
+			}
 		}
 	}
 }

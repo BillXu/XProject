@@ -34,6 +34,7 @@ public:
 	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
 
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
+	virtual void packCreateUIDInfo(Json::Value& jsRoomInfo);
 	void sendRoomPlayersInfo(uint32_t nSessionID)override;
 	void sendRoomInfo(uint32_t nSessionID)override;
 	bool onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nState) final;

@@ -346,6 +346,90 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 		}
 	}
 	break;
+	case MSG_ROOM_KICK_PLAYER:
+	{
+		Json::Value js;
+		js["roomID"] = getRoomID();
+		if (isRoomStarted()) {
+			LOGFMTE("why you kick player ? already start can not leave ,room id = %u , sessionID = %u", getRoomID(), nSessionID);
+			js["ret"] = 1;
+			sendMsgToPlayer(js, nMsgType, nSessionID);
+			return true;
+		}
+		else {
+			uint32_t nTargetUID = prealMsg["targetUID"].asUInt();
+			auto targetPlayer = m_pRoom->getPlayerByUID(nTargetUID);
+			if (targetPlayer == nullptr) {
+				js["ret"] = 1;
+				sendMsgToPlayer(js, nMsgType, nSessionID);
+				return true;
+			}
+			uint32_t nUID = prealMsg["uid"].asUInt();
+			
+			if (nUID == m_nOwnerUID) {
+				m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
+				return true;
+			}
+
+			if (isClubRoom()) {
+				// go on  
+				Json::Value jsReq;
+				jsReq["clubID"] = getClubID();
+				jsReq["uid"] = nUID;
+				auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+				pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getClubID(), eAsync_ClubCheckMemberLevel, jsReq, [nSessionID, this, nTargetUID, nMsgType, eSenderPort, prealMsg](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+				{
+					Json::Value jsRet;
+					jsRet["roomID"] = getRoomID();
+					if (isTimeOut)
+					{
+						LOGFMTE("kick player request time out uid = %u , uid = %u , room id = %u", retContent["uid"].asUInt(), 0, getRoomID());
+						jsRet["ret"] = 7;
+						sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+						return;
+					}
+
+					if (isRoomStarted()) {
+						LOGFMTE("why you kick player ? already start can not leave ,room id = %u , sessionID = %u", getRoomID(), nSessionID);
+						jsRet["ret"] = 6;
+						sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+						return;
+					}
+
+					auto nRet = retContent["ret"].asUInt();
+					if (1 == nRet)
+					{
+						jsRet["ret"] = 3;
+						sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+						return;
+					}
+
+					if (nRet)
+					{
+						jsRet["ret"] = 5;
+						sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+						return;
+					}
+
+					uint32_t nLevel = retContent["level"].asUInt();
+					if (nLevel < eClubPrivilige_Manager) {
+						jsRet["ret"] = 4;
+						sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+						return;
+					}
+
+					auto jsMsg = prealMsg;
+					m_pRoom->onMsg(jsMsg, nMsgType, eSenderPort, nSessionID);
+				}, nUID);
+			}
+			else {
+				js["ret"] = 2;
+				sendMsgToPlayer(js, nMsgType, nSessionID);
+				return true;
+			}
+		}
+	}
+	break;
 	case MSG_PLAYER_CHAT_MSG:
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
@@ -541,6 +625,13 @@ void IPrivateRoom::sendRoomPlayersInfo(uint32_t nSessionID)
 	}
 }
 
+void IPrivateRoom::packCreateUIDInfo(Json::Value& jsRoomInfo) {
+	if (isClubRoom() && m_nAutoStartCnt == 0)
+	{
+		jsRoomInfo["opts"]["uid"] = m_nTempOwnerUID;
+	}
+}
+
 void IPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
 	if (m_pRoom)
@@ -553,10 +644,7 @@ void IPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["pState"] = m_nPrivateRoomState;
 	// is waiting vote dismiss room ;
 	jsRoomInfo["isWaitingDismiss"] = m_bWaitDismissReply ? 1 : 0;
-	if ( isClubRoom() && m_nAutoStartCnt == 0 )
-	{
-		jsRoomInfo["opts"]["uid"] = m_nTempOwnerUID;
-	}
+	packCreateUIDInfo(jsRoomInfo);
 
 	int32_t nLeftSec = 0;
 	if (m_bWaitDismissReply)
@@ -597,7 +685,7 @@ void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 	// send room info ;
 	Json::Value jsMsg;
 	packRoomInfo(jsMsg);
-	LOGFMTI("send room info");
+	LOGFMTI("send room info uid = %u", jsMsg["opts"]["uid"].asUInt());
 	sendMsgToPlayer(jsMsg, MSG_ROOM_INFO, nSessionID);
 
 	// send players info ;

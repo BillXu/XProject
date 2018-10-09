@@ -130,6 +130,8 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			if (0 == nRet)
 			{
 				onCreateEmptyRoom(retContent["roomID"].asUInt(), retContent["diamondFee"].asInt(), retContent["roomIdx"].asInt(), true);
+				js["roomID"] = retContent["roomID"].asUInt();
+				js["clubID"] = getClubID();
 				js["ret"] = 0;
 				sendMsg(js, nMsgType, nTargetID, nSenderID);
 				return;
@@ -1520,6 +1522,20 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 		m_vEmptyRooms.erase(iter);
 	}
 	break;
+	case eAsync_ClubCheckMemberLevel:
+	{
+		uint32_t nUID = jsReqContent["uid"].asUInt();
+		jsResult["ret"] = 0;
+		auto p = getMember(nUID);
+		if (nullptr == p)
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+
+		jsResult["level"] = p->ePrivilige;
+	}
+	break;
 	case eAsync_ClubCheckMember:
 	{
 		uint32_t nUID = jsReqContent["uid"].asUInt();
@@ -1753,9 +1769,27 @@ void Club::update(float fDeta)
 	updateCreateRoom();
 }
 
+uint8_t Club::getEmptyAutoCreatRoomCnt() {
+	uint8_t nCnt = 0;
+	for (auto& ref : m_vEmptyRooms) {
+		if (ref.bPrivate) {
+			continue;
+		}
+		nCnt++;
+	}
+	return nCnt;
+}
+
+void Club::clearLackDiamond() {
+	auto nRoomType = m_jsCreateRoomOpts["gameType"].asUInt();
+	if (eGame_FXMJ == nRoomType) {
+		m_isLackDiamond = false;
+	}
+}
+
 void Club::updateCreateRoom()
 {
-	if ( m_isFinishReadEvent && m_isFinishReadMembers && false == m_isLackDiamond && false == m_isCreatingRoom && false == isPasuseState() && m_vEmptyRooms.size() < MAX_EMPTY_ROOM_CNT && m_fDelayTryCreateRoom < 0.1 )
+	if ( m_isFinishReadEvent && m_isFinishReadMembers && false == m_isLackDiamond && false == m_isCreatingRoom && false == isPasuseState() && getEmptyAutoCreatRoomCnt() < MAX_EMPTY_ROOM_CNT && m_fDelayTryCreateRoom < 0.1 )
 	{
 		m_isCreatingRoom = true;
 		auto nRoomType = m_jsCreateRoomOpts["gameType"].asUInt();
@@ -1863,9 +1897,8 @@ void Club::onCreateEmptyRoom(uint32_t nRoomID, int32_t nDiamondFee, uint32_t nRo
 	stClubRoomInfo ci;
 	ci.nRoomID = nRoomID;
 	ci.nRoomIdx = nRoomIdx;
-	if (bPrivate == false) {
-		m_vEmptyRooms.push_back(ci);
-	}
+	ci.bPrivate = bPrivate;
+	m_vEmptyRooms.push_back(ci);
 	updateDiamond( nDiamondFee * -1 , nRoomID);
 
 	if ( abs( nDiamondFee ) > 0 )
@@ -1885,6 +1918,10 @@ void Club::updateDiamond(int32_t nDiamond, uint32_t nRoomID)
 	auto nPort = ClubManager::parePortTypte(nRoomID);
 	if (nPort == ID_MSG_PORT_FXMJ) {
 		modifyCreatorDiamond(nDiamond);
+		if (nDiamond > 0)
+		{
+			m_isLackDiamond = false;
+		}
 		return;
 	}
 

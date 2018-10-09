@@ -43,6 +43,7 @@ public:
 	virtual uint8_t getRoomType() = 0 ;
 	void update(float fDelta)override;
 	void sendRoomMsg(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nOmitSessionID = 0 )final;
+	void sendRoomMsgToStander(Json::Value& prealMsg, uint16_t nMsgType);
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )override;
 	void sendRoomInfo(uint32_t nSessionID)override;

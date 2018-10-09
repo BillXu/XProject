@@ -683,7 +683,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	return true ;
 }
 
-bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID )
+bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID )
 {
 	if ( eAsync_AgentGetPlayerInfo == nRequestType)
 	{
@@ -935,13 +935,18 @@ bool CPlayerManager::onOtherSvrShutDown(eMsgPort nSvrPort, uint16_t nSvrIdx, uin
 
 bool CPlayerManager::initGateIP() {
 	m_mGateIP.clear();
+
+#ifdef _DEBUG
+	return true;
+#endif // _DEBUG
+
 	//TODO...
 	for (uint8_t i = 1; i < 4; i++) {
 		std::vector<std::string> vIPs;
 		switch (i) {
 		case 1:
 		{
-			vIPs.push_back("101.132.254.38");
+			vIPs.push_back("47.95.39.200");
 
 			//vIPs.push_back("101.132.254.32");
 			//vIPs.push_back("101.132.248.195");
@@ -950,7 +955,10 @@ bool CPlayerManager::initGateIP() {
 		case 2:
 		{
 			//vIPs.push_back("101.132.252.171");
-			vIPs.push_back("101.132.254.38");
+			vIPs.push_back("39.107.56.128");
+			vIPs.push_back("47.93.125.150");
+			vIPs.push_back("47.95.38.36");
+			vIPs.push_back("39.107.60.216");
 
 			//vIPs.push_back("101.132.254.32");
 			//vIPs.push_back("101.132.248.195");
@@ -963,9 +971,16 @@ bool CPlayerManager::initGateIP() {
 		break;
 		case 3:
 		{
-			vIPs.push_back("101.132.254.32");
-			vIPs.push_back("101.132.248.195");
-			vIPs.push_back("106.15.137.9");
+			vIPs.push_back("47.93.208.120");
+			vIPs.push_back("47.94.43.128");
+			vIPs.push_back("101.201.180.207");
+			vIPs.push_back("47.95.38.201");
+			vIPs.push_back("47.94.34.80");
+			vIPs.push_back("39.107.60.66");
+			vIPs.push_back("47.93.125.14");
+			vIPs.push_back("39.107.203.121");
+			vIPs.push_back("47.94.33.210");
+			vIPs.push_back("47.95.34.232");
 			//vIPs.push_back("101.132.252.171");
 		}
 		break;
@@ -973,7 +988,26 @@ bool CPlayerManager::initGateIP() {
 		m_mGateIP[i] = vIPs;
 	}
 
+	std::vector<std::string> vIPs;
+	vIPs.push_back("47.95.33.60");
+	m_mGateIP[100] = vIPs;
+
 	return true;
+}
+
+std::string CPlayerManager::getSpecialGateIP(uint32_t nUserID) {
+	std::string sGateIP;
+	if (m_mGateIP.find(100) != m_mGateIP.end()) {
+		auto& gateIPs = m_mGateIP[100];
+		uint32_t nGateCnt = gateIPs.size();
+		if (nGateCnt) {
+			uint32_t nGateIdx = nUserID % nGateCnt;
+			if (nGateIdx < nGateCnt) {
+				sGateIP = gateIPs[nGateIdx];
+			}
+		}
+	}
+	return sGateIP;
 }
 
 std::string CPlayerManager::getGateIP(uint8_t nGateLevel, uint32_t nUserID) {

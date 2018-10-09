@@ -472,7 +472,10 @@ uint32_t IGameRoomManager::generateSieralID()
 uint32_t IGameRoomManager::generateReplayID()
 {
 	m_nMaxReplayUID += getSvrApp()->getCurSvrMaxCnt();
-	return m_nMaxReplayUID;
+	auto nSvrType = getSvrApp()->getLocalSvrMsgPortType() - ID_MSG_PORT_MJ;
+	auto nSvrIdx = getSvrApp()->getCurSvrIdx();
+	auto nMaxReplayUID = m_nMaxReplayUID << 6 | nSvrType << 1 | nSvrIdx;
+	return nMaxReplayUID;
 }
 
 void IGameRoomManager::update(float fDeta)
@@ -515,7 +518,7 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 
 	// read max replay id ;
 	std::ostringstream ss;
-	ss << "SELECT max(replayID) as maxReplayID FROM gamereplay; ";
+	ss << "SELECT max(replayID) as maxReplayID FROM gamereplay where roomType = " << getSvrApp()->getLocalSvrMsgPortType() << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB,getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
@@ -529,6 +532,7 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 
 		auto jsRow = jsData[(uint32_t)0];
 		m_nMaxReplayUID = jsRow["maxReplayID"].asUInt();
+		m_nMaxReplayUID = m_nMaxReplayUID >> 6;
 		m_nMaxReplayUID -= m_nMaxReplayUID % getSvrApp()->getCurSvrMaxCnt();
 		m_nMaxReplayUID += getSvrApp()->getCurSvrIdx();
 		LOGFMTD("maxReplayID id  = %u", m_nMaxReplayUID);

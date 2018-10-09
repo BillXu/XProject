@@ -14,7 +14,16 @@ public:
 		{
 			return false;
 		}*/
+		return ((FXMJPlayerCard*)pPlayerCard)->canHuOnlyOneCard() || ((FXMJPlayerCard*)pPlayerCard)->isJiaHu() || ((FXMJPlayerCard*)pPlayerCard)->isBianHu();
+	}
 
-		return ((FXMJPlayerCard*)pPlayerCard)->canHuOnlyOneCard();
+	bool checkJiaHu(IMJPlayerCard* pPlayerCard, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom, bool isDDH = false)
+	{
+		if (isDDH) {
+			return ((FXMJPlayerCard*)pPlayerCard)->canHuOnlyOneCard();
+		}
+		else {
+			return checkFanxing(pPlayerCard, pPlayer, nInvokerIdx, pmjRoom);
+		}
 	}
 };

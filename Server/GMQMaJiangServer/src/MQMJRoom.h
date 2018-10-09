@@ -89,7 +89,7 @@ public:
 	void clearGain();
 	void backGain(uint8_t nIdx);
 
-	bool canGang();
+	bool canGang() override;
 	void onPrePlayerGang();
 	bool needChu();
 

@@ -38,6 +38,7 @@ public:
 	{
 		uint32_t nRoomID;
 		uint32_t nRoomIdx;
+		bool bPrivate = false;
 	};
 
 public:
@@ -76,6 +77,7 @@ public:
 	bool setIsEnablePointRestrict( bool isEnable );
 	void decreaseMemberPlayTime(uint32_t nMemberUID);
 	void updateMemberPlayTime(uint32_t nMemberUID, uint32_t nPlayTime);
+	void clearLackDiamond(); //仅供外部调用，验证gateType
 protected:
 	void readClubEvents( uint32_t nAlreadyCnt );
 	void readClubMemebers( uint32_t nAlreadyCnt );
@@ -83,6 +85,7 @@ protected:
 	bool addEvent( stClubEvent* pEvent );
 	void onCreateEmptyRoom( uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx, bool bPrivate = false );
 	void updateCreateRoom();
+	uint8_t getEmptyAutoCreatRoomCnt();
 	void postMail( uint32_t nTargetID , eMailType eType , Json::Value& jsContent , eMailState eState );
 	uint16_t getTargetPortByGameType( uint32_t nGameType );
 	void dismissEmptyRoom( bool isWillDelteClub = false );

@@ -650,10 +650,15 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 				{
 					continue;
 				}
+
+				auto pLoseCard = (FXMJPlayerCard*)((FXMJPlayer*)pLosePlayer)->getPlayerCard();
 				if (pLosePlayer->getIdx() == getBankerIdx() || nInvokeIdx == getBankerIdx()) {
 					t_nFanCnt += 1;
 				}
 				if (m_cFanxingChecker.checkFanxing(eFanxing_MengQing, (FXMJPlayer*)pLosePlayer, nInvokeIdx, this)) {
+					t_nFanCnt += 1;
+				}
+				if (pLoseCard->isCool()) {
 					t_nFanCnt += 1;
 				}
 
@@ -749,7 +754,8 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			std::vector<eFanxingType> vType;
 			uint16_t nFanCnt = 2;//dianpaofan
 			bool isTingPao = false;
-			if (((FXMJPlayerCard*)pLosePlayer->getPlayerCard())->isTing()) {
+			auto pLoseCard = (FXMJPlayerCard*)pLosePlayer->getPlayerCard();
+			if (pLoseCard->isTing()) {
 				nFanCnt = 0;
 				isTingPao = true;
 			}
@@ -782,11 +788,17 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			uint32_t nWinCoin = 0;
 			if (isTingPao) {
 				for (auto& ref : m_vPlayers) {
-					if (ref->getIdx() == pHuPlayer->getIdx()) {
+					if (ref == nullptr || ref->getIdx() == pHuPlayer->getIdx()) {
 						continue;
 					}
 					auto tFanCnt = nFanCnt;
 					uint32_t tWinCoin = 1;
+
+					auto pRefCard = (FXMJPlayerCard*)((FXMJPlayer*)ref)->getPlayerCard();
+					if (pRefCard->isCool()) {
+						tFanCnt++;
+					}
+
 					if (nHuIdx == getBankerIdx() || ref->getIdx() == getBankerIdx()) {
 						tFanCnt++;
 					}
@@ -816,6 +828,10 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 				st.addWin(nHuIdx, nWinCoin);
 			}
 			else {
+				if (pLoseCard->isCool()) {
+					nFanCnt++;
+				}
+
 				if (nHuIdx == getBankerIdx() || nInvokeIdx == getBankerIdx()) {
 					nFanCnt++;
 				}
@@ -1014,6 +1030,179 @@ bool FXMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
 		}
 	}
 	return false;
+}
+
+void FXMJRoom::onAskForHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, uint8_t& nOutWaitHuIdx, const std::vector<uint8_t>& vAlreadyActIdx) {
+	auto nSeatCnt = getSeatCnt();
+	uint8_t nHuIdx = -1;
+	uint8_t nHuLevel = 0;
+	for (uint8_t i = 1; i < nSeatCnt; i++) {
+		uint8_t nRefIdx = (i + nInvokeIdx) % nSeatCnt;
+		if (std::find(vAlreadyActIdx.begin(), vAlreadyActIdx.end(), nRefIdx) != vAlreadyActIdx.end()) {
+			continue;
+		}
+		auto ref = (FXMJPlayer*)getPlayerByIdx(nRefIdx);
+		if (ref == nullptr || ref->haveState(eRoomPeer_AlreadyHu)) {
+			continue;
+		}
+		auto pRefCard = (FXMJPlayerCard*)ref->getPlayerCard();
+		if (pRefCard->canHuWitCard(nCard)) {
+			auto nRefHuLevel = pRefCard->getHuLevel(nCard);
+			if (nRefHuLevel > nHuLevel) {
+				nHuLevel = nRefHuLevel;
+				nHuIdx = nRefIdx;
+			}
+		}
+	}
+
+	if ((uint8_t)-1 != nHuIdx) {
+		auto pHuPlayer = (FXMJPlayer*)getPlayerByIdx(nHuIdx);
+		auto pHuCard = (FXMJPlayerCard*)pHuPlayer->getPlayerCard();
+
+		Json::Value jsMsg, jsActs;
+		jsMsg["invokerIdx"] = nInvokeIdx;
+		jsMsg["cardNum"] = nCard;
+		jsActs[jsActs.size()] = eMJAct_Hu;
+
+		// check peng 
+		if (pHuCard->canPengWithCard(nCard))
+		{
+			jsActs[jsActs.size()] = eMJAct_Peng;
+		}
+
+		// check ming gang 
+		if (isCanGoOnMoPai() && canGang() && pHuCard->canMingGangWithCard(nCard))
+		{
+			jsActs[jsActs.size()] = eMJAct_MingGang;
+		}
+
+		//check eat
+		if (nHuIdx == (nInvokeIdx + 1) % getSeatCnt())
+		{
+			if (pHuCard->canEatCard(nCard))
+			{
+				jsActs[jsActs.size()] = eMJAct_Chi;
+			}
+		}
+
+		if (jsActs.size() > 0)
+		{
+			jsActs[jsActs.size()] = eMJAct_Pass;
+		}
+
+		jsMsg["acts"] = jsActs;
+		sendMsgToPlayer(jsMsg, MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD, pHuPlayer->getSessionID());
+
+		//LOGFMTD("inform uid = %u act about other card room id = %u card = %u", ref->getUID(), getRoomID(),nCard );
+
+		Json::Value jsFrameArg, jsFramePlayer;
+		jsFramePlayer["idx"] = nHuIdx;
+		jsFramePlayer["acts"] = jsActs;
+
+		jsFrameArg[jsFrameArg.size()] = jsFramePlayer;
+
+		// add frame 
+		addReplayFrame(eMJFrame_WaitPlayerActAboutCard, jsFrameArg);
+
+		nOutWaitHuIdx = nHuIdx;
+	}
+}
+
+void FXMJRoom::onAskForPengGangThisCard(uint8_t nInvokeIdx, uint8_t nCard, uint8_t& nOutWaitPengIdx, const std::vector<uint8_t>& vAlreadyActIdx) {
+	for (auto& ref : m_vPlayers) {
+		if (ref == nullptr || nInvokeIdx == ref->getIdx())
+		{
+			continue;
+		}
+
+		if (std::find(vAlreadyActIdx.begin(), vAlreadyActIdx.end(), ref->getIdx()) != vAlreadyActIdx.end()) {
+			continue;
+		}
+
+		auto pRefCard = (FXMJPlayerCard*)((FXMJPlayer*)ref)->getPlayerCard();
+		Json::Value jsMsg, jsActs;
+		jsMsg["invokerIdx"] = nInvokeIdx;
+		jsMsg["cardNum"] = nCard;
+		if (pRefCard->canPengWithCard(nCard)) {
+			jsActs[jsActs.size()] = eMJAct_Peng;
+		}
+
+		if (canGang() && pRefCard->canMingGangWithCard(nCard)) {
+			jsActs[jsActs.size()] = eMJAct_MingGang;
+		}
+
+		if (jsActs.size() > 0)
+		{
+			if (ref->getIdx() == (nInvokeIdx + 1) % getSeatCnt())
+			{
+				if (pRefCard->canEatCard(nCard))
+				{
+					jsActs[jsActs.size()] = eMJAct_Chi;
+				}
+			}
+
+			jsActs[jsActs.size()] = eMJAct_Pass;
+
+			jsMsg["acts"] = jsActs;
+			sendMsgToPlayer(jsMsg, MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD, ref->getSessionID());
+
+			//LOGFMTD("inform uid = %u act about other card room id = %u card = %u", ref->getUID(), getRoomID(),nCard );
+
+			Json::Value jsFrameArg, jsFramePlayer;
+			jsFramePlayer["idx"] = ref->getIdx();
+			jsFramePlayer["acts"] = jsActs;
+
+			jsFrameArg[jsFrameArg.size()] = jsFramePlayer;
+
+			// add frame 
+			addReplayFrame(eMJFrame_WaitPlayerActAboutCard, jsFrameArg);
+
+			nOutWaitPengIdx = ref->getIdx();
+		}
+	}
+}
+
+void FXMJRoom::onAskForEatThisCard(uint8_t nInvokeIdx, uint8_t nCard, uint8_t& nOutWaitEatIdx, const std::vector<uint8_t>& vAlreadyActIdx) {
+	uint8_t nEatIdx = (nInvokeIdx + 1) % getSeatCnt();
+	if (std::find(vAlreadyActIdx.begin(), vAlreadyActIdx.end(), nEatIdx) != vAlreadyActIdx.end()) {
+		return;
+	}
+
+	auto pEatPlayer = (FXMJPlayer*)getPlayerByIdx(nEatIdx);
+	if (pEatPlayer == nullptr)
+	{
+		return;
+	}
+
+	auto pEatCard = (FXMJPlayerCard*)pEatPlayer->getPlayerCard();
+	if (pEatCard->canEatCard(nCard) == false) {
+		return;
+	}
+
+	Json::Value jsMsg, jsActs;
+	jsMsg["invokerIdx"] = nInvokeIdx;
+	jsMsg["cardNum"] = nCard;
+	jsActs[jsActs.size()] = eMJAct_Chi;
+	if (jsActs.size() > 0)
+	{
+		jsActs[jsActs.size()] = eMJAct_Pass;
+	}
+
+	jsMsg["acts"] = jsActs;
+	sendMsgToPlayer(jsMsg, MSG_PLAYER_WAIT_ACT_ABOUT_OTHER_CARD, pEatPlayer->getSessionID());
+
+	//LOGFMTD("inform uid = %u act about other card room id = %u card = %u", ref->getUID(), getRoomID(),nCard );
+
+	Json::Value jsFrameArg, jsFramePlayer;
+	jsFramePlayer["idx"] = nEatIdx;
+	jsFramePlayer["acts"] = jsActs;
+
+	jsFrameArg[jsFrameArg.size()] = jsFramePlayer;
+
+	// add frame 
+	addReplayFrame(eMJFrame_WaitPlayerActAboutCard, jsFrameArg);
+
+	nOutWaitEatIdx = nEatIdx;
 }
 
 void FXMJRoom::onAskForPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, std::vector<uint16_t>& vOutWaitHuIdx, std::vector<uint16_t>& vOutWaitPengGangIdx, bool& isNeedWaitEat) {
@@ -1251,7 +1440,7 @@ void FXMJRoom::addSettle(stSettle& tSettle) {
 			if (nGain && tSettle.vWinIdxs.size()) {
 				stSettleGain ssg;
 				ssg.nGainChips = nGain;
-				ssg.nTargetIdx = tSettle.vWinIdxs[0];
+				ssg.nTargetIdx = tSettle.vWinIdxs.begin()->first;
 				addGain(refl.first, ssg);
 			}
 			Json::Value jsPlayer;

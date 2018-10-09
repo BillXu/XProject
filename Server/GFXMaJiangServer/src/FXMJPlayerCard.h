@@ -50,6 +50,8 @@ public:
 	bool isTing() { return m_vTingCards.size(); }
 	void clearTing();
 	bool canHuOnlyOneCard();
+	bool isJiaHu();
+	bool isBianHu();
 	bool isPreGang() { return m_vPreGang.empty() == false; }
 	void addPreGang(uint8_t nPreGangCard) { m_vPreGang.push_back(nPreGangCard); }
 	void clearPreGang() { m_vPreGang.clear(); }

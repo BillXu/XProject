@@ -188,7 +188,7 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 	return pclub->onMsg(prealMsg, nMsgType, eSenderPort, nSenderID, nTargetID);
 }
 
-bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint16_t nTargetID) {
+bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSerial, const Json::Value& jsReqContent, uint16_t nSenderPort, uint32_t nSenderID, uint32_t nTargetID) {
 	if (eAsync_HttpCmd_CreateClub == nRequestType) {
 		uint8_t nRet = 0;
 		if (jsReqContent["targetUID"].isNull()) {
@@ -382,7 +382,7 @@ void ClubManager::onConnectedSvr( bool isReconnected )
 			Json::Value jsRow = jsData[(uint32_t)0];
 			m_nMaxClubID = jsRow["maxClubID"].asUInt();
 #ifdef _DEBUG
-			m_nMaxClubID = 0;
+			//m_nMaxClubID = 0;
 #endif // _DEBUG
 			LOGFMTD("read max serial number = %u", m_nMaxClubID);
 		}
@@ -399,7 +399,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 {
 	auto asyq = getSvrApp()->getAsynReqQueue();
 	std::ostringstream ss;
-	ss << "SELECT clubID,name,opts,state,diamond ,notice FROM clubs where isDelete = 0 limit 10 OFFSET " << nAlreadyReadCnt << ";";
+	ss << "SELECT clubID,name,opts,state,cprState,diamond ,notice FROM clubs where isDelete = 0 limit 10 OFFSET " << nAlreadyReadCnt << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData ,bool isTimeOut) {
