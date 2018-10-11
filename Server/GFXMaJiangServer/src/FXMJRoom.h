@@ -112,7 +112,7 @@ public:
 	void clearOneCircleEnd() { m_bOneCircleEnd = false; }
 protected:
 	void addSettle(stSettle& tSettle);
-	void settleInfoToJson(Json::Value& jsRealTime);
+	void settleInfoToJson(Json::Value& jsRealTime, bool& isHuangZhuang);
 	void sortFanxing2FanCnt(std::vector<eFanxingType>& vType, uint16_t& nFanCnt);
 	void sendStartGameMsg();
 

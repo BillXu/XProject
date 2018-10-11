@@ -1,6 +1,7 @@
 #include "LuoMJPlayerCard.h"
 #include "IMJPoker.h"
 #include "log4z.h"
+#include "FanxingDuiDuiHu.h"
 
 void LuoMJPlayerCard::reset() {
 	MJPlayerCard::reset();
@@ -274,7 +275,7 @@ bool LuoMJPlayerCard::isHoldCardCanHu() {
 }
 
 bool LuoMJPlayerCard::isHoldCardCanHu(uint8_t& nJiang) {
-	if (check3Men() && check19() && checkKezi()) {
+	if (checkHunPiao() || (check3Men() && check19() && checkKezi())) {
 		return MJPlayerCard::isHoldCardCanHu(nJiang);
 	}
 	return false;
@@ -447,6 +448,14 @@ bool LuoMJPlayerCard::check19() {
 		}
 	}
 
+	return false;
+}
+
+bool LuoMJPlayerCard::checkHunPiao() {
+	if (isEnableHunPiao()) {
+		FanxingDuiDuiHu fdd;
+		return fdd.checkFanxing(this, nullptr, 0, nullptr);
+	}
 	return false;
 }
 

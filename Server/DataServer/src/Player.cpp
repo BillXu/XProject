@@ -78,7 +78,14 @@ void CPlayer::onPlayerLogined(uint32_t nSessionID, uint32_t nUserUID, const char
 	m_nSessionID = nSessionID;
 	m_nUserUID = nUserUID;
 	m_strCurIP = pIP;
-	setState(ePlayerState_Online);
+
+	if (nSessionID) {
+		setState(ePlayerState_Online);
+	}
+	else {
+		setState(ePlayerState_Offline);
+	}
+	
 	for (int i = ePlayerComponent_None; i < ePlayerComponent_Max; ++i)
 	{
 		IPlayerComponent* p = m_vAllComponents[i];
@@ -164,9 +171,9 @@ void CPlayer::onPlayerDisconnect()
 	setState(ePlayerState_Offline);
 	LOGFMTE("player disconnect should inform other sever");
 
+	onTimerSave();
 	if ( canRemovePlayer() )
 	{
-		onTimerSave();
 		getPlayerMgr()->doRemovePlayer(this);
 	}
 	else

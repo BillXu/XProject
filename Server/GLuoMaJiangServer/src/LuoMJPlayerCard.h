@@ -29,6 +29,8 @@ public:
 
 	bool isEnableSB1() { return m_bEnableSB1; }
 	void signEnableSB1() { m_bEnableSB1 = true; }
+	bool isEnableHunPiao() { return m_bEnableHunPiao; }
+	void signEnableHunPiao() { m_bEnableHunPiao = true; }
 
 	bool isJiaHu();
 	bool isDanDiao();
@@ -42,6 +44,7 @@ protected:
 	bool checkKezi();
 	bool check3Men();
 	bool check19();
+	bool checkHunPiao();
 	bool canHuOnlyOneCard();
 
 protected:
@@ -51,5 +54,6 @@ protected:
 	bool m_bCheckedCanHuOnlyOne;
 
 	bool m_bEnableSB1 = false;
+	bool m_bEnableHunPiao = false;
 
 };

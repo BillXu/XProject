@@ -502,6 +502,35 @@ void IGameRoomManager::update(float fDeta)
 	m_vWillDeleteRoom.clear();
 }
 
+void IGameRoomManager::onExit()
+{
+	for (auto& pair : m_vRooms)
+	{
+		auto pRoom = dynamic_cast<IPrivateRoom*>(pair.second);
+		if (pRoom) {
+			pRoom->doRoomGameOver(true);
+		}
+	}
+
+	for (auto nDelete : m_vWillDeleteRoom)
+	{
+		auto iter = m_vRooms.find(nDelete);
+		if (iter != m_vRooms.end())
+		{
+			iter->second->doDeleteRoom();
+
+			delete iter->second;
+			iter->second = nullptr;
+			m_vRooms.erase(iter);
+		}
+		// recycle room ids 
+		m_vRoomIDs.push_back(nDelete);
+	}
+	m_vWillDeleteRoom.clear();
+
+	IGlobalModule::onExit();
+}
+
 void IGameRoomManager::deleteRoom( uint32_t nRoomID )
 {
 	m_vWillDeleteRoom.push_back(nRoomID);

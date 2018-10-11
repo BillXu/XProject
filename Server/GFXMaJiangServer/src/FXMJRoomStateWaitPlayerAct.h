@@ -21,7 +21,7 @@ public:
 				if (pPlayer) {
 					auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
 					if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pCard->isTing()) {
-						setStateDuringTime(eTime_DoPlayerActChuPai);
+						setStateDuringTime(0.7);
 					}
 					else {
 						setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);

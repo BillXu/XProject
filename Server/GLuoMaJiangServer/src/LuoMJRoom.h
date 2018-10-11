@@ -85,6 +85,7 @@ public:
 	uint32_t getGuang();
 	bool isEnableSB1();
 	bool isEnableCaiGang();
+	bool isEnableHunPiao();
 
 	void addGain(uint8_t nIdx, stSettleGain stGain);
 	void clearGain();

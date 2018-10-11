@@ -202,10 +202,15 @@ bool FXMJRoom::isRoomOver() {
 
 void FXMJRoom::onGameEnd() {
 	Json::Value jsReal, jsPlayers;
-	settleInfoToJson(jsReal);
+	bool isHuangZhuang = true;
+	settleInfoToJson(jsReal, isHuangZhuang);
 
 	for (auto& ref : m_vPlayers) {
 		if (ref) {
+			if (isHuangZhuang) {
+				ref->clearSingleOffset();
+			}
+
 			Json::Value jsHoldCard, jsPlayer;
 			IMJPlayerCard::VEC_CARD vHoldCard;
 			((FXMJPlayer*)ref)->getPlayerCard()->getHoldCard(vHoldCard);
@@ -1478,12 +1483,13 @@ void FXMJRoom::addSettle(stSettle& tSettle) {
 	sendRoomMsg(jsItem, MSG_ROOM_FXMJ_REAL_TIME_CELL);
 }
 
-void FXMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
+void FXMJRoom::settleInfoToJson(Json::Value& jsRealTime, bool& isHuangZhuang) {
 	for (auto& ref : m_vSettle) {
 		Json::Value jsItem, jsRDetail;
 		jsItem["actType"] = ref.eSettleReason;
 		if (ref.eSettleReason == eMJAct_Hu) {
 			jsItem["msg"] = ref.jsHuMsg;
+			isHuangZhuang = false;
 		}
 
 		//uint32_t nTotalGain = 0;

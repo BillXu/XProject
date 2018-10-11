@@ -54,6 +54,13 @@ public:
 		m_nChips += nOffset;
 		return m_nCurOffset;
 	}
+	
+	void clearSingleOffset()
+	{
+		m_nChips -= m_nCurOffset;
+		m_nCurOffset = 0;
+	}
+
 	int32_t getChips()
 	{
 		return m_nChips;

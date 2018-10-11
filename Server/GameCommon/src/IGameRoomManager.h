@@ -15,6 +15,7 @@ public:
 	uint32_t generateSieralID();
 	uint32_t generateReplayID();
 	void update(float fDeta)override;
+	void onExit()override;
 	virtual IGameRoom* createRoom( uint8_t nGameType ) = 0;
 	void deleteRoom( uint32_t nRoomID );
 	void onConnectedSvr(bool isReconnected)override;

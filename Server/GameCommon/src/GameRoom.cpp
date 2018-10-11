@@ -602,10 +602,19 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 	{
 		Json::Value js;
 		uint32_t nTargetUID = prealMsg["targetUID"].asUInt();
+		auto targetPlayer = getPlayerByUID(nTargetUID);
+		uint32_t nTargetSessionID = 0;
+		if (targetPlayer) {
+			nTargetSessionID = targetPlayer->getSessionID();
+		}
 		uint8_t nRet = doPlayerLeaveRoom(nTargetUID) ? 0 : 2;
+		js = prealMsg;
 		js["ret"] = nRet;
 		js["roomID"] = getRoomID();
 		sendMsgToPlayer(js, nMsgType, nSessionID);
+		if (nRet == 0 && nTargetSessionID) {
+			sendMsgToPlayer(js, nMsgType, nTargetSessionID);
+		}
 		LOGFMTE("do player uid = %u kick player uid = %u, ret = %u", prealMsg["uid"].asUInt(), nTargetUID, nRet);
 	}
 	break;

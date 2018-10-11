@@ -40,6 +40,9 @@ IGamePlayer* LuoMJRoom::createGamePlayer()
 	if (isEnableSB1()) {
 		pPlayer->signEnableSB1();
 	}
+	if (isEnableHunPiao()) {
+		pPlayer->signEnableHunPiao();
+	}
 	return pPlayer;
 }
 
@@ -947,6 +950,10 @@ bool LuoMJRoom::isEnableSB1() {
 
 bool LuoMJRoom::isEnableCaiGang() {
 	return m_jsOpts["caiGang"].asBool();
+}
+
+bool LuoMJRoom::isEnableHunPiao() {
+	return m_jsOpts["hunPiao"].asBool();
 }
 
 void LuoMJRoom::addSettle(stSettle& tSettle) {

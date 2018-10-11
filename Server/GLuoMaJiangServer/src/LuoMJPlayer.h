@@ -17,6 +17,7 @@ public:
 	uint16_t getBestFan() { return m_nBestFan; }
 
 	void signEnableSB1() { m_tPlayerCard.signEnableSB1(); }
+	void signEnableHunPiao() { m_tPlayerCard.signEnableHunPiao(); }
 
 	void addExtraTime(float fTime);
 	float getExtraTime() { return m_nExtraTime; }
