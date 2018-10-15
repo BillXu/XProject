@@ -357,7 +357,7 @@ void LuoMJRoom::onPlayerCyclone(uint8_t nIdx, uint8_t nCard) {
 
 void LuoMJRoom::onPlayerBuGang(uint8_t nIdx, uint8_t nCard) {
 	auto pPlayer = (LuoMJPlayer*)getPlayerByIdx(nIdx);
-	if (pPlayer && pPlayer->getPlayerCard()->getNewestFetchedCard() == nCard) {
+	if (pPlayer/* && pPlayer->getPlayerCard()->getNewestFetchedCard() == nCard*/) {
 		stSettle st;
 		st.eSettleReason = eMJAct_BuGang;
 		uint16_t nWinCoin = 0;

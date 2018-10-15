@@ -98,7 +98,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_tAutoDismissTimer.reset();
 	m_tAutoDismissTimer.setInterval(TIME_AUTO_DISMISS);
 #ifdef _DEBUG
-	m_tAutoDismissTimer.setInterval(60 * 5);
+	m_tAutoDismissTimer.setInterval(60 * 10);
 #endif // _DEBUG
 
 	m_tAutoDismissTimer.setIsAutoRepeat(false);
@@ -268,6 +268,12 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	{
 	case MSG_REQUEST_ROOM_INFO:
 	{
+		if (checkPlayerInThisRoom(nSessionID) == false) {
+			prealMsg["ret"] = 1;
+			m_pRoom->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
+			return true;
+		}
+
 		LOGFMTD("reback room state and info msg to session id =%u", nSessionID);
 		sendRoomInfo(nSessionID);
 	}
@@ -1080,4 +1086,8 @@ void IPrivateRoom::doProcessWinerPayRoomCard()
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref, eAsync_Consume_Diamond, js);
 	}
 	return;
+}
+
+bool IPrivateRoom::checkPlayerInThisRoom(uint32_t nSessionID) {
+	return getCoreRoom()->checkPlayerInThisRoom(nSessionID);
 }

@@ -66,6 +66,8 @@ public:
 	uint16_t getPlayerCnt()override;
 	void setTempID(uint32_t nTempID) { m_nTempID = nTempID; }
 	uint32_t getTempID() { return m_nTempID; }
+
+	bool checkPlayerInThisRoom(uint32_t nSessionID)override;
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();

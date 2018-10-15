@@ -962,3 +962,15 @@ bool GameRoom::addReplayFrame(uint32_t nFrameType, Json::Value& jsFrameArg)
 	m_ptrGameReplay->addFrame(nFrameType, jsFrameArg);
 	return true;
 }
+
+bool GameRoom::checkPlayerInThisRoom(uint32_t nSessionID) {
+	if (getPlayerBySessionID(nSessionID)) {
+		return true;
+	}
+
+	if (getStandPlayerBySessionID(nSessionID)) {
+		return true;
+	}
+
+	return false;
+}

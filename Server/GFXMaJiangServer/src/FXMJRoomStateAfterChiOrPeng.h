@@ -77,6 +77,7 @@ public:
 		auto nCard = prealMsg["card"].asUInt();
 		auto pPlayer = (IMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
 		uint8_t nRet = 0;
+		uint8_t nTing = 0;
 		do
 		{
 			if (m_bPass) {
@@ -105,6 +106,29 @@ public:
 				if (!pMJCard->canCycloneWithCard(nCard))
 				{
 					nRet = 3;
+				}
+			}
+			break;
+			case eMJAct_AnGang:
+			{
+				if (!pMJCard->canAnGangWithCard(nCard))
+				{
+					nRet = 3;
+				}
+				else if (prealMsg["ting"].isUInt()) {
+					nTing = prealMsg["ting"].asUInt();
+				}
+			}
+			break;
+			case eMJAct_BuGang:
+			case eMJAct_BuGang_Declare:
+			{
+				if (!pMJCard->canBuGangWithCard(nCard))
+				{
+					nRet = 3;
+				}
+				else if (prealMsg["ting"].isUInt()) {
+					nTing = prealMsg["ting"].asUInt();
 				}
 			}
 			break;
@@ -139,6 +163,21 @@ public:
 		jsTran["act"] = actType;
 		jsTran["card"] = nCard;
 		jsTran["invokeIdx"] = m_nIdx;
+
+		if (nTing) {
+			jsTran["ting"] = nTing;
+		}
+
+		if (eMJAct_BuGang_Declare == actType || eMJAct_BuGang == actType)
+		{
+			pPlayer->signFlag(IMJPlayer::eMJActFlag_DeclBuGang);
+			if (((IMJRoom*)getRoom())->isAnyPlayerRobotGang(m_nIdx, nCard))
+			{
+				getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
+				return true;
+			}
+		}
+
 		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
 		return true;
 	}

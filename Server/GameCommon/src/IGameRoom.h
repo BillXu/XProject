@@ -33,5 +33,6 @@ public:
 	virtual IGamePlayer* getPlayerByIdx(uint16_t nIdx) = 0 ;
 	virtual uint16_t getSeatCnt() = 0;
 	virtual bool isRoomOver() { return false; }
+	virtual bool checkPlayerInThisRoom(uint32_t nSessionID) = 0;
 
 };

@@ -65,6 +65,8 @@ public:
 	bool isRoomOver() override;
 	virtual void decreaseLeftRound();
 	virtual bool applyDoDismissCheck();
+
+	bool checkPlayerInThisRoom(uint32_t nSessionID)override;
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();

@@ -986,9 +986,9 @@ void FXMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 }
 
 bool FXMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
-	if (isHaveCyclone() == false) {
+	/*if (isHaveCyclone() == false) {
 		return false;
-	}
+	}*/
 
 	auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer) {
@@ -1006,7 +1006,61 @@ bool FXMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
 		LOGFMTE("player idx = %u is null can not tell it wait act", nIdx);
 		return false;
 	}
-	if (isHaveCyclone() && isCanGoOnMoPai() && canGang()) {
+
+	if (canGang()) {
+		Json::Value jsArrayActs, jsFrameActs;
+		auto pMJCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+
+		// check bu gang .
+		IMJPlayerCard::VEC_CARD vCards;
+		pMJCard->getHoldCardThatCanBuGang(vCards);
+		for (auto& ref : vCards)
+		{
+			Json::Value jsAct;
+			jsAct["act"] = eMJAct_BuGang;
+			jsAct["cardNum"] = ref;
+			jsArrayActs[jsArrayActs.size()] = jsAct;
+			jsFrameActs[jsFrameActs.size()] = eMJAct_BuGang;
+		}
+		vCards.clear();
+		// check an gang .
+		pMJCard->getHoldCardThatCanAnGang(vCards);
+		for (auto& ref : vCards)
+		{
+			Json::Value jsAct;
+			jsAct["act"] = eMJAct_AnGang;
+			jsAct["cardNum"] = ref;
+			jsArrayActs[jsArrayActs.size()] = jsAct;
+			jsFrameActs[jsFrameActs.size()] = eMJAct_AnGang;
+		}
+		vCards.clear();
+		// check cyclone
+		if (isHaveCyclone() && pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone)) {
+			pMJCard->getHoldCardThatCanCyclone(vCards);
+			for (auto& ref : vCards)
+			{
+				Json::Value jsAct;
+				jsAct["act"] = eMJAct_Cyclone;
+				jsAct["cardNum"] = ref;
+				jsArrayActs[jsArrayActs.size()] = jsAct;
+				jsFrameActs[jsFrameActs.size()] = eMJAct_Cyclone;
+			}
+		}
+
+		if (jsArrayActs.size()) {
+			Json::Value jsMsg;
+			jsMsg["acts"] = jsArrayActs;
+			sendMsgToPlayer(jsMsg, MSG_ROOM_MQMJ_WAIT_ACT_AFTER_CP, pPlayer->getSessionID());
+
+			Json::Value jsFrameArg;
+			jsFrameArg["idx"] = nIdx;
+			jsFrameArg["act"] = jsFrameActs;
+			addReplayFrame(eMJFrame_WaitPlayerAct, jsFrameActs);
+			return true;
+		}
+	}
+
+	/*if (isHaveCyclone() && isCanGoOnMoPai() && canGang()) {
 		if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone)) {
 			auto pMJCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
 			IMJPlayerCard::VEC_CARD vCards;
@@ -1033,7 +1087,7 @@ bool FXMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
 				return true;
 			}
 		}
-	}
+	}*/
 	return false;
 }
 

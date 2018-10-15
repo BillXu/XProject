@@ -1,7 +1,7 @@
 #include "GateClient.h"
 #include "GateServer.h"
 #include "log4z.h"
-#define TIME_WAIT_RECONNECT 30
+#define TIME_WAIT_RECONNECT 360
 stGateClient::stGateClient()
 {
 	m_lpfCloseCallBack = nullptr;
