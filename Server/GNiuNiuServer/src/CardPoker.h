@@ -34,6 +34,7 @@ class CNiuNiuPoker
 {
 public:
 	void init(Json::Value& jsOpts)override;
+	void makeSpecialCard(std::vector<uint8_t>& vMakedCards)override;
 protected:
 	void LogCardInfo();
 };

@@ -62,6 +62,7 @@ public:
 	//void allPlayerAutoReady();
 	uint16_t getBankerIdx() { return m_nBankerIdx; }
 protected:
+	bool isEnalbeHuluNiu();
 	uint8_t getMiniBetTimes();
 	int16_t getBeiShuByCardType( uint16_t nType , uint16_t nPoint );
 	std::shared_ptr<IPlayerRecorder> createPlayerRecorderPtr()override;

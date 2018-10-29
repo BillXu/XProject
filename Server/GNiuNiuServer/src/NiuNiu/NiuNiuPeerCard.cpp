@@ -15,13 +15,18 @@ CNiuNiuPeerCard::CNiuNiuPeerCard(){
 	m_vHoldCards.resize(NIUNIU_HOLD_CARD_COUNT);
 }
 
-void CNiuNiuPeerCard::setOpts(bool isEnableFiveFlower, bool isEnableBoom, bool isEnableFiveSmall, bool isEnableShunKan, bool isEnableCrazy)
+void CNiuNiuPeerCard::setOpts(bool isEnableFiveFlower, bool isEnableBoom, bool isEnableFiveSmall, bool isEnableShunKan, bool isEnableCrazy, bool isEnableHulu )
 {
 	m_isEnableFiveFlower = isEnableFiveFlower;
 	m_isEnableBoom = isEnableBoom;
 	m_isEnableFiveSmall = isEnableFiveSmall;
 	m_isEnableShunKan = isEnableShunKan;
 	m_isEnableCrazy = isEnableCrazy;
+	m_isEnableHulu = isEnableHulu;
+	if (m_isEnableCrazy && m_isEnableHulu)
+	{
+		LOGFMTE( "can not enblae hulu niu while crazy is enable" );
+	}
 }
 
 CNiuNiuPeerCard::CardGroup CNiuNiuPeerCard::s_CardGroup[10] = { 
@@ -412,10 +417,15 @@ bool CNiuNiuPeerCard::checkTongHuaShun(std::vector<CCard>& vHoldCards)
 
 bool CNiuNiuPeerCard::checkHuLu(std::vector<CCard>& vHoldCards)
 {
-	if (m_isEnableCrazy == false)
+	if (m_isEnableCrazy == false && false == m_isEnableHulu )
 	{
 		return false;
 	}
+
+	//if ( false == m_isEnableHulu )
+	//{
+	//	return false;
+	//}
 
 	std::vector<uint8_t> vVec;
 	for (auto& ref : vHoldCards)

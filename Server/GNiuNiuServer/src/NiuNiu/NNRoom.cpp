@@ -17,6 +17,12 @@
 #include "IGameRoomDelegate.h"
 bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
+	if ( m_jsOpts["fengKuang"].asUInt() == 1 && m_jsOpts["huLu"].asUInt() == 1 )
+	{
+		LOGFMTE("can not enblae hulu niu while crazy is enable, room id = %u system disable hulu",nRoomID );
+		m_jsOpts["huLu"] = 0;
+	}
+
 	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
 	m_nLastNiuNiuIdx = -1;
 	m_nBankerIdx = -1;
@@ -76,8 +82,13 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 IGamePlayer* NNRoom::createGamePlayer()
 {
 	auto p = new NNPlayer();
-	p->getPlayerCard()->setOpts(m_jsOpts["wuHua"].asUInt() == 1 , m_jsOpts["zhaDan"].asUInt() == 1, m_jsOpts["wuXiao"].asUInt() == 1, m_jsOpts["shunKan"].asUInt() == 1, m_jsOpts["fengKuang"].asUInt() == 1 );
+	p->getPlayerCard()->setOpts(m_jsOpts["wuHua"].asUInt() == 1 , m_jsOpts["zhaDan"].asUInt() == 1, m_jsOpts["wuXiao"].asUInt() == 1, m_jsOpts["shunKan"].asUInt() == 1, m_jsOpts["fengKuang"].asUInt() == 1, m_jsOpts["huLu"].asUInt() == 1);
 	return p;
+}
+
+bool NNRoom::isEnalbeHuluNiu()
+{
+	return m_jsOpts["huLu"].asUInt() == 1;
 }
 
 void NNRoom::packRoomInfo(Json::Value& jsRoomInfo)
@@ -715,9 +726,23 @@ int16_t NNRoom::getBeiShuByCardType( uint16_t nType, uint16_t nPoint)
 		return m_eResultType == 0 ? 3 : 4;
 	};
 	break;
+	case CNiuNiuPeerCard::Niu_Hulu:
+	{
+		if ( isEnalbeHuluNiu() )
+		{
+			return 10;
+		}
+		
+		// when crazy niu niu mode ;
+		if ( 2 == m_eResultType )
+		{
+			return 10;
+		}
+		return 5;
+	}
+	break;
 	case CNiuNiuPeerCard::Niu_ShunZiNiu:
 	case CNiuNiuPeerCard::Niu_TongHuaNiu:
-	case CNiuNiuPeerCard::Niu_Hulu:
 	case CNiuNiuPeerCard::Niu_FiveFlower:
 	{
 		if (2 == m_eResultType)

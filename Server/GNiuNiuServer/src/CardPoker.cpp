@@ -130,33 +130,47 @@ void CNiuNiuPoker::init( Json::Value& jsOpts )
 	//tTmep.SetCard(CCard::eCard_Club, 13);
 	//vTemp.push_back( tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Diamond, 12);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//tTmep.SetCard(CCard::eCard_Club, 10);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//tTmep.SetCard(CCard::eCard_Diamond, 4);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//tTmep.SetCard(CCard::eCard_Diamond, 11);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//////2 
 	//tTmep.SetCard(CCard::eCard_Club, 3);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Diamond, 4);
+	//tTmep.SetCard(CCard::eCard_Diamond, 13);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//tTmep.SetCard(CCard::eCard_Diamond, 5);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+
+
+
+
+	//tTmep.SetCard(CCard::eCard_Heart, 13);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
 	//tTmep.SetCard(CCard::eCard_Club, 6);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
+	//tTmep.SetCard(CCard::eCard_Diamond, 4);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
 	//tTmep.SetCard(CCard::eCard_Diamond, 7);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//tTmep.SetCard(CCard::eCard_Heart, 4);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
 	//tTmep.SetCard(CCard::eCard_Diamond, 12);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//////2 
+
+
+
+
+
+
+
+
+
 
 	//////3 
 	//tTmep.SetCard(CCard::eCard_Club, 1);
@@ -196,6 +210,25 @@ void CNiuNiuPoker::init( Json::Value& jsOpts )
 	//}
 #endif // _DEBUG
 
+}
+
+void CNiuNiuPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
+{
+	std::vector<uint8_t> vTemp;
+	CCard tTmep;
+	tTmep.SetCard(CCard::eCard_Club, 13);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+	tTmep.SetCard(CCard::eCard_Diamond, 13);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+	tTmep.SetCard(CCard::eCard_Heart, 13);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 4);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+	tTmep.SetCard(CCard::eCard_Heart, 4);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	vMakedCards.swap(vTemp);
 }
 
 void CNiuNiuPoker::LogCardInfo()

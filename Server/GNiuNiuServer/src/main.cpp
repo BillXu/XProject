@@ -5,7 +5,7 @@
 void Test()
 {
 	CNiuNiuPeerCard ttPeer;
-	ttPeer.setOpts(true, true, true, true, true);
+	ttPeer.setOpts(true, true, true, true, true,true);
 
 	CCard tCard;
 	tCard.SetCard(CCard::eCard_Diamond, 7);

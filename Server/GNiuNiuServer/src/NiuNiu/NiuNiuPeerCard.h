@@ -38,7 +38,7 @@ public:
 	};
 public:
     CNiuNiuPeerCard();
-	void setOpts( bool isEnableFiveFlower, bool isEnableBoom, bool isEnableFiveSmall, bool isEnableShunKan, bool isEnableCrazy );
+	void setOpts( bool isEnableFiveFlower, bool isEnableBoom, bool isEnableFiveSmall, bool isEnableShunKan, bool isEnableCrazy, bool isEnableHulu );
 	void addCompositCardNum( uint8_t nCardCompositNum ) override ;
 	const char*  getNameString() override;
 	uint32_t getWeight() override;
@@ -125,4 +125,5 @@ protected:
 	bool m_isEnableFiveSmall;
 	bool m_isEnableShunKan;
 	bool m_isEnableCrazy;
+	bool m_isEnableHulu;
 };
