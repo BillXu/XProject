@@ -873,6 +873,10 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 		LOGFMTE( "already gave over , why invoker again room id = %u",getRoomID() );
 		return; 
 	}
+
+	//save not end game recorder
+	getCoreRoom()->saveGameRecorder();
+
 	// do close room ;
 	if ( isRoomStarted() )
 	{

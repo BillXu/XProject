@@ -147,6 +147,8 @@ bool GameRoom::doDeleteRoom()
 
 void GameRoom::onWillStartGame()
 {
+	m_bSaveRecorder = false;
+
 	for (auto& ref : m_vPlayers)
 	{
 		if ( ref )
@@ -209,14 +211,19 @@ void GameRoom::onGameDidEnd()
 	}
 }
 
-void GameRoom::onGameEnd()
-{
+void GameRoom::saveGameRecorder() {
+	if (m_bSaveRecorder) {
+		return;
+	}
+
+	m_bSaveRecorder = true;
+
 	// cacualte player offset ;
-	if (getDelegate() && getDelegate()->isEnableRecorder() )
+	if (getDelegate() && getDelegate()->isEnableRecorder())
 	{
 		for (auto& ref : m_vPlayers)
 		{
-			if ( !ref  || ref->haveState(eRoomPeer_StayThisRound) == false )
+			if (!ref || ref->haveState(eRoomPeer_StayThisRound) == false)
 			{
 				continue;
 			}
@@ -224,7 +231,7 @@ void GameRoom::onGameEnd()
 			auto pPlayerRecorder = createPlayerRecorderPtr();
 			if (false == ref->recorderVisitor(pPlayerRecorder))
 			{
-				LOGFMTE( "player recorder visitor error can not save , room id = %u, uid = %u",getRoomID(),ref->getUserUID());
+				LOGFMTE("player recorder visitor error can not save , room id = %u, uid = %u", getRoomID(), ref->getUserUID());
 				continue;
 			}
 			getCurRoundRecorder()->addPlayerRecorderInfo(pPlayerRecorder);
@@ -237,6 +244,37 @@ void GameRoom::onGameEnd()
 	{
 		m_ptrGameReplay->doSaveReplayToDB(getRoomMgr()->getSvrApp()->getAsynReqQueue());
 	}
+}
+
+void GameRoom::onGameEnd()
+{
+	saveGameRecorder();
+	//// cacualte player offset ;
+	//if (getDelegate() && getDelegate()->isEnableRecorder() )
+	//{
+	//	for (auto& ref : m_vPlayers)
+	//	{
+	//		if ( !ref  || ref->haveState(eRoomPeer_StayThisRound) == false )
+	//		{
+	//			continue;
+	//		}
+
+	//		auto pPlayerRecorder = createPlayerRecorderPtr();
+	//		if (false == ref->recorderVisitor(pPlayerRecorder))
+	//		{
+	//			LOGFMTE( "player recorder visitor error can not save , room id = %u, uid = %u",getRoomID(),ref->getUserUID());
+	//			continue;
+	//		}
+	//		getCurRoundRecorder()->addPlayerRecorderInfo(pPlayerRecorder);
+	//	}
+	//	getRoomRecorder()->addSingleRoundRecorder(getCurRoundRecorder());
+	//}
+
+	//// do save this game replay
+	//if (getDelegate() && getDelegate()->isEnableReplay())
+	//{
+	//	m_ptrGameReplay->doSaveReplayToDB(getRoomMgr()->getSvrApp()->getAsynReqQueue());
+	//}
 	
 	if (getDelegate())
 	{

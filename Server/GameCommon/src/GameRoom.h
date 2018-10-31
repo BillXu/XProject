@@ -68,6 +68,8 @@ public:
 	uint32_t getTempID() { return m_nTempID; }
 
 	bool checkPlayerInThisRoom(uint32_t nSessionID)override;
+
+	void saveGameRecorder();
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();
@@ -94,4 +96,6 @@ private:
 	std::shared_ptr<MJReplayGame> m_ptrGameReplay;
 	IGameRoomState* m_pCurState;
 	std::map<uint32_t, IGameRoomState*> m_vAllState;
+
+	bool m_bSaveRecorder = true;
 };

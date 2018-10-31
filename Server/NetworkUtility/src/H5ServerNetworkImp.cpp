@@ -162,7 +162,16 @@ void H5ServerNetworkImp::on_close( websocketpp::connection_hdl hdl, bool isServe
 	}
 	else
 	{
-		m_pNetServer.close(hdl, websocketpp::close::status::normal, "invalid");
+		try
+		{
+			m_pNetServer.close(hdl, websocketpp::close::status::normal, "invalid");
+		}
+		catch (const std::exception&)
+		{
+			LOGFMTE("svr do client after closeSession end id = %u, error", nConnectID);
+		}
+		
+		//m_pNetServer.close(hdl, websocketpp::close::status::normal, "invalid");
 //#ifdef _DEBUG
 		LOGFMTD("svr do client after closeSession end id = %u", nConnectID);
 //#endif // _DEBUG

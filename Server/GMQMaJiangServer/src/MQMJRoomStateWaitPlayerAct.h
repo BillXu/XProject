@@ -10,6 +10,7 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		if (jsTranData["idx"].isNull() == false && jsTranData["idx"].isUInt())
 		{
+			m_isCanPass = false;
 			m_nIdx = jsTranData["idx"].asUInt();
 			auto pRoom = (MQMJRoom*)getRoom();
 			pRoom->onWaitPlayerAct(m_nIdx, m_isCanPass);
@@ -19,7 +20,7 @@ public:
 			else {
 				auto pPlayer = pRoom->getPlayerByIdx(m_nIdx);
 				if (pPlayer) {
-					if (pPlayer->haveState(eRoomPeer_AlreadyHu) || ((MQMJRoom*)pmjRoom)->needChu() == false) {
+					if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pRoom->needChu() == false) {
 						setStateDuringTime(0.5);
 					}
 					else {
@@ -67,55 +68,32 @@ public:
 			return;
 		}
 		if (pRoom->needChu()) {
-			auto nCard = ((IMJRoom*)getRoom())->getAutoChuCardWhenWaitActTimeout(m_nIdx);
+			auto nCard = pRoom->getAutoChuCardWhenWaitActTimeout(m_nIdx);
 			LOGFMTE("wait time out , auto chu card = %u idx = %u", nCard, m_nIdx);
 			Json::Value jsTran;
 			jsTran["idx"] = m_nIdx;
 			jsTran["act"] = eMJAct_Chu;
 			jsTran["card"] = nCard;
-			getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+			pRoom->goToState(eRoomState_DoPlayerAct, &jsTran);
 		}
 		else if(pRoom->isCanGoOnMoPai()){
 			auto nIdx = pRoom->getNextActPlayerIdx(m_nIdx);
 			Json::Value jsTran;
 			jsTran["idx"] = nIdx;
 			jsTran["act"] = eMJAct_Mo;
-			getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+			pRoom->goToState(eRoomState_DoPlayerAct, &jsTran);
 		}
 		else {
-			getRoom()->goToState(eRoomState_GameEnd);
+			pRoom->goToState(eRoomState_GameEnd);
 		}
 		
 	}
 
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)override {
-		/*if (MSG_PLAYER_ACT == nMsgType)
-		{
-			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
-
-			if (pPlayer == nullptr)
-			{
-				LOGFMTE("you are not in room  why req act list");
-				return false;
-			}
-
-			auto actType = prealMsg["actType"].asUInt();
-			if (eMJAct_Pass == actType)
-			{
-				if (pPlayer->haveState(eRoomPeer_AlreadyHu)) {
-					setStateDuringTime(0);
-				}
-				else {
-					auto pRoom = (MQMJRoom*)getRoom();
-					setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);
-				}
-				return true;
-			}
-		}*/
-
+		auto pRoom = (MQMJRoom*)getRoom();
+		auto pPlayer = (MQMJPlayer*)pRoom->getPlayerBySessionID(nSessionID);
 		if (MSG_REQ_ACT_LIST == nMsgType)
 		{
-			auto pPlayer = getRoom()->getPlayerBySessionID(nSessionID);
 			if (pPlayer == nullptr)
 			{
 				LOGFMTE("you are not in room  why req act list");
@@ -130,7 +108,7 @@ public:
 
 			if (m_isCanPass)
 			{
-				((IMJRoom*)getRoom())->onWaitPlayerAct(m_nIdx, m_isCanPass);
+				pRoom->onWaitPlayerAct(m_nIdx, m_isCanPass);
 			}
 			return true;
 		}
@@ -139,10 +117,10 @@ public:
 		{
 			return false;
 		}
-
+		
 		auto actType = prealMsg["actType"].asUInt();
 		auto nCard = prealMsg["card"].asUInt();
-		auto pPlayer = (MQMJPlayer*)getRoom()->getPlayerBySessionID(nSessionID);
+		
 		uint8_t nRet = 0;
 		do
 		{
@@ -164,7 +142,7 @@ public:
 			{
 			case eMJAct_Chu:
 			{
-				if (!pMJCard->isHaveCard(nCard) || ((MQMJRoom*)getRoom())->needChu() == false)
+				if (!pMJCard->isHaveCard(nCard) || pRoom->needChu() == false)
 				{
 					nRet = 3;
 				}
@@ -217,13 +195,19 @@ public:
 		{
 			Json::Value jsRet;
 			jsRet["ret"] = nRet;
-			getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 			return true;
 		}
 
 		if (eMJAct_Pass == actType)
 		{
-			setStateDuringTime(100000000);
+			if (pRoom->needChu()) {
+				setStateDuringTime(100000000);
+			}
+			else {
+				m_isCanPass = false;
+				setStateDuringTime(0);
+			}
 			return true;
 		}
 
@@ -236,13 +220,13 @@ public:
 		if (eMJAct_BuGang_Declare == actType || eMJAct_BuGang == actType)
 		{
 			pPlayer->signFlag(IMJPlayer::eMJActFlag_DeclBuGang);
-			if (((IMJRoom*)getRoom())->isAnyPlayerRobotGang(m_nIdx, nCard))
+			if (pRoom->isAnyPlayerRobotGang(m_nIdx, nCard))
 			{
-				getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
+				pRoom->goToState(eRoomState_AskForRobotGang, &jsTran);
 				return true;
 			}
 		}
-		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+		pRoom->goToState(eRoomState_DoPlayerAct, &jsTran);
 		return true;
 
 		//return MJRoomStateWaitPlayerAct::onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);

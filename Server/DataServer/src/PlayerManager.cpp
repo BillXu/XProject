@@ -955,10 +955,11 @@ bool CPlayerManager::initGateIP() {
 		case 2:
 		{
 			//vIPs.push_back("101.132.252.171");
+
 			vIPs.push_back("39.107.56.128");
-			vIPs.push_back("47.93.125.150");
+			/*vIPs.push_back("47.93.125.150");
 			vIPs.push_back("47.95.38.36");
-			vIPs.push_back("39.107.60.216");
+			vIPs.push_back("39.107.60.216");*/
 
 			//vIPs.push_back("101.132.254.32");
 			//vIPs.push_back("101.132.248.195");
@@ -974,13 +975,14 @@ bool CPlayerManager::initGateIP() {
 			vIPs.push_back("47.93.208.120");
 			vIPs.push_back("47.94.43.128");
 			vIPs.push_back("101.201.180.207");
-			vIPs.push_back("47.95.38.201");
+			/*vIPs.push_back("47.95.38.201");
 			vIPs.push_back("47.94.34.80");
 			vIPs.push_back("39.107.60.66");
 			vIPs.push_back("47.93.125.14");
 			vIPs.push_back("39.107.203.121");
 			vIPs.push_back("47.94.33.210");
-			vIPs.push_back("47.95.34.232");
+			vIPs.push_back("47.95.34.232");*/
+
 			//vIPs.push_back("101.132.252.171");
 		}
 		break;

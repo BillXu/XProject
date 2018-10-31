@@ -631,16 +631,11 @@ void MQMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 		return;
 	}
 
-	if (!pPlayer)
-	{
-		LOGFMTE("player idx = %u is null can not tell it wait act", nIdx);
-		return;
-	}
 	auto pMJCard = (MQMJPlayerCard*)pPlayer->getPlayerCard();
 	// send msg to tell player do act 
 	Json::Value jsArrayActs;
 	Json::Value jsFrameActs;
-	if (isCanGoOnMoPai() && canGang())
+	if (/*isCanGoOnMoPai() && */canGang())
 	{
 		// check bu gang .
 		IMJPlayerCard::VEC_CARD vCards;

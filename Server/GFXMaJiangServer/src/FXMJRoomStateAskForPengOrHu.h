@@ -379,10 +379,16 @@ public:
 		break;
 		}
 
+		if (pRoom->isGameOver())
+		{
+			pRoom->goToState(eRoomState_GameEnd);
+			return;
+		}
+
 		Json::Value jsTran;
 		jsTran["idx"] = pRoom->getNextActPlayerIdx(m_nInvokeIdx);
 		jsTran["act"] = eMJAct_Mo;
-		getRoom()->goToState(eRoomState_DoPlayerAct, &jsTran);
+		pRoom->goToState(eRoomState_DoPlayerAct, &jsTran);
 	}
 protected:
 	uint8_t m_nTing;

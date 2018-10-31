@@ -132,6 +132,17 @@ public:
 				}
 			}
 			break;
+			case eMJAct_Chu:
+			{
+				if (!pMJCard->isHaveCard(nCard) || pMJCard->isTing())
+				{
+					nRet = 3;
+				}
+				else if (prealMsg["ting"].isUInt()) {
+					nTing = prealMsg["ting"].asUInt();
+				}
+			}
+			break;
 			case eMJAct_Pass:
 			{
 				m_bPass = true;
