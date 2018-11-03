@@ -19,6 +19,7 @@ public:
 		m_isOnline = true;
 		m_nState = 0;
 		m_nCurOffset = 0;
+		m_nRace = 0;
 		setState(eRoomPeer_WaitNextGame);
 	}
 
@@ -59,6 +60,16 @@ public:
 	{
 		m_nChips -= m_nCurOffset;
 		m_nCurOffset = 0;
+	}
+
+	void setRace(uint32_t nRace = 0)
+	{
+		m_nRace = nRace;
+	}
+
+	uint32_t getRace()
+	{
+		return m_nRace;
 	}
 
 	int32_t getChips()
@@ -127,4 +138,5 @@ private:
 	uint16_t m_nIdx;
 	int32_t m_nChips;
 	uint32_t m_nState;
+	uint32_t m_nRace;
 };

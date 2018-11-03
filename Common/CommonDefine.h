@@ -226,6 +226,8 @@ enum eFanxingType
 	eFanxing_BianHu, //±ßÕÅ
 	eFanxing_JiaHu, //¼Ðºú
 
+	eFanxing_13Yao, //13çÛ
+
 	eFanxing_Max, // Ã»ÓÐºú
 };
 
