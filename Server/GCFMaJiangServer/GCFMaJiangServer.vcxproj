@@ -87,6 +87,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\CFMJFanxing13Yao.h" />
+    <ClInclude Include="src\CFMJFanxingChecker.h" />
+    <ClInclude Include="src\CFMJFanxingShuang7Dui.h" />
     <ClInclude Include="src\MJPrivateRoom.h" />
     <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJServer.h" />

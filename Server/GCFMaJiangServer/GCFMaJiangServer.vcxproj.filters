@@ -39,6 +39,15 @@
     <ClInclude Include="src\CFMJRoom.h">
       <Filter>src\CFMJ</Filter>
     </ClInclude>
+    <ClInclude Include="src\CFMJFanxing13Yao.h">
+      <Filter>src\FanXing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJFanxingChecker.h">
+      <Filter>src\FanXing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJFanxingShuang7Dui.h">
+      <Filter>src\FanXing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
