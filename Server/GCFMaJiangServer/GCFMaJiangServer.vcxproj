@@ -90,6 +90,12 @@
     <ClInclude Include="src\CFMJFanxing13Yao.h" />
     <ClInclude Include="src\CFMJFanxingChecker.h" />
     <ClInclude Include="src\CFMJFanxingShuang7Dui.h" />
+    <ClInclude Include="src\CFMJRoomStateAfterChiOrPeng.h" />
+    <ClInclude Include="src\CFMJRoomStateAskForPengOrHu.h" />
+    <ClInclude Include="src\CFMJRoomStateAskForRobotGang.h" />
+    <ClInclude Include="src\CFMJRoomStateDoPlayerAct.h" />
+    <ClInclude Include="src\CFMJRoomStateStartGame.h" />
+    <ClInclude Include="src\CFMJRoomStateWaitPlayerAct.h" />
     <ClInclude Include="src\MJPrivateRoom.h" />
     <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJServer.h" />

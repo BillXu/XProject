@@ -1,4 +1,9 @@
 #include "CFMJPlayer.h"
+void CFMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
+	IMJPlayer::init(pData, nIdx);
+	m_nExtraTime = 0;
+}
+
 IMJPlayerCard* CFMJPlayer::getPlayerCard()
 {
 	return &m_tPlayerCard;
@@ -7,9 +12,8 @@ IMJPlayerCard* CFMJPlayer::getPlayerCard()
 void CFMJPlayer::onGameWillStart() {
 	IMJPlayer::onGameWillStart();
 	setRace();
-	clearLouHu();
 }
 
-void CFMJPlayer::clearLouHu() {
-	m_nLouHuCnt = 0;
+void CFMJPlayer::addExtraTime(float fTime) {
+	m_nExtraTime += fTime;
 }

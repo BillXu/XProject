@@ -4,6 +4,7 @@
 class CFMJFanxingShuang7Dui
 	: public IFanxing
 {
+public:
 	uint16_t getFanxingType()override { return eFanxing_ShuangQiDui; };
 	bool checkFanxing(IMJPlayerCard* pPlayerCard, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom)override
 	{

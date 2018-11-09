@@ -123,6 +123,7 @@
     <ClInclude Include="src\MJReplayFrameType.h" />
     <ClInclude Include="src\MJRoomStateAskForPengOrHu.h" />
     <ClInclude Include="src\MJRoomStateAskForRobotGang.h" />
+    <ClInclude Include="src\MJRoomStateAutoStartWaitReady.h" />
     <ClInclude Include="src\MJRoomStateDoPlayerAct.h" />
     <ClInclude Include="src\MJRoomStateGameEnd.h" />
     <ClInclude Include="src\MJRoomStateStartGame.h" />

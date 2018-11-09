@@ -183,7 +183,7 @@ void CPlayerBrifDataCacher::visitBrifData(Json::Value& jsBrifData, CPlayer* pPla
 
 	auto gd = (CPlayerGameData*)pPlayer->getComponent(ePlayerComponent_PlayerGameData);
 	jsBrifData["isInRoom"] = gd->getStayInRoom().isEmpty() ? 0 : 1;
-	jsBrifData["isOnline"] = 1;
+	jsBrifData["isOnline"] = /*1*/pPlayer->isState(CPlayer::ePlayerState_Online) ? 1 : 0;
 }
 
 void CPlayerBrifDataCacher::checkState()

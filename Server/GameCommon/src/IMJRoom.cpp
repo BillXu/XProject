@@ -238,7 +238,7 @@ void IMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass)
 	// send msg to tell player do act 
 	Json::Value jsArrayActs;
 	Json::Value jsFrameActs;
-	if ( isCanGoOnMoPai() )
+	if ( canGang() )
 	{
 		// check bu gang .
 		IMJPlayerCard::VEC_CARD vCards;

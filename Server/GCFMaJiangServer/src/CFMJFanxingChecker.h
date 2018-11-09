@@ -8,6 +8,10 @@ class CFMJFanxingChecker
 	:public FanxingChecker
 {
 public:
+	CFMJFanxingChecker() {
+		init();
+	}
+
 	void init() {
 		addFanxing(new FanxingDuiDuiHu());
 		addFanxing(new Fanxing7Dui());
@@ -20,6 +24,29 @@ public:
 			return m_vFanxing[nType]->checkFanxing(pPlayer->getPlayerCard(), pPlayer, nInvokerIdx, pmjRoom);
 		}
 		return false;
+	}
+
+	void checkFanxing(std::vector<eFanxingType>& vFanxing, IMJPlayerCard* pCard, uint8_t nInvokerIdx, IMJRoom* pmjRoom) {
+		bool is7Dui = false;
+		for (auto& ref : m_vFanxing)
+		{
+			if (ref.first == eFanxing_ShuangQiDui) {
+				if (!is7Dui) {
+					continue;
+				}
+			}
+
+			if (ref.second->checkFanxing(pCard, nullptr, nInvokerIdx, pmjRoom))
+			{
+				vFanxing.push_back((eFanxingType)ref.first);
+				if (ref.first == eFanxing_QiDui) {
+					is7Dui = true;
+				}
+				else if (ref.first == eFanxing_ShuangQiDui) {
+					eraseVectorOfAll(eFanxing_QiDui, vFanxing);
+				}
+			}
+		}
 	}
 
 	void checkFanxing(std::vector<eFanxingType>& vFanxing, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom)override {

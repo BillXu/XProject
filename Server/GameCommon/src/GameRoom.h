@@ -70,6 +70,8 @@ public:
 	bool checkPlayerInThisRoom(uint32_t nSessionID)override;
 
 	void saveGameRecorder();
+	virtual bool isHaveRace() { return false; }
+	virtual void onWaitRace(uint8_t nIdx = -1) {}
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();

@@ -22,4 +22,5 @@ enum eMJFrameType
 	eMJFrame_Chi,// { invokerIdx : 0 ,idx : 3, card : 23, eatWith : [ 23,23] }
 	eMJFrame_Cyclone, // { idx : 2 , gang : 2 , newCard : 23 }
 	eMJFrame_Ting, // {idx : 2, ting : 1}
+	eMJFrame_Xia_Zhu, // { races : { {idx : 0 , race : 5}, {}... } }
 };

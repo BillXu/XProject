@@ -7,10 +7,12 @@ class CFMJPlayer
 public:
 	IMJPlayerCard* getPlayerCard()override;
 	void onGameWillStart()override;
-	void clearLouHu();
-	void setLouHuCnt(uint8_t louHuCnt) { m_nLouHuCnt = louHuCnt; }
-	uint8_t getLouHuCnt() { return m_nLouHuCnt; }
+	void addExtraTime(float fTime);
+	float getExtraTime() { return m_nExtraTime; }
+	void init(stEnterRoomData* pData, uint16_t nIdx)override;
+	void clearGangFlag() { clearFlag(eMJActFlag_Gang); }
+	bool haveGangFlag() { return haveFlag(eMJActFlag_Gang); }
 protected:
 	CFMJPlayerCard m_tPlayerCard;
-	uint8_t m_nLouHuCnt = 0;
+	float m_nExtraTime;
 };

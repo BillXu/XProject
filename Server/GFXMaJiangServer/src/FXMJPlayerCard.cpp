@@ -681,10 +681,15 @@ bool FXMJPlayerCard::check3Men() {
 		return card_Type(tCard) == eCT_Tiao;
 	}) != vTemp.end()) ? 1 : 0;
 
+	bool bHaveFengOrJian = m_vCards[eCT_Feng].size() > 0 || m_vCards[eCT_Jian].size() > 0 || std::find_if(vTemp.begin(), vTemp.end(), [](uint8_t tCard) {
+		auto tType = card_Type(tCard);
+		return tType == eCT_Feng || tType == eCT_Jian;
+	}) != vTemp.end();
+
 	if (nTypeCnt == 3) {
 		return true;
 	}
-	else if (isEnableOOT() && nTypeCnt < 2) {
+	else if (isEnableOOT() && nTypeCnt < 2 && bHaveFengOrJian == false) {
 		return true;
 	}
 	return false;

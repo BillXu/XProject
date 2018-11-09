@@ -10,7 +10,7 @@ bool CMJServerApp::init(Json::Value& jsSvrCfg)
 
 uint16_t CMJServerApp::getLocalSvrMsgPortType()
 {
-	return ID_MSG_PORT_MJ;
+	return ID_MSG_PORT_CFMJ;
 }
 
 IGlobalModule* CMJServerApp::createModule(uint16_t eModuleType)

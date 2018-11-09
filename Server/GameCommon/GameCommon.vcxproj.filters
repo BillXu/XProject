@@ -178,5 +178,8 @@
     <ClInclude Include="src\FanxingHaiDiLaoYue.h">
       <Filter>src\MJBase\Fanxing</Filter>
     </ClInclude>
+    <ClInclude Include="src\MJRoomStateAutoStartWaitReady.h">
+      <Filter>src\MJBase\state</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

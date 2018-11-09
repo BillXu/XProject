@@ -19,6 +19,9 @@ enum eMsgPort
 	ID_MSG_PORT_MQMJ,
 	ID_MSG_PORT_LUOMJ,
 	ID_MSG_PORT_FXMJ,
+	ID_MSG_PORT_CFMJ,
+	ID_MSG_PORT_AHMJ,
+	ID_MSG_PORT_NCMJ,
 	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_MAX,
 };
@@ -684,6 +687,10 @@ enum eMsgType
 	// sur : {diamond : 0, sharetimes : 0}
 
 	MSG_PLAYER_REFRESH_GATE_IP, //刷新gateIP
+
+	MSG_ROOM_CHIFENG_MAJIANG_BEGIN = 2300, //赤峰麻将命令号开始标识
+
+	MSG_ROOM_CF_GUA_PU, //赤峰麻将挂铺消息
 
 
 

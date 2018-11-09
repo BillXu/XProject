@@ -19,6 +19,9 @@
     <Filter Include="src\FanXing">
       <UniqueIdentifier>{7c9ed394-38d2-4538-86b3-8a90d9629260}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\state">
+      <UniqueIdentifier>{7a7eb177-586e-4049-a5dc-e654be6f3299}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MJRoomManager.h">
@@ -47,6 +50,24 @@
     </ClInclude>
     <ClInclude Include="src\CFMJFanxingShuang7Dui.h">
       <Filter>src\FanXing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJRoomStateStartGame.h">
+      <Filter>src\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJRoomStateAskForPengOrHu.h">
+      <Filter>src\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJRoomStateAskForRobotGang.h">
+      <Filter>src\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJRoomStateDoPlayerAct.h">
+      <Filter>src\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJRoomStateWaitPlayerAct.h">
+      <Filter>src\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJRoomStateAfterChiOrPeng.h">
+      <Filter>src\state</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
