@@ -59,8 +59,10 @@ public:
 	void onPlayerBuGang(uint8_t nIdx, uint8_t nCard)override;
 	void onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t nInvokeIdx)override;
 	bool isHaveLouHu()override { return false; }
+	void onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx)override;
 	void onPlayerLouHu(uint8_t nIdx, uint8_t nInvokerIdx)override;
 	bool onWaitPlayerActAfterCP(uint8_t nIdx);
+	bool isGameOver()override;
 
 	bool isOneCircleEnd() { return m_bOneCircleEnd; }
 	void signOneCircleEnd() { m_bOneCircleEnd = true; }
@@ -76,6 +78,7 @@ protected:
 	void doProduceNewBanker();
 	void setNextBankerIdx(uint8_t nHuIdx = -1);
 	void sendStartGameMsg();
+	void sendWillStartGameMsg();
 
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime, bool& bHuangZhuang);

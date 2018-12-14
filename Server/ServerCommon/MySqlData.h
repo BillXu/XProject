@@ -16,6 +16,7 @@ enum eValueType
 	eValue_Binary,
 	eValue_Char,
 	eValue_Short,
+	eValue_Uint,
 	eValue_Max,
 };
 struct stMysqlField
@@ -70,6 +71,7 @@ public:
 public:
 	stMysqlField(const char* pName,int nLen):strFieldName(pName,nLen){ pBuffer = NULL ;}
 	int IntValue();
+	unsigned int UintValue();
 	__int64 IntValue64();
 	float FloatValue();
 	double DoubleValue();

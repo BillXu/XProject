@@ -32,6 +32,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 		return false;
 	}
 	m_pRoom->setDelegate(this);
+	m_tCreateTime = time(nullptr);
 
 	// init member 
 	m_nAutoStartCnt = 0;
@@ -152,7 +153,7 @@ uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 
 	if ( isWinerPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, getPayType() ))
 	{
-		return false;
+		return 8;
 	}
 
 	if ( m_pRoom )
@@ -571,6 +572,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 		}
 		jsMsg["players"] = jsArrayUIDs;
 		jsMsg["leftRound"] = m_nLeftRounds;
+		jsMsg["createTime"] = m_tCreateTime;
 		sendMsgToPlayer(jsMsg, nMsgType, nSessionID );
 	}
 	break;
@@ -623,6 +625,13 @@ uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType 
 	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, nPayType,getSeatCnt() );
 }
 
+uint32_t IPrivateRoom::getSitDownDiamondConsume() {
+	if (isAAPay() || isWinerPay()) {
+		return getDiamondNeed(m_nRoundLevel, getPayType());
+	}
+	return 0;
+}
+
 void IPrivateRoom::sendRoomPlayersInfo(uint32_t nSessionID)
 {
 	if (getCoreRoom())
@@ -650,6 +659,7 @@ void IPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["pState"] = m_nPrivateRoomState;
 	// is waiting vote dismiss room ;
 	jsRoomInfo["isWaitingDismiss"] = m_bWaitDismissReply ? 1 : 0;
+	jsRoomInfo["createTime"] = m_tCreateTime;
 	packCreateUIDInfo(jsRoomInfo);
 
 	int32_t nLeftSec = 0;
@@ -686,6 +696,10 @@ void IPrivateRoom::packRoomInfo(Json::Value& jsRoomInfo)
 
 }
 
+void IPrivateRoom::packStartGameMsg(Json::Value& jsMsg) {
+	jsMsg["leftCircle"] = m_nLeftRounds;
+}
+
 void IPrivateRoom::sendRoomInfo(uint32_t nSessionID)
 {
 	// send room info ;
@@ -714,14 +728,16 @@ bool IPrivateRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinI
 	return m_pRoom->onPlayerSetNewSessionID(nPlayerID, nSessinID);
 }
 
-// delegate interface 
-void IPrivateRoom::onStartGame(IGameRoom* pRoom)
-{
-	if ( eState_WaitStart == m_nPrivateRoomState)
+// delegate interface
+void IPrivateRoom::onWillStartGame(IGameRoom* pRoom) {
+	if (eState_WaitStart == m_nPrivateRoomState)
 	{
 		m_nPrivateRoomState = eState_Started;
 	}
+}
 
+void IPrivateRoom::onStartGame(IGameRoom* pRoom)
+{
 	if ( isClubRoom() && m_nLeftRounds == getInitRound( m_nRoundLevel ) )
 	{
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
@@ -875,7 +891,7 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	}
 
 	//save not end game recorder
-	getCoreRoom()->saveGameRecorder();
+	getCoreRoom()->saveGameRecorder(isDismissed);
 
 	// do close room ;
 	if ( isRoomStarted() )

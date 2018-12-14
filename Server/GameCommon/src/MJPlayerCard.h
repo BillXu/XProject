@@ -39,6 +39,7 @@ public:
 	bool canHuWitCard( uint8_t nCard) override;
 	bool isHoldCardCanHu( uint8_t& nJiang ) override;
 	bool isTingPai() override;
+	bool isTing() override { return false; }
 
 	void onMoCard(uint8_t nMoCard) final;
 	bool onPeng(uint8_t nCard, uint16_t nInvokerIdx ) final;

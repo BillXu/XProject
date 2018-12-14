@@ -339,6 +339,10 @@ enum eMsgType
 	MSG_DDZ_ROOM_TI_LA_CHUAI,
 	// svr: { idx : 0 , isTiLaChuai : 0 }
 
+	MSG_DDZ_PLAYER_DOUBLE,
+	// svr : {ret : 0} if 0 add {idx : 0} send all
+	// svr : {state : 1} //开始加倍触发消息
+
 	MSG_DDZ_MAX = 1500,
 
 	    // club msg 
@@ -691,6 +695,14 @@ enum eMsgType
 	MSG_ROOM_CHIFENG_MAJIANG_BEGIN = 2300, //赤峰麻将命令号开始标识
 
 	MSG_ROOM_CF_GUA_PU, //赤峰麻将挂铺消息
+	// svr : {races : { 0, 2, 4 }}
+
+	MSG_PLAYER_DO_GUA_PU, //赤峰麻将挂铺消息
+	// client : {race : 0}
+	// svr : {ret : 0, idx : 0, race : 0}
+
+	MSG_ROOM_CFMJ_GAME_WILL_START, //赤峰麻将游戏对铺之前的消息
+	// svr : {leftCircle : 1, bankerIdx : 0}
 
 
 

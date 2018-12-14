@@ -2,6 +2,11 @@
 #include "log4z.h"
 #include "FXMJRoom.h"
 #include "FXMJPlayer.h"
+bool MJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts) {
+	m_mPreSitIdxes.clear();
+	return IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
+}
+
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new FXMJRoom();
@@ -77,4 +82,18 @@ void MJPrivateRoom::decreaseLeftRound() {
 
 bool MJPrivateRoom::applyDoDismissCheck() {
 	return m_vPlayerAgreeDismissRoom.size() + 1 >= getPlayerCnt();
+}
+
+bool MJPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
+	//TODO
+	if (m_mPreSitIdxes.count(pEnterRoomPlayer->nUserUID)) {
+		pEnterRoomPlayer->nPreSitIdx = m_mPreSitIdxes[pEnterRoomPlayer->nUserUID];
+	}
+
+	return IPrivateRoom::onPlayerEnter(pEnterRoomPlayer);
+}
+
+void MJPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer) {
+	//TODO
+	m_mPreSitIdxes[pPlayer->getUserUID()] = pPlayer->getIdx();
 }

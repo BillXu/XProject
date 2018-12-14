@@ -54,6 +54,7 @@ public:
 	uint16_t getMgrCnt();
 	uint32_t getCreatorUID();
 	uint32_t getCreatorDiamond();
+	bool isCreatorReady();
 	bool modifyCreatorDiamond(int32_t nDiamond);
 	void onWillDismiss();
 	void readClubDetail();
@@ -65,6 +66,7 @@ public:
 	bool sendMsg(Json::Value& recvValue, uint16_t nMsgID, uint32_t nSenderUID, uint32_t nTargetID, uint8_t nTargetPort = ID_MSG_PORT_CLIENT );
 	void update(float fDeta);
 	uint32_t getDiamond() { return m_nDiamond; }
+	bool checkDiamondEnough(uint32_t nOffset, uint32_t nRoomID);
 	void updateDiamond(int32_t nDiamond, uint32_t nRoomID = 0);
 	bool isPasuseState() { return 1 == m_nState; }
 	std::string getName() { return m_strName; }

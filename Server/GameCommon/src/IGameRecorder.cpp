@@ -7,6 +7,7 @@ void ISingleRoundRecorder::init(uint16_t nRoundIdx, uint32_t nFinish, uint32_t n
 	m_nRoundIdx = nRoundIdx;
 	m_nFinishTime = nFinish;
 	m_nReplayID = nReplayID;
+	clearDidmiss();
 }
 
 uint16_t ISingleRoundRecorder::getRoundIdx()
@@ -61,12 +62,12 @@ void ISingleRoundRecorder::doSaveRoomRecorder( IGameRoomRecorder* pOwnRoomRecord
 	}
 
 #ifdef _DEBUG
-	return;
+	//return;
 #endif // _DEBUG
 	// do save sql  room round recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, sizeof(pBuffer), "insert into room_record_per_round ( sieralNum,roomType,roundIdx,replayID,time,resultDetail ) values (%u,%u,%u,%u,from_unixtime( %u ),",pOwnRoomRecorder->getSieralNum(),nRoomType,m_nRoundIdx,m_nReplayID,m_nFinishTime );
+	sprintf_s(pBuffer, sizeof(pBuffer), "insert into room_record_per_round ( sieralNum,roomType,roundIdx,replayID,time,dismiss,resultDetail ) values (%u,%u,%u,%u,from_unixtime( %u ),%u,",pOwnRoomRecorder->getSieralNum(),nRoomType,m_nRoundIdx,m_nReplayID,m_nFinishTime,m_bDismiss ? 1 : 0 );
 	std::ostringstream ss;
 	ss << pBuffer << " '" << jsPlayers << "' ) ;";
 	jssql["sql"] = ss.str();
@@ -142,7 +143,7 @@ uint16_t IGameRoomRecorder::getRoundRecorderCnt()
 void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 {
 #ifdef _DEBUG
-	return;
+	//return;
 #endif // _DEBUG
 	if ( m_vAllRoundRecorders.empty())
 	{
@@ -160,7 +161,7 @@ void IGameRoomRecorder::doSaveRoomRecorder( CAsyncRequestQuene* pSyncQuene )
 	// do save sql  room recorder 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,clubID,roomType,opts ) values (%u,%u,%u,%u,'%u',", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nClubID,m_nRoomType );
+	sprintf_s(pBuffer,sizeof(pBuffer) ,"insert into roominfo ( sieralNum,roomID,createUID,clubID,roomType,opts ) values (%u,%u,%u,%u,%u,", m_nSieralNum, m_nRoomID,m_nCreaterUID, m_nClubID,m_nRoomType );
 	std::ostringstream ss;
 	ss << pBuffer << "'" << strOpts << "' ) ;";
 	jssql["sql"] = ss.str();

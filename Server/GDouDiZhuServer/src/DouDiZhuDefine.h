@@ -16,6 +16,27 @@ enum DDZ_Type
 	DDZ_Max,
 };
 
+enum eFALGroupCardType
+{
+	eFALCardType_None,
+	eFALCardType_Single,//单张
+	eFALCardType_Double,//对子
+	eFALCardType_ThreeCards,//三张
+	eFALCardType_ThreeBySingle,//三带一
+	eFALCardType_ThreeByDouble,//三带对
+	eFALCardType_FourBySingle,//四带两单
+	eFALCardType_FourByDouble,//四带两对
+	eFALCardType_Straight,//顺子
+	eFALCardType_DoubleStraight,//对子顺
+	eFALCardType_ThreeStraight,//三张顺
+	eFALCardType_ThreeStraightBySingle,//飞机带单张
+	eFALCardType_ThreeStraightByDouble,//飞机带对子
+	eFALCardType_NotBomb = eFALCardType_ThreeStraightByDouble,//不是炸弹
+	eFALCardType_FourBomb,//4同炸弹
+	eFALCardType_JokerBomb,//双王火箭
+	eFALCardType_Max,
+};
+
 enum DDZ_FRAME
 {
 	DDZ_Frame_WaitChaoZhuang, // [ { idx : 2, uid : 23 }, .... ]
@@ -29,4 +50,13 @@ enum DDZ_FRAME
 	DDZ_Frame_WaitChu, // { idx : 0 }
 	DDZ_Frame_DoChu,  // { cards : [2,2,4,2 ], type : 2  }   // if key is null , means pass ; 
 	DDZ_Frame_GameEnd, // { bombCnt: 2 , isChunTian : 0 , isMingPai : 1 , bottom : 2 , players : [{ idx: 2 , offset : -2,cards : [23,23,2] }, .....] }
+	DDZ_Frame_Double, // { idx : 0, double : 2/0 }
+};
+
+enum DDZ_RotLandlordType
+{
+	eFALRLT_None,
+	eFALRLT_Call = eFALRLT_None, //叫地主
+	eFALRLT_Rot, //抢地主
+	eFALRLT_Max,
 };

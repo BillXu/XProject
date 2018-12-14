@@ -10,6 +10,7 @@ public:
 	void doSendRoomGameOverInfoToClient(bool isDismissed)override;
 	bool isEnableReplay()override { return true; }
 	bool canStartGame(IGameRoom* pRoom);
+	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;
 protected:
 	uint8_t m_nAutoOpenCnt;
 };

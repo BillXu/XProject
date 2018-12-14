@@ -26,14 +26,16 @@ public:
 protected:
 	void caculateResult()
 	{
+		auto pRoom = (DDZRoom*)getRoom();
+
 		// find winer 
 		uint8_t nWinerIdx = -1;
-		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
+		for (uint8_t nIdx = 0; nIdx < pRoom->getSeatCnt(); ++nIdx)
 		{
-			auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
+			auto p = (DDZPlayer*)pRoom->getPlayerByIdx(nIdx);
 			if (p == nullptr)
 			{
-				LOGFMTE( "why room player is null room id = %u, idx = %u",getRoom()->getRoomID(),nIdx );
+				LOGFMTE( "why room player is null room id = %u, idx = %u", pRoom->getRoomID(),nIdx );
 				continue;
 			}
 
@@ -46,33 +48,33 @@ protected:
 
 		if (((uint8_t)-1) == nWinerIdx )
 		{
-			LOGFMTE( "why no player is null ? room id = %u",getRoom()->getRoomID() );
+			LOGFMTE( "why no player is null ? room id = %u", pRoom->getRoomID() );
 			return;
 		}
 
 		// check chun tian 
 		bool isChunTian = true;
-		auto pBanker = (DDZPlayer*)getRoom()->getPlayerByIdx(((DDZRoom*)getRoom())->getBankerIdx());
+		auto pBanker = (DDZPlayer*)pRoom->getPlayerByIdx(pRoom->getBankerIdx());
 		if ( nullptr == pBanker)
 		{
-			LOGFMTE( "why banker is null room id = %u",getRoom()->getRoomID() );
+			LOGFMTE( "why banker is null room id = %u", pRoom->getRoomID() );
 			return;
 		}
 
 		bool isBankerWin = nWinerIdx == pBanker->getIdx();
 		if ( isBankerWin ) // idle player do not chu card 
 		{
-			for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
+			for (uint8_t nIdx = 0; nIdx < pRoom->getSeatCnt(); ++nIdx)
 			{
-				if (nIdx == ((DDZRoom*)getRoom())->getBankerIdx())
+				if (nIdx == pRoom->getBankerIdx())
 				{
 					continue;
 				}
 
-				auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
+				auto p = (DDZPlayer*)pRoom->getPlayerByIdx(nIdx);
 				if ( p == nullptr )
 				{
-					LOGFMTE("why room player is null room id = %u, idx = %u", getRoom()->getRoomID(), nIdx);
+					LOGFMTE("why room player is null room id = %u, idx = %u", pRoom->getRoomID(), nIdx);
 					continue;
 				}
 
@@ -90,13 +92,14 @@ protected:
 
 		// check ming pai 
 		bool isMingPai = pBanker->isMingPai();
-		uint8_t nBombCnt = ((DDZRoom*)getRoom())->getBombCount();
-		int32_t nOffset = ((DDZRoom*)getRoom())->getBankTimes() * (isMingPai ? 2 : 1) * pow(2, nBombCnt) * (isChunTian ? 2 : 1);
 
 		// do caculate 
-		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
+		uint8_t nBombCnt = pRoom->getBombCount();
+		//int32_t nOffset = pRoom->getBankTimes() * (isMingPai ? 2 : 1) * pow(2, nBombCnt) * (isChunTian ? 2 : 1);
+		int32_t nMultiple = pRoom->getBankTimes() * (isMingPai ? 2 : 1) * pow(2, nBombCnt) * (isChunTian ? 2 : 1);
+		for (uint8_t nIdx = 0; nIdx < pRoom->getSeatCnt(); ++nIdx)
 		{
-			auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
+			auto pPlayer = (DDZPlayer*)pRoom->getPlayerByIdx(nIdx);
 			if (pPlayer == pBanker)
 			{
 				continue;
@@ -104,14 +107,22 @@ protected:
 
 			if (nullptr == pPlayer)
 			{
-				LOGFMTE( "result player is null why , offset = %u , room id = %u",nOffset,getRoom()->getRoomID() );
+				LOGFMTE( "result player is null why , offset = %u , room id = %u", nMultiple, pRoom->getRoomID() );
 				continue;
 			}
 
-			int32_t nBankerOffsetThisPlayer = nOffset * (isBankerWin ? 1 : -1) * ( pBanker->isChaoZhuang() ? 2 : 1 ) * (pPlayer->isChaoZhuang() ? 2 : 1) * ( ( pBanker->isTiLaChuai() && pPlayer->isTiLaChuai() ) ? 2 : 1) * (pPlayer->isTiLaChuai() ? 2 : 1);
-			if ( abs(nBankerOffsetThisPlayer) > ((DDZRoom*)getRoom())->fengDing())
+			int32_t nBankerMultipleThisPlayer = nMultiple * ( pBanker->isChaoZhuang() ? 2 : 1 ) * (pPlayer->isChaoZhuang() ? 2 : 1) * ( ( pBanker->isTiLaChuai() && pPlayer->isTiLaChuai() ) ? 2 : 1) * (pPlayer->isTiLaChuai() ? 2 : 1) * (pPlayer->getDouble() ? pPlayer->getDouble() : 1) * (pBanker->getDouble() ? pBanker->getDouble() : 1);
+			
+			//±¶Êý·â¶¥
+			if (pRoom->getFanLimit() && nBankerMultipleThisPlayer > (int32_t)pRoom->getFanLimit()) {
+				nBankerMultipleThisPlayer = pRoom->getFanLimit();
+			}
+
+			//·ÖÊý·â¶¥
+			int32_t nBankerOffsetThisPlayer = nBankerMultipleThisPlayer * (isBankerWin ? 1 : -1) * pRoom->getBaseScore();
+			if (pRoom->fengDing() && abs(nBankerOffsetThisPlayer) > pRoom->fengDing())
 			{
-				nBankerOffsetThisPlayer = ((DDZRoom*)getRoom())->fengDing() * ( nBankerOffsetThisPlayer / abs(nBankerOffsetThisPlayer)) ;
+				nBankerOffsetThisPlayer = pRoom->fengDing() * (nBankerOffsetThisPlayer / abs(nBankerOffsetThisPlayer));
 			}
 
 			pBanker->addSingleOffset(nBankerOffsetThisPlayer);
@@ -123,12 +134,12 @@ protected:
 		jsMsg["bombCnt"] = nBombCnt;
 		jsMsg["isChunTian"] = isChunTian ? 1 : 0;
 		jsMsg["isMingPai"] = isMingPai ? 1 : 0;
-		jsMsg["bottom"] = ((DDZRoom*)getRoom())->getBankTimes();
+		jsMsg["bottom"] = pRoom->getBankTimes();
 
 		Json::Value jsPlayersOffset;
-		for (uint8_t nIdx = 0; nIdx < getRoom()->getSeatCnt(); ++nIdx)
+		for (uint8_t nIdx = 0; nIdx < pRoom->getSeatCnt(); ++nIdx)
 		{
-			auto p = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
+			auto p = (DDZPlayer*)pRoom->getPlayerByIdx(nIdx);
 			if (nullptr == p)
 			{
 				continue;
@@ -150,8 +161,8 @@ protected:
 		jsMsg["players"] = jsPlayersOffset;
 
 		// add frame 
-		getRoom()->addReplayFrame(DDZ_Frame_GameEnd, jsMsg);
+		pRoom->addReplayFrame(DDZ_Frame_GameEnd, jsMsg);
 
-		getRoom()->sendRoomMsg(jsMsg,MSG_DDZ_ROOM_RESULT);
+		pRoom->sendRoomMsg(jsMsg,MSG_DDZ_ROOM_RESULT);
 	}
 };

@@ -9,13 +9,13 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		m_nGuaPuCnt = 0;
+		m_mGuaPuInfo.clear();
 		m_bNotWaitGuaPu = false;
 		m_bGameIsStart = false;
 		getRoom()->onWillStartGame();
 		if (getRoom()->isHaveRace()) {
 			getRoom()->onWaitRace();
-			setStateDuringTime(eTime_WaitPlayerAct + 1);//¶îÍâ1ÃëÓÃÓÚ·ÀÖ¹ÑÓ³Ù
+			setStateDuringTime(999999);//¶îÍâ1ÃëÓÃÓÚ·ÀÖ¹ÑÓ³Ù
 		}
 		else {
 			m_bGameIsStart = true;
@@ -46,27 +46,46 @@ public:
 			LOGFMTE("you are not in room  why req act list");
 			return false;
 		}
+
+		if (nMsgType != MSG_REQ_ACT_LIST && nMsgType != MSG_PLAYER_DO_GUA_PU) {
+			return false;
+		}
+
+		if (hasGuaPu(pPlayer->getIdx()) || m_bGameIsStart) {
+			return true;
+		}
+
 		if (MSG_REQ_ACT_LIST == nMsgType)
 		{
 			getRoom()->onWaitRace(pPlayer->getIdx());
 			return true;
 		}
 
-		if (MSG_ROOM_CF_GUA_PU == nMsgType) {
+		if (MSG_PLAYER_DO_GUA_PU == nMsgType) {
 			Json::Value jsRet;
+			uint8_t nRet = 0;
+			jsRet["idx"] = pPlayer->getIdx();
 			if (m_bGameIsStart) {
-				jsRet["ret"] = 1;
+				nRet = 1;
 			}
 			else {
+				nRet = 0;
 				auto nRace = prealMsg["race"].asUInt();
 				jsRet["race"] = nRace;
 				if (nRace > 0) {
 					pPlayer->setRace(nRace);
 				}
-				m_nGuaPuCnt++;
+				m_mGuaPuInfo[pPlayer->getIdx()] = nRace;
 			}
-			getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
-			if (m_nGuaPuCnt >= getRoom()->getSeatCnt()) {
+			jsRet["ret"] = nRet;
+			if (nRet) {
+				getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+			}
+			else {
+				getRoom()->sendRoomMsg(jsRet, nMsgType);
+			}
+			
+			if (m_mGuaPuInfo.size() >= getRoom()->getSeatCnt()) {
 				setStateDuringTime(0.3);
 			}
 			return true;
@@ -76,7 +95,12 @@ public:
 	}
 
 protected:
+	bool hasGuaPu(uint8_t nIdx) {
+		return m_mGuaPuInfo.count(nIdx);
+	}
+
+protected:
 	bool m_bNotWaitGuaPu;
 	bool m_bGameIsStart;
-	uint8_t m_nGuaPuCnt;
+	std::map<uint8_t, uint8_t> m_mGuaPuInfo;
 };

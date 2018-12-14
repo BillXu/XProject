@@ -215,19 +215,29 @@ protected:
 		}
 		break;
 		case eMJAct_Chu:
-			pRoom->onPlayerChu(m_nActIdx, m_nCard);
+		{
 			if (m_nTing) {
-				pRoom->onPlayerTing(m_nActIdx, m_nTing);
+				if (m_nTing == 2 && pRoom->isEnableCool() == false) {
+					m_nTing = 1;
+				}
+				pRoom->onPlayerChu(m_nActIdx, m_nCard, m_nTing);
+				pRoom->onPlayerTing(m_nActIdx, m_nTing, true);
 			}
-			break;
+			else {
+				pRoom->onPlayerChu(m_nActIdx, m_nCard);
+			}
+		}
+		break;
 		case eMJAct_Chi:
+		{
 			if (m_vEatWith[0] * m_vEatWith[1] == 0)
 			{
 				LOGFMTE("eat lack of right card");
 				break;
 			}
 			pRoom->onPlayerEat(m_nActIdx, m_nCard, m_vEatWith[0], m_vEatWith[1], m_nInvokeIdx);
-			break;
+		}
+		break;
 		default:
 			LOGFMTE("unknow act  how to do it %u", m_eActType);
 			break;

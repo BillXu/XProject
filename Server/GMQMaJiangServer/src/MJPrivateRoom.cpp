@@ -62,3 +62,12 @@ void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
 		((MQMJRoom*)pRoom)->doRandomChangeSeat();
 	}
 }
+
+uint8_t MJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer) {
+	if (m_pRoom)
+	{
+		return m_pRoom->checkPlayerCanEnter(pEnterRoomPlayer);
+	}
+	LOGFMTE("private room can not room is null rooom id = %u", getRoomID());
+	return 1;
+}

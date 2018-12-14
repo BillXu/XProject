@@ -31,9 +31,11 @@ public:
 
 	virtual GameRoom* doCreatRealRoom() = 0;
 	uint8_t getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType );
+	uint32_t getSitDownDiamondConsume()override;
 	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
 
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
+	void packStartGameMsg(Json::Value& jsMsg)override;
 	virtual void packCreateUIDInfo(Json::Value& jsRoomInfo);
 	void sendRoomPlayersInfo(uint32_t nSessionID)override;
 	void sendRoomInfo(uint32_t nSessionID)override;
@@ -41,6 +43,7 @@ public:
 	bool onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)final;
 
 	// delegate interface 
+	void onWillStartGame(IGameRoom* pRoom)override;
 	void onStartGame(IGameRoom* pRoom)override;
 	bool canStartGame(IGameRoom* pRoom)override;
 	void onGameDidEnd(IGameRoom* pRoom)override;
@@ -109,4 +112,5 @@ protected:
 	std::vector<uint32_t> m_vTempID;
 
 	std::vector<uint32_t> m_vAAPayedPlayers;
+	uint32_t m_tCreateTime;
 };

@@ -24,6 +24,8 @@ void CDouDiZhuPoker::init( Json::Value& jsOpts )
 
 void CDouDiZhuPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 {
+	return;
+
 	//vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 18));
 	//vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 19));
 
@@ -50,4 +52,14 @@ void CDouDiZhuPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 	// add wang ;
 	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 18));
 	vMakedCards.push_back(DDZ_MAKE_CARD(ePoker_Joker, 19));
+}
+
+void CDouDiZhuPoker::initAllCardWithCards(std::vector<uint8_t> vCards) {
+	if (vCards.size() == m_vCards.size()) {
+		m_vCards.clear();
+		m_vCards.assign(vCards.begin(), vCards.end());
+	}
+	else {
+		assert(false, "invalid not shuffle poke card amount");
+	}
 }

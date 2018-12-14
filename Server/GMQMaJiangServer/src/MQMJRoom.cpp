@@ -15,6 +15,7 @@
 #include "FanxingDuiDuiHu.h"
 #include "MJReplayFrameType.h"
 #include "MQMJPoker.h"
+#include "IGameRoomDelegate.h"
 
 bool MQMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
@@ -103,7 +104,7 @@ void MQMJRoom::sendStartGameMsg() {
 	//给围观者发送开始消息
 	sendRoomMsgToStander(jsMsg, MSG_ROOM_MQMJ_GAME_START);
 
-	Json::Value arrPeerCards;
+	//Json::Value arrPeerCards;
 	for (auto& pPlayer : m_vPlayers)
 	{
 		if (!pPlayer)
@@ -275,13 +276,27 @@ void MQMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang)) {
 		haveGangFlag = true;
 	}
+	bool needClearCanCyclone = false;
+	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
+		needClearCanCyclone = true;
+	}
 	IMJRoom::onPlayerChu(nIdx, nCard);
 	if (haveGangFlag) {
 		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang);
 	}
-	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
+	if (needClearCanCyclone) {
 		pPlayer->clearFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
 	}
+	else {
+		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
+	}
+}
+
+void MQMJRoom::onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx) {
+	IMJRoom::onPlayerEat(nIdx, nCard, nWithA, nWithB, nInvokeIdx);
+
+	auto pPlayer = (MQMJPlayer*)getPlayerByIdx(nIdx);
+	pPlayer->clearGangFlag();
 }
 
 void MQMJRoom::onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx) {
@@ -1030,6 +1045,9 @@ void MQMJRoom::addSettle(stSettle& tSettle) {
 	jsItem["detial"] = jsRDetail;
 
 	sendRoomMsg(jsItem, MSG_ROOM_FXMJ_REAL_TIME_CELL);
+
+	// add frame 
+	addReplayFrame(eMJFrame_Settle, jsItem);
 }
 
 void MQMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
@@ -1312,4 +1330,22 @@ bool MQMJRoom::doChangeSeat(uint16_t nIdx, uint16_t nWithIdx) {
 	m_vPlayers[nIdx] = sPlayer;
 	m_vPlayers[nWithIdx] = pPlayer;
 	return true;
+}
+
+uint8_t MQMJRoom::checkPlayerCanSitDown(stEnterRoomData* pEnterRoomPlayer)
+{
+	auto p = getPlayerByUID(pEnterRoomPlayer->nUserUID);
+	if (p)
+	{
+		LOGFMTD("already in this room id = %u , uid = %u , so can not sit down", getRoomID(), p->getUserUID());
+		return 1;
+	}
+
+	if (pEnterRoomPlayer->nDiamond < getDelegate()->getSitDownDiamondConsume())
+	{
+		// diamond is not enough 
+		return 8;
+	}
+
+	return 0;
 }

@@ -187,7 +187,7 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 			Assert(0, "invalid pay type value ");
 			nPayType = ePayType_RoomOwner;
 		}
-		auto nDiamondNeed = 0;
+		uint32_t nDiamondNeed = 0;
 		if ( nPayType == ePayType_RoomOwner && false == isCreateRoomFree() )
 		{
 			nDiamondNeed = getDiamondNeed(nRoomType, nLevel, (ePayRoomCardType)nPayType,jsReqContent["seatCnt"].asUInt());
@@ -234,7 +234,9 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		auto pRoom = dynamic_cast<IPrivateRoom*>(getRoomByID(nRoomID));
 		if (pRoom && pRoom->isClubRoom())
 		{
+			LOGFMTE("club %u dismiss room %u", pRoom->getClubID(), nRoomID);
 			pRoom->doRoomGameOver(true);
+
 		}
 	}
 	break;
@@ -574,6 +576,7 @@ void IGameRoomManager::onConnectedSvr(bool isReconnected)
 	ss.str("");     
 	ss << "SELECT max(sieralNum) as sieralNum FROM roominfo where sieralNum <  " << nMax << ";";
 	jsReq["sql"] = ss.str();
+	//LOGFMTE(ss.str().c_str());
 	asyq->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getSvrApp()->getCurSvrIdx(), eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
 		uint32_t nAft = retContent["afctRow"].asUInt();
 		auto jsData = retContent["data"];

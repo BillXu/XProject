@@ -18,7 +18,7 @@ public:
 		m_nCurWaitPlayerIdx = pRoom->getFirstRobotBankerIdx();
 		m_nBankerCandiate = m_nCurWaitPlayerIdx;
 		// send msg tell room player ;
-		setStateDuringTime(eTime_WaitRobotBanker);
+		setStateDuringTime(eTime_WaitForever);
 
 		Json::Value jsInfo;
 		jsInfo["idx"] = m_nCurWaitPlayerIdx;
@@ -60,45 +60,88 @@ public:
 		}
 
 		auto nRobotBankerTimes = jsmsg["times"].asUInt();
-		if (nRobotBankerTimes <= m_nCurMaxRobotTimes && nRobotBankerTimes != 0 )
+
+		if (nRobotBankerTimes == 0 && isPlayerMustRobBanker(pPlayer->getIdx()))
 		{
 			js["ret"] = 4;
 			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
 			return true;
 		}
 
-		if ( nRobotBankerTimes == 0 && isPlayerMustRobBanker(pPlayer->getIdx()) )
-		{
-			js["ret"] = 4;
-			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
-			return true;
+		if (eFALRLT_Call == pRoom->getRLT()) {
+			if (nRobotBankerTimes <= m_nCurMaxRobotTimes && nRobotBankerTimes != 0)
+			{
+				js["ret"] = 4;
+				pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
+				return true;
+			}
+
+			// tell all players 
+			jsmsg["idx"] = pPlayer->getIdx();
+			pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_ROBOT_DZ);
+
+			// add frame 
+			Json::Value jsFrame;
+			jsFrame["idx"] = pPlayer->getIdx();
+			jsFrame["times"] = nRobotBankerTimes;
+			pRoom->addReplayFrame(DDZ_Frame_DoRobBanker, jsFrame);
+
+			if (nRobotBankerTimes != 0)
+			{
+				m_nCurMaxRobotTimes = nRobotBankerTimes;
+				m_nBankerCandiate = pPlayer->getIdx();
+			}
+			m_vMapPlayerIdx_RobotTimes[pPlayer->getIdx()] = nRobotBankerTimes;
+			if (getMaxBankerTimes() == nRobotBankerTimes || m_vMapPlayerIdx_RobotTimes.size() == pRoom->getSeatCnt())
+			{
+				doProduceBanker();
+			}
+			else
+			{
+				// inform next player robot di zhu 
+				goOnWaitNextPlayerRobotBanker();
+			}
+		}
+		else {
+			if (nRobotBankerTimes)
+			{
+				m_nCurMaxRobotTimes = m_nCurMaxRobotTimes ? m_nCurMaxRobotTimes * 2 : 1;
+				m_nBankerCandiate = pPlayer->getIdx();
+				jsmsg["times"] = m_nCurMaxRobotTimes;
+				nRobotBankerTimes = m_nCurMaxRobotTimes;
+			}
+
+			//LOGFMTE("player uid = %u rot banker time = %u", pPlayer->getIdx(), nRobotBankerTimes);
+			
+			bool bFinishRot = m_vMapPlayerIdx_RobotTimes.count(pPlayer->getIdx());
+			m_vMapPlayerIdx_RobotTimes[pPlayer->getIdx()] = nRobotBankerTimes;
+			
+
+			// tell all players 
+			jsmsg["idx"] = pPlayer->getIdx();
+			pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_ROBOT_DZ);
+
+			// add frame 
+			Json::Value jsFrame;
+			jsFrame["idx"] = pPlayer->getIdx();
+			jsFrame["times"] = nRobotBankerTimes;
+			pRoom->addReplayFrame(DDZ_Frame_DoRobBanker, jsFrame);
+
+			if (bFinishRot) {
+				//LOGFMTE("player uid = %u rot banker time = %u finish true finish", pPlayer->getIdx(), nRobotBankerTimes);
+				doProduceBanker();
+			}
+			else
+			{
+				// inform next player robot di zhu 
+				if (goOnWaitNextPlayerRotBanker() == false) {
+					//LOGFMTE("player uid = %u rot banker time = %u finish false finish", pPlayer->getIdx(), nRobotBankerTimes);
+					doProduceBanker();
+				}
+			}
 		}
 
-		// tell all players 
-		jsmsg["idx"] = pPlayer->getIdx();
-		pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_ROBOT_DZ );
-
-		// add frame 
-		Json::Value jsFrame;
-		jsFrame["idx"] = pPlayer->getIdx();
-		jsFrame["times"] = nRobotBankerTimes;
-		getRoom()->addReplayFrame(DDZ_Frame_DoRobBanker, jsFrame);
-
-		if (nRobotBankerTimes != 0)
-		{
-			m_nCurMaxRobotTimes = nRobotBankerTimes;
-			m_nBankerCandiate = pPlayer->getIdx();
-		}
-		m_vMapPlayerIdx_RobotTimes[pPlayer->getIdx()] = nRobotBankerTimes;
-		if ( getMaxBankerTimes() == nRobotBankerTimes || m_vMapPlayerIdx_RobotTimes.size() == getRoom()->getSeatCnt() )
-		{
-			doProduceBanker();
-		}
-		else
-		{
-			// inform next player robot di zhu 
-			goOnWaitNextPlayerRobotBanker();
-		}
+		
 		return true;
 	}
 
@@ -142,12 +185,61 @@ protected:
 	{
 		m_nCurWaitPlayerIdx = (++m_nCurWaitPlayerIdx) % getRoom()->getSeatCnt();
 		// send msg tell room player ;
-		setStateDuringTime(eTime_WaitRobotBanker);
+		setStateDuringTime(eTime_WaitForever);
 
 		Json::Value jsInfo;
 		jsInfo["idx"] = m_nCurWaitPlayerIdx;
 		getRoom()->sendRoomMsg(jsInfo, MSG_DDZ_ROOM_WAIT_ROBOT_DZ);
 		return true;
+	}
+
+	bool goOnWaitNextPlayerRotBanker()
+	{
+		bool flag = false;
+		uint8_t nSeatCnt = getRoom()->getSeatCnt();
+		uint8_t nCheckIdx = -1;
+		for (uint8_t i = 1; i < nSeatCnt; i++) {
+			uint8_t tCheckIdx = (m_nCurWaitPlayerIdx + i) % nSeatCnt;
+			if (m_vMapPlayerIdx_RobotTimes.count(tCheckIdx)) {
+				if (m_vMapPlayerIdx_RobotTimes[tCheckIdx]) {
+					if (m_vMapPlayerIdx_RobotTimes[tCheckIdx] > 1) {
+						break;
+					}
+					else {
+						nCheckIdx = tCheckIdx;
+						break;
+					}
+				}
+				else {
+					continue;
+				}
+			}
+			else {
+				m_nCurWaitPlayerIdx = tCheckIdx;
+				flag = true;
+				break;
+			}
+		}
+
+		if ((uint8_t)-1 != nCheckIdx) {
+			for (auto& ref : m_vMapPlayerIdx_RobotTimes) {
+				if (ref.first != nCheckIdx && ref.second) {
+					m_nCurWaitPlayerIdx = nCheckIdx;
+					flag = true;
+					break;
+				}
+			}
+		}
+
+		if (flag) {
+			// send msg tell room player ;
+			setStateDuringTime(eTime_WaitForever);
+
+			Json::Value jsInfo;
+			jsInfo["idx"] = m_nCurWaitPlayerIdx;
+			getRoom()->sendRoomMsg(jsInfo, MSG_DDZ_ROOM_WAIT_ROBOT_DZ);
+		}
+		return flag;
 	}
 
 	void doProduceBanker()
@@ -204,20 +296,24 @@ protected:
 		// add frame 
 		getRoom()->addReplayFrame(DDZ_Frame_DoProducedBanker, jsMsg);
 		// go to chu pai state ;
-		Json::Value jsRobotBankerInfo;
+		/*Json::Value jsRobotBankerInfo;
 		for ( auto& ref : m_vMapPlayerIdx_RobotTimes )
 		{
 			Json::Value jsItem;
 			jsItem["idx"] = ref.first;
 			jsItem["times"] = ref.second;
 			jsRobotBankerInfo[jsRobotBankerInfo.size()] = jsItem;
-		}
+		}*/
 		//getRoom()->goToState( isJingJiangDDZ() ? eRoomState_JJ_DDZ_Ti_La_Chuai :  eRoomState_DDZ_Chu, &jsRobotBankerInfo);
-		getRoom()->goToState( eRoomState_DDZ_Chu, &jsRobotBankerInfo);
+		getRoom()->goToState(eRoomState_DDZ_Double);
 	}
 
 	bool isPlayerMustRobBanker( uint8_t nIdx )
 	{
+		if (isCYDDZ()) {
+			return false;
+		}
+
 		auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(nIdx);
 		if (!pPlayer)
 		{
@@ -245,6 +341,11 @@ protected:
 	bool isJingJiangDDZ()
 	{
 		return eGame_JJDouDiZhu == getRoom()->getRoomType();
+	}
+
+	bool isCYDDZ()
+	{
+		return eGame_CYDouDiZhu == getRoom()->getRoomType();
 	}
 
 	uint8_t getMaxBankerTimes()

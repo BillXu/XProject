@@ -3,7 +3,7 @@
 void DDZPlayerCard::reset()
 {
 	m_vHoldCards.clear();
-	m_vLastChu.clear();
+	clearLastChu();
 	m_nChuedCardTimes = 0;
 }
 
@@ -12,7 +12,7 @@ void DDZPlayerCard::addHoldCard(uint8_t nCard)
 	m_vHoldCards.push_back(nCard);
 }
 
-bool DDZPlayerCard::onChuCard(std::vector<uint8_t>& vCards)
+bool DDZPlayerCard::onChuCard(std::vector<uint8_t>& vCards, eFALGroupCardType nType)
 {
 	std::vector<uint8_t> vErased;
 	for (auto& ref : vCards)
@@ -32,6 +32,7 @@ bool DDZPlayerCard::onChuCard(std::vector<uint8_t>& vCards)
 		return false;
 	}
 	m_vLastChu = vErased;
+	m_nLastChuType = nType;
 	++m_nChuedCardTimes;
 	return true;
 }
@@ -45,18 +46,30 @@ void DDZPlayerCard::holdCardToJson(Json::Value& jsHoldCard)
 	return;
 }
 
-void DDZPlayerCard::lastChuToJson(Json::Value& jsHoldCard)
+bool DDZPlayerCard::lastChuToJson(Json::Value& jsHoldCard)
 {
-	for (auto& ref : m_vLastChu )
-	{
-		jsHoldCard[jsHoldCard.size()] = ref;
+	if (m_nLastChuType > eFALCardType_None) {
+		Json::Value jsCards;
+		for (auto& ref : m_vLastChu)
+		{
+			jsCards[jsCards.size()] = ref;
+		}
+		jsHoldCard["chu"] = jsCards;
+		jsHoldCard["type"] = m_nLastChuType;
+		return true;
 	}
-	return;
+	return false;
 }
 
 void DDZPlayerCard::clearLastChu()
 {
 	m_vLastChu.clear();
+	m_nLastChuType = eFALCardType_None;
+}
+
+void DDZPlayerCard::getHoldCard(std::vector<uint8_t>& vHoldCards)
+{
+	vHoldCards.insert(vHoldCards.end(), m_vHoldCards.begin(), m_vHoldCards.end());
 }
 
 uint8_t DDZPlayerCard::getHoldCardCount()
@@ -74,7 +87,7 @@ bool DDZPlayerCard::isHaveCard(uint8_t nCard)
 	return std::find(m_vHoldCards.begin(), m_vHoldCards.end(), nCard) != m_vHoldCards.end();
 }
 
-bool DDZPlayerCard::getTuoGuanChuCards(DDZ_Type& nCurAndOutType, std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards)
+bool DDZPlayerCard::getTuoGuanChuCards(eFALGroupCardType& nCurAndOutType, std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards)
 {
 	return DDZFindTuoGuanChuCard::getInstance()->findCardToChu(m_vHoldCards, nCurAndOutType, vCmpCards, vResultCards);
 }

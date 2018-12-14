@@ -207,7 +207,7 @@ uint8_t CDBTask::doRequest(DBRequest_ptr ptr )
 						case MYSQL_TYPE_LONGLONG: // 64 bit int 
 						case MYSQL_TYPE_INT24:
 							{
-								pField->nValueType = eValue_Int ;
+								pField->nValueType = (msqlfield->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG ? eValue_Uint : eValue_Int ;
 								bValide = true;
 							}
 							break;

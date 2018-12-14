@@ -62,7 +62,7 @@ public:
 			}
 
 			m_bDone = true;
-			auto nTing = prealMsg["ting"].asUInt();
+			uint8_t nTing = prealMsg["ting"].asUInt();
 			if (nTing) {
 				pRoom->onPlayerTing(m_nIdx, nTing);
 			}

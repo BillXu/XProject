@@ -27,12 +27,13 @@ public:
 	virtual uint8_t getAutoChuCardWhenWaitChuTimeout(uint8_t nIdx);
 	virtual void onPlayerMo(uint8_t nIdx);
 	virtual void onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx);
-	void onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx);
+	virtual void onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx);
 	virtual void onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx);
 	virtual void onPlayerAnGang(uint8_t nIdx, uint8_t nCard);
 	virtual void onPlayerBuGang(uint8_t nIdx, uint8_t nCard);
 	virtual void onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t nInvokeIdx);
 	virtual void onPlayerChu(uint8_t nIdx, uint8_t nCard);
+	virtual void onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing);
 	virtual bool isAnyPlayerPengOrHuThisCard( uint8_t nInvokeIdx , uint8_t nCard );
 	virtual void onAskForPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, std::vector<uint16_t>& vOutWaitHuIdx, std::vector<uint16_t>& vOutWaitPengGangIdx, bool& isNeedWaitEat);
 	virtual bool isAnyPlayerRobotGang(uint8_t nInvokeIdx, uint8_t nCard);
@@ -47,6 +48,7 @@ public:
 	void sendRoomInfo(uint32_t nSessionID)override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	virtual bool canGang();
+
 protected:
 	uint8_t m_nBankerIdx;
 	FanxingChecker* m_pFanxingChecker;

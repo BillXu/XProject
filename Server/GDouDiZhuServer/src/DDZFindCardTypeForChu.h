@@ -613,8 +613,10 @@ public:
 		m_vFindTypes[DDZ_3Follow1] = p;
 	}
 
-	bool findCardToChu(std::vector<uint8_t> vHoldCards, DDZ_Type nCurType , std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards )
+	bool findCardToChu(std::vector<uint8_t> vHoldCards, eFALGroupCardType& tCurType, std::vector<uint8_t>& vCmpCards, std::vector<uint8_t>& vResultCards )
 	{
+		auto nCurType = parseCardType(tCurType);
+
 		if ( DDZ_Rokect == nCurType )
 		{
 			return false;
@@ -638,7 +640,7 @@ public:
 				bRet = p->second->findCheckType(vHoldCards, vBom, vResultCards);
 				if (bRet)
 				{
-					nCurType = DDZ_Bomb;
+					tCurType = eFALCardType_FourBomb;
 					return true;
 				}
 			}
@@ -648,7 +650,7 @@ public:
 			bRet = p->second->findCheckType(vHoldCards, vCmpCards, vResultCards);
 			if (bRet)
 			{
-				nCurType = DDZ_Rokect;
+				tCurType = eFALCardType_JokerBomb;
 				return true;
 			}
 
@@ -670,38 +672,124 @@ public:
 		if (vHoldCards.empty() == false)
 		{
 			vResultCards.push_back(vHoldCards[0]);
-			nCurType = DDZ_Single;
+			tCurType = eFALCardType_Single;
 			return true;
 		}
 
 		if (v2Cards.empty() == false)
 		{
 			vResultCards.insert(vResultCards.end(),v2Cards.begin(),v2Cards.begin() + 1 );
-			nCurType = DDZ_Pair;
+			tCurType = eFALCardType_Double;
 			return true;
 		}
 
 		if (v3Cards.empty() == false)
 		{
 			vResultCards.insert(vResultCards.end(), v3Cards.begin(), v3Cards.begin() + 2);
-			nCurType = DDZ_3Pices;
+			tCurType = eFALCardType_ThreeCards;
 			return true;
 		}
 
 		if (v4Cards.empty() == false)
 		{
 			vResultCards.insert(vResultCards.end(), v4Cards.begin(), v4Cards.begin() + 3);
-			nCurType = DDZ_Bomb;
+			tCurType = eFALCardType_FourBomb;
 			return true;
 		}
 
 		if (vRocket.empty() == false)
 		{
 			vResultCards.insert(vResultCards.end(), vRocket.begin(), vRocket.end());
-			nCurType = DDZ_Rokect;
+			tCurType = eFALCardType_JokerBomb;
 			return true;
 		}
 		return false;
+	}
+
+protected:
+	DDZ_Type parseCardType(eFALGroupCardType nCurType) {
+		auto nDDZType = DDZ_Max;
+
+		switch (nCurType)
+		{
+		case eFALCardType_None:
+		case eFALCardType_Max:
+		{
+			break;
+		}
+		case eFALCardType_Single:
+		{
+			nDDZType = DDZ_Single;
+			break;
+		}
+		case eFALCardType_Double:
+		{
+			nDDZType = DDZ_Pair;
+			break;
+		}
+		case eFALCardType_ThreeCards:
+		{
+			nDDZType = DDZ_3Pices;
+			break;
+		}
+		case eFALCardType_ThreeBySingle:
+		{
+			nDDZType = DDZ_3Follow1;
+			break;
+		}
+		case eFALCardType_ThreeByDouble:
+		{
+			nDDZType = DDZ_3Follow1;
+			break;
+		}
+		case eFALCardType_FourBySingle:
+		{
+			nDDZType = DDZ_4Follow2;
+			break;
+		}
+		case eFALCardType_FourByDouble:
+		{
+			nDDZType = DDZ_4Follow2;
+			break;
+		}
+		case eFALCardType_Straight:
+		{
+			nDDZType = DDZ_SingleSequence;
+			break;
+		}
+		case eFALCardType_DoubleStraight:
+		{
+			nDDZType = DDZ_PairSequence;
+			break;
+		}
+		case eFALCardType_ThreeStraight:
+		{
+			nDDZType = DDZ_3PicesSeqence;
+			break;
+		}
+		case eFALCardType_ThreeStraightBySingle:
+		{
+			nDDZType = DDZ_AircraftWithWings;
+			break;
+		}
+		case eFALCardType_ThreeStraightByDouble:
+		{
+			nDDZType = DDZ_AircraftWithWings;
+			break;
+		}
+		case eFALCardType_FourBomb:
+		{
+			nDDZType = DDZ_Bomb;
+			break;
+		}
+		case eFALCardType_JokerBomb:
+		{
+			nDDZType = DDZ_Rokect;
+			break;
+		}
+		}
+		
+		return nDDZType;
 	}
 
 protected:

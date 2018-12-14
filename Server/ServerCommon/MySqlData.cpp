@@ -5,6 +5,11 @@
 	return strtol(pBuffer,(char**)NULL,10) ; 
 }
 
+ unsigned int stMysqlField::UintValue()
+ {
+	 return strtoul(pBuffer, (char**)NULL, 10);
+ }
+
  __int64 stMysqlField::IntValue64()
 { 
 	return _atoi64(pBuffer); 
@@ -139,6 +144,11 @@ void CMysqlRow::toJsValue(Json::Value& jsValue )
 				jsValue[pFiled->strFieldName] = pFiled->IntValue() ;
 			}
 			break;
+		case eValue_Uint:
+			{
+				jsValue[pFiled->strFieldName] = pFiled->UintValue();
+			}
+		break;
 		case eValue_String:
 			{
 				jsValue[pFiled->strFieldName] = pFiled->CStringValue() ;

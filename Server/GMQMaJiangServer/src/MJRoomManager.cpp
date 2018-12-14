@@ -14,7 +14,7 @@ uint16_t MJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRo
 		return 0;
 	}
 #ifdef _DEBUG
-	return 0;
+	//return 0;
 #endif // _DEBUG
 
 	if (nLevel > 1)

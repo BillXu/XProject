@@ -65,6 +65,8 @@ public:
 	bool isWaitPlayerActForever() { return true; }
 	void onPlayerMo(uint8_t nIdx)override;
 	void onPlayerChu(uint8_t nIdx, uint8_t nCard)override;
+	void onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing)override;
+	void onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx)override;
 	void onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)override;
 	void onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)override;
 	void onPlayerAnGang(uint8_t nIdx, uint8_t nCard)override;
@@ -82,7 +84,7 @@ public:
 	uint8_t getNextActPlayerIdx(uint8_t nCurActIdx)override;
 	bool isPlayerRootDirectGang(uint8_t nInvokerIdx, uint8_t nCard);
 	void onAskForRobotDirectGang(uint8_t nInvokeIdx, uint8_t nActIdx, uint8_t nCard, std::vector<uint8_t>& vOutCandinates);
-	void onPlayerTing(uint8_t nIdx, uint8_t nTing = 1);
+	void onPlayerTing(uint8_t nIdx, uint8_t nTing, bool bNotCheck = false);
 	bool onWaitPlayerGangTing(uint8_t nIdx);
 	void onPlayerSingalMo(uint8_t nIdx);
 
@@ -132,5 +134,7 @@ protected:
 	bool m_bCheckFollow;
 	uint8_t m_nFollowCard;
 	uint8_t m_nFollowCnt;
+
+	std::map<uint8_t, uint32_t> m_mSitedIdxes;
 
 };

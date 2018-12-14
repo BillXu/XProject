@@ -97,6 +97,10 @@ enum eRoomState
 	// new state 
 	eRoomSate_WaitReady,
 	eRoomState_StartGame,
+
+	// Caution! special define can not be use
+	eRoomState_AskForHuAndPeng = 12, // 询问玩家碰或者胡  { invokeIdx : 2 , card : 23 }
+
 	eRoomState_Common_Max = 20,
 
 	// niu niu special ;
@@ -126,6 +130,7 @@ enum eRoomState
 	eRoomState_DDZ_Chu,
 	eRoomState_JJ_DDZ_Ti_La_Chuai, 
 	eRoomState_JJ_DDZ_Chao_Zhuang,
+	eRoomState_DDZ_Double,
 
 	// above is new ;
 	eRoomState_None,
@@ -161,7 +166,7 @@ enum eRoomState
 	eRoomState_WaitOtherPlayerAct,  // 等待玩家操作，有人出牌了 { invokerIdx : 0 , card : 0 ,cardFrom : eMJActType , arrNeedIdxs : [2,0,1] } 
 	eRoomState_DoOtherPlayerAct,  // 其他玩家操作了。
 	
-	eRoomState_AskForHuAndPeng, // 询问玩家碰或者胡  { invokeIdx : 2 , card : 23 }
+	//eRoomState_AskForHuAndPeng, // 询问玩家碰或者胡  { invokeIdx : 2 , card : 23 }
 	eRoomState_WaitSupplyCoin, // 等待玩家补充金币  {nextState: 234 , transData : { ... } }
 	eRoomState_WaitPlayerRecharge = eRoomState_WaitSupplyCoin,  //  等待玩家充值
 	eRoomState_NJ_Auto_Buhua, // 南京麻将自动不花 

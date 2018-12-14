@@ -25,7 +25,7 @@ bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_ptrRoomRecorder->init(nSeialNum, nRoomID, getRoomType(), vJsOpts["uid"].asUInt(),vJsOpts["clubID"].asUInt() ,vJsOpts);
 
 	m_ptrGameReplay = std::make_shared<MJReplayGame>();
-	m_ptrGameReplay->init(m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType(), vJsOpts);
+	m_ptrGameReplay->init(m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType(), vJsOpts, getRoomID());
 	return true;
 }
 
@@ -180,7 +180,7 @@ void GameRoom::onStartGame()
 
 	getPoker()->shuffle();
 	// game replayer 
-	m_ptrGameReplay->startNewReplay(getRoomMgr()->generateReplayID());
+	m_ptrGameReplay->startNewReplay(getRoomMgr()->generateReplayID(), getDelegate() ? getDelegate()->getCurRoundIdx() : 0);
 	// cur round recorder ;
 	m_ptrCurRoundRecorder = createSingleRoundRecorder();
 	m_ptrCurRoundRecorder->init(getRoomRecorder()->getRoundRecorderCnt(), time(nullptr), m_ptrGameReplay->getReplayID() );
@@ -211,7 +211,7 @@ void GameRoom::onGameDidEnd()
 	}
 }
 
-void GameRoom::saveGameRecorder() {
+void GameRoom::saveGameRecorder(bool bDismiss) {
 	if (m_bSaveRecorder) {
 		return;
 	}
@@ -235,6 +235,9 @@ void GameRoom::saveGameRecorder() {
 				continue;
 			}
 			getCurRoundRecorder()->addPlayerRecorderInfo(pPlayerRecorder);
+			if (bDismiss) {
+				getCurRoundRecorder()->signDismiss();
+			}
 		}
 		getRoomRecorder()->addSingleRoundRecorder(getCurRoundRecorder());
 	}
@@ -578,6 +581,14 @@ bool GameRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderP
 			tInfo.nSessionID = nSessionID;
 			tInfo.nDiamond = retContent["diamond"].asUInt();
 			tInfo.nChip = retContent["coin"].asUInt();
+
+			if (checkPlayerCanSitDown(&tInfo)) {
+				Json::Value jsRet;
+				jsRet["ret"] = 8;
+				sendMsgToPlayer(jsRet, MSG_PLAYER_SIT_DOWN, nSessionID);
+				return;
+			}
+
 			doPlayerSitDown(&tInfo, nIdx);
 
 			Json::Value jsRet;
@@ -745,6 +756,12 @@ bool GameRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)
 	auto pPlayer = getPlayerByUID(nPlayerID);
 	if (!pPlayer)
 	{
+		auto pStay = getStandPlayerByUID(nPlayerID);
+		if (pStay) {
+			pStay->nSessionID = nSessinID;
+			LOGFMTI("inform player session id  refreshed , player is standind room id = %u , uid = %u", getRoomID(), nPlayerID);
+			return true;
+		}
 		LOGFMTE("inform player session id  refreshed , but player is null room id = %u , uid = %u", getRoomID(), nPlayerID);
 		return false;
 	}
@@ -774,6 +791,8 @@ void GameRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["state"] = getCurState()->getStateID();
 	jsRoomInfo["stateTime"] = uint8_t(getCurState()->getStateDuring() + 0.8);
 	jsRoomInfo["stateWaitTime"] = getCurState()->getWaitTime();
+
+	jsRoomInfo["initCards"] = getPoker()->getInitCardCnt();
 }
 
 void GameRoom::sendRoomPlayersInfo(uint32_t nSessionID)

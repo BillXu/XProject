@@ -95,6 +95,7 @@
     <ClInclude Include="src\DDZPlayerCard.h" />
     <ClInclude Include="src\DDZPrivateRoom.h" />
     <ClInclude Include="src\DDZRoom.h" />
+    <ClInclude Include="src\DDZRoomStateDouble.h" />
     <ClInclude Include="src\DDZRoomStateGameEnd.h" />
     <ClInclude Include="src\DDZRoomStateRobotBanker.h" />
     <ClInclude Include="src\DDZRoomStateStartGame.h" />
@@ -102,6 +103,7 @@
     <ClInclude Include="src\DDZRoomStateWaitReady.h" />
     <ClInclude Include="src\DouDiZhuCardTypeChecker.h" />
     <ClInclude Include="src\DouDiZhuDefine.h" />
+    <ClInclude Include="src\FALGroupCardsTypeChecker.h" />
     <ClInclude Include="src\IPeerCard.h" />
     <ClInclude Include="src\DDZServer.h" />
     <ClInclude Include="src\DDZRoomManager.h" />

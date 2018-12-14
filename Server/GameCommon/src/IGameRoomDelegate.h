@@ -18,4 +18,6 @@ public:
 	virtual bool isEnableRecorder() { return false; }
 	virtual bool isEnableReplay() { return false; }
 	virtual uint32_t getCurRoundIdx() = 0;
+	virtual uint32_t getSitDownDiamondConsume() = 0;
+	virtual void packStartGameMsg(Json::Value& jsMsg) = 0;
 };

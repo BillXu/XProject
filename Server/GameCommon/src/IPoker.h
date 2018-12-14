@@ -81,6 +81,10 @@ public:
 	{
 		return (nCardNum & 0x07);
 	}
+
+	uint32_t getInitCardCnt() {
+		return m_vCards.size();
+	}
 protected:
 	virtual void addCardToPoker( uint8_t nCard ) // only can invoker in , init method ;
 	{

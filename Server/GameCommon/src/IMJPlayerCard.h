@@ -26,6 +26,7 @@ public:
 
 	virtual bool canHuWitCard( uint8_t nCard ) = 0;
 	virtual bool isTingPai() = 0 ;
+	virtual bool isTing() = 0;
 	virtual bool isHoldCardCanHu( uint8_t& nJiang ) = 0;
 
 	virtual void onMoCard(uint8_t nMoCard) = 0;

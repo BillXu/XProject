@@ -1,7 +1,6 @@
 #include "FXMJPlayer.h"
 void FXMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
 	IMJPlayer::init(pData, nIdx);
-	m_nBankerCnt = 0;
 	m_nCoolCnt = 0;
 }
 

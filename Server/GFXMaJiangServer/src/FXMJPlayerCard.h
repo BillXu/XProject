@@ -47,7 +47,7 @@ public:
 	uint8_t getHuCard() { return m_nHuCard; }
 	void setHuCard(uint8_t nCard) { m_nHuCard = nCard; }
 
-	bool isTing() { return m_vTingCards.size(); }
+	bool isTing() override { return m_vTingCards.size(); }
 	void clearTing();
 	bool canHuOnlyOneCard();
 	bool isJiaHu();

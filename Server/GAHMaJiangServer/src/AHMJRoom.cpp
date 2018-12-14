@@ -11,6 +11,7 @@
 #include "AHMJRoomStateAskForPengOrHu.h"
 #include "AHMJRoomStateAfterChiOrPeng.h"
 #include "MJReplayFrameType.h"
+#include "IGameRoomDelegate.h"
 bool AHMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
@@ -72,6 +73,7 @@ void AHMJRoom::onWillStartGame() {
 	m_vSettle.clear();
 
 	doProduceNewBanker();
+	sendWillStartGameMsg();
 }
 
 void AHMJRoom::onStartGame() {
@@ -136,6 +138,13 @@ void AHMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 	if (haveGangFlag) {
 		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang);
 	}
+}
+
+void AHMJRoom::onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx) {
+	IMJRoom::onPlayerEat(nIdx, nCard, nWithA, nWithB, nInvokeIdx);
+
+	auto pPlayer = (AHMJPlayer*)getPlayerByIdx(nIdx);
+	pPlayer->clearGangFlag();
 }
 
 void AHMJRoom::onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx) {
@@ -301,10 +310,15 @@ void AHMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 					nTLoseCoin *= 2;//±ÕÃÅÒ»·¬
 				}
 
-				nTLoseCoin += (pZiMoPlayer->getRace() + pLosePlayer->getRace());
+				//nTLoseCoin += (pZiMoPlayer->getRace() + pLosePlayer->getRace());
 
 				st.addLose(pLosePlayer->getIdx(), nTLoseCoin);
 				nTotalWin += nTLoseCoin;
+
+				//sort race
+				int32_t nRace = pZiMoPlayer->getRace() + pLosePlayer->getRace();
+				pZiMoPlayer->addSingleOffset(nRace);
+				pLosePlayer->addSingleOffset(-1 * nRace);
 			}
 		}
 		st.addWin(nInvokeIdx, nTotalWin);
@@ -320,12 +334,12 @@ void AHMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		jsDetail["dianPaoIdx"] = pLosePlayer->getIdx();
 		pLosePlayer->addDianPaoCnt();
 		std::vector<uint8_t> vOrderHu;
+		uint8_t nSeatCnt = getSeatCnt();
 		if (vHuIdx.size() > 0)
 		{
-			for (uint8_t offset = 1; offset <= 3; ++offset)
+			for (uint8_t offset = 1; offset < nSeatCnt; ++offset)
 			{
-				auto nCheckIdx = nInvokeIdx + offset;
-				nCheckIdx = nCheckIdx % 4;
+				uint8_t nCheckIdx = (nInvokeIdx + offset) % nSeatCnt;
 				auto iter = std::find(vHuIdx.begin(), vHuIdx.end(), nCheckIdx);
 				if (iter != vHuIdx.end())
 				{
@@ -416,7 +430,11 @@ void AHMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			}
 
 			//guapu
-			nAllWinCoin += (pHuPlayer->getRace() + pLosePlayer->getRace());
+			//nAllWinCoin += (pHuPlayer->getRace() + pLosePlayer->getRace());
+			auto pInvoker = (AHMJPlayer*)getPlayerByIdx(nInvokeIdx);
+			int32_t nRace = pInvoker->getRace() + pHuPlayer->getRace();
+			pHuPlayer->addSingleOffset(nRace);
+			pInvoker->addSingleOffset(-1 * nRace);
 
 			st.addLose(nInvokeIdx, nAllWinCoin);
 			st.addWin(nHuIdx, nAllWinCoin);
@@ -453,26 +471,57 @@ void AHMJRoom::onPlayerLouHu(uint8_t nIdx, uint8_t nInvokerIdx) {
 
 void AHMJRoom::sendStartGameMsg() {
 	// bind room to player card 
-	Json::Value jsMsg, jsPu;
+	Json::Value jsMsg;
+	//getDelegate()->packStartGameMsg(jsMsg);
 
+	//for (auto& pPlayer : m_vPlayers)
+	//{
+	//	if (pPlayer == nullptr)
+	//	{
+	//		LOGFMTE("room id = %u , start game player is nullptr", getRoomID());
+	//		continue;
+	//	}
+	//	Json::Value jsPerPu;
+	//	auto pPlayerCard = ((AHMJPlayer*)pPlayer)->getPlayerCard();
+	//	jsPerPu["idx"] = pPlayer->getIdx();
+	//	jsPerPu["race"] = pPlayer->getRace();
+	//	jsPu[jsPu.size()] = jsPerPu;
+	//}
+	//jsMsg["races"] = jsPu;
+	////sendRoomMsg(jsMsg, MSG_ROOM_MQMJ_GAME_START);
+
+	//// replay arg 
+	//addReplayFrame(eMJFrame_Xia_Zhu, jsPu);
+
+	//jsMsg["bankerIdx"] = getBankerIdx();
+
+	//Json::Value arrPeerCards;
 	for (auto& pPlayer : m_vPlayers)
 	{
-		if (pPlayer == nullptr)
+		if (!pPlayer)
 		{
-			LOGFMTE("room id = %u , start game player is nullptr", getRoomID());
+			LOGFMTE("why player is null hz mj must all player is not null");
 			continue;
 		}
-		Json::Value jsPerPu;
+		Json::Value peer;
 		auto pPlayerCard = ((AHMJPlayer*)pPlayer)->getPlayerCard();
-		jsPerPu["idx"] = pPlayer->getIdx();
-		jsPerPu["race"] = pPlayer->getRace();
-		jsPu[jsPu.size()] = jsPerPu;
+		IMJPlayerCard::VEC_CARD vCard;
+		pPlayerCard->getHoldCard(vCard);
+		for (auto& vC : vCard)
+		{
+			peer[peer.size()] = vC;
+		}
+		jsMsg["cards"] = peer;
+		sendMsgToPlayer(jsMsg, MSG_ROOM_MQMJ_GAME_START, pPlayer->getSessionID());
 	}
-	jsMsg["races"] = jsPu;
-	sendRoomMsg(jsMsg, MSG_ROOM_MQMJ_GAME_START);
+}
 
-	// replay arg 
-	addReplayFrame(eMJFrame_Xia_Zhu, jsMsg);
+void AHMJRoom::sendWillStartGameMsg() {
+	Json::Value jsMsg, jsPu;
+	getDelegate()->packStartGameMsg(jsMsg);
+	jsMsg["bankerIdx"] = getBankerIdx();
+
+	sendRoomMsg(jsMsg, MSG_ROOM_CFMJ_GAME_WILL_START);
 }
 
 void AHMJRoom::doProduceNewBanker() {
@@ -494,6 +543,8 @@ void AHMJRoom::doProduceNewBanker() {
 	}
 
 	m_nNextBankerIdx = getBankerIdx();
+	auto pPlayer = (IMJPlayer*)getPlayerByIdx(m_nNextBankerIdx);
+	pPlayer->addBankerCnt();
 }
 
 void AHMJRoom::setNextBankerIdx(uint8_t nHuIdx) {
@@ -741,4 +792,21 @@ bool AHMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
 		}
 	}
 	return flag;
+}
+
+bool AHMJRoom::isGameOver() {
+	if (isCanGoOnMoPai() == false) {
+		return true;
+	}
+	for (auto& ref : m_vPlayers) {
+		if (ref) {
+			if (ref->haveState(eRoomPeer_CanAct) == false) {
+				continue;
+			}
+			if (ref->haveState(eRoomPeer_AlreadyHu)) {
+				return true;
+			}
+		}
+	}
+	return false;
 }

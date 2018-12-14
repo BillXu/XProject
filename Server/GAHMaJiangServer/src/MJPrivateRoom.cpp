@@ -50,6 +50,7 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		jsPlayer["mingGangCnt"] = pp->getMingGangCnt();
 		jsPlayer["ZMCnt"] = pp->getZiMoCnt();
 		jsPlayer["extraTime"] = pp->getExtraTime();
+		jsPlayer["bankerCnt"] = pp->getBankerCnt();
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
 	jsMsg["dismissID"] = m_nApplyDismissUID;

@@ -584,6 +584,43 @@ void IMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard)
 	addReplayFrame( eMJFrame_Chu, jsFrameArg);
 }
 
+void IMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing) {
+	auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
+	if (!pPlayer)
+	{
+		LOGFMTE("why this player is null idx = %u , can not chu", nIdx);
+		return;
+	}
+
+	if (!pPlayer->getPlayerCard()->onChuCard(nCard))
+	{
+		LOGFMTE("chu card error idx = %u , card = %u", nIdx, nCard);
+		return;
+	}
+
+	auto pCard = pPlayer->getPlayerCard();
+	if (nTing && (pCard->isTing() || pCard->isTingPai() == false)) {
+		nTing = 0;
+	}
+
+	//pPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
+	pPlayer->zeroFlag();
+
+	// send msg ;
+	Json::Value msg;
+	msg["idx"] = nIdx;
+	msg["actType"] = eMJAct_Chu;
+	msg["card"] = nCard;
+	msg["ting"] = nTing;
+	sendRoomMsg(msg, MSG_ROOM_ACT);
+
+	Json::Value jsFrameArg;
+	jsFrameArg["idx"] = nIdx;
+	jsFrameArg["card"] = nCard;
+	jsFrameArg["ting"] = nTing;
+	addReplayFrame(eMJFrame_Chu, jsFrameArg);
+}
+
 bool IMJRoom::isAnyPlayerPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard)
 {
 	for (auto& ref : m_vPlayers )

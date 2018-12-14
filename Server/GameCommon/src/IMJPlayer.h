@@ -54,6 +54,9 @@ public:
 
 	uint8_t getHuaGangCnt();
 	void addHuaGangCnt();
+
+	void addBankerCnt();
+	uint8_t getBankerCnt();
 	virtual IMJPlayerCard* getPlayerCard() = 0 ;
 private:
 	uint32_t m_nFlag;
@@ -63,4 +66,5 @@ private:
 	uint8_t m_nMingGangCnt;
 	uint8_t m_nAnGangCnt;
 	uint8_t m_nHuaGangCnt;
+	uint8_t m_nBankerCnt;
 };

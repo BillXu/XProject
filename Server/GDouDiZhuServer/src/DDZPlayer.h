@@ -17,7 +17,14 @@ public:
 	bool isChaoZhuang();
 	void doTiLaChuai();
 	bool isTiLaChuai();
+
+	void signDouble(uint8_t nDouble = 0) { m_bDouble = nDouble; }
+	void clearDouble() { m_bDouble = 1; }
+	bool isDoubleDone() { return m_bDouble != 1; }
+	uint8_t getDouble() { return m_bDouble; }
 protected:
 	DDZPlayerCard m_tPeerCard;
 	bool m_isChaoZhuang;
+
+	uint8_t m_bDouble;
 };

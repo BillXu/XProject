@@ -206,6 +206,7 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		recvValue["diamond"] = nGiveDiamond;
 		recvValue["sharetimes"] = m_stBaseData.nTakeCharityTimes;
 		sendMsg(recvValue, nmsgType);
+		LOGFMTD("player = %u gets shared prize = %u now has got = %u times", getPlayer()->getUserUID(), nGiveDiamond, allSharedTimes);
 		return true;
 	}
 

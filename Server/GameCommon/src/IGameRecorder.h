@@ -32,6 +32,9 @@ public:
 	uint16_t getRoundIdx();
 	uint32_t getFinishTime();
 	uint32_t getReplayID();
+	bool isDismiss() { return m_bDismiss; }
+	void signDismiss() { m_bDismiss = true; }
+	void clearDidmiss() { m_bDismiss = false; }
 	bool addPlayerRecorderInfo( std::shared_ptr<IPlayerRecorder> ptrPlayerRecorderInfo );
 	void doSaveRoomRecorder(IGameRoomRecorder* pOwnRoomRecorder ,CAsyncRequestQuene* pSyncQuene, uint16_t nRoomType );
 	bool calculatePlayerTotalOffset(std::map<uint32_t, int32_t>& vPlayersOffset );
@@ -40,6 +43,7 @@ protected:
 	uint32_t m_nFinishTime;
 	uint32_t m_nReplayID;
 	uint16_t m_nRoundIdx;
+	bool m_bDismiss;
 };
 
 class IGameRoomRecorder

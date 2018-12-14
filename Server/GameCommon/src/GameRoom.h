@@ -21,8 +21,9 @@ public:
 	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
 	void setDelegate(IGameRoomDelegate* pDelegate );
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override; // 0 can enter , 1 room is full ;
+	virtual uint8_t checkPlayerCanSitDown(stEnterRoomData* pEnterRoomPlayer) { return 0; }
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
-	bool isRoomFull()final;
+	bool isRoomFull()override;
 	bool doDeleteRoom()override; // wanning: invoke by roomMgr ;
 
 	virtual IGamePlayer* createGamePlayer() = 0;
@@ -69,7 +70,7 @@ public:
 
 	bool checkPlayerInThisRoom(uint32_t nSessionID)override;
 
-	void saveGameRecorder();
+	void saveGameRecorder(bool bDismiss = false);
 	virtual bool isHaveRace() { return false; }
 	virtual void onWaitRace(uint8_t nIdx = -1) {}
 protected:

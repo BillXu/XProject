@@ -3,7 +3,8 @@
 #include "DDZRoom.h"
 #include "DDZPlayer.h"
 #include "DouDiZhuDefine.h"
-#include "DouDiZhuCardTypeChecker.h"
+//#include "DouDiZhuCardTypeChecker.h"
+#include "FALGroupCardsTypeChecker.h"
 #define TIME_DELAY_ENTER_GAME_OVER 0.5
 #define TIME_TUOGUAN_DELAY_ACT 2
 class DDZRoomStatePlayerChu
@@ -13,14 +14,14 @@ public:
 	struct stChuPaiInfo
 	{
 		std::vector<uint8_t> vCards;
-		DDZ_Type tChuPaiType;
+		eFALGroupCardType tChuPaiType;
 		uint32_t nWeight;
 		uint8_t nPlayerIdx;
 		stChuPaiInfo() { clear(); }
 		void clear() 
 		{
 			vCards.clear();
-			tChuPaiType = DDZ_Max;
+			tChuPaiType = eFALCardType_Max;
 			nWeight = 0;
 			nPlayerIdx = 0;
 		}
@@ -88,12 +89,12 @@ public:
 			if (nRet)
 			{
 				jsmsg["ret"] = nRet;
-				getRoom()->sendMsgToPlayer(jsmsg, nMsgType, nSessionID);
+				pRoom->sendMsgToPlayer(jsmsg, nMsgType, nSessionID);
 				return true;
 			}
 
 			jsmsg["idx"] = pPlayer->getIdx();
-			getRoom()->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
+			pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_UPDATE_TUO_GUAN);
 			return true;
 		}
 
@@ -131,7 +132,7 @@ public:
 			if (nRet)
 			{
 				jsRet["ret"] = nRet;
-				getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
 				return true;
 			}
 
@@ -142,7 +143,7 @@ public:
 			Json::Value jsHold;
 			pPlayer->getPlayerCard()->holdCardToJson(jsHold);
 			jsMsg["cards"] = jsHold;
-			getRoom()->sendRoomMsg(jsMsg, MSG_DDZ_ROOM_SHOW_CARDS);
+			pRoom->sendRoomMsg(jsMsg, MSG_DDZ_ROOM_SHOW_CARDS);
 			return true;
 		}
 
@@ -165,19 +166,20 @@ public:
 		{
 			// tell other players ;
 			jsmsg["idx"] = pPlayer->getIdx();
-			getRoom()->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_CHU); 
+			pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_CHU);
 			pPlayer->getPlayerCard()->clearLastChu();
 			// next player do act ;
 			infomNextPlayerAct();
 
 			// add frame ;
 			Json::Value jsFrame;
-			getRoom()->addReplayFrame(DDZ_Frame_DoChu, jsFrame);
+			jsFrame["idx"] = pPlayer->getIdx();
+			pRoom->addReplayFrame(DDZ_Frame_DoChu, jsFrame);
 			return true;
 		}
 
 		// parse value 
-		auto nType = (DDZ_Type)jsmsg["type"].asUInt();
+		auto nType = (eFALGroupCardType)jsmsg["type"].asUInt();
 		std::vector<uint8_t> vChuCarrds;
 		for (auto nCardIdx = 0; nCardIdx < jsmsg["cards"].size(); ++nCardIdx)
 		{
@@ -185,8 +187,10 @@ public:
 		}
 
 		// check card type invalid 
-		uint8_t nWeight = 0;
-		auto isVlaid = DDZCardTypeChecker::getInstance()->isCardTypeValid(vChuCarrds, nType, nWeight );
+		uint32_t nWeight = 0;
+		eFALGroupCardType tType = eFALCardType_None;
+		//auto isVlaid = DDZCardTypeChecker::getInstance()->isCardTypeValid(vChuCarrds, nType, nWeight );
+		auto isVlaid = FALCardTypeChecker::getInstance()->checkCardType(vChuCarrds, nWeight, tType, nType);
 		if (isVlaid == false)
 		{
 			js["ret"] = 2;
@@ -198,45 +202,50 @@ public:
 		if ( m_tCurMaxChuPai.isNull() == false && m_tCurMaxChuPai.nPlayerIdx != pPlayer->getIdx() )
 		{
 			isVlaid = m_tCurMaxChuPai.tChuPaiType == nType && nWeight >= m_tCurMaxChuPai.nWeight;
-			isVlaid = isVlaid || ( (nType > DDZ_Common) && ( nType > m_tCurMaxChuPai.tChuPaiType) );
+			isVlaid = isVlaid || ( (nType > eFALCardType_NotBomb) && ( nType > m_tCurMaxChuPai.tChuPaiType) );
 			if (!isVlaid)
 			{
 				js["ret"] = 2;
 				pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
-				LOGFMTE("card is small cann't chu room id = %u , idx = %u", getRoom()->getRoomID(), pPlayer->getIdx());
+				LOGFMTE("card is small cann't chu room id = %u , idx = %u", pRoom->getRoomID(), pPlayer->getIdx());
 				return true;
 			}
 		}
 
 		// do chu 
-		if (!pPlayer->getPlayerCard()->onChuCard(vChuCarrds))
+		if (!pPlayer->getPlayerCard()->onChuCard(vChuCarrds, nType))
 		{
 			js["ret"] = 1;
 			pRoom->sendMsgToPlayer(js, nMsgType, nSessionID);
 			return true;
 		}
 
+		// add not shuffle cards
+		pRoom->addNotShuffleCards(vChuCarrds);
+
 		// add frame ;
 		Json::Value jsFrame;
+		jsFrame["idx"] = pPlayer->getIdx();
 		jsFrame["cards"] = jsmsg["cards"];
 		jsFrame["type"] = jsmsg["type"];
-		getRoom()->addReplayFrame(DDZ_Frame_DoChu, jsFrame);
+		pRoom->addReplayFrame(DDZ_Frame_DoChu, jsFrame);
 		
 		// update max card ;
 		m_tCurMaxChuPai.nWeight = nWeight;
 		m_tCurMaxChuPai.vCards = vChuCarrds;
 		m_tCurMaxChuPai.nPlayerIdx = pPlayer->getIdx();
 		m_tCurMaxChuPai.tChuPaiType = nType;
-		if ( DDZ_Bomb == nType || DDZ_Rokect == nType)
+		if (/* DDZ_Bomb == nType || DDZ_Rokect == nType*/nType > eFALCardType_NotBomb)
 		{
 			pRoom->increaseBombCount();
 		}
 		
 		// tell other players ;
 		jsmsg["idx"] = pPlayer->getIdx();
-		getRoom()->sendRoomMsg(jsmsg,MSG_DDZ_ROOM_CHU);
+		pRoom->sendRoomMsg(jsmsg,MSG_DDZ_ROOM_CHU);
 		if ( pPlayer->getPlayerCard()->getHoldCardCount() == 0 ) // game over 
 		{
+			pRoom->setFirstRotBankerIdx(m_nWaitChuPlayerIdx);
 			delayEnterGameOverState();  // delay enter game over state ;
 		}
 		else
@@ -264,13 +273,12 @@ public:
 
 			Json::Value jsPlayer;
 			jsPlayer["idx"] = nIdx;
-
-			Json::Value jsLastChu;
-			p->getPlayerCard()->lastChuToJson(jsLastChu);
-			if (jsLastChu.size() > 0)
-			{
-				jsPlayer["chu"] = jsLastChu;
-			}
+			p->getPlayerCard()->lastChuToJson(jsPlayer);
+			//Json::Value jsLastChu;
+			//if (p->getPlayerCard()->lastChuToJson(jsPlayer))
+			//{
+			//	//jsPlayer["chu"] = jsLastChu;
+			//}
 
 			jsLastChuArray[jsLastChuArray.size()] = jsPlayer;
 		}
@@ -341,7 +349,7 @@ protected:
 				auto nCurType = m_tCurMaxChuPai.tChuPaiType;
 				if (m_tCurMaxChuPai.nPlayerIdx == m_nWaitChuPlayerIdx)
 				{
-					nCurType = DDZ_Max;
+					nCurType = eFALCardType_Max;
 				}
 
 				std::vector<uint8_t> vAutChuCards;

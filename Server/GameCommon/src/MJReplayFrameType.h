@@ -23,4 +23,5 @@ enum eMJFrameType
 	eMJFrame_Cyclone, // { idx : 2 , gang : 2 , newCard : 23 }
 	eMJFrame_Ting, // {idx : 2, ting : 1}
 	eMJFrame_Xia_Zhu, // { races : { {idx : 0 , race : 5}, {}... } }
+	eMJFrame_Settle, // { actType : 0, msg : {if is nessary(like hu)}, detial : { {idx : 0, chips : 12}, ... } }
 };

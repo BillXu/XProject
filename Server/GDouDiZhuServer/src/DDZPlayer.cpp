@@ -3,6 +3,7 @@ void DDZPlayer::onGameWillStart()
 {
 	IGamePlayer::onGameWillStart();
 	getPlayerCard()->reset();
+	clearDouble();
 }
 
 void DDZPlayer::onGameDidEnd()

@@ -19,6 +19,7 @@
 bool FXMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
 {
 	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	m_mSitedIdxes.clear();
 	m_cFanxingChecker.init();
 	m_vGainChip.resize(getSeatCnt());
 	m_bCheckFollow = false;
@@ -291,15 +292,22 @@ void FXMJRoom::onPlayerMo(uint8_t nIdx) {
 void FXMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
 	bool haveGangFlag = false;
+	bool needClearCanCyclone = false;
 	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang)) {
 		haveGangFlag = true;
+	}
+	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
+		needClearCanCyclone = true;
 	}
 	IMJRoom::onPlayerChu(nIdx, nCard);
 	if (haveGangFlag) {
 		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang);
 	}
-	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
+	if (needClearCanCyclone) {
 		pPlayer->clearFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
+	}
+	else {
+		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
 	}
 	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
 	pCard->onPlayerLouHu(nCard);
@@ -342,6 +350,76 @@ void FXMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 			m_nFollowCnt++;
 		}
 	}
+}
+
+void FXMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing) {
+	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+	bool haveGangFlag = false;
+	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang)) {
+		haveGangFlag = true;
+	}
+	bool needClearCanCyclone = false;
+	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
+		needClearCanCyclone = true;
+	}
+	IMJRoom::onPlayerChu(nIdx, nCard, nTing);
+	if (haveGangFlag) {
+		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang);
+	}
+	if (needClearCanCyclone) {
+		pPlayer->clearFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
+	}
+	else {
+		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
+	}
+	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+	pCard->onPlayerLouHu(nCard);
+	if (m_bCheckFollow) {
+		if (m_nFollowCard) {
+			if (m_nFollowCard == nCard) {
+				//TODO...
+				m_nFollowCnt++;
+				if (m_nFollowCnt == getSeatCnt()) {
+					stSettle st;
+					st.eSettleReason = eMJAct_Followed;
+					uint16_t nWinCoin = 5 * getBaseScore();
+					uint16_t nLoseCoin = 0;
+
+					for (auto& pp : m_vPlayers) {
+						if (pp) {
+							if (pp->getIdx() == getBankerIdx()) {
+								continue;
+							}
+							st.addWin(pp->getIdx(), nWinCoin);
+							nLoseCoin += nWinCoin;
+						}
+					}
+					st.addLose(getBankerIdx(), nLoseCoin);
+					addSettle(st);
+
+					m_nFollowCard = 0;
+					m_nFollowCnt = 0;
+					m_bCheckFollow = false;
+				}
+			}
+			else {
+				m_nFollowCard = 0;
+				m_nFollowCnt = 0;
+				m_bCheckFollow = false;
+			}
+		}
+		else {
+			m_nFollowCard = nCard;
+			m_nFollowCnt++;
+		}
+	}
+}
+
+void FXMJRoom::onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx) {
+	IMJRoom::onPlayerEat(nIdx, nCard, nWithA, nWithB, nInvokeIdx);
+
+	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
+	pPlayer->clearGangFlag();
 }
 
 void FXMJRoom::onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx) {
@@ -700,12 +778,12 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		pLosePlayer->addDianPaoCnt();
 		std::vector<uint8_t> vOrderHu;
 		uint8_t nHuLevel = 0;
+		uint8_t nSeatCnt = getSeatCnt();
 		if (vHuIdx.size() > 0)
 		{
-			for (uint8_t offset = 1; offset <= 3; ++offset)
+			for (uint8_t offset = 1; offset < nSeatCnt; ++offset)
 			{
-				auto nCheckIdx = nInvokeIdx + offset;
-				nCheckIdx = nCheckIdx % 4;
+				uint8_t nCheckIdx = (nInvokeIdx + offset) % nSeatCnt;
 				auto iter = std::find(vHuIdx.begin(), vHuIdx.end(), nCheckIdx);
 				if (iter != vHuIdx.end())
 				{
@@ -1106,10 +1184,16 @@ void FXMJRoom::onAskForHuThisCard(uint8_t nInvokeIdx, uint8_t nCard, uint8_t& nO
 		}
 		auto pRefCard = (FXMJPlayerCard*)ref->getPlayerCard();
 		if (pRefCard->canHuWitCard(nCard)) {
-			auto nRefHuLevel = pRefCard->getHuLevel(nCard);
-			if (nRefHuLevel > nHuLevel) {
-				nHuLevel = nRefHuLevel;
+			if (isEnablePJH()) {
+				auto nRefHuLevel = pRefCard->getHuLevel(nCard);
+				if (nRefHuLevel > nHuLevel) {
+					nHuLevel = nRefHuLevel;
+					nHuIdx = nRefIdx;
+				}
+			}
+			else {
 				nHuIdx = nRefIdx;
+				break;
 			}
 		}
 	}
@@ -1727,32 +1811,73 @@ bool FXMJRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)
 {
 	GameRoom::onPlayerEnter(pEnterRoomPlayer);
 	// check if already in room ;
+	bool bNotFind = true;
 	uint8_t nEmptyIdx = 0/*rand() % getSeatCnt()*/;
-	for (uint8_t nIdx = 0; nIdx < getSeatCnt(); ++nIdx)
-	{
-		nEmptyIdx = (nEmptyIdx + nIdx) % getSeatCnt();
-		if (getPlayerByIdx(nEmptyIdx) == nullptr)
-		{
-			//nEmptyIdx = nIdx;
-			break;
+	//first check pre
+	if ((uint16_t)-1 != pEnterRoomPlayer->nPreSitIdx) {
+		nEmptyIdx = pEnterRoomPlayer->nPreSitIdx % getSeatCnt();
+		if (getPlayerByIdx(nEmptyIdx) == nullptr) {
+			bNotFind = false;
 		}
 	}
 
-	if (nEmptyIdx == (uint8_t)-1)
+	//second find not occupation
+	if (bNotFind) {
+		for (nEmptyIdx = 0; nEmptyIdx < getSeatCnt(); ++nEmptyIdx)
+		{
+			//nEmptyIdx = (nEmptyIdx + nIdx) % getSeatCnt();
+			if (getPlayerByIdx(nEmptyIdx)) {
+				continue;
+			}
+			if (m_mSitedIdxes.count(nEmptyIdx))
+			{
+				continue;
+			}
+			bNotFind = false;
+			break;
+		}
+
+		//finnaly find empty
+		if (bNotFind) {
+			for (nEmptyIdx = 0; nEmptyIdx < getSeatCnt(); ++nEmptyIdx)
+			{
+				//nEmptyIdx = (nEmptyIdx + nIdx) % getSeatCnt();
+				if (getPlayerByIdx(nEmptyIdx) == nullptr)
+				{
+					bNotFind = false;
+					break;
+				}
+			}
+		}
+	}
+
+	if (bNotFind)
 	{
 		//LOGFMTE("why player enter , but do not have empty seat");
 		return true;
 	}
 
 	doPlayerSitDown(pEnterRoomPlayer, nEmptyIdx);
+	m_mSitedIdxes[nEmptyIdx] = pEnterRoomPlayer->nUserUID;
 	return true;
 }
 
-void FXMJRoom::onPlayerTing(uint8_t nIdx, uint8_t nTing) {
+void FXMJRoom::onPlayerTing(uint8_t nIdx, uint8_t nTing, bool bNotCheck) {
 	//TODO...
 	auto pPlayer = (FXMJPlayer*)getPlayerByIdx(nIdx);
 	if (pPlayer) {
 		auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+
+		if (bNotCheck) {
+			if (nTing == 2) {
+				if (isEnableCool()) {
+					pCard->signCool();
+					pPlayer->addCoolCnt();
+				}
+			}
+			return;
+		}
+
 		if (pCard->isTing() == false && pCard->isTingPai()) {
 			Json::Value jsMsg;
 			if (nTing == 2) {

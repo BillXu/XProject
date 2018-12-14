@@ -19,7 +19,7 @@ GameRoom* DDZPrivateRoom::doCreatRealRoom()
 
 uint8_t DDZPrivateRoom::getInitRound(uint8_t nLevel)
 {
-	uint8_t vJun[] = { 9 , 18 , 27 };
+	uint8_t vJun[] = { 9 , 18 , 27 , 8 , 16 };
 	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
 	{
 		LOGFMTE("invalid level type = %u", nLevel);
@@ -77,4 +77,13 @@ bool DDZPrivateRoom::canStartGame(IGameRoom* pRoom)
 	}
 
 	return IPrivateRoom::canStartGame(pRoom);
+}
+
+uint8_t DDZPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer) {
+	if (m_pRoom)
+	{
+		return m_pRoom->checkPlayerCanEnter(pEnterRoomPlayer);
+	}
+	LOGFMTE("private room can not room is null rooom id = %u", getRoomID());
+	return 1;
 }

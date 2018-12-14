@@ -33,15 +33,16 @@ protected:
 class MJReplayGame
 {
 public:
-	void init( uint32_t nRoomType ,Json::Value& jsRoomOpts )
+	void init( uint32_t nRoomType ,Json::Value& jsRoomOpts, uint32_t nRoomID )
 	{
 		m_nRoomType = nRoomType;
-		setReplayRoomInfo(jsRoomOpts);
+		setReplayRoomInfo(jsRoomOpts, nRoomID);
 	}
 	
-	void startNewReplay( uint32_t nReplayID )
+	void startNewReplay( uint32_t nReplayID, uint32_t nRoundIdx )
 	{
 		setReplayID(nReplayID);
+		setRoundIdx(nRoundIdx);
 		clearFrames();
 	}
 
@@ -110,9 +111,14 @@ protected:
 	{
 		m_nReplayID = nReplayID;
 	}
-	void setReplayRoomInfo(Json::Value& jsInfo)
+	void setReplayRoomInfo(Json::Value& jsInfo, uint32_t nRoomID)
 	{
 		m_jsGameInfo = jsInfo;
+		m_jsGameInfo["roomID"] = nRoomID;
+	}
+	void setRoundIdx(uint32_t nRoundIdx)
+	{
+		m_jsGameInfo["roundIdx"] = nRoundIdx;
 	}
 protected:
 	Json::Value m_jsGameInfo;
