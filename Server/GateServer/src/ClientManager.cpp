@@ -627,6 +627,8 @@ void CGateClientMgr::onLogin( Json::Value& jsMsg, stGateClient* pClient )
 		Json::Value jsRow = jsData[0u];
 		jsRet["nRet"] = jsRow["nOutRet"].asUInt();
 		jsRet["nAccountType"] = jsRow["nOutRegisterType"].asUInt();
+		jsRet["account0"] = jsRow["strAccount0"];
+		jsRet["account1"] = jsRow["strAccount1"];
 		nUserUID = jsRow["nOutUID"].asUInt();
 		LOGFMTD("check accout = %s  ret = %d", jsRow["strAccount"].asCString(), jsRet["nRet"].asUInt());
 		sendMsgToClient(jsRet, MSG_PLAYER_LOGIN, nClientNetID);

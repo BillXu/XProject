@@ -34,7 +34,7 @@ void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 #ifndef _DEBUG
 	return;
 #endif // !_DEBUG
-	return;
+	//return;
 
 	uint8_t tCard;
 	//1
@@ -81,23 +81,23 @@ void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 	vMakedCards.push_back(tCard);
 
 	////2
-	//tCard = makeCardNumber(eCT_Feng, 1);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Feng, 1);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Feng, 2);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Feng, 2);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Feng, 3);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Feng, 3);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Feng, 4);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Feng, 4);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Jian, 1);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Feng, 4);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Jian, 2);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Feng, 4);
+	vMakedCards.push_back(tCard);
 
 	//tCard = makeCardNumber(eCT_Jian, 3);
 	//vMakedCards.push_back(tCard);

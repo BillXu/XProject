@@ -103,6 +103,7 @@ void DDZRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, u
 	}
 
 	jsPlayerInfo["double"] = p->getDouble();
+	jsPlayerInfo["extraTime"] = p->getExtraTime();
 }
 
 uint8_t DDZRoom::getRoomType()

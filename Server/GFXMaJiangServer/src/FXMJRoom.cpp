@@ -362,6 +362,8 @@ void FXMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing) {
 	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
 		needClearCanCyclone = true;
 	}
+	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
+	bool isTing = pCard->isTing();
 	IMJRoom::onPlayerChu(nIdx, nCard, nTing);
 	if (haveGangFlag) {
 		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang);
@@ -372,8 +374,9 @@ void FXMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing) {
 	else {
 		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
 	}
-	auto pCard = (FXMJPlayerCard*)pPlayer->getPlayerCard();
-	pCard->onPlayerLouHu(nCard);
+	if (isTing) {
+		pCard->onPlayerLouHu(nCard);
+	}
 	if (m_bCheckFollow) {
 		if (m_nFollowCard) {
 			if (m_nFollowCard == nCard) {
@@ -856,7 +859,7 @@ void FXMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			if (getSeatCnt() > 3) {
 				uint8_t nMenQingCnt = 0;
 				for (auto& ref : m_vPlayers) {
-					if (ref == nullptr || ref->getIdx() == nInvokeIdx) {
+					if (ref == nullptr || ref->getIdx() == nHuIdx) {
 						continue;
 					}
 					if (m_cFanxingChecker.checkFanxing(eFanxing_MengQing, (FXMJPlayer*)ref, nInvokeIdx, this)) {

@@ -49,6 +49,14 @@ public:
 		setStateDuringTime(eTime_WaitForever);
 	}
 
+	void update(float fDeta)override {
+		if (getWaitTime() > 15.0f) {
+			auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(m_nWaitChuPlayerIdx);
+			pPlayer->addExtraTime(fDeta);
+		}
+		IGameRoomState::update(fDeta);
+	}
+
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
 	{
 		if ( MSG_DDZ_PLAYER_CHU != nMsgType && MSG_DDZ_PLAYER_SHOW_CARDS != nMsgType && MSG_DDZ_PLAYER_UPDATE_TUO_GUAN != nMsgType )
@@ -168,13 +176,14 @@ public:
 			jsmsg["idx"] = pPlayer->getIdx();
 			pRoom->sendRoomMsg(jsmsg, MSG_DDZ_ROOM_CHU);
 			pPlayer->getPlayerCard()->clearLastChu();
-			// next player do act ;
-			infomNextPlayerAct();
 
 			// add frame ;
 			Json::Value jsFrame;
 			jsFrame["idx"] = pPlayer->getIdx();
 			pRoom->addReplayFrame(DDZ_Frame_DoChu, jsFrame);
+
+			// next player do act ;
+			infomNextPlayerAct();
 			return true;
 		}
 
@@ -316,6 +325,7 @@ protected:
 		getRoom()->addReplayFrame(DDZ_Frame_WaitChu, jsFrame);
 		// check tuoGuan 
 		checkTuoGuan();
+		setStateDuringTime(eTime_WaitForever);
 	}
 
 	void delayEnterGameOverState()

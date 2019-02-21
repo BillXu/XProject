@@ -725,6 +725,14 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			Json::Value jsp;
 			jsp["uid"] = pMem->nPlayerUID;
 			jsp["privilige"] = pMem->ePrivilige;
+
+			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(pMem->nPlayerUID);
+			if (pPlayer && pPlayer->isPlayerReady()) {
+				jsp["name"] = pPlayer->getBaseData()->getPlayerName();
+				jsp["headIcon"] = pPlayer->getBaseData()->getHeadIcon();
+				jsp["isOnline"] = pPlayer->isState(CPlayer::ePlayerState_Online) == true ? 1 : 0;
+			}
+
 			if (isSendPoints)
 			{
 				jsp["initPoint"] = pMem->nInitPoints;

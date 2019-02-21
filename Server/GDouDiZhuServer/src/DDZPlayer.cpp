@@ -1,4 +1,9 @@
 #include "DDZPlayer.h"
+void DDZPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
+	IGamePlayer::init(pData, nIdx);
+	m_nExtraTime = 0;
+}
+
 void DDZPlayer::onGameWillStart()
 {
 	IGamePlayer::onGameWillStart();
@@ -62,4 +67,8 @@ void DDZPlayer::doTiLaChuai()
 bool DDZPlayer::isTiLaChuai()
 {
 	return haveState(eRoomPeer_TiLaChuai);
+}
+
+void DDZPlayer::addExtraTime(float fTime) {
+	m_nExtraTime += fTime;
 }

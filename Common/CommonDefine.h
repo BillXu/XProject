@@ -380,6 +380,7 @@ enum eMailType
 	eMail_ClubJoin, // { clubID : 23 } , sys pro
 	eMail_ClubLeave, // { clubID : 23 } , sys pro
 	eMail_ResponeClubApplyLeave, // { clubID : 23 , clubName : "abc", nIsAgree : 0 }
+	eMail_ChangeVip, // { level : 1, dayTime : 30 }
 
 	// above is new ;
 	eMail_SysOfflineEvent,// { event: concret type , arg:{ arg0: 0 , arg 1 = 3 } }  // processed in svr , will not send to client ;

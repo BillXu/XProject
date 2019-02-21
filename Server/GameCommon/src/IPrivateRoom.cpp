@@ -77,6 +77,11 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 		m_bDaiKai = true;
 	}
 
+	m_nVipLevel = 0;
+	if (vJsOpts["vipLevel"].isUInt()) {
+		m_nVipLevel = vJsOpts["vipLevel"].asUInt();
+	}
+
 	if (vJsOpts["starGame"].isNull() == false)
 	{
 		m_nAutoStartCnt = vJsOpts["starGame"].asUInt();
@@ -855,6 +860,7 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 
 		Json::Value jsMsg;
 		jsMsg["targetUID"] = pPlayer->getUserUID();
+		jsMsg["gameOver"] = isRoomOver() ? 1 : 0;
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_GameOver, jsMsg);
 	}
 
@@ -905,7 +911,7 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	if ( isDismissed && isAlreadyComsumedDiamond && isOneRoundNormalEnd() == false )
 	{
 		Json::Value jsReq;
-		jsReq["diamond"] = getDiamondNeed(m_nRoundLevel, getPayType());
+		jsReq["diamond"] = m_nVipLevel ? 0 : getDiamondNeed(m_nRoundLevel, getPayType());
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		if ( isClubRoom() )
 		{

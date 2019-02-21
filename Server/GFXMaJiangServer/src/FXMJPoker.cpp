@@ -34,169 +34,169 @@ void FXMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 #ifndef _DEBUG
 	return;
 #endif // !_DEBUG
-	return;
+	//return;
 
 	uint8_t tCard;
 	//1
 	tCard = makeCardNumber(eCT_Feng, 1);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Feng, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Feng, 4);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Jian, 1);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Jian, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Jian, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 1);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 4);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 4);
-	vMakedCards.push_back(tCard);
-
-	//2
 	tCard = makeCardNumber(eCT_Feng, 1);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Feng, 3);
-	vMakedCards.push_back(tCard);
-
 	tCard = makeCardNumber(eCT_Feng, 4);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Jian, 1);
+	tCard = makeCardNumber(eCT_Wan, 3);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Jian, 2);
+	tCard = makeCardNumber(eCT_Wan, 4);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Jian, 3);
+	tCard = makeCardNumber(eCT_Wan, 6);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 1);
+	tCard = makeCardNumber(eCT_Wan, 8);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 3);
+	tCard = makeCardNumber(eCT_Tong, 1);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 4);
+	tCard = makeCardNumber(eCT_Tong, 5);
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Tiao, 4);
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Tiao, 5);
-	vMakedCards.push_back(tCard);
-
-	//3
-	tCard = makeCardNumber(eCT_Feng, 1);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Feng, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Feng, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Feng, 4);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Jian, 1);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Jian, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Jian, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 1);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 5);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 5);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 6);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 6);
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Tiao, 7);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 7);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 7);
+	vMakedCards.push_back(tCard);
+
+	//2
+	tCard = makeCardNumber(eCT_Feng, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 4);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 5);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 9);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 9);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 1);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 8);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 9);
+	vMakedCards.push_back(tCard);
+
+	//3
+	tCard = makeCardNumber(eCT_Jian, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 1);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 5);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 7);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 8);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 5);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 4);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 5);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 9);
 	vMakedCards.push_back(tCard);
 
 	//4
 	tCard = makeCardNumber(eCT_Feng, 1);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 2);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Feng, 3);
-	vMakedCards.push_back(tCard);
-
 	tCard = makeCardNumber(eCT_Feng, 4);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Jian, 1);
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Jian, 2);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Jian, 3);
+	tCard = makeCardNumber(eCT_Wan, 1);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 6);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 4);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 7);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 7);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 8);
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Tiao, 1);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Tiao, 6);
+	tCard = makeCardNumber(eCT_Tiao, 3);
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Tiao, 6);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 7);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 7);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 8);
 	vMakedCards.push_back(tCard);
 }

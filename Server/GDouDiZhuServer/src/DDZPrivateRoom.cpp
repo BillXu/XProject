@@ -1,5 +1,6 @@
 #include "DDZPrivateRoom.h"
 #include "DDZRoom.h"
+#include "DDZPlayer.h"
 #include "IGamePlayer.h"
 #include "IGameRoomState.h"
 #include "IGameRoomManager.h"
@@ -35,7 +36,7 @@ void DDZPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 	auto nCnt = getCoreRoom()->getSeatCnt();
 	for (uint16_t nIdx = 0; nIdx < nCnt; ++nIdx)
 	{
-		auto pPlayer = getCoreRoom()->getPlayerByIdx(nIdx);
+		auto pPlayer = (DDZPlayer*)getCoreRoom()->getPlayerByIdx(nIdx);
 		if (pPlayer == nullptr)
 		{
 			continue;
@@ -43,6 +44,7 @@ void DDZPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		Json::Value jsPlayer;
 		jsPlayer["uid"] = pPlayer->getUserUID();
 		jsPlayer["final"] = pPlayer->getChips();
+		jsPlayer["extraTime"] = pPlayer->getExtraTime();
 		jsArrayPlayers[jsArrayPlayers.size()] = jsPlayer;
 	}
 

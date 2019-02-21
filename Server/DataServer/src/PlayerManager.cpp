@@ -12,6 +12,7 @@
 #include <ctime>
 #include "MailModule.h"
 #include "PlayerGameData.h"
+#include "Utility.h"
 void CPlayerBrifDataCacher::stPlayerDataPrifle::recivedData(Json::Value& jsData, IServerApp* pApp )
 {
 	if ( isContentData() )
@@ -339,6 +340,43 @@ bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort e
 		jsReq["sessionID"] = nSenderID;
 		pAsync->pushAsyncRequest(ID_MSG_PORT_GATE,nSenderID, eAsync_InformGate_PlayerLogout,jsReq);
 		return true;
+	}else if (MSG_PLAYER_BIND_ACCOUNT1 == nMsgType) {
+		auto sAccount = prealMsg["account"].asString();
+		auto sPassword = prealMsg["password"].asString();
+		if (sAccount.size() == 0 || sPassword.size() == 0) {
+			Json::Value js;
+			js["ret"] = 5;
+			sendMsg(js, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+			return true;
+		}
+
+		sAccount = checkStringForSql(sAccount.c_str());
+		sPassword = checkStringForSql(sPassword.c_str());
+		Json::Value jsSql;
+		char pBuffer[512] = { 0 };
+		sprintf_s(pBuffer, sizeof(pBuffer), "call bindAccount1(%u,'%s','%s');", nTargetID, sAccount.c_str(), sPassword.c_str());
+		std::string str = pBuffer;
+		jsSql["sql"] = pBuffer;
+		auto async = getSvrApp()->getAsynReqQueue();
+		async->pushAsyncRequest(ID_MSG_PORT_DB, nSenderID, eAsync_DB_Select, jsSql, [this, nTargetID, nSenderID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+			Json::Value jsRet;
+			if (isTimeOut) {
+				jsRet["ret"] = 7;
+				sendMsg(jsRet, MSG_PLAYER_BIND_ACCOUNT1, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+				return;
+			}
+
+			Json::Value jsData = retContent["data"];
+			if (jsData.size() != 1) {
+				jsRet["ret"] = 7;
+				sendMsg(jsRet, MSG_PLAYER_BIND_ACCOUNT1, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+				return;
+			}
+
+			jsRet["ret"] = jsData[0u]["nOutRet"];
+			sendMsg(jsRet, MSG_PLAYER_BIND_ACCOUNT1, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
+		});
+		return true;
 	}
 	else
 	{
@@ -443,6 +481,10 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		if (pPlayer)
 		{
 			pPlayer->getBaseData()->addGameCnt();
+			bool bGameOver = jsReqContent["gameOver"].asUInt() == 1;
+			if (bGameOver) {
+				pPlayer->getBaseData()->addPointTotalGameCnt();
+			}
 		}
 	}
 	break;
@@ -505,6 +547,9 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		jsResult["isOnline"] = 1;
 		jsResult["name"] = pPlayer->getBaseData()->getPlayerName();
 		jsResult["leftCardCnt"] = pPlayer->getBaseData()->getDiamoned();
+		jsResult["point"] = pPlayer->getBaseData()->getPoint();
+		jsResult["vipLevel"] = pPlayer->getBaseData()->getVipLevel();
+		jsResult["vipInvalidTime"] = pPlayer->getBaseData()->getVipInvalidTime();
 	}
 	break;
 	case eAsync_Consume_Diamond:
@@ -659,6 +704,41 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		pMailModule->postMail(nUserUID, eMail_Agent_AddEmojiCnt, jsMailArg, eMailState_WaitSysAct);
 	}
 	break;
+	case eAsync_HttpCmd_AgentAddPoint:
+	{
+		jsResult = jsReqContent;
+		jsResult["ret"] = 0;
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		int32_t nAddCnt = jsReqContent["addPoint"].asInt();
+		uint32_t nSeailNumber = jsReqContent["addPointNo"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUserUID);
+		if (nullptr == pPlayer || pPlayer->isPlayerReady() == false)
+		{
+			jsResult["ret"] = 1;
+			break;
+		}
+		if (pPlayer->getBaseData()->addPoint(nAddCnt)) {
+			pPlayer->getBaseData()->savePointRecord(nAddCnt, jsReqContent);
+			LOGFMTI("player agents add point to uid = %u , cnt = %d , addPointNo = %u", nUserUID, nAddCnt, nSeailNumber);
+		}
+		else {
+			jsResult["ret"] = 2;
+			LOGFMTI("player agents add point to uid = %u , cnt = %d , addPointNo = %u error, point is not enough, point = %u", nUserUID, nAddCnt, nSeailNumber, pPlayer->getBaseData()->getPoint());
+		}
+	}
+	break;
+	case eAsync_HttpCmd_ChangeVipLevel:
+	{
+		jsResult["ret"] = 0;
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		Json::Value jsMailArg;
+		jsMailArg["level"] = jsReqContent["level"];
+		jsMailArg["dayTime"] = jsReqContent["dayTime"];
+
+		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
+		pMailModule->postMail(nUserUID, eMail_ChangeVip, jsMailArg, eMailState_WaitSysAct);
+	}
+	break;
 	default:
 	{
 		if (jsReqContent["playerUID"].isNull() == false)
@@ -698,7 +778,7 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 		// not online , must get name first ;
 		Json::Value jsSql;
 		char pBuffer[512] = { 0 };
-		sprintf_s(pBuffer,sizeof(pBuffer), "SELECT nickName, diamond FROM playerbasedata WHERE userUID = %u ;", nUserUID );
+		sprintf_s(pBuffer,sizeof(pBuffer), "SELECT nickName, diamond, point, vipLevel, vipInvalidTime FROM playerbasedata WHERE userUID = %u ;", nUserUID );
 		jsSql["sql"] = pBuffer;
 
 		async->pushAsyncRequest(ID_MSG_PORT_DB,nSenderID,eAsync_DB_Select, jsSql, [nReqSerial, nSenderID,async, nUserUID,this ](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut )
@@ -715,6 +795,9 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 			jsAgentBack["isOnline"] = 0;
 			jsAgentBack["name"] = "";
 			jsAgentBack["leftCardCnt"] = 0;
+			jsAgentBack["point"] = 0;
+			jsAgentBack["vipLevel"] = 0;
+			jsAgentBack["vipInvalidTime"] = 0;
 
 			if (nRow == 0)
 			{
@@ -728,6 +811,9 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 			Json::Value jsRow = jsData[0u];
 			jsAgentBack["name"] = jsRow["nickName"];
 			jsAgentBack["leftCardCnt"] = jsRow["diamond"];
+			jsAgentBack["point"] = jsRow["point"];
+			jsAgentBack["vipLevel"] = jsRow["vipLevel"];
+			jsAgentBack["vipInvalidTime"] = jsRow["vipInvalidTime"];
 			LOGFMTD("uid = %u base data card cnt = %u", nUserUID, jsRow["diamond"].asUInt());
 
 			// take not process add card mail in to account 
@@ -770,6 +856,41 @@ bool CPlayerManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nRe
 		});
 		return true;
 	}
+	
+	if (eAsync_HttpCmd_bindAccount1 == nRequestType) {
+		Json::Value jsAgentBack;
+		auto sAccount = jsReqContent["account"].asString();
+		auto sPassword = jsReqContent["password"].asString();
+		uint32_t nUserUID = jsReqContent["targetUID"].asUInt();
+		if (sAccount.size() == 0 || sPassword.size() == 0) {
+			jsAgentBack["ret"] = 5;
+			getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+			return true;
+		}
+
+		sAccount = checkStringForSql(sAccount.c_str());
+		sPassword = checkStringForSql(sPassword.c_str());
+		Json::Value jsSql;
+		char pBuffer[512] = { 0 };
+		sprintf_s(pBuffer, sizeof(pBuffer), "call bindAccount1(%u,'%s','%s');", nUserUID, sAccount.c_str(), sPassword.c_str());
+		std::string str = pBuffer;
+		jsSql["sql"] = pBuffer;
+		auto async = getSvrApp()->getAsynReqQueue();
+		async->pushAsyncRequest(ID_MSG_PORT_DB, nSenderID, eAsync_DB_Select, jsSql, [this, nSenderPort, nReqSerial, nUserUID, nSenderID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+			Json::Value jsAgentBack;
+			if (isTimeOut) {
+				jsAgentBack["ret"] = 5;
+				getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+				return;
+			}
+
+			Json::Value jsData = retContent["data"];
+			jsAgentBack["ret"] = jsData["nOutRet"];
+			getSvrApp()->responeAsyncRequest(nSenderPort, nReqSerial, nSenderID, jsAgentBack, nUserUID);
+		});
+		return true;
+	}
+
 	return false;
 }
 
@@ -972,7 +1093,7 @@ bool CPlayerManager::initGateIP() {
 		break;
 		case 3:
 		{
-			vIPs.push_back("47.93.208.120");
+			//vIPs.push_back("47.93.208.120");
 			vIPs.push_back("47.94.43.128");
 			vIPs.push_back("101.201.180.207");
 			/*vIPs.push_back("47.95.38.201");

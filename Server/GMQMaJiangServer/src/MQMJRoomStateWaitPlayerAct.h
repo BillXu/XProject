@@ -142,7 +142,7 @@ public:
 			{
 			case eMJAct_Chu:
 			{
-				if (!pMJCard->isHaveCard(nCard) || pRoom->needChu() == false)
+				if (!pMJCard->isHaveCard(nCard) || pRoom->needChu() == false || m_isCanPass)
 				{
 					nRet = 3;
 				}
@@ -201,11 +201,11 @@ public:
 
 		if (eMJAct_Pass == actType)
 		{
+			m_isCanPass = false;
 			if (pRoom->needChu()) {
 				setStateDuringTime(100000000);
 			}
 			else {
-				m_isCanPass = false;
 				setStateDuringTime(0);
 			}
 			return true;

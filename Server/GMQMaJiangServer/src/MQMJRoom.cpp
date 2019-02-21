@@ -276,20 +276,20 @@ void MQMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang)) {
 		haveGangFlag = true;
 	}
-	bool needClearCanCyclone = false;
+	/*bool needClearCanCyclone = false;
 	if (pPlayer->haveFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone)) {
 		needClearCanCyclone = true;
-	}
+	}*/
 	IMJRoom::onPlayerChu(nIdx, nCard);
 	if (haveGangFlag) {
 		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_Gang);
 	}
-	if (needClearCanCyclone) {
+	/*if (needClearCanCyclone) {
 		pPlayer->clearFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
 	}
 	else {
 		pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_CanCyclone);
-	}
+	}*/
 }
 
 void MQMJRoom::onPlayerEat(uint8_t nIdx, uint8_t nCard, uint8_t nWithA, uint8_t nWithB, uint8_t nInvokeIdx) {

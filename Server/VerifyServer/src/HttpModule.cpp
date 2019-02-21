@@ -235,6 +235,9 @@ bool CHttpModule::handleGetPlayerInfo(http::server::connection_ptr ptr)
 		jsRespone["playerUID"] = nUID;
 		jsRespone["cardCnt"] = retContent["leftCardCnt"];
 		jsRespone["isOnline"] = retContent["isOnline"];
+		jsRespone["point"] = retContent["point"];
+		jsRespone["vipLevel"] = retContent["vipLevel"];
+		jsRespone["vipInvalidTime"] = retContent["vipInvalidTime"];
 
 		Json::StyledWriter jswrite;
 		auto str = jswrite.write(jsRespone);

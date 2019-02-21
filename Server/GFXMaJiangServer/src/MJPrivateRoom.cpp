@@ -55,7 +55,16 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 	if (isClubRoom() && m_isOpen == false) {
 		if (getPlayerCnt() == getSeatCnt()) {
-			m_isOpen = true;
+			uint8_t nCnt = getSeatCnt();
+			bool bBreak = false;
+			for (uint8_t i = 0; i < nCnt; i++) {
+				auto pPlayer = getCoreRoom()->getPlayerByIdx(i);
+				if (pPlayer->isOnline() == false) {
+					bBreak = true;
+					break;
+				}
+			}
+			m_isOpen = bBreak == false;
 		}
 	}
 	return m_isOpen;

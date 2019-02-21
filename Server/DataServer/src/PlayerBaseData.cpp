@@ -38,6 +38,8 @@ void CPlayerBaseData::init()
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
 	m_bMoneyDataDirty = false;
+	m_bPointDataDirty = false;
+	m_bVipDataDirty = false;
 	m_nTmpCoin = 0;
 	m_nTmpDiamond = 0;
 }
@@ -49,6 +51,8 @@ void CPlayerBaseData::reset()
 	m_bMoneyDataDirty = false;
 	m_isReadingDB = false;
 	m_bPlayerInfoDirty = false;
+	m_bPointDataDirty = false;
+	m_bVipDataDirty = false;
 	m_nTmpCoin = 0;
 	m_nTmpDiamond = 0;
 }
@@ -64,7 +68,7 @@ void CPlayerBaseData::onPlayerLogined()
 	m_stBaseData.nUserUID = getPlayer()->getUserUID();
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,clubs,takeCharityTimes,lastTakeCardGiftTime,totalDiamond,totalGame,gateLevel FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
+	sprintf_s(pBuffer, "SELECT nickName,sex,coin,diamond,emojiCnt,headIcon,clubs,takeCharityTimes,lastTakeCardGiftTime,totalDiamond,totalGame,gateLevel,point,withdrawPoint,pointCalculateData,pointTotalGame,withdrawTotalGame,vipLevel,vipInvalidTime FROM playerbasedata where userUID = %u ;",getPlayer()->getUserUID());
 	std::string str = pBuffer;
 	jssql["sql"] = pBuffer;
 	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
@@ -94,6 +98,13 @@ void CPlayerBaseData::onPlayerLogined()
 		m_stBaseData.nTotalDiamond = jsRow["totalDiamond"].asUInt();
 		m_stBaseData.nTotalGame = jsRow["totalGame"].asUInt();
 		m_stBaseData.nGateLevel = jsRow["gateLevel"].asUInt();
+		m_stBaseData.nPoint = jsRow["point"].asUInt();
+		m_stBaseData.nWithdrawPoint = jsRow["withdrawPoint"].asUInt();
+		m_stBaseData.tPointCalculateData = jsRow["pointCalculateData"].asUInt();
+		m_stBaseData.nPointTotalGame = jsRow["pointTotalGame"].asUInt();
+		m_stBaseData.nWithdrawTotalGame = jsRow["withdrawTotalGame"].asUInt();
+		m_stBaseData.nVipLevel = jsRow["vipLevel"].asUInt();
+		m_stBaseData.tVipInvalidTime = jsRow["vipInvalidTime"].asUInt();
 
 		Json::Value jsClubs;
 		Json::Reader jsR;
@@ -109,6 +120,7 @@ void CPlayerBaseData::onPlayerLogined()
 		modifyMoney(m_nTmpDiamond,true);
 		m_nTmpCoin = 0;
 		m_nTmpDiamond = 0;
+		sortVipInfo();
 		sendBaseDataToClient();
 	}
 	);
@@ -209,6 +221,15 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		LOGFMTD("player = %u gets shared prize = %u now has got = %u times", getPlayer()->getUserUID(), nGiveDiamond, allSharedTimes);
 		return true;
 	}
+	else if (MSG_PLAYER_GET_POINT_INFO == nmsgType) {
+		calculatePointWithdraw();
+		sendPointInfo();
+		return true;
+	}
+	else if (MSG_PLAYER_WITHDRAW_POINT == nmsgType) {
+		withdarwPoint();
+		return true;
+	}
 
 	return false ;
 }
@@ -221,6 +242,11 @@ void CPlayerBaseData::sendBaseDataToClient()
 		return;
 	 }
 
+	if (getPlayer()->getSessionID() == 0) {
+		LOGFMTE("player is not real online can not send to client  , uid = %u", getPlayer()->getUserUID());
+		return;
+	}
+
 	Json::Value jsBaseData;
 	jsBaseData["uid"] = getPlayer()->getUserUID();
 	jsBaseData["name"] = getPlayerName();
@@ -232,6 +258,9 @@ void CPlayerBaseData::sendBaseDataToClient()
 	jsBaseData["ip"] = getPlayer()->getIp();
 	jsBaseData["takeCharityTimes"] = m_stBaseData.nTakeCharityTimes;
 	jsBaseData["lastTakeCardGiftTime"] = m_stBaseData.tLastTakeCardGiftTime;
+	jsBaseData["point"] = getPoint();
+	jsBaseData["vipLevel"] = getVipLevel();
+	jsBaseData["vipInvalidTime"] = m_stBaseData.tVipInvalidTime;
 
 	Json::Value jsArrayClub;
 	for (auto& ref : m_stBaseData.vJoinedClubIDs)
@@ -258,6 +287,8 @@ void CPlayerBaseData::timerSave()
 	}
 
 	saveMoney();
+	savePoint();
+	saveVipInfo();
 	// check player info ;
 	if ( m_bPlayerInfoDirty )
 	{
@@ -495,4 +526,263 @@ void CPlayerBaseData::addTotalDiamond(int32_t nDiamond) {
 	}
 
 	m_bPlayerInfoDirty = true;
+}
+
+uint32_t CPlayerBaseData::getPoint() {
+	return m_stBaseData.nPoint;
+}
+
+uint32_t CPlayerBaseData::getWithdrawPoint() {
+	return m_stBaseData.nWithdrawPoint;
+}
+
+void CPlayerBaseData::savePoint() {
+	if (m_bPointDataDirty == false)
+	{
+		return;
+	}
+	m_bPointDataDirty = false;
+
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, "update playerbasedata set point = %u ,withdrawPoint = %u,pointCalculateData = %u,pointTotalGame = %u,withdrawTotalGame = %u where userUID = %u ;", m_stBaseData.nPoint, m_stBaseData.nWithdrawPoint, m_stBaseData.tPointCalculateData, m_stBaseData.nPointTotalGame, m_stBaseData.nWithdrawTotalGame, getPlayer()->getUserUID());
+	std::string str = pBuffer;
+	jssql["sql"] = pBuffer;
+	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
+	LOGFMTD("uid = %u save point = %u , withdrawPoint = %u , pointCalculateData = %u, pointTotalGame = %u, withdrawTotalGame = %u", getPlayer()->getUserUID(), m_stBaseData.nPoint, m_stBaseData.nWithdrawPoint, m_stBaseData.tPointCalculateData, m_stBaseData.nPointTotalGame, m_stBaseData.nWithdrawTotalGame);
+}
+
+void CPlayerBaseData::savePointRecord(int32_t nOffset, Json::Value jsDetail) {
+	Json::Value jsSql;
+	Json::StyledWriter jsWrite;
+	std::string sDetail = jsWrite.write(jsDetail);
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, sizeof(pBuffer), "call addPointRecord(%u,%d,%u,'%s');", getPlayer()->getUserUID(), nOffset, getPoint(), sDetail.c_str());
+	std::string str = pBuffer;
+	jsSql["sql"] = pBuffer;
+	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_RECORDER_DB, getPlayer()->getUserUID(), eAsync_DB_Select, jsSql);
+}
+
+void CPlayerBaseData::addPointTotalGameCnt() {
+	calculatePointWithdraw();
+	m_stBaseData.nPointTotalGame++;
+	LOGFMTI("player uid = %u add point game cnt = %u", m_stBaseData.nUserUID, m_stBaseData.nPointTotalGame);
+	m_bPointDataDirty = true;
+}
+
+bool CPlayerBaseData::addPoint(int32_t nOffset) {
+	if (m_isReadingDB) {
+		LOGFMTE("player uid = %u add point error offset = %d point = %u, player is reading DB?", m_stBaseData.nUserUID, nOffset, m_stBaseData.nPoint);
+		return false;
+	}
+
+	if (nOffset < 0) {
+		uint32_t nAbsOffset = abs(nOffset);
+		if (nAbsOffset > m_stBaseData.nPoint) {
+			LOGFMTE("player uid = %u add point error offset = %d point = %u", m_stBaseData.nUserUID, nOffset, m_stBaseData.nPoint);
+			return false;
+			/*m_stBaseData.nPoint = 0;
+			sendPointInfo();
+			return true;*/
+		}
+	}
+	m_bPointDataDirty = true;
+	LOGFMTI("player uid = %u add point = %d", m_stBaseData.nUserUID, nOffset);
+	m_stBaseData.nPoint += nOffset;
+	sendPointInfo();
+	return true;
+}
+
+void CPlayerBaseData::calculatePointWithdraw() {
+	if (m_stBaseData.tPointCalculateData) {
+		time_t tNow = time(nullptr);
+		time_t tCal = m_stBaseData.tPointCalculateData;
+		struct tm pTimeCur, pTimeCal;
+		pTimeCur = *localtime(&tNow);
+		pTimeCal = *localtime(&tCal);
+		if (pTimeCur.tm_yday == pTimeCal.tm_yday) {
+			return;
+		}
+		else if (pTimeCur.tm_yday == pTimeCal.tm_yday + 1) {
+			sortPointWithDraw();
+			return;
+		}
+	}
+
+	m_stBaseData.nWithdrawPoint = 0;
+	m_stBaseData.tPointCalculateData = time(nullptr);
+	m_stBaseData.nPointTotalGame = 0;
+	m_stBaseData.nWithdrawTotalGame = 0;
+	m_bPointDataDirty = true;
+}
+
+void CPlayerBaseData::sortPointWithDraw() {
+	//begin sort
+	m_stBaseData.nWithdrawPoint = 0;
+	m_stBaseData.tPointCalculateData = time(nullptr);
+
+	// game cnt
+	if (m_stBaseData.nPointTotalGame) {
+		if (m_stBaseData.nPointTotalGame > 49) {
+			m_stBaseData.nWithdrawPoint += 450;
+		}
+		else if (m_stBaseData.nPointTotalGame > 39) {
+			m_stBaseData.nWithdrawPoint += 350;
+		}
+		else if (m_stBaseData.nPointTotalGame > 29) {
+			m_stBaseData.nWithdrawPoint += 250;
+		}
+		else if (m_stBaseData.nPointTotalGame > 19) {
+			m_stBaseData.nWithdrawPoint += 150;
+		}
+		else if (m_stBaseData.nPointTotalGame > 14) {
+			m_stBaseData.nWithdrawPoint += 100;
+		}
+		else if (m_stBaseData.nPointTotalGame > 9) {
+			m_stBaseData.nWithdrawPoint += 50;
+		}
+		else if (m_stBaseData.nPointTotalGame > 5) {
+			m_stBaseData.nWithdrawPoint += 25;
+		}
+		else if (m_stBaseData.nPointTotalGame > 2) {
+			m_stBaseData.nWithdrawPoint += 5;
+		}
+		else {
+			m_stBaseData.nWithdrawPoint += 1;
+		}
+	}
+	m_stBaseData.nWithdrawTotalGame = m_stBaseData.nPointTotalGame;
+	m_stBaseData.nPointTotalGame = 0;
+
+	//end sort
+	m_bPointDataDirty = true;
+}
+
+void CPlayerBaseData::withdarwPoint() {
+	calculatePointWithdraw();
+
+	if (m_stBaseData.nWithdrawPoint) {
+		auto nWithDrawCnt = m_stBaseData.nWithdrawPoint;
+		m_stBaseData.nWithdrawPoint = 0;
+		if (addPoint(nWithDrawCnt)) {
+			Json::Value jsDetail;
+			jsDetail["gameCnt"] = m_stBaseData.nWithdrawTotalGame;
+			savePointRecord(nWithDrawCnt, jsDetail);
+		}
+		else {
+			m_stBaseData.nWithdrawPoint = nWithDrawCnt;
+			LOGFMTE("ERROR! Player uid = %u withdraw point = %u error", m_stBaseData.nUserUID, nWithDrawCnt);
+		}
+	}
+	else {
+		sendPointInfo();
+	}
+}
+
+void CPlayerBaseData::sendPointInfo() {
+	Json::Value jsMsg;
+	jsMsg["point"] = m_stBaseData.nPoint;
+	jsMsg["withdraw"] = m_stBaseData.nWithdrawPoint;
+	jsMsg["totalGame"] = m_stBaseData.nPointTotalGame;
+	jsMsg["withdrawTotalGame"] = m_stBaseData.nWithdrawTotalGame;
+	getPlayer()->sendMsgToClient(jsMsg, MSG_PLAYER_GET_POINT_INFO);
+}
+
+uint32_t CPlayerBaseData::getVipLevel() {
+	return m_stBaseData.nVipLevel;
+}
+
+uint32_t CPlayerBaseData::getVipInvalidTime() {
+	return m_stBaseData.tVipInvalidTime;
+}
+
+void CPlayerBaseData::saveVipInfo() {
+	sortVipInfo();
+
+	if (m_bVipDataDirty == false)
+	{
+		return;
+	}
+	m_bVipDataDirty = false;
+
+	Json::Value jssql;
+	char pBuffer[512] = { 0 };
+	sprintf_s(pBuffer, "update playerbasedata set vipLevel = %u ,vipInvalidTime = %u where userUID = %u ;", m_stBaseData.nVipLevel, m_stBaseData.tVipInvalidTime, getPlayer()->getUserUID());
+	std::string str = pBuffer;
+	jssql["sql"] = pBuffer;
+	auto pReqQueue = getPlayer()->getPlayerMgr()->getSvrApp()->getAsynReqQueue();
+	pReqQueue->pushAsyncRequest(ID_MSG_PORT_DB, getPlayer()->getUserUID(), eAsync_DB_Update, jssql);
+	LOGFMTD("uid = %u save vipLevel = %u , vipInvalidTime = %u", getPlayer()->getUserUID(), m_stBaseData.nVipLevel, m_stBaseData.tVipInvalidTime);
+}
+
+void CPlayerBaseData::sortVipInfo() {
+	if (getVipLevel()) {
+		auto tNow = time(nullptr);
+		if (m_stBaseData.tVipInvalidTime > tNow) {
+			return;
+		}
+
+		m_stBaseData.nVipLevel = 0;
+		m_bVipDataDirty = true;
+		sendVipInfo();
+	}
+}
+
+void CPlayerBaseData::sendVipInfo() {
+	Json::Value jsMsg;
+	jsMsg["vipLevel"] = getVipLevel();
+	jsMsg["vipInvalidTime"] = m_stBaseData.tVipInvalidTime;
+	getPlayer()->sendMsgToClient(jsMsg, MSG_PLAYER_GET_VIP_INFO);
+}
+
+uint8_t CPlayerBaseData::changeVip(uint32_t nVipLevel, uint32_t nDay) {
+	sortVipInfo();
+	LOGFMTD("uid = %u change vipLevel = %u , dayTime = %u", getPlayer()->getUserUID(), nVipLevel, nDay);
+	uint8_t nRet = 0;
+	if (nVipLevel) {
+		if (nDay) {
+			if (getVipLevel()) {
+				m_stBaseData.tVipInvalidTime += nDay * 24 * 60 * 60;
+			}
+			else {
+				m_stBaseData.tVipInvalidTime = time(nullptr) + nDay * 24 * 60 * 60;
+			}
+			m_stBaseData.nVipLevel = nVipLevel;
+		}
+		else {
+			nRet = 8;
+		}
+	}
+	else {
+		m_stBaseData.nVipLevel = 0;
+		m_stBaseData.tVipInvalidTime = 0;
+	}
+
+	m_bVipDataDirty = true;
+	if (nRet == 0) {
+		sendVipInfo();
+	}
+	LOGFMTD("uid = %u change vip ret = %u, final Level = %u , invalidTime = %u", getPlayer()->getUserUID(), nRet, m_stBaseData.nVipLevel, m_stBaseData.tVipInvalidTime);
+	return nRet;
+}
+
+bool CPlayerBaseData::isOutVipCreateRoomLimit(uint32_t nRoomCnt) {
+	sortVipInfo();
+
+	auto nVipLevel = getVipLevel();
+	if (nVipLevel) {
+		nVipLevel = 1;
+	}
+
+	switch (nVipLevel)
+	{
+	case 1 :
+	{
+		return nRoomCnt >= 3;
+	}
+	break;
+	}
+	return false;
 }

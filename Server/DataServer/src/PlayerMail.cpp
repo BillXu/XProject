@@ -200,6 +200,11 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 		if (getPlayer()->getBaseData()->isPlayerReady())
 		{
 			auto nDiamondCnt = pMail->jsDetail["diamond"].asUInt();
+			if (getPlayer()->getBaseData()->getVipLevel()) {
+				if (pMail->jsDetail["reason"].isUInt() && pMail->jsDetail["reason"].asUInt() == 0) {
+					nDiamondCnt = 0;
+				}
+			}
 			getPlayer()->getBaseData()->modifyMoney((int32_t)nDiamondCnt * -1 , true);
 		}
 		else
@@ -257,6 +262,20 @@ bool CPlayerMailComponent::doProcessMail(stMail* pMail)
 	{
 		uint32_t nClubID = pMail->jsDetail["clubID"].asUInt();
 		getPlayer()->getBaseData()->onLeaveClub( nClubID );
+	}
+	break;
+	case eMail_ChangeVip:
+	{
+		if (getPlayer()->getBaseData()->isPlayerReady())
+		{
+			uint32_t nLevel = pMail->jsDetail["level"].asUInt();
+			uint32_t nDayTime = pMail->jsDetail["dayTime"].asUInt();
+			getPlayer()->getBaseData()->changeVip(nLevel, nDayTime);
+		}
+		else
+		{
+			return false;
+		}
 	}
 	break;
 	default:

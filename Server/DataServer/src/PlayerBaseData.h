@@ -40,11 +40,33 @@ public:
 	void setGateLevel(uint8_t nGateLevel);
 	void addGameCnt();
 	void addTotalDiamond(int32_t nDiamond);
+	uint32_t getPoint();
+	bool addPoint(int32_t nOffset);
+	void savePointRecord(int32_t nOffset, Json::Value jsDetail);
+	void savePoint();
+	uint32_t getWithdrawPoint();
+	void addPointTotalGameCnt();
+	void sendPointInfo();
+	uint32_t getVipLevel();
+	uint32_t getVipInvalidTime();
+	bool isOutVipCreateRoomLimit(uint32_t nRoomCnt);
+	void saveVipInfo();
+	void sendVipInfo();
+	uint8_t changeVip(uint32_t nVipLevel, uint32_t nDay = 0);
+
+protected:
+	void calculatePointWithdraw();
+	void sortPointWithDraw();
+	void withdarwPoint();
+	void sortVipInfo();
+
 private:
 	stServerBaseData m_stBaseData ;
 	std::vector<uint32_t> m_vCreatedClubIDs;
 	bool m_bMoneyDataDirty;
 	bool m_bPlayerInfoDirty;
+	bool m_bPointDataDirty;
+	bool m_bVipDataDirty;
 	bool m_isReadingDB;
 
 	int32_t m_nTmpCoin;

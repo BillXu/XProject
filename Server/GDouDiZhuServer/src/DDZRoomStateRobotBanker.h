@@ -28,6 +28,14 @@ public:
 		getRoom()->addReplayFrame(DDZ_Frame_WaitRobBanker, jsInfo);
 	}
 
+	void update(float fDeta)override {
+		if (getWaitTime() > 15.0f) {
+			auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(m_nCurWaitPlayerIdx);
+			pPlayer->addExtraTime(fDeta);
+		}
+		IGameRoomState::update(fDeta);
+	}
+
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
 	{
 		if ( MSG_DDZ_PLAYER_ROBOT_DZ != nMsgType)

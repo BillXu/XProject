@@ -89,6 +89,7 @@ protected:
 	bool m_bDaiKai;
 	ePayRoomCardType m_nPayType;
 	bool m_isEnableWhiteList;
+	uint32_t m_nVipLevel;
 
 	bool m_isEnablePointRestrict;
 	bool m_isOpen; 

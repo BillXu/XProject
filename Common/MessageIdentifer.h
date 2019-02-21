@@ -118,6 +118,23 @@ enum eMsgType
 	// svr : { ret : 0 ,mailID : 23 ,state : eMailState }
 	// ret : 0 success , 1 mail state error , 2 arg invliad ;
 
+	MSG_PLAYER_BIND_ACCOUNT1,
+	// client : { account : 123456 , password : 123456 }
+	// svr : { ret : 0 }
+	// ret : 0 success , 1 account is occured , 2 uid is error , 5 : account or password error , 7 : timeout
+
+	MSG_PLAYER_GET_POINT_INFO,
+	// client : { }
+	// svr : { point : 0, withdraw : 0, totalGame : 0, withdrawTotalGame : 0 }
+
+	MSG_PLAYER_WITHDRAW_POINT,
+	// client : { }
+	// svr will give MSG_PLAYER_GET_POINT_INFO message
+
+	MSG_PLAYER_GET_VIP_INFO,
+	// client : { }
+	// svr : { vipLevel : 0, vipInvalidTime : 0 }
+
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }
 	// payType : 0 the room owner pay cards , 1 AA pay card type , 2 big winer pay cards 

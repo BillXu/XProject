@@ -30,6 +30,18 @@ struct stServerBaseData
 	uint32_t nTotalDiamond;
 	uint32_t nTotalGame;
 	uint8_t nGateLevel;
+
+	//point
+	uint32_t nPoint;
+	uint32_t nWithdrawPoint;
+	uint32_t tPointCalculateData;
+	uint32_t nPointTotalGame;
+	uint32_t nWithdrawTotalGame;
+
+	//vip
+	uint32_t nVipLevel;
+	uint32_t tVipInvalidTime;
+
 	std::vector<uint32_t> vJoinedClubIDs;
 	void reset()
 	{

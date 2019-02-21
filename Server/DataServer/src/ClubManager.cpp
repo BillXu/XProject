@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "AsyncRequestQuene.h"
 #include "PlayerBaseData.h"
+#include "Utility.h"
 ClubManager::~ClubManager()
 {
 	for (auto& ref : m_vClubs)
@@ -70,11 +71,13 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		sendMsg(js, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
 
 		// save to db 
+		auto strName = checkStringForSql(prealMsg["name"].asCString());
+
 		Json::StyledWriter jsw;
 		auto strOpts = jsw.write(prealMsg["opts"]);
 		Json::Value jssql;
 		char pBuffer[2048] = { 0 };
-		sprintf_s(pBuffer,sizeof(pBuffer),"insert into clubs ( clubID,ownerUID,name,opts ) values ( %u,%u,'%s','%s');", p->getClubID(), p->getCreatorUID(), prealMsg["name"].asCString(), strOpts.c_str() );
+		sprintf_s(pBuffer,sizeof(pBuffer),"insert into clubs ( clubID,ownerUID,name,opts ) values ( %u,%u,'%s','%s');", p->getClubID(), p->getCreatorUID(), strName.c_str(), strOpts.c_str() );
 		jssql["sql"] = pBuffer;
 		getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB,rand() % 100 ,eAsync_DB_Add, jssql);
 
@@ -250,7 +253,8 @@ bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 				pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, 1000, 8);
 				pClub->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
 				m_vClubs[pClub->getClubID()] = pClub;
-				pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
+				//pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
+				pClub->onFirstCreated();
 
 				// save to db 
 				Json::StyledWriter jsw;
@@ -276,7 +280,8 @@ bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 			pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, 1000, 8);
 			pClub->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
 			m_vClubs[pClub->getClubID()] = pClub;
-			pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
+			//pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
+			pClub->onFirstCreated();
 
 			// save to db 
 			Json::StyledWriter jsw;

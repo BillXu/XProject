@@ -92,9 +92,16 @@ bool CPlayerGameData::onAsyncRequest(uint16_t nRequestType, const Json::Value& j
 			LOGFMTE("player uid = %u create room session id not match",getPlayer()->getUserUID());
 			break;
 		}
+		uint32_t nRoomCnt = m_vCreatedRooms.size();
+		if (getPlayer()->getBaseData()->isOutVipCreateRoomLimit(nRoomCnt)) {
+			jsResult["ret"] = 8;
+			LOGFMTE("player uid = %u create room out vip limit", getPlayer()->getUserUID());
+			break;
+		}
 		jsResult["uid"] = getPlayer()->getUserUID();
 		jsResult["diamond"] = getPlayer()->getBaseData()->getDiamoned();
-		jsResult["alreadyRoomCnt"] = m_vCreatedRooms.size();
+		jsResult["alreadyRoomCnt"] = nRoomCnt;
+		jsResult["vipLevel"] = getPlayer()->getBaseData()->getVipLevel();
 	}
 	break;
 	case eAsync_Inform_CreatedRoom:

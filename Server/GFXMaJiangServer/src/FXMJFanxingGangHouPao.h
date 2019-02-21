@@ -19,6 +19,10 @@ public:
 			if (pInvoker->haveFlag(IMJPlayer::eMJActFlag_Gang) == false) {
 				return false;
 			}
+
+			if (pInvoker->getPlayerCard()->isTing()) {
+				return false;
+			}
 		}
 		else {
 			return false;

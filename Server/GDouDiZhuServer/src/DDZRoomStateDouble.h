@@ -13,15 +13,42 @@ public:
 		IGameRoomState::enterState(pmjRoom, jsTranData);
 		if (onWaitDouble()) {
 			//setStateDuringTime(eTime_WaitChoseExchangeCard);
-			setStateDuringTime(eTime_WaitForever);
+			setStateDuringTime(5);
 		}
 		else {
 			setStateDuringTime(0);
 		}
 	}
 
+	void update(float fDeta)override {
+		if (getWaitTime() > 15.0f) {
+			uint8_t nSeatCnt = getRoom()->getSeatCnt();
+			for (uint8_t idx = 0; idx < nSeatCnt; idx++) {
+				auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(idx);
+				if (pPlayer->isDoubleDone()) {
+					continue;
+				}
+				pPlayer->addExtraTime(fDeta);
+			}
+		}
+		IGameRoomState::update(fDeta);
+	}
+
 	void onStateTimeUp()override
 	{
+		uint8_t nSeatCnt = getRoom()->getSeatCnt();
+		for (uint8_t idx = 0; idx < nSeatCnt; idx++) {
+			auto pPlayer = (DDZPlayer*)getRoom()->getPlayerByIdx(idx);
+			if (pPlayer->isDoubleDone()) {
+				continue;
+			}
+			Json::Value jsMsg;
+			jsMsg["ret"] = 0;
+			jsMsg["idx"] = pPlayer->getIdx();
+			jsMsg["double"] = 0;
+			pPlayer->signDouble();
+			getRoom()->sendRoomMsg(jsMsg, MSG_DDZ_PLAYER_DOUBLE);
+		}
 		getRoom()->goToState(eRoomState_DDZ_Chu);
 	}
 

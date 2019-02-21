@@ -630,11 +630,18 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 		{
 			if ( 0 != nReqRet )
 			{
-				nRet = 3;
+				if (nReqRet == 8) {
+					nRet = 7;
+				}
+				else {
+					nRet = 3;
+				}
 				break;
 			}
 
 			jsUserData["uid"] = retContent["uid"];
+			jsUserData["vipLevel"] = retContent["vipLevel"];
+			uint32_t nVipLevel = retContent["vipLevel"].asUInt();
 			auto nDiamond = retContent["diamond"].asUInt();
 			auto nAlreadyRoomCnt = retContent["alreadyRoomCnt"].asUInt();
 			uint8_t nDaiKai = jsUserData["isDK"].isUInt() ? jsUserData["isDK"].asUInt() : 0;
@@ -682,6 +689,11 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 #endif // _DEBUG
 
 			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel, (ePayRoomCardType)nPayType,jsUserData["seatCnt"].asUInt() );
+			
+			if (nVipLevel) {
+				nDiamondNeed = 0;
+			}
+
 			if ( nDiamond < nDiamondNeed )
 			{
 				nRet = 1;
