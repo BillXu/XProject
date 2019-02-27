@@ -29,16 +29,16 @@ uint16_t BJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRo
 	// is aa true ;
 	if ( ePayType_AA == payType)
 	{
-		uint8_t vAA[] = { 10 , 20 , 30 };
+		uint8_t vAA[] = { 15 , 30 , 45 };
 		return vAA[nLevel];
 	}
 
 	if (ePayType_Winer == payType)
 	{
-		uint8_t vAA[] = { 5 , 10 , 15 };
-		return vAA[nLevel] * 10;
+		uint8_t vAA[] = { 60 , 120 , 180 };
+		return vAA[nLevel] ;
 	}
 
-	uint8_t vFangZhu[] = { 4 , 8 , 12 };
-	return vFangZhu[nLevel] * 10;
+	uint8_t vFangZhu[] = { 50 , 100 , 150 };
+	return vFangZhu[nLevel] ;
 }
