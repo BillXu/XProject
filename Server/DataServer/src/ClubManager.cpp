@@ -305,6 +305,43 @@ bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 
 bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult)
 {
+	if (eAsync_HttpCmd_TransferClubCreator == nRequestType) {
+		//TODO...
+		if (jsReqContent["targetUID"].isUInt() == false || jsReqContent["clubID"].isUInt() == false)
+		{
+			jsResult["ret"] = 1;
+			return true;
+		}
+
+		uint32_t nClubID = jsReqContent["clubID"].asUInt();
+		auto iterClub = m_vClubs.find(nClubID);
+		if (iterClub == m_vClubs.end())
+		{
+			jsResult["ret"] = 2;
+			return true;
+		}
+
+		uint32_t nTargetUID = jsReqContent["targetUID"].asUInt();
+		uint32_t nOldCreatorUID = iterClub->second->getCreatorUID();
+		auto nRet = iterClub->second->transferCreator(nTargetUID);
+		if (nRet == 0) {
+			//TODO...
+			auto pOldCreator = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nOldCreatorUID);
+			if (pOldCreator) {
+				pOldCreator->getBaseData()->eraseCreatedClub(nClubID);
+			}
+
+			Json::Value jsLogin;
+			jsLogin["uid"] = nTargetUID;
+			jsLogin["sessionID"] = 0;
+			jsLogin["ip"] = "0";
+			jsLogin["clubID"] = nClubID;
+			getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nTargetUID, eAsync_Player_Logined, jsLogin);
+		}
+		jsResult["ret"] = nRet;
+		return true;
+	}
+
 	if ( eAsync_HttpCmd_AddClubDiamond == nRequestType )
 	{
 		if ( jsReqContent["targetUID"].isNull() || jsReqContent["addCnt"].isNull() || jsReqContent["agentID"].isNull() )
@@ -404,7 +441,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 {
 	auto asyq = getSvrApp()->getAsynReqQueue();
 	std::ostringstream ss;
-	ss << "SELECT clubID,name,opts,state,cprState,diamond ,notice FROM clubs where isDelete = 0 limit 10 OFFSET " << nAlreadyReadCnt << ";";
+	ss << "SELECT clubID,name,opts,state,cprState,autoJoin,diamond ,notice FROM clubs where isDelete = 0 limit 10 OFFSET " << nAlreadyReadCnt << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData ,bool isTimeOut) {
@@ -433,7 +470,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 			Json::Reader jsr;
 			Json::Value jsOpts;
 			jsr.parse(jsRow["opts"].asString(), jsOpts );
-			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(), jsRow["cprState"].asUInt(), jsRow["diamond"].asUInt(),jsRow["notice"].asString());
+			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(), jsRow["cprState"].asUInt(), jsRow["autoJoin"].asUInt(), jsRow["diamond"].asUInt(),jsRow["notice"].asString());
 			m_vClubs[p->getClubID()] = p;
 		}
 

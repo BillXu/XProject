@@ -38,7 +38,13 @@ public:
 	{
 		uint32_t nRoomID;
 		uint32_t nRoomIdx;
+		uint8_t nMaxPlayerCnt;
+		uint8_t nCurPlayerCnt;
 		bool bPrivate = false;
+		void doPlayerSitDown() { nCurPlayerCnt++; }
+		void doPlayerStandUp() { if (nCurPlayerCnt) { nCurPlayerCnt--; } }
+		bool canEnter() { return nCurPlayerCnt < nMaxPlayerCnt; }
+		uint8_t getDeficiency() { return  canEnter() ? nMaxPlayerCnt - nCurPlayerCnt : 0; }
 	};
 
 public:
@@ -46,7 +52,7 @@ public:
 	typedef std::map<uint32_t, stClubEvent*> MAP_EVENT;
 public:
 	~Club();
-	bool init( ClubManager * pClubMgr, uint32_t nClubID, std::string& strClubName,Json::Value& jsCreateRoomOpts, uint32_t nCapacity, uint16_t nMaxMgrCnt, uint8_t nState = 0, uint8_t nCPRoomState = 0, uint32_t nDiamond = 0 , std::string strNotice = "");
+	bool init( ClubManager * pClubMgr, uint32_t nClubID, std::string& strClubName,Json::Value& jsCreateRoomOpts, uint32_t nCapacity, uint16_t nMaxMgrCnt, uint8_t nState = 0, uint8_t nCPRoomState = 0, uint8_t nAutoJoin = 0, uint32_t nDiamond = 0 , std::string strNotice = "");
 	bool onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID );
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
 	void onTimeSave();
@@ -80,12 +86,13 @@ public:
 	void decreaseMemberPlayTime(uint32_t nMemberUID);
 	void updateMemberPlayTime(uint32_t nMemberUID, uint32_t nPlayTime);
 	void clearLackDiamond(); //仅供外部调用，验证gateType
+	uint8_t transferCreator(uint32_t nMemberUID);
 protected:
 	void readClubEvents( uint32_t nAlreadyCnt );
 	void readClubMemebers( uint32_t nAlreadyCnt );
 	void saveEventToDB( uint32_t nEventID , bool isAdd ) ; // or update ?
 	bool addEvent( stClubEvent* pEvent );
-	void onCreateEmptyRoom( uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx, bool bPrivate = false );
+	void onCreateEmptyRoom( uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx, uint8_t nSeatCnt, bool bPrivate = false );
 	void updateCreateRoom();
 	uint8_t getEmptyAutoCreatRoomCnt();
 	void postMail( uint32_t nTargetID , eMailType eType , Json::Value& jsContent , eMailState eState );
@@ -109,6 +116,7 @@ protected:
 	std::string m_strNotice;
 	Json::Value m_jsCreateRoomOpts;
 	uint8_t m_nCreatePRoomState; // 0 can not, 1 can
+	uint8_t m_nAutoJoin;
 	bool m_isCreatingRoom; 
 	MAP_MEMBER m_vMembers;
 	MAP_EVENT m_vEvents;

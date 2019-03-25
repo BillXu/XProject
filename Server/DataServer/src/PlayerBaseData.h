@@ -34,6 +34,7 @@ public:
 	void onLeaveClub( uint32_t nClubID );
 	void onJoinClub( uint32_t nClubID );
 	void onCreatedClub(uint32_t nClubID);
+	void eraseCreatedClub(uint32_t nClubID);
 	bool canRemovePlayer()override;
 	void SendGateIP();
 	uint8_t getGateLevel();

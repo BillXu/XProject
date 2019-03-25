@@ -986,8 +986,18 @@ uint16_t IPrivateRoom::getPlayerCnt()
 
 void IPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)
 {
-	if ( false == isClubRoom() || m_nAutoStartCnt )
+	if (false == isClubRoom())
 	{
+		return;
+	}
+
+	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	Json::Value jsReq;
+	jsReq["clubID"] = m_nClubID;
+	jsReq["roomID"] = getRoomID();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nOwnerUID, eAsync_ClubRoomSitDown, jsReq);
+
+	if (m_nAutoStartCnt) {
 		return;
 	}
 
@@ -1003,12 +1013,18 @@ void IPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)
 
 void IPrivateRoom::onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)
 {
-	if (false == isClubRoom() || m_nAutoStartCnt)
+	if (false == isClubRoom())
 	{
 		return;
 	}
 
-	if ( nUserUID != m_nTempOwnerUID )
+	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+	Json::Value jsReq;
+	jsReq["clubID"] = m_nClubID;
+	jsReq["roomID"] = getRoomID();
+	pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nOwnerUID, eAsync_ClubRoomStandUp, jsReq);
+
+	if ( nUserUID != m_nTempOwnerUID || m_nAutoStartCnt )
 	{
 		return;
 	}

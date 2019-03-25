@@ -428,6 +428,15 @@ void CPlayerBaseData::onCreatedClub(uint32_t nClubID) {
 	m_vCreatedClubIDs.push_back(nClubID);
 }
 
+void CPlayerBaseData::eraseCreatedClub(uint32_t nClubID) {
+	auto iter = std::find(m_vCreatedClubIDs.begin(), m_vCreatedClubIDs.end(), nClubID);
+	if (iter != m_vCreatedClubIDs.end())
+	{
+		LOGFMTE("player do transfer club = %u , uid = %u", nClubID, m_stBaseData.nUserUID);
+		m_vCreatedClubIDs.erase(iter);
+	}
+}
+
 bool CPlayerBaseData::canRemovePlayer() {
 	if (m_vCreatedClubIDs.size()) {
 		return false;

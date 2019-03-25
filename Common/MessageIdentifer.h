@@ -463,6 +463,11 @@ enum eMsgType
 
 	MSG_CLUB_PLAYER_APPLY_LEAVE, //阜新麻将玩家申请离开俱乐部
 
+	MSG_CLUB_PLAYER_APPLY_ENTER_ROOM, //阜新麻将玩家申请加入俱乐部房间
+	// client : { clubID : 23, uid : 123 }
+	// svr : { ret : 0, roomID : 123456 }
+	// ret : 0 success, other means faild do not have any room to enter so roomID will default
+
 	MSG_CLUB_MSG_END = 2900,
 
 	// mj specail msg ;

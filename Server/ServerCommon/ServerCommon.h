@@ -114,6 +114,11 @@ enum eAsyncReq
 	eAsync_HttpCmd_bindAccount1, // { targetUID : 123, account : "123", password : "123"} svr : { ret : 0 } ret : 0 success , 1 account is occured , 2 uid is error , 5 : account or password error , 7 : timeout
 	eAsync_HttpCmd_AgentAddPoint, // { targetUID : 123, addPoint : -123, addPointNo : 123} svr : { ret : 0 }
 	eAsync_HttpCmd_ChangeVipLevel, // { targetUID : 123, level : 1, dayTime : 30 } svr : { ret : 0 }
+	eAsync_ClubRoomSitDown, // { clubID : 23 , roomID : 23 }
+	eAsync_ClubRoomStandUp, // { clubID : 23, roomID : 23 }
+	eAsync_HttpCmd_UpdateClubAutoJoin, // { clubID : 123, uid = 123, state = 1/0 } // { ret : 0 }
+	eAsync_HttpCmd_UpdateClubRoomOpts, // { clubID : 123, uid = 123, opts = { ... } } // { ret : 0 }
+	eAsync_HttpCmd_TransferClubCreator, // { clubID : 123, targetUID = 123 } // { ret : 0 }
 
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;
