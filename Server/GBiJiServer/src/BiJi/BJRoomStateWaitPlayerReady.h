@@ -11,6 +11,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
+		setStateDuringTime( 3 + 4 * ((BJRoom*)getRoom())->getPlayerCnt() );
 	}
 
 	void onStateTimeUp()
