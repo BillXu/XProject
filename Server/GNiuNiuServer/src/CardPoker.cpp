@@ -130,62 +130,51 @@ void CNiuNiuPoker::init( Json::Value& jsOpts )
 	//tTmep.SetCard(CCard::eCard_Club, 13);
 	//vTemp.push_back( tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Club, 3);
+	//tTmep.SetCard(CCard::eCard_Club, 12);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Diamond, 13);
+	//tTmep.SetCard(CCard::eCard_Diamond, 11);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Diamond, 5);
+	//tTmep.SetCard(CCard::eCard_Diamond, 10);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//tTmep.SetCard(CCard::eCard_Diamond, 1);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
 
 
 
 
-	//tTmep.SetCard(CCard::eCard_Heart, 13);
+	//tTmep.SetCard(CCard::eCard_Heart, 1);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Club, 6);
+	//tTmep.SetCard(CCard::eCard_Club, 2);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Diamond, 4);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//tTmep.SetCard(CCard::eCard_Diamond, 7);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//tTmep.SetCard(CCard::eCard_Heart, 4);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//tTmep.SetCard(CCard::eCard_Diamond, 12);
-	//vTemp.push_back(tTmep.GetCardCompositeNum());
-
-	//////2 
-
-
-
-
-
-
-
-
-
-
-	//////3 
-	//tTmep.SetCard(CCard::eCard_Club, 1);
+	//tTmep.SetCard(CCard::eCard_Diamond, 1);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
 	//tTmep.SetCard(CCard::eCard_Diamond, 2);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Club, 5);
+	//tTmep.SetCard(CCard::eCard_Heart, 4);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Diamond, 9);
+	////////3 
+	//tTmep.SetCard(CCard::eCard_Club, 9);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	//tTmep.SetCard(CCard::eCard_Diamond, 10);
+	//tTmep.SetCard(CCard::eCard_Club, 10);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//tTmep.SetCard(CCard::eCard_Club, 11);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//tTmep.SetCard(CCard::eCard_Diamond, 12);
+	//vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//tTmep.SetCard(CCard::eCard_Diamond, 13);
 	//vTemp.push_back(tTmep.GetCardCompositeNum());
 
 	//////4 
@@ -218,17 +207,51 @@ void CNiuNiuPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards)
 	CCard tTmep;
 	tTmep.SetCard(CCard::eCard_Club, 13);
 	vTemp.push_back(tTmep.GetCardCompositeNum());
-	tTmep.SetCard(CCard::eCard_Diamond, 13);
-	vTemp.push_back(tTmep.GetCardCompositeNum());
-	tTmep.SetCard(CCard::eCard_Heart, 13);
+
+	tTmep.SetCard(CCard::eCard_Club, 12);
 	vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	tTmep.SetCard(CCard::eCard_Diamond, 4);
+	tTmep.SetCard(CCard::eCard_Diamond, 11);
 	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 10);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 1);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Heart, 1);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Club, 2);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 1);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 2);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
 	tTmep.SetCard(CCard::eCard_Heart, 4);
 	vTemp.push_back(tTmep.GetCardCompositeNum());
 
-	vMakedCards.swap(vTemp);
+	//////3 
+	tTmep.SetCard(CCard::eCard_Club, 9);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Club, 10);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Club, 11);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 12);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	tTmep.SetCard(CCard::eCard_Diamond, 13);
+	vTemp.push_back(tTmep.GetCardCompositeNum());
+
+	//vMakedCards.swap(vTemp);
 }
 
 void CNiuNiuPoker::LogCardInfo()

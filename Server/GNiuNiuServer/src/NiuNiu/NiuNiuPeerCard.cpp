@@ -251,6 +251,18 @@ void CNiuNiuPeerCard::caculateCards(NiuNiuType& type, uint8_t& nPoint, uint32_t&
 	{
 		nBigFaceNum = vHoldCards[m_nBiggestCardIdx].GetCardFaceNum();
 		nCardType = vHoldCards[m_nBiggestCardIdx].GetType();
+		if ((Niu_ShunZiNiu == type || Niu_TongHuaShun == type) && nBigFaceNum == 13 )
+		{
+			// check 1 10 J Q K 
+			for ( auto idxCheck = 0; idxCheck < vHoldCards.size(); ++idxCheck )
+			{
+				if ( 1 == vHoldCards[idxCheck].GetCardFaceNum() )
+				{
+					nBigFaceNum = 14;
+					break;
+				}
+			}
+		}
 	}
 	else
 	{
@@ -324,7 +336,7 @@ bool CNiuNiuPeerCard::checkFiveSmall(std::vector<CCard>& vHoldCards)
 		nTotalPoint += nCard.GetCardFaceNum() ;
 	}
 
-	return nTotalPoint < 10 ;
+	return nTotalPoint <= 10 ;
 }
 
 bool CNiuNiuPeerCard::checkFiveFlower(std::vector<CCard>& vHoldCards)
@@ -398,19 +410,23 @@ bool CNiuNiuPeerCard::checkTongHuaShun(std::vector<CCard>& vHoldCards)
 		return false;
 	}
 
-	std::vector<uint8_t> vVec;
-	for (auto& ref : vHoldCards)
-	{
-		vVec.push_back(ref.GetCardCompositeNum());
-	}
+	//std::vector<uint8_t> vVec;
+	//for (auto& ref : vHoldCards)
+	//{
+	//	vVec.push_back(ref.GetCardCompositeNum());
+	//}
 
-	std::sort(vVec.begin(), vVec.end());
-	for (uint8_t nIdx = 0; (nIdx + 1u) < vVec.size(); ++nIdx)
+	//std::sort(vVec.begin(), vVec.end());
+	//for (uint8_t nIdx = 0; (nIdx + 1u) < vVec.size(); ++nIdx)
+	//{
+	//	if (vVec[nIdx] + 1 != vVec[nIdx + 1])
+	//	{
+	//		return false;
+	//	}
+	//}
+	if ( false == checkShunZiNiu(vHoldCards))
 	{
-		if (vVec[nIdx] + 1 != vVec[nIdx + 1])
-		{
-			return false;
-		}
+		return false;
 	}
 	return true;
 }
@@ -475,14 +491,28 @@ bool CNiuNiuPeerCard::checkShunZiNiu(std::vector<CCard>& vHoldCards)
 
 	std::sort(vVec.begin(), vVec.end());
 
-	for (uint8_t nIdx = 0; (nIdx + 1u) < vVec.size(); ++nIdx)
+	auto pfuncCheckShunZi = [](std::vector<uint8_t>& vVec )
 	{
-		if (vVec[nIdx] + 1 != vVec[nIdx + 1])
+		for (uint8_t nIdx = 0; (nIdx + 1u) < vVec.size(); ++nIdx)
 		{
-			return false;
+			if (vVec[nIdx] + 1 != vVec[nIdx + 1])
+			{
+				return false;
+			}
 		}
+		return true;
+	};
+
+	auto isShunZi = pfuncCheckShunZi(vVec);
+	// check 1 for 10 J Q K A
+	if ( false == isShunZi && vVec.front() == 1 )
+	{
+		vVec.erase(vVec.begin());
+		vVec.push_back(14);
+		isShunZi = pfuncCheckShunZi(vVec);
 	}
-	return true;
+
+	return isShunZi;
 }
 
 bool CNiuNiuPeerCard::isHaveJoker()

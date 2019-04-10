@@ -11,7 +11,6 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(30);
 	}
 
 	void onStateTimeUp()
@@ -34,7 +33,8 @@ public:
 		}
 		else
 		{
-			setStateDuringTime(eTime_WaitPlayerReady);
+			//setStateDuringTime(eTime_WaitPlayerReady);
+			setStateDuringTime(15);
 		}
 	}
 

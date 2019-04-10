@@ -10,7 +10,7 @@ public:
 	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)
 	{
 		IGameRoomState::enterState(pmjRoom, jsTranData);
-		setStateDuringTime(60);
+		setStateDuringTime(50);
 	}
 
 	bool onMsg(Json::Value& jsmsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
@@ -80,7 +80,7 @@ public:
 		auto pRoom = (BJRoom*)getRoom();
 		if ( !pRoom->onPlayerAutoMakeCardGroupAllPlayerOk() )
 		{
-			setStateDuringTime(60);
+			setStateDuringTime(50);
 		}
 		else
 		{
