@@ -68,7 +68,7 @@ uint8_t BJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 
 bool BJPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	if (m_isOpen == false && m_nAutoOpenCnt > 0)
+	if ( m_nAutoOpenCnt > 0 )
 	{
 		uint8_t nCnt = 0;
 		auto pNRoom = ((BJRoom*)pRoom);
@@ -80,8 +80,9 @@ bool BJPrivateRoom::canStartGame(IGameRoom* pRoom)
 			}
 		}
 
-		m_isOpen = nCnt >= m_nAutoOpenCnt;
-		if (m_isOpen)
+		auto before = m_isOpen;
+		m_isOpen = nCnt >= m_nAutoOpenCnt ;
+		if (m_isOpen && before == false )
 		{
 			m_isOpen = true;
 			Json::Value js;
