@@ -79,12 +79,12 @@ void CPlayerBaseData::onPlayerLogined()
 			return;
 		}
 		Json::Value jsData = retContent["data"];
-		m_isReadingDB = false;
 		if (jsData.size() == 0)
 		{
 			LOGFMTE("why read player uid = %u base data is null ? ",getPlayer()->getUserUID() );
 			return;
 		}
+		m_isReadingDB = false;
 
 		Json::Value jsRow = jsData[0u];
 		sprintf_s(m_stBaseData.cHeadiconUrl,"%s", jsRow["headIcon"].asCString() );

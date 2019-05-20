@@ -14,7 +14,7 @@ public:
 		{
 			return false;
 		}*/
-		return ((FXMJPlayerCard*)pPlayerCard)->canHuOnlyOneCard() || ((FXMJPlayerCard*)pPlayerCard)->isJiaHu() || ((FXMJPlayerCard*)pPlayerCard)->isBianHu();
+		return ((FXMJPlayerCard*)pPlayerCard)->canHuOnlyOneCard() || ((FXMJPlayerCard*)pPlayerCard)->isJiaHu() || ((FXMJPlayerCard*)pPlayerCard)->isBianHu() || ((FXMJPlayerCard*)pPlayerCard)->isDanDiao();
 	}
 
 	bool checkJiaHu(IMJPlayerCard* pPlayerCard, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom, bool isDDH = false)

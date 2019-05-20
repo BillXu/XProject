@@ -63,6 +63,39 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 {
 	switch ( nMsgType )
 	{
+	case MSG_CLUB_PLAYER_RTI:
+	{
+		Json::Value js;
+		if (isHaveMemeber(nTargetID) == false) {
+			js["ret"] = 1;
+			sendMsg(js, nMsgType, nTargetID, nSenderID);
+			return true;
+		}
+
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+		if (pPlayer == nullptr) {
+			js["ret"] = 2;
+			sendMsg(js, nMsgType, nTargetID, nSenderID);
+			return true;
+		}
+
+		bool bState = prealMsg["state"].asBool();
+		if (bState == isInIRT(nTargetID)) {
+			js["ret"] = 3;
+			sendMsg(js, nMsgType, nTargetID, nSenderID);
+			return true;
+		}
+
+		if (bState) {
+			joinIRT(nTargetID);
+		}
+		else {
+			removeFromIRT(nTargetID);
+		}
+		js["ret"] = 0;
+		sendMsg(js, nMsgType, nTargetID, nSenderID);
+	}
+	break;
 	case MSG_CLUB_PLAYER_APPLY_ENTER_ROOM:
 	{
 		Json::Value js;
@@ -1697,6 +1730,11 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 			}
 		}
 
+		Json::Value jsRTI;
+		jsRTI["type"] = eClubRTI_RoomDismiss;
+		jsRTI["detail"] = jsReqContent;
+		sendIRT(jsRTI);
+
 		// remove from full room ;
 		auto iter = std::find_if(m_vFullRooms.begin(),m_vFullRooms.end(), [nRoomID](stClubRoomInfo& ref) { return ref.nRoomID == nRoomID; });
 		if (iter != m_vFullRooms.end())
@@ -1704,7 +1742,6 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 			m_vFullRooms.erase(iter);
 			break;
 		}
-
 	
 		// maybe remove from empty room 
 		iter = std::find_if(m_vEmptyRooms.begin(), m_vEmptyRooms.end(), [nRoomID](stClubRoomInfo& ref) { return ref.nRoomID == nRoomID; });
@@ -1756,6 +1793,11 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 		}
 		m_vFullRooms.push_back(*iter);
 		m_vEmptyRooms.erase(iter);
+
+		Json::Value jsRTI;
+		jsRTI["type"] = eClubRTI_RoomStarted;
+		jsRTI["detail"] = jsReqContent;
+		sendIRT(jsRTI);
 	}
 	break;
 	case eAsync_ClubRoomSitDown:
@@ -1769,6 +1811,11 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 			break;
 		}
 		iter->doPlayerSitDown();
+
+		Json::Value jsRTI;
+		jsRTI["type"] = eClubRTI_PlayerSitDown;
+		jsRTI["detail"] = jsReqContent;
+		sendIRT(jsRTI);
 	}
 	break;
 	case eAsync_ClubRoomStandUp:
@@ -1782,6 +1829,19 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 			break;
 		}
 		iter->doPlayerStandUp();
+
+		Json::Value jsRTI;
+		jsRTI["type"] = eClubRTI_PlayerStandUp;
+		jsRTI["detail"] = jsReqContent;
+		sendIRT(jsRTI);
+	}
+	break;
+	case eAsync_ClubRoomNetStateRefreshed:
+	{
+		Json::Value jsRTI;
+		jsRTI["type"] = eClubRTI_PlayerNetStateRefresh;
+		jsRTI["detail"] = jsReqContent;
+		sendIRT(jsRTI);
 	}
 	break;
 	case eAsync_ClubCheckMemberLevel:
@@ -2192,6 +2252,11 @@ uint16_t Club::getTargetPortByGameType(uint32_t nGameType)
 		return ID_MSG_PORT_NCMJ;
 	}
 	break;
+	case eGame_DDMJ:
+	{
+		return ID_MSG_PORT_DDMJ;
+	}
+	break;
 	default:
 		break;
 	}
@@ -2216,8 +2281,15 @@ void Club::onCreateEmptyRoom(uint32_t nRoomID, int32_t nDiamondFee, uint32_t nRo
 		CPlayer::saveDiamondRecorder(getClubID(), eLogDiamond_ClubConsume, nDiamondFee * -1, getDiamond(), jsd);
 	}
 
-
 	m_isCreatingRoom = false;
+
+	Json::Value jsRTI, jsDetail;
+	jsRTI["type"] = eClubRTI_RoomCreated;
+	jsDetail["roomID"] = nRoomID;
+	jsDetail["clubID"] = getClubID();
+	jsRTI["detail"] = jsDetail;
+	sendIRT(jsRTI);
+
 	LOGFMTD("created room id = %u consume diamond = %d, clubid = %u, final diamond = %u",nRoomID,nDiamondFee,getClubID(),getDiamond() );
 }
 
@@ -2611,4 +2683,39 @@ uint8_t Club::transferCreator(uint32_t nMemberUID) {
 	m_isClubInfoDirty = true;
 
 	return 0;
+}
+
+bool Club::isInIRT(uint32_t nUserID) {
+	auto iter = std::find(m_vRealTimeInformation.begin(), m_vRealTimeInformation.end(), nUserID);
+	return iter != m_vRealTimeInformation.end();
+}
+
+void Club::joinIRT(uint32_t nUserID) {
+	if (std::find(m_vRealTimeInformation.begin(), m_vRealTimeInformation.end(), nUserID) == m_vRealTimeInformation.end()) {
+		m_vRealTimeInformation.push_back(nUserID);
+	}
+}
+
+void Club::removeFromIRT(uint32_t nUserID) {
+	auto iter = std::find(m_vRealTimeInformation.begin(), m_vRealTimeInformation.end(), nUserID);
+	while (iter != m_vRealTimeInformation.end()) {
+		m_vRealTimeInformation.erase(iter);
+		iter = std::find(m_vRealTimeInformation.begin(), m_vRealTimeInformation.end(), nUserID);
+	}
+}
+
+void Club::sendIRT(Json::Value& jsMsg) {
+	std::vector<uint32_t> vInvalid;
+	for (auto nUserID : m_vRealTimeInformation) {
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nUserID);
+		if (pPlayer == nullptr || pPlayer->isState(CPlayer::ePlayerState_Offline)) {
+			vInvalid.push_back(nUserID);
+			continue;
+		}
+		pPlayer->sendMsgToClient(jsMsg, MSG_CLUB_REAL_TIME_INFORMATION);
+	}
+
+	for (auto nInvalidUID : vInvalid) {
+		removeFromIRT(nInvalidUID);
+	}
 }

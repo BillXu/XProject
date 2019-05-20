@@ -205,6 +205,8 @@ void GameRoom::onGameDidEnd()
 		}
 	}
 
+	m_ptrLastActInfo.reset();
+
 	if (getDelegate())
 	{
 		getDelegate()->onGameDidEnd(this);
@@ -793,6 +795,15 @@ void GameRoom::packRoomInfo(Json::Value& jsRoomInfo)
 	jsRoomInfo["stateWaitTime"] = getCurState()->getWaitTime();
 
 	jsRoomInfo["initCards"] = getPoker()->getInitCardCnt();
+
+	if (m_ptrLastActInfo.get() != NULL) {
+		Json::Value jsLastActInfo;
+		jsLastActInfo["type"] = m_ptrLastActInfo->nActType;
+		jsLastActInfo["idx"] = m_ptrLastActInfo->nActIdx;
+		jsLastActInfo["invokerIdx"] = m_ptrLastActInfo->nInvokerIdx;
+		jsLastActInfo["card"] = m_ptrLastActInfo->nCardInfo;
+		jsRoomInfo["lastActInfo"] = jsLastActInfo;
+	}
 }
 
 void GameRoom::sendRoomPlayersInfo(uint32_t nSessionID)
@@ -1030,4 +1041,8 @@ bool GameRoom::checkPlayerInThisRoom(uint32_t nSessionID) {
 	}
 
 	return false;
+}
+
+GameRoom::stLastActInfo::~stLastActInfo() {
+	//LOGFMTE("there is a last Act info be delete, type = %u, actIdx = %u", nActType, nActIdx);
 }

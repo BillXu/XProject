@@ -305,7 +305,7 @@ bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		return true;
 	}
 
-	if (MSG_REQUEST_WHITE_LIST == nmsgType)
+	if ( MSG_REQUEST_WHITE_LIST == nmsgType )
 	{
 		Json::Value jsArray;
 		for (auto& ref : m_vWhiteList)
@@ -316,6 +316,15 @@ bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		msg["list"] = jsArray;
 		sendMsg(msg,nmsgType);
 		return true;
+	}
+	
+	if ( MSG_PLAYER_RTI == nmsgType ) {
+		bool bState = recvValue["state"].asBool();
+		if (m_bRealTimeInformation == bState) {
+			return true;
+		}
+
+		m_bRealTimeInformation = bState;
 	}
 	return false;
 }
@@ -464,4 +473,10 @@ void CPlayerGameData::informNetState(uint8_t nStateFlag)
 		}
 		LOGFMTD("inform new state to game svr! uid = %u new", getPlayer()->getUserUID());
 	});
+}
+
+void CPlayerGameData::sendIRT(Json::Value& jsMsg) {
+	if (m_bRealTimeInformation) {
+		sendMsg(jsMsg, MSG_PLAYER_REAL_TIME_INFORMATION);
+	}
 }

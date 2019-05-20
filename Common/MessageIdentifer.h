@@ -22,6 +22,7 @@ enum eMsgPort
 	ID_MSG_PORT_CFMJ,
 	ID_MSG_PORT_AHMJ,
 	ID_MSG_PORT_NCMJ,
+	ID_MSG_PORT_DDMJ,
 	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_MAX,
 };
@@ -214,6 +215,14 @@ enum eMsgType
 
 	MSG_ROOM_KICK_PLAYER,
 	// svr : { uid : 23 , targetUID : 123 }
+
+	MSG_PLAYER_RTI,
+	// client : { state : 0/1 }
+
+	MSG_PLAYER_REAL_TIME_INFORMATION,
+	// svr : { type : 0, detail : { roomID : 123, uid : 123 ... } }
+	// type : as defined
+	// detail : follow diffrent with type
 
 	MSG_PLAYER_SET_READY = 600,   	// player do ready
 	// client : { dstRoomID : 2345 } ;
@@ -467,6 +476,15 @@ enum eMsgType
 	// client : { clubID : 23, uid : 123 }
 	// svr : { ret : 0, roomID : 123456 }
 	// ret : 0 success, other means faild do not have any room to enter so roomID will default
+
+	MSG_CLUB_PLAYER_RTI, //俱乐部实时消息推送列表更新
+	// client : { clubID : 23, uid : 123, state : 0 }
+	// state : 0 close, 1 open
+
+	MSG_CLUB_REAL_TIME_INFORMATION, //俱乐部实时消息
+	// svr : { type : 0, detail : { roomID : 123, clubID : 123, uid : 123 ... } }
+	// type : as defined
+	// detail : follow diffrent with type
 
 	MSG_CLUB_MSG_END = 2900,
 

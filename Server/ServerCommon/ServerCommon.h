@@ -119,6 +119,12 @@ enum eAsyncReq
 	eAsync_HttpCmd_UpdateClubAutoJoin, // { clubID : 123, uid = 123, state = 1/0 } // { ret : 0 }
 	eAsync_HttpCmd_UpdateClubRoomOpts, // { clubID : 123, uid = 123, opts = { ... } } // { ret : 0 }
 	eAsync_HttpCmd_TransferClubCreator, // { clubID : 123, targetUID = 123 } // { ret : 0 }
+	eAsync_ClubRoomNetStateRefreshed, // { clubID : 23, roomID : 23, uid : 123, state : 0 }
+	eAsync_PrivateRoomSitDown,
+	eAsync_PrivateRoomStandUp,
+	eAsync_PrivateRoomStart,
+	eAsync_PrivateRoomGameOvered,
+	eAsync_PrivateRoomNetStateRefreshed,
 
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;

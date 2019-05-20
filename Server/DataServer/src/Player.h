@@ -5,6 +5,7 @@
 #include "MessageIdentifer.h"
 class CPlayerBaseData ;
 class CPlayerManager;
+class CPlayerGameData;
 struct stMsg ;
 class CPlayer
 {
@@ -36,7 +37,8 @@ public:
 	uint32_t getSessionID(){ return m_nSessionID ;}
 	const char* getIp() { return m_strCurIP.c_str(); }
 	IPlayerComponent* getComponent(ePlayerComponentType eType ){ return m_vAllComponents[eType];}
-	CPlayerBaseData* getBaseData(){ return (CPlayerBaseData*)getComponent(ePlayerComponent_BaseData);}
+	CPlayerBaseData* getBaseData() { return (CPlayerBaseData*)getComponent(ePlayerComponent_BaseData); }
+	CPlayerGameData* getGameData() { return (CPlayerGameData*)getComponent(ePlayerComponent_PlayerGameData); }
 	bool isState( ePlayerState eState ); 
 	void setState(ePlayerState eSate ){ m_eSate = eSate ; }
 	void postPlayerEvent(stPlayerEvetArg* pEventArg );

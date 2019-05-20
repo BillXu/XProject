@@ -447,6 +447,66 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 	// common requst ;
 	switch (nRequestType)
 	{
+	case eAsync_PrivateRoomSitDown:
+	{
+		uint32_t nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (pPlayer) {
+			Json::Value jsRTI;
+			jsRTI["type"] = eClubRTI_PlayerSitDown;
+			jsRTI["detail"] = jsReqContent;
+			pPlayer->getGameData()->sendIRT(jsRTI);
+		}
+	}
+	break;
+	case eAsync_PrivateRoomStandUp:
+	{
+		uint32_t nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (pPlayer) {
+			Json::Value jsRTI;
+			jsRTI["type"] = eClubRTI_PlayerStandUp;
+			jsRTI["detail"] = jsReqContent;
+			pPlayer->getGameData()->sendIRT(jsRTI);
+		}
+	}
+	break;
+	case eAsync_PrivateRoomStart:
+	{
+		uint32_t nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (pPlayer) {
+			Json::Value jsRTI;
+			jsRTI["type"] = eClubRTI_RoomStarted;
+			jsRTI["detail"] = jsReqContent;
+			pPlayer->getGameData()->sendIRT(jsRTI);
+		}
+	}
+	break;
+	case eAsync_PrivateRoomGameOvered:
+	{
+		uint32_t nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (pPlayer) {
+			Json::Value jsRTI;
+			jsRTI["type"] = eClubRTI_RoomDismiss;
+			jsRTI["detail"] = jsReqContent;
+			pPlayer->getGameData()->sendIRT(jsRTI);
+		}
+	}
+	break;
+	case eAsync_PrivateRoomNetStateRefreshed:
+	{
+		uint32_t nUID = jsReqContent["targetUID"].asUInt();
+		auto pPlayer = getPlayerByUserUID(nUID);
+		if (pPlayer) {
+			Json::Value jsRTI;
+			jsRTI["type"] = eClubRTI_PlayerNetStateRefresh;
+			jsRTI["detail"] = jsReqContent;
+			pPlayer->getGameData()->sendIRT(jsRTI);
+		}
+	}
+	break;
 	case eAsync_HttpCmd_UpdateGateLevel:
 	{
 		if (jsReqContent["gateLevel"].isUInt() == false) {

@@ -105,6 +105,10 @@ protected:
 	//nLogType	2 管理员调整 initPoint。detail { initPoint: 23 , mgrUID : 23 }
 	void savePointLog( uint32_t nPlayerUID , uint32_t nLogType , Json::Value& jsDetail );
 	void saveMemberUpdateToDB( stMember * pMem );
+	bool isInIRT(uint32_t nUserID);
+	void joinIRT(uint32_t nUserID);
+	void removeFromIRT(uint32_t nUserID);
+	void sendIRT(Json::Value& jsMsg);
 protected:
 	uint8_t m_nState;  // 0 normal , 1 pause ;
 	uint32_t m_nCapacity;
@@ -124,6 +128,8 @@ protected:
 	std::vector<stClubRoomInfo> m_vFullRooms;
 	std::vector<stClubRoomInfo> m_vEmptyRooms;
 	std::vector<stInvitation*> m_vInvitations;
+
+	std::vector<uint32_t> m_vRealTimeInformation;
 
 	bool m_isLackDiamond;
 	float m_fDelayTryCreateRoom;

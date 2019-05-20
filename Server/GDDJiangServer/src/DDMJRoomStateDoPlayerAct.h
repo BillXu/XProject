@@ -1,56 +1,10 @@
 #pragma once
 #include "MJRoomStateDoPlayerAct.h"
-#include "FXMJRoom.h"
-class FXMJRoomStateDoPlayerAct
+#include "DDMJRoom.h"
+class DDMJRoomStateDoPlayerAct
 	:public MJRoomStateDoPlayerAct
 {
 public:
-	void enterState(GameRoom* pmjRoom, Json::Value& jsTranData)override
-	{
-		IGameRoomState::enterState(pmjRoom, jsTranData);
-		m_nTing = 0;
-		m_nActIdx = jsTranData["idx"].asUInt();
-		m_eActType = jsTranData["act"].asUInt();
-		if (jsTranData["card"].isNull() == false)
-		{
-			m_nCard = jsTranData["card"].asUInt();
-		}
-
-		if (jsTranData["invokeIdx"].isNull() == false)
-		{
-			m_nInvokeIdx = jsTranData["invokeIdx"].asUInt();
-		}
-
-		if (jsTranData["eatWithA"].isNull() == false)
-		{
-			m_vEatWith[0] = jsTranData["eatWithA"].asUInt();
-		}
-
-		if (jsTranData["eatWithB"].isNull() == false)
-		{
-			m_vEatWith[1] = jsTranData["eatWithB"].asUInt();
-		}
-
-		m_vHuIdxs.clear();
-		if (jsTranData["huIdxs"].isNull() == false && jsTranData["huIdxs"].isArray())
-		{
-			auto jsA = jsTranData["huIdxs"];
-			for (uint8_t nIdx = 0; nIdx < jsA.size(); ++nIdx)
-			{
-				m_vHuIdxs.push_back(jsA[nIdx].asUInt());
-			}
-			LOGFMTD("hu idx size = %u", m_vHuIdxs.size());
-		}
-
-		if (jsTranData["ting"].isUInt()) {
-			m_nTing = jsTranData["ting"].asUInt();
-		}
-		
-		doAct();
-		registerLastAct();
-		setStateDuringTime(getActTime());
-	}
-
 	void onStateTimeUp() override
 	{
 		switch (m_eActType)
@@ -64,31 +18,15 @@ public:
 		}
 		break;
 		case eMJAct_Mo:
+		case eMJAct_BuGang:
 		case eMJAct_BuGang_Declare:
+		case eMJAct_AnGang:
+		case eMJAct_MingGang:
 		case eMJAct_Cyclone:
 		{
 			Json::Value jsValue;
 			jsValue["idx"] = m_nActIdx;
 			getRoom()->goToState(eRoomState_WaitPlayerAct, &jsValue);
-		}
-		break;
-		case eMJAct_BuGang:
-		case eMJAct_AnGang:
-		case eMJAct_MingGang:
-		{
-			if (m_nTing) {
-				Json::Value jsValue;
-				jsValue["idx"] = m_nActIdx;
-				getRoom()->goToState(eRoomState_AfterGang, &jsValue);
-			}
-			else {
-				auto pRoom = (FXMJRoom*)getRoom();
-				pRoom->onPlayerSingalMo(m_nActIdx);
-
-				Json::Value jsValue;
-				jsValue["idx"] = m_nActIdx;
-				getRoom()->goToState(eRoomState_WaitPlayerAct, &jsValue);
-			}
 		}
 		break;
 		case eMJAct_MingGang_Pre:
@@ -98,7 +36,6 @@ public:
 			jsTran["act"] = eMJAct_MingGang_Pre;
 			jsTran["card"] = m_nCard;
 			jsTran["invokeIdx"] = m_nActIdx;
-			jsTran["ting"] = m_nTing;
 			getRoom()->goToState(eRoomState_AskForRobotGang, &jsTran);
 		}
 		break;
@@ -161,7 +98,7 @@ public:
 protected:
 	void doAct() override
 	{
-		auto pRoom = ((FXMJRoom*)getRoom());
+		auto pRoom = ((DDMJRoom*)getRoom());
 		switch (m_eActType)
 		{
 		case eMJAct_Mo:
@@ -172,39 +109,23 @@ protected:
 			break;
 		case eMJAct_MingGang:
 			pRoom->onPlayerMingGang(m_nActIdx, m_nCard, m_nInvokeIdx);
-			/*if (m_nTing) {
-				pRoom->onPlayerTing(m_nActIdx, m_nTing);
-			}
-			pRoom->onPlayerSingalMo(m_nActIdx);*/
 			break;
 		case eMJAct_MingGang_Pre:
 		{
 			if (pRoom->isPlayerRootDirectGang(m_nInvokeIdx, m_nCard) == false) {
 				pRoom->onPlayerMingGang(m_nActIdx, m_nCard, m_nInvokeIdx);
-				/*if (m_nTing) {
-					pRoom->onPlayerTing(m_nActIdx, m_nTing);
-				}
-				pRoom->onPlayerSingalMo(m_nActIdx);*/
 				m_eActType = eMJAct_MingGang;
 			}
 			break;
 		}
 		case eMJAct_AnGang:
 			pRoom->onPlayerAnGang(m_nActIdx, m_nCard);
-			/*if (m_nTing) {
-				pRoom->onPlayerTing(m_nActIdx, m_nTing);
-			}
-			pRoom->onPlayerSingalMo(m_nActIdx);*/
 			break;
 		case eMJAct_Cyclone:
 			pRoom->onPlayerCyclone(m_nActIdx, m_nCard);
 			break;
 		case eMJAct_BuGang:
 			pRoom->onPlayerBuGang(m_nActIdx, m_nCard);
-			/*if (m_nTing) {
-				pRoom->onPlayerTing(m_nActIdx, m_nTing);
-			}
-			pRoom->onPlayerSingalMo(m_nActIdx);*/
 			break;
 		case eMJAct_Hu:
 		{
@@ -216,29 +137,16 @@ protected:
 		}
 		break;
 		case eMJAct_Chu:
-		{
-			if (m_nTing) {
-				if (m_nTing == 2 && pRoom->isEnableCool() == false) {
-					m_nTing = 1;
-				}
-				pRoom->onPlayerChu(m_nActIdx, m_nCard, m_nTing);
-				pRoom->onPlayerTing(m_nActIdx, m_nTing, true);
-			}
-			else {
-				pRoom->onPlayerChu(m_nActIdx, m_nCard);
-			}
-		}
-		break;
+			pRoom->onPlayerChu(m_nActIdx, m_nCard);
+			break;
 		case eMJAct_Chi:
-		{
 			if (m_vEatWith[0] * m_vEatWith[1] == 0)
 			{
 				LOGFMTE("eat lack of right card");
 				break;
 			}
 			pRoom->onPlayerEat(m_nActIdx, m_nCard, m_vEatWith[0], m_vEatWith[1], m_nInvokeIdx);
-		}
-		break;
+			break;
 		default:
 			LOGFMTE("unknow act  how to do it %u", m_eActType);
 			break;
@@ -264,7 +172,6 @@ protected:
 			return eTime_DoPlayerAct_Gang;
 		case eMJAct_Hu:
 			return eTime_DoPlayerAct_Hu;
-			break;
 		case eMJAct_Chu:
 			return 0;
 		default:
@@ -273,7 +180,4 @@ protected:
 		}
 		return 0;
 	}
-
-protected:
-	uint8_t m_nTing;
 };

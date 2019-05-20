@@ -34,6 +34,7 @@ public:
 	void timerSave()override;
 	bool isUserIDInWhiteList( uint32_t nUserUID );
 	void adminVisitInfo( Json::Value& jsInfo );
+	void sendIRT(Json::Value& jsMsg);
 protected:
 	void informNetState( uint8_t nStateFlag ); //  0 online , 1 wait reconnect , 2 offline .
 protected:
@@ -41,4 +42,6 @@ protected:
 	std::vector<stRoomEntry> m_vCreatedRooms;
 	std::set<uint32_t> m_vWhiteList;
 	bool m_isWhiteListDirty;
+
+	bool m_bRealTimeInformation = false;
 };

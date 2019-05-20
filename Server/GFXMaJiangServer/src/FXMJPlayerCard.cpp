@@ -856,6 +856,41 @@ bool FXMJPlayerCard::isBianHu() {
 	return bFlag;
 }
 
+bool FXMJPlayerCard::isDanDiao() {
+	if (getHoldCardCnt() < 3) {
+		return true;
+	}
+	/*if (canHuOnlyOneCard() == false) {
+	return false;
+	}*/
+	auto nCard = getHuCard();
+	if (isHaveCard(nCard) == false) {
+		return false;
+	}
+	/*if (m_nJIang != nCard) {
+	return false;
+	}*/
+	auto nType = card_Type(nCard);
+	auto vCards = m_vCards[nType];
+
+	uint8_t nCnt = std::count_if(vCards.begin(), vCards.end(), [nCard](uint8_t& tCard) {
+		return nCard == tCard;
+	});
+	if (nCnt < 2) {
+		return false;
+	}
+	if (m_nJIang == nCard) {
+		return true;
+	}
+	bool bFlag = false;
+	removeHoldCard(nCard);
+	removeHoldCard(nCard);
+	bFlag = CheckHoldCardAllShun();
+	addHoldCard(nCard);
+	addHoldCard(nCard);
+	return bFlag;
+}
+
 bool FXMJPlayerCard::canHuOnlyOneCard() {
 	/*if (m_bCheckedCanHuOnlyOne) {
 		return m_bCanHuOnlyOne;

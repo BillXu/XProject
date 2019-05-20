@@ -105,4 +105,5 @@ bool MJPrivateRoom::onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) {
 void MJPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer) {
 	//TODO
 	m_mPreSitIdxes[pPlayer->getUserUID()] = pPlayer->getIdx();
+	IPrivateRoom::onPlayerSitDown(pRoom, pPlayer);
 }

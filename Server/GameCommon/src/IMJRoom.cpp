@@ -209,10 +209,10 @@ void IMJRoom::onStartGame()
 
 bool IMJRoom::canStartGame()
 {
-	if ( !GameRoom::canStartGame() )
+	/*if ( !GameRoom::canStartGame() )
 	{
 		return false;
-	}
+	}*/
 
 	uint8_t nReadyCnt = 0;
 	for (auto& pPlayer : m_vPlayers )
@@ -222,7 +222,7 @@ bool IMJRoom::canStartGame()
 			++nReadyCnt;
 		}
 	}
-	return nReadyCnt == getSeatCnt();
+	return nReadyCnt == getSeatCnt() && GameRoom::canStartGame();
 }
 
 // mj function ;

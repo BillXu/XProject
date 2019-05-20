@@ -43,6 +43,16 @@ enum eClubPrivilige
 	eClubPrivilige_Max,
 };
 
+enum eClubRTIType
+{
+	eClubRTI_RoomCreated, // { clubID : 123, roomID : 123 }
+	eClubRTI_PlayerSitDown, // { clubID : 123, roomID : 123, uid : 123 }
+	eClubRTI_PlayerStandUp, // { clubID : 123, roomID : 123, uid : 123 }
+	eClubRTI_RoomStarted, // { clubID : 123, roomID : 123 }
+	eClubRTI_RoomDismiss, // { clubID : 123, roomID : 123, result : { { uid : 123, offset : 10 }, ... } }
+	eClubRTI_PlayerNetStateRefresh, // { clubID : 123, roomID : 123, uid : 123, state : 1 }
+};
+
 enum eClubEvent
 {
 	eClubEvent_ApplyJoin,// some body apply to join club , { uid : 23, respUID : 11, isAgree : 0  }, when processed , contain key : respUID : 11, isAgree 
@@ -89,6 +99,7 @@ enum eGameType
 	eGame_CFMJ,
 	eGame_AHMJ,
 	eGame_NCMJ,
+	eGame_DDMJ,
 	eGame_Max,
 };
 

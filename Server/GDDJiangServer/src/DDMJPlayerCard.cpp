@@ -1,85 +1,74 @@
-#include "LuoMJPlayerCard.h"
+#include "DDMJPlayerCard.h"
 #include "IMJPoker.h"
 #include "log4z.h"
-#include "FanxingDuiDuiHu.h"
 
-void LuoMJPlayerCard::reset() {
+void DDMJPlayerCard::reset() {
 	MJPlayerCard::reset();
 	m_nHuCard = 0;
 	m_bCanHuOnlyOne = false;
 	m_bCheckedCanHuOnlyOne = false;
 }
 
-bool LuoMJPlayerCard::canEatCard(uint8_t nCard, uint8_t nWithA, uint8_t nWithB) {
-	if (isEnableSB1() == false) {
-		VEC_CARD vCards;
-		getHoldCard(vCards);
-		if (vCards.size() < 5) {
-			return false;
-		}
+bool DDMJPlayerCard::canEatCard(uint8_t nCard, uint8_t nWithA, uint8_t nWithB) {
+	VEC_CARD vCards;
+	getHoldCard(vCards);
+	if (vCards.size() < 5) {
+		return false;
 	}
 	return MJPlayerCard::canEatCard(nCard, nWithA, nWithB);
 }
 
-bool LuoMJPlayerCard::canPengWithCard(uint8_t nCard) {
-	if (isEnableSB1() == false) {
-		VEC_CARD vHoldCards;
-		getHoldCard(vHoldCards);
-		if (vHoldCards.size() < 5) {
-			VEC_CARD vTemp;
-			getEatedCard(vTemp);
-			if (vTemp.size() > 0) {
-				return false;
-			}
+bool DDMJPlayerCard::canPengWithCard(uint8_t nCard) {
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
+	if (vHoldCards.size() < 5) {
+		VEC_CARD vTemp;
+		getEatedCard(vTemp);
+		if (vTemp.size() > 0) {
+			return false;
 		}
 	}
 	return MJPlayerCard::canPengWithCard(nCard);
 }
 
-bool LuoMJPlayerCard::canMingGangWithCard(uint8_t nCard) {
-	if (isEnableSB1() == false) {
-		VEC_CARD vHoldCards;
-		getHoldCard(vHoldCards);
-		if (vHoldCards.size() < 5) {
-			VEC_CARD vTemp;
-			getEatedCard(vTemp);
-			if (vTemp.size() > 0) {
-				return false;
-			}
+bool DDMJPlayerCard::canMingGangWithCard(uint8_t nCard) {
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
+	if (vHoldCards.size() < 5) {
+		VEC_CARD vTemp;
+		getEatedCard(vTemp);
+		if (vTemp.size() > 0) {
+			return false;
 		}
 	}
 	return MJPlayerCard::canMingGangWithCard(nCard);
 }
 
-bool LuoMJPlayerCard::canAnGangWithCard(uint8_t nCard) {
-	if (isEnableSB1() == false) {
-		VEC_CARD vHoldCards;
-		getHoldCard(vHoldCards);
-		if (vHoldCards.size() < 6) {
-			VEC_CARD vTemp;
-			getEatedCard(vTemp);
-			if (vTemp.size() > 0) {
-				return false;
-			}
+bool DDMJPlayerCard::canAnGangWithCard(uint8_t nCard) {
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
+	if (vHoldCards.size() < 6) {
+		VEC_CARD vTemp;
+		getEatedCard(vTemp);
+		if (vTemp.size() > 0) {
+			return false;
 		}
 	}
 	return MJPlayerCard::canAnGangWithCard(nCard);
 }
 
-void LuoMJPlayerCard::onVisitPlayerCardInfo(Json::Value& js, bool isSelf) {
+void DDMJPlayerCard::onVisitPlayerCardInfo(Json::Value& js, bool isSelf) {
 	MJPlayerCard::onVisitPlayerCardInfo(js, isSelf);
 }
 
-bool LuoMJPlayerCard::getHoldCardThatCanAnGang(VEC_CARD& vGangCards) {
-	if (isEnableSB1() == false) {
-		VEC_CARD vHoldCards;
-		getHoldCard(vHoldCards);
-		if (vHoldCards.size() < 6) {
-			VEC_CARD vTemp;
-			getEatedCard(vTemp);
-			if (vTemp.size() > 0) {
-				return false;
-			}
+bool DDMJPlayerCard::getHoldCardThatCanAnGang(VEC_CARD& vGangCards) {
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
+	if (vHoldCards.size() < 6) {
+		VEC_CARD vTemp;
+		getEatedCard(vTemp);
+		if (vTemp.size() > 0) {
+			return false;
 		}
 	}
 
@@ -108,7 +97,7 @@ bool LuoMJPlayerCard::getHoldCardThatCanAnGang(VEC_CARD& vGangCards) {
 	return !vGangCards.empty();
 }
 
-bool LuoMJPlayerCard::getHoldCardThatCanBuGang(VEC_CARD& vGangCards) {
+bool DDMJPlayerCard::getHoldCardThatCanBuGang(VEC_CARD& vGangCards) {
 	for (auto& ref : m_vMingCardInfo)
 	{
 		if (ref.eAct != eMJAct_Peng)
@@ -125,16 +114,14 @@ bool LuoMJPlayerCard::getHoldCardThatCanBuGang(VEC_CARD& vGangCards) {
 	return !vGangCards.empty();
 }
 
-bool LuoMJPlayerCard::canCycloneWithCard(uint8_t nCard) {
-	if (isEnableSB1() == false) {
-		VEC_CARD vHoldCards;
-		getHoldCard(vHoldCards);
-		if (vHoldCards.size() < 6) {
-			VEC_CARD vTemp;
-			getEatedCard(vTemp);
-			if (vTemp.size() > 0) {
-				return false;
-			}
+bool DDMJPlayerCard::canCycloneWithCard(uint8_t nCard) {
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
+	if (vHoldCards.size() < 6) {
+		VEC_CARD vTemp;
+		getEatedCard(vTemp);
+		if (vTemp.size() > 0) {
+			return false;
 		}
 	}
 
@@ -163,16 +150,14 @@ bool LuoMJPlayerCard::canCycloneWithCard(uint8_t nCard) {
 	return true;
 }
 
-bool LuoMJPlayerCard::getHoldCardThatCanCyclone(VEC_CARD& vGangCards) {
-	if (isEnableSB1() == false) {
-		VEC_CARD vHoldCards;
-		getHoldCard(vHoldCards);
-		if (vHoldCards.size() < 6) {
-			VEC_CARD vTemp;
-			getEatedCard(vTemp);
-			if (vTemp.size() > 0) {
-				return false;
-			}
+bool DDMJPlayerCard::getHoldCardThatCanCyclone(VEC_CARD& vGangCards) {
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
+	if (vHoldCards.size() < 6) {
+		VEC_CARD vTemp;
+		getEatedCard(vTemp);
+		if (vTemp.size() > 0) {
+			return false;
 		}
 	}
 
@@ -204,7 +189,7 @@ bool LuoMJPlayerCard::getHoldCardThatCanCyclone(VEC_CARD& vGangCards) {
 	return !vGangCards.empty();
 }
 
-bool LuoMJPlayerCard::onCyclone(uint8_t nCard, uint8_t nGangGetCard) {
+bool DDMJPlayerCard::onCyclone(uint8_t nCard, uint8_t nGangGetCard) {
 	auto eType = card_Type(nCard);
 	if (eType != eCT_Feng && eType != eCT_Jian)
 	{
@@ -240,9 +225,10 @@ bool LuoMJPlayerCard::onCyclone(uint8_t nCard, uint8_t nGangGetCard) {
 		nNeed--;
 	}
 	if (eType == eCT_Jian) {
-		vCard = m_vCards[eCT_Tiao];
+		removeHoldCard(make_Card_Num(eCT_Tiao, 1));
+		/*vCard = m_vCards[eCT_Tiao];
 		auto iter = std::find(vCard.begin(), vCard.end(), make_Card_Num(eCT_Tiao, 1));
-		vCard.erase(iter);
+		vCard.erase(iter);*/
 	}
 
 	// sign cyclone gang info 
@@ -258,7 +244,7 @@ bool LuoMJPlayerCard::onCyclone(uint8_t nCard, uint8_t nGangGetCard) {
 	return true;
 }
 
-bool LuoMJPlayerCard::getCycloneCard(VEC_CARD& vGangCard)
+bool DDMJPlayerCard::getCycloneCard(VEC_CARD& vGangCard)
 {
 	for (auto ref : m_vMingCardInfo)
 	{
@@ -270,51 +256,51 @@ bool LuoMJPlayerCard::getCycloneCard(VEC_CARD& vGangCard)
 	return !vGangCard.empty();
 }
 
-bool LuoMJPlayerCard::isHoldCardCanHu() {
+bool DDMJPlayerCard::isHoldCardCanHu() {
 	return isHoldCardCanHu(m_nJIang);
 }
 
-bool LuoMJPlayerCard::isHoldCardCanHu(uint8_t& nJiang) {
-	if (checkHunPiao() || (check3Men() && check19() && checkKezi())) {
+bool DDMJPlayerCard::isHoldCardCanHu(uint8_t& nJiang) {
+	if (check3Men() && check19() && checkKezi()) {
 		return MJPlayerCard::isHoldCardCanHu(nJiang);
 	}
 	return false;
 }
 
-bool LuoMJPlayerCard::isTingPai() {
+bool DDMJPlayerCard::isTingPai() {
 	return MJPlayerCard::isTingPai();
 }
 
-bool LuoMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp) {
-	VEC_CARD vAllCards[eCT_Max];
-	for (auto nCard : vTemp)
-	{
-		auto eType = card_Type(nCard);
-		if (eType > eCT_None || eType < eCT_Max)
-		{
-			vAllCards[eType].push_back(nCard);
-		}
-	}
-	return isHoldCardCanHu(vAllCards);
-}
+//bool DDMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp) {
+//	VEC_CARD vAllCards[eCT_Max];
+//	for (auto nCard : vTemp)
+//	{
+//		auto eType = card_Type(nCard);
+//		if (eType > eCT_None || eType < eCT_Max)
+//		{
+//			vAllCards[eType].push_back(nCard);
+//		}
+//	}
+//	return isHoldCardCanHu(vAllCards);
+//}
+//
+//bool DDMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp[eCT_Max]) {
+//	VEC_CARD vAllCards[eCT_Max];
+//	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
+//		vAllCards[i] = m_vCards[i];
+//		m_vCards[i].clear();
+//		m_vCards[i] = vTemp[i];
+//	}
+//	uint8_t nJiang = 0;
+//	bool canHu = isHoldCardCanHu(nJiang);
+//	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
+//		m_vCards[i].clear();
+//		m_vCards[i] = vAllCards[i];
+//	}
+//	return canHu;
+//}
 
-bool LuoMJPlayerCard::isHoldCardCanHu(VEC_CARD vTemp[eCT_Max]) {
-	VEC_CARD vAllCards[eCT_Max];
-	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
-		vAllCards[i] = m_vCards[i];
-		m_vCards[i].clear();
-		m_vCards[i] = vTemp[i];
-	}
-	uint8_t nJiang = 0;
-	bool canHu = isHoldCardCanHu(nJiang);
-	for (uint8_t i = eCT_None; i < eCT_Max; i++) {
-		m_vCards[i].clear();
-		m_vCards[i] = vAllCards[i];
-	}
-	return canHu;
-}
-
-bool LuoMJPlayerCard::isHaveCards(VEC_CARD vCards) {
+bool DDMJPlayerCard::isHaveCards(VEC_CARD vCards) {
 	VEC_CARD vTemp;
 	getHoldCard(vTemp);
 	for (auto ref : vCards) {
@@ -326,7 +312,7 @@ bool LuoMJPlayerCard::isHaveCards(VEC_CARD vCards) {
 	return true;
 }
 
-bool LuoMJPlayerCard::eraseVector(uint8_t p, VEC_CARD& typeVec)
+bool DDMJPlayerCard::eraseVector(uint8_t p, VEC_CARD& typeVec)
 {
 	VEC_CARD::iterator it = find(typeVec.begin(), typeVec.end(), p);
 	if (it != typeVec.end())
@@ -337,7 +323,7 @@ bool LuoMJPlayerCard::eraseVector(uint8_t p, VEC_CARD& typeVec)
 	return false;
 }
 
-bool LuoMJPlayerCard::checkKezi() {
+bool DDMJPlayerCard::checkKezi() {
 	VEC_CARD vTemp;
 	if (getPengedCard(vTemp)) {
 		return true;
@@ -379,7 +365,7 @@ bool LuoMJPlayerCard::checkKezi() {
 	}
 }
 
-bool LuoMJPlayerCard::check3Men() {
+bool DDMJPlayerCard::check3Men() {
 	VEC_CARD vTemp;
 	getEatedCard(vTemp);
 	getPengedCard(vTemp);
@@ -410,7 +396,7 @@ bool LuoMJPlayerCard::check3Men() {
 	return false;
 }
 
-bool LuoMJPlayerCard::check19() {
+bool DDMJPlayerCard::check19() {
 	VEC_CARD vTemp;
 	getEatedCard(vTemp);
 	getPengedCard(vTemp);
@@ -451,15 +437,7 @@ bool LuoMJPlayerCard::check19() {
 	return false;
 }
 
-bool LuoMJPlayerCard::checkHunPiao() {
-	if (isEnableHunPiao()) {
-		FanxingDuiDuiHu fdd;
-		return fdd.checkFanxing(this, nullptr, 0, nullptr);
-	}
-	return false;
-}
-
-bool LuoMJPlayerCard::isJiaHu() {
+bool DDMJPlayerCard::isJiaHu() {
 	if (getHoldCardCnt() < 5) {
 		return false;
 	}
@@ -489,14 +467,14 @@ bool LuoMJPlayerCard::isJiaHu() {
 	uint8_t nCntPre = std::count_if(vCards.begin(), vCards.end(), [nCardPre](uint8_t& tCard) {
 		return nCardPre == tCard;
 	});
-	if (nCntPre < nCnt) {
+	if (nCntPre < 1) {
 		return false;
 	}
 	auto nCardAfter = make_Card_Num(nType, nValue + 1);
 	uint8_t nCntAfter = std::count_if(vCards.begin(), vCards.end(), [nCardAfter](uint8_t& tCard) {
 		return nCardAfter == tCard;
 	});
-	if (nCntAfter < nCnt) {
+	if (nCntAfter < 1) {
 		return false;
 	}
 
@@ -513,7 +491,7 @@ bool LuoMJPlayerCard::isJiaHu() {
 	return bFlag;
 }
 
-bool LuoMJPlayerCard::isDanDiao() {
+bool DDMJPlayerCard::isDanDiao() {
 	if (getHoldCardCnt() < 3) {
 		return true;
 	}
@@ -536,7 +514,6 @@ bool LuoMJPlayerCard::isDanDiao() {
 	if (nCnt < 2) {
 		return false;
 	}
-
 	if (m_nJIang == nCard) {
 		return true;
 	}
@@ -549,7 +526,7 @@ bool LuoMJPlayerCard::isDanDiao() {
 	return bFlag;
 }
 
-bool LuoMJPlayerCard::isBianHu() {
+bool DDMJPlayerCard::isBianHu() {
 	if (getHoldCardCnt() < 5) {
 		return false;
 	}
@@ -598,7 +575,7 @@ bool LuoMJPlayerCard::isBianHu() {
 	return bFlag;
 }
 
-bool LuoMJPlayerCard::canHuOnlyOneCard() {
+bool DDMJPlayerCard::canHuOnlyOneCard() {
 	if (m_bCheckedCanHuOnlyOne) {
 		return m_bCanHuOnlyOne;
 	}
@@ -612,7 +589,8 @@ bool LuoMJPlayerCard::canHuOnlyOneCard() {
 	//TODO...
 	auto nHuCard = getHuCard();
 	if (isHaveCard(nHuCard) == false) {
-		m_bCanHuOnlyOne = false;
+		//m_bCanHuOnlyOne = false;
+		return false;
 	}
 	auto nJiang = m_nJIang;
 	removeHoldCard(nHuCard);
@@ -663,7 +641,7 @@ bool LuoMJPlayerCard::canHuOnlyOneCard() {
 	return m_bCanHuOnlyOne;
 }
 
-bool LuoMJPlayerCard::isHuOnly19() {
+bool DDMJPlayerCard::isHuOnly19() {
 	auto nCard = getHuCard();
 	if (isHaveCard(nCard) == false) {
 		return false;
@@ -683,7 +661,7 @@ bool LuoMJPlayerCard::isHuOnly19() {
 	return false;
 }
 
-uint8_t LuoMJPlayerCard::getHoldCardCnt() {
+uint8_t DDMJPlayerCard::getHoldCardCnt() {
 	VEC_CARD vHoldCard;
 	getHoldCard(vHoldCard);
 	return vHoldCard.size();

@@ -45,6 +45,7 @@ public:
 		}
 
 		doAct();
+		registerLastAct();
 		setStateDuringTime(getActTime());
 	}
 
@@ -169,8 +170,17 @@ protected:
 			break;
 		default:
 			LOGFMTE("unknow act  how to do it %u",m_eActType);
-			break;
+			return;
 		}
+	}
+
+	void registerLastAct() {
+		std::auto_ptr<GameRoom::stLastActInfo> ptrLastAct(new GameRoom::stLastActInfo(m_nActIdx, m_nInvokeIdx, m_eActType, m_nCard));
+		auto pRoom = getRoom();
+		pRoom->regesterLastAct(ptrLastAct);
+		/*if (ptrLastAct.get() == NULL) {
+			LOGFMTE("lin shi bian liang bei zheng chang shan chu, actType = %u", m_eActType);
+		}*/
 	}
 
 	virtual float getActTime()

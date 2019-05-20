@@ -16,6 +16,33 @@ public:
 		uint32_t nUserUID;
 		uint32_t nSessionID;
 	};
+
+	class stLastActInfo
+	{
+	public:
+		stLastActInfo() {
+			nActIdx = -1;
+			nInvokerIdx = -1;
+			nActType = -1;
+			nCardInfo = 0;
+		}
+
+		stLastActInfo(uint8_t actIdx, uint8_t invokerIdx, uint16_t actType, uint16_t cardInfo) {
+			nActIdx = actIdx;
+			nInvokerIdx = invokerIdx;
+			nActType = actType;
+			nCardInfo = cardInfo;
+		}
+
+		~stLastActInfo();
+
+	public:
+		uint8_t nActIdx;
+		uint8_t nInvokerIdx;
+		uint16_t nActType;
+		uint16_t nCardInfo;
+	};
+
 public:
 	~GameRoom();
 	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
@@ -73,6 +100,7 @@ public:
 	void saveGameRecorder(bool bDismiss = false);
 	virtual bool isHaveRace() { return false; }
 	virtual void onWaitRace(uint8_t nIdx = -1) {}
+	void regesterLastAct(std::auto_ptr<stLastActInfo> ptrLastActInfo) { m_ptrLastActInfo = ptrLastActInfo; }
 protected:
 	bool addRoomState(IGameRoomState* pTargetState);
 	IGameRoomDelegate* getDelegate();
@@ -99,6 +127,8 @@ private:
 	std::shared_ptr<MJReplayGame> m_ptrGameReplay;
 	IGameRoomState* m_pCurState;
 	std::map<uint32_t, IGameRoomState*> m_vAllState;
+
+	std::auto_ptr<stLastActInfo> m_ptrLastActInfo;
 
 	bool m_bSaveRecorder = true;
 };
