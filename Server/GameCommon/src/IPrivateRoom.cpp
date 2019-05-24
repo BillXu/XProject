@@ -325,18 +325,31 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
 		auto nApplyUID = prealMsg["uid"].asUInt();
+		auto isForceDismiss = prealMsg["force"].isNull() == false && prealMsg["force"].asUInt() == 1;
 		bool isAdmin = nSessionID == 0 && nApplyUID == 0;
 		if ( pp )
 		{
 			nApplyUID = pp->getUserUID();
 		}
 
-		if ( isRoomStarted() == false )
+		if ( isRoomStarted() == false || isForceDismiss )
 		{
-			if ( nApplyUID != m_nOwnerUID && isAdmin == false )
+			if ( nApplyUID != m_nOwnerUID && isAdmin == false && isForceDismiss == false )
 			{
 				LOGFMTE( "client shoud not send this msg , room id = %u not start , you are not room owner, so you can not dismiss player id = %u, you can leave",getRoomID(), nApplyUID );
 				return true;
+			}
+			
+			if ( isForceDismiss )
+			{
+				LOGFMTD( "room id = %d force to dissmiss applyuid = %u",getRoomID(),nApplyUID );
+			}
+
+			if ( nSessionID > 0 )
+			{
+				Json::Value jsMsg;
+				jsMsg["ret"] = 0;
+				sendMsgToPlayer(jsMsg, nMsgType, nSessionID);
 			}
 			
 			doRoomGameOver(true);
