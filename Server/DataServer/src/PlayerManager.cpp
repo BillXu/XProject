@@ -1127,7 +1127,8 @@ bool CPlayerManager::initGateIP() {
 		switch (i) {
 		case 1:
 		{
-			vIPs.push_back("47.95.39.200");
+			vIPs.push_back("47.93.208.120");
+			//vIPs.push_back("47.95.39.200");
 
 			//vIPs.push_back("101.132.254.32");
 			//vIPs.push_back("101.132.248.195");
@@ -1137,7 +1138,9 @@ bool CPlayerManager::initGateIP() {
 		{
 			//vIPs.push_back("101.132.252.171");
 
-			vIPs.push_back("39.107.56.128");
+			vIPs.push_back("47.93.208.120");
+			//vIPs.push_back("39.107.56.128");
+
 			/*vIPs.push_back("47.93.125.150");
 			vIPs.push_back("47.95.38.36");
 			vIPs.push_back("39.107.60.216");*/
@@ -1154,7 +1157,7 @@ bool CPlayerManager::initGateIP() {
 		case 3:
 		{
 			//vIPs.push_back("47.93.208.120");
-			vIPs.push_back("47.94.43.128");
+			//vIPs.push_back("47.94.43.128");
 			vIPs.push_back("101.201.180.207");
 			/*vIPs.push_back("47.95.38.201");
 			vIPs.push_back("47.94.34.80");
@@ -1172,7 +1175,7 @@ bool CPlayerManager::initGateIP() {
 	}
 
 	std::vector<std::string> vIPs;
-	vIPs.push_back("47.95.33.60");
+	vIPs.push_back("47.93.208.120");
 	m_mGateIP[100] = vIPs;
 
 	return true;
