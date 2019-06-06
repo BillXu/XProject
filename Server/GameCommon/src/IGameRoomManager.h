@@ -19,9 +19,9 @@ public:
 	virtual IGameRoom* createRoom( uint8_t nGameType ) = 0;
 	void deleteRoom( uint32_t nRoomID );
 	void onConnectedSvr(bool isReconnected)override;
-	virtual uint16_t getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType, uint16_t nSeatCnt ) = 0;  //warnning :  must condiser isCreateRoomFree ;
-protected:
 	bool isCreateRoomFree();
+	//virtual uint16_t getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType, uint16_t nSeatCnt ) = 0;  //warnning :  must condiser isCreateRoomFree ;
+protected:
 	bool isCanCreateRoom();
 	void onPlayerCreateRoom( Json::Value& prealMsg,uint32_t nSenderID );
 	void prepareRoomIDs();

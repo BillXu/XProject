@@ -6,10 +6,11 @@
 #include "AsyncRequestQuene.h"
 #include "../ServerCommon/ISeverApp.h"
 #include "BiJi\BJPlayer.h"
-bool BJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "IGameOpts.h"
+bool BJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
-	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
+	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
+	//m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
 	return true;
 }
 
@@ -18,16 +19,16 @@ GameRoom* BJPrivateRoom::doCreatRealRoom()
 	return new BJRoom();
 }
 
-uint8_t BJPrivateRoom::getInitRound(uint8_t nLevel)
-{
-	uint8_t vJun[] = { 10 , 20 , 30 };
-	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
-	{
-		LOGFMTE("invalid level type = %u", nLevel);
-		nLevel = 0;
-	}
-	return vJun[nLevel];
-}
+//uint8_t BJPrivateRoom::getInitRound(uint8_t nLevel)
+//{
+//	uint8_t vJun[] = { 10 , 20 , 30 };
+//	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
+//	{
+//		LOGFMTE("invalid level type = %u", nLevel);
+//		nLevel = 0;
+//	}
+//	return vJun[nLevel];
+//}
 
 void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 {
@@ -68,7 +69,7 @@ uint8_t BJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 
 bool BJPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	if (m_isOpen == false && m_nAutoOpenCnt > 0)
+	if (m_isOpen == false && getOpts()->getAutoStartCnt() > 0)
 	{
 		uint8_t nCnt = 0;
 		auto pNRoom = ((BJRoom*)pRoom);
@@ -80,7 +81,7 @@ bool BJPrivateRoom::canStartGame(IGameRoom* pRoom)
 			}
 		}
 
-		m_isOpen = nCnt >= m_nAutoOpenCnt;
+		m_isOpen = nCnt >= getOpts()->getAutoStartCnt();
 		if (m_isOpen)
 		{
 			m_isOpen = true;

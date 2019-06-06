@@ -45,7 +45,7 @@ public:
 
 public:
 	~GameRoom();
-	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
+	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)override;
 	void setDelegate(IGameRoomDelegate* pDelegate );
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override; // 0 can enter , 1 room is full ;
 	virtual uint8_t checkPlayerCanSitDown(stEnterRoomData* pEnterRoomPlayer) { return 0; }
@@ -115,7 +115,7 @@ protected:
 protected:
 	IGameRoomDelegate* m_pDelegate;
 	IGameRoomManager* m_pRoomMgr;
-	Json::Value m_jsOpts;
+	//Json::Value m_jsOpts;
 	std::vector<IGamePlayer*> m_vPlayers;
 	std::map<uint32_t,stStandPlayer*> m_vStandPlayers;
 	uint32_t m_nRoomID;

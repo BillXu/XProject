@@ -8,10 +8,12 @@
 #include "IGameRoomManager.h"
 #include "IMJPoker.h"
 #include "MJReplayFrameType.h"
+#include "IMJOpts.h"
+#include "IGameRoomDelegate.h"
 
-bool IMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+bool IMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	GameRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	GameRoom::init(pRoomMgr,nSeialNum,nRoomID, ptrGameOpts);
 	m_pFanxingChecker = nullptr;
 	setBankIdx(-1);
 	return true;
@@ -176,7 +178,14 @@ void IMJRoom::onStartGame()
 	}
 
 	// prepare replay frame 
-	Json::Value jsFrameArg, jsPlayers;
+	Json::Value jsFrameArg;
+	packStartGameReplyInfo(jsFrameArg);
+	addReplayFrame(eMJFrame_StartGame, jsFrameArg);
+	LOGFMTI("room id = %u start game !",getRoomID());
+}
+
+void IMJRoom::packStartGameReplyInfo(Json::Value& jsFrameArg) {
+	Json::Value jsPlayers;
 	jsFrameArg["bankIdx"] = getBankerIdx();
 	for (auto& pPlayer : m_vPlayers)
 	{
@@ -203,8 +212,6 @@ void IMJRoom::onStartGame()
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
 	jsFrameArg["players"] = jsPlayers;
-	addReplayFrame(eMJFrame_StartGame, jsFrameArg);
-	LOGFMTI("room id = %u start game !",getRoomID());
 }
 
 bool IMJRoom::canStartGame()
@@ -867,4 +874,80 @@ void IMJRoom::sendRoomInfo(uint32_t nSessionID)
 void IMJRoom::packRoomInfo(Json::Value& jsRoomInfo) {
 	GameRoom::packRoomInfo(jsRoomInfo);
 	jsRoomInfo["leftCards"] = getPoker()->getLeftCardCount();
+}
+
+bool IMJRoom::doPlayerBuHua(uint8_t nIdx) {
+	if ((uint8_t)-1 == nIdx) {
+		bool waitBuHua = false;
+		for (auto pPlayer : m_vPlayers) {
+			if (!pPlayer) {
+				LOGFMTE("why have null player , can not auto bu hua");
+				return false;
+			}
+			if (onPlayerBuHua(pPlayer->getIdx())) {
+				waitBuHua = true;
+			}
+		}
+		return waitBuHua;
+	}
+	else {
+		return onPlayerBuHua(nIdx);
+	}
+}
+
+bool IMJRoom::onPlayerBuHua(uint8_t nIdx) {
+	if (canBuHua() == false) {
+		return false;
+	}
+
+	auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
+	if (!pPlayer) {
+		LOGFMTE("why this player is null idx = %u , can not bu hua", nIdx);
+		return false;
+	}
+
+	auto pCard = pPlayer->getPlayerCard();
+	auto nHuaCard = pCard->getHuaCard();
+	if (nHuaCard) {
+		pPlayer->signFlag(IMJPlayer::eMJActFlag_BuHua);
+		pPlayer->clearFlag(IMJPlayer::eMJActFlag_LouHu);
+
+		auto nBuHuaGetCard = getPoker()->distributeOneCard();
+		if (pCard->onBuHua(nHuaCard, nBuHuaGetCard)) {
+			// send msg ;
+			Json::Value msg;
+			msg["idx"] = nIdx;
+			msg["actType"] = eMJAct_BuHua;
+			msg["card"] = nHuaCard;
+			msg["gangCard"] = nBuHuaGetCard;
+			sendRoomMsg(msg, MSG_ROOM_ACT);
+
+			Json::Value jsFrameArg;
+			jsFrameArg["idx"] = nIdx;
+			jsFrameArg["buHua"] = nHuaCard;
+			jsFrameArg["newCard"] = nBuHuaGetCard;
+			addReplayFrame(eMJFrame_BuHua, jsFrameArg);
+
+			return true;
+		}
+		else {
+			LOGFMTE("nidx = %u bu hua card = %u error,", nIdx, nHuaCard);
+			return false;
+		}
+	}
+	return false;
+}
+
+bool IMJRoom::canBuHua() {
+	return isCanGoOnMoPai();
+}
+
+uint8_t IMJRoom::getBaseScore() {
+	auto pMJOpts = std::dynamic_pointer_cast<IMJOpts>(getDelegate()->getOpts());
+	return pMJOpts->getBaseScore();
+}
+
+bool IMJRoom::isCircle() {
+	auto pMJOpts = std::dynamic_pointer_cast<IMJOpts>(getDelegate()->getOpts());
+	return pMJOpts->isCircle();
 }

@@ -7,6 +7,7 @@
 #include "AsyncRequestQuene.h"
 #include <time.h>
 #include "IMJRoom.h"
+#include "IGameOpts.h"
 #define TIME_WAIT_REPLY_DISMISS 120
 #define TIME_AUTO_DISMISS (60*60*5)
 IPrivateRoom::~IPrivateRoom()
@@ -15,7 +16,7 @@ IPrivateRoom::~IPrivateRoom()
 	m_pRoom = nullptr;
 }
 
-bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts )
+bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
 	m_vAAPayedPlayers.clear();
 	m_pRoom = doCreatRealRoom();
@@ -25,22 +26,26 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 		return false;
 	}
 	LOGFMTD("create 1 private room");
-	auto bRet = m_pRoom->init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
+	auto bRet = m_pRoom->init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
 	if (!bRet)
 	{
 		LOGFMTE("init private room error ");
 		return false;
 	}
+	/*m_pGameOpts = doCreateGameOpts();
+	m_pGameOpts->initRoomOpts(vJsOpts);*/
+	m_pGameOpts = ptrGameOpts;
+	m_pGameOpts->setRoomID(nRoomID);
 	m_pRoom->setDelegate(this);
 	m_tCreateTime = time(nullptr);
 
 	// init member 
-	m_nAutoStartCnt = 0;
+	//m_nAutoStartCnt = 0;
 	m_nTempOwnerUID = 0;
 	m_pRoomMgr = pRoomMgr;
-	m_nPayType = ePayType_RoomOwner;
-	m_isEnablePointRestrict = vJsOpts["pointRct"].isInt() && vJsOpts["pointRct"].asInt() == 1;
-	if (vJsOpts["isAA"].isNull() == false)
+	//m_nPayType = ePayType_RoomOwner;
+	//m_isEnablePointRestrict = vJsOpts["pointRct"].isInt() && vJsOpts["pointRct"].asInt() == 1;
+	/*if (vJsOpts["isAA"].isNull() == false)
 	{
 		if (vJsOpts["isAA"].asUInt() == 1)
 		{
@@ -63,33 +68,33 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 			}
 		}
 
-	}
+	}*/
 	
-	m_nOwnerUID = vJsOpts["uid"].asUInt();
-	m_nClubID = 0;
-	if (vJsOpts["clubID"].isNull() == false)
+	//m_nOwnerUID = vJsOpts["uid"].asUInt();
+	//m_nClubID = 0;
+	/*if (vJsOpts["clubID"].isNull() == false)
 	{
 		m_nClubID = vJsOpts["clubID"].asUInt();
-	}
+	}*/
 
-	m_bDaiKai = false;
+	/*m_bDaiKai = false;
 	if (vJsOpts["isDK"].asBool()) {
 		m_bDaiKai = true;
-	}
+	}*/
 
-	m_nVipLevel = 0;
+	/*m_nVipLevel = 0;
 	if (vJsOpts["vipLevel"].isUInt()) {
 		m_nVipLevel = vJsOpts["vipLevel"].asUInt();
-	}
+	}*/
 
-	if (vJsOpts["starGame"].isNull() == false)
+	/*if (vJsOpts["starGame"].isNull() == false)
 	{
 		m_nAutoStartCnt = vJsOpts["starGame"].asUInt();
-	}
+	}*/
 
-	m_nRoundLevel = vJsOpts["level"].asUInt();
-	m_isEnableWhiteList = vJsOpts["enableWhiteList"].isNull() == false && vJsOpts["enableWhiteList"].asUInt() == 1;
-	m_nLeftRounds = getInitRound(m_nRoundLevel);
+	//m_nRoundLevel = vJsOpts["level"].asUInt();
+	//m_isEnableWhiteList = vJsOpts["enableWhiteList"].isNull() == false && vJsOpts["enableWhiteList"].asUInt() == 1;
+	m_nLeftRounds = getOpts()->getInitRound();
 
 	m_isOneRoundNormalEnd = false;
 	m_nPrivateRoomState = eState_WaitStart;
@@ -111,7 +116,7 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 	m_tAutoDismissTimer.setCallBack([this](CTimer*p, float f) {
 		m_tInvokerTime = 0;
 		m_nApplyDismissUID = 0;
-		LOGFMTI("system auto dismiss room id = %u , owner id = %u", getRoomID(), m_nOwnerUID);
+		LOGFMTI("system auto dismiss room id = %u , owner id = %u", getRoomID(), getOpts()->getOwnerUID());
 		doRoomGameOver(true);
 	});
 	m_tAutoDismissTimer.start();
@@ -150,13 +155,13 @@ uint8_t IPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 		return 0;
 	}
 
-	if ( isAAPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, getPayType()))
+	if ( isAAPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed() )
 	{
 		// diamond is not enough 
 		return 8;
 	}
 
-	if ( isWinerPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed(m_nRoundLevel, getPayType() ))
+	if ( isWinerPay() && pEnterRoomPlayer->nDiamond < getDiamondNeed() )
 	{
 		return 8;
 	}
@@ -186,11 +191,11 @@ bool IPrivateRoom::doDeleteRoom()
 
 	// tell data svr , the room is closed 
 	Json::Value jsReqInfo;
-	jsReqInfo["targetUID"] = m_nOwnerUID;
+	jsReqInfo["targetUID"] = getOpts()->getOwnerUID();
 	jsReqInfo["roomID"] = getRoomID();
 	jsReqInfo["port"] = m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType();
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
-	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Inform_RoomDeleted, jsReqInfo);
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_Inform_RoomDeleted, jsReqInfo);
 	return m_pRoom->doDeleteRoom();
 }
 
@@ -216,19 +221,19 @@ void IPrivateRoom::update(float fDelta)
 bool IPrivateRoom::onProcessWhiteListSitDown(Json::Value& prealMsg, uint32_t nSessionID)
 {
 	auto p = getCoreRoom()->getStandPlayerBySessionID(nSessionID);
-	if ( nullptr == p || p->nUserUID == m_nOwnerUID || getCoreRoom()->isRoomFull()) // room owner skip white list check ;
+	if ( nullptr == p || p->nUserUID == getOpts()->getOwnerUID() || getCoreRoom()->isRoomFull()) // room owner skip white list check ;
 	{
 		return false;
 	}
 
 	// do check white list 
 	Json::Value js;
-	js["listOwner"] = m_nOwnerUID;
+	js["listOwner"] = getOpts()->getOwnerUID();
 	js["checkUID"] = p->nUserUID;
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	auto pRoomMgr = m_pRoomMgr;
 	auto nRoomID = getRoomID();
-	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_Check_WhiteList, js, [nSessionID, pRoomMgr, nRoomID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
+	pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_Check_WhiteList, js, [nSessionID, pRoomMgr, nRoomID](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut)
 	{
 		if (isTimeOut)
 		{
@@ -262,7 +267,7 @@ bool IPrivateRoom::onProcessWhiteListSitDown(Json::Value& prealMsg, uint32_t nSe
 
 bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID )
 {
-	if (nMsgType == MSG_PLAYER_SIT_DOWN && m_isEnableWhiteList )
+	if (nMsgType == MSG_PLAYER_SIT_DOWN && getOpts()->isEnableWhiteList() )
 	{
 		if ( onProcessWhiteListSitDown(prealMsg, nSessionID) )
 		{
@@ -288,7 +293,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 	{
 		auto pp = m_pRoom->getPlayerBySessionID(nSessionID);
 		auto ppS = m_pRoom->getStandPlayerBySessionID(nSessionID);
-		if ( (( pp && pp->getUserUID() != m_nOwnerUID ) || ( ppS && ppS->nUserUID != m_nOwnerUID ) ) && ( isClubRoom() == false ) && (isDKRoom() == false) )
+		if ( (( pp && pp->getUserUID() != getOpts()->getOwnerUID() ) || ( ppS && ppS->nUserUID != getOpts()->getOwnerUID() ) ) && ( isClubRoom() == false ) && (isDKRoom() == false) )
 		{
 			prealMsg["ret"] = 1;
 			m_pRoom->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
@@ -320,7 +325,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			}
 		}
 
-		if ( (isClubRoom() || isDKRoom()) && m_nAutoStartCnt == 0 && getPlayerCnt() < 2 )
+		if ( (isClubRoom() || isDKRoom()) && getOpts()->getAutoStartCnt() == 0 && getPlayerCnt() < 2 )
 		{
 			prealMsg["ret"] = 2;
 			m_pRoom->sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
@@ -378,7 +383,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			}
 			uint32_t nUID = prealMsg["uid"].asUInt();
 			
-			if (nUID == m_nOwnerUID) {
+			if (nUID == getOpts()->getOwnerUID()) {
 				m_pRoom->onMsg(prealMsg, nMsgType, eSenderPort, nSessionID);
 				return true;
 			}
@@ -468,7 +473,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 
 		if ( isRoomStarted() == false )
 		{
-			if ( nApplyUID != m_nOwnerUID && isAdmin == false )
+			if ( nApplyUID != getOpts()->getOwnerUID() && isAdmin == false )
 			{
 				LOGFMTE( "client shoud not send this msg , room id = %u not start , you are not room owner, so you can not dismiss player id = %u, you can leave",getRoomID(), nApplyUID );
 				return true;
@@ -481,7 +486,7 @@ bool IPrivateRoom::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSe
 			return true;
 		}
 
-		if ( nullptr == pp && nApplyUID != m_nOwnerUID && false == isAdmin )
+		if ( nullptr == pp && nApplyUID != getOpts()->getOwnerUID() && false == isAdmin )
 		{
 			LOGFMTE("you are not in room , and you are not owner  uid = %u",nApplyUID );
 			return true;
@@ -620,19 +625,28 @@ void IPrivateRoom::sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uin
 	}
 }
 
-uint8_t IPrivateRoom::getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType )
+uint8_t IPrivateRoom::getDiamondNeed()
 {
 	if ( !m_pRoom)
 	{
 		LOGFMTE("room is null , can not return diamond need");
 		return -1;
 	}
-	return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, nPayType,getSeatCnt() );
+	if (!m_pGameOpts) {
+		LOGFMTE("room opts is null , can not return diamond need");
+		return -1;
+	}
+
+	if (m_pRoomMgr->isCreateRoomFree()) {
+		return 0;
+	}
+	return getOpts()->getDiamondNeed();
+	//return m_pRoomMgr->getDiamondNeed(m_pRoom->getRoomType(), nLevel, nPayType,getSeatCnt() );
 }
 
 uint32_t IPrivateRoom::getSitDownDiamondConsume() {
 	if (isAAPay() || isWinerPay()) {
-		return getDiamondNeed(m_nRoundLevel, getPayType());
+		return getDiamondNeed();
 	}
 	return 0;
 }
@@ -646,7 +660,7 @@ void IPrivateRoom::sendRoomPlayersInfo(uint32_t nSessionID)
 }
 
 void IPrivateRoom::packCreateUIDInfo(Json::Value& jsRoomInfo) {
-	if (isClubRoom() && m_nAutoStartCnt == 0)
+	if (isClubRoom() && getOpts()->getAutoStartCnt() == 0)
 	{
 		jsRoomInfo["opts"]["uid"] = m_nTempOwnerUID;
 	}
@@ -730,18 +744,18 @@ bool IPrivateRoom::onPlayerNetStateRefreshed(uint32_t nPlayerID, eNetState nStat
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
 		if (isClubRoom()) {
-			jsReq["clubID"] = m_nClubID;
+			jsReq["clubID"] = getClubID();
 			jsReq["roomID"] = getRoomID();
 			jsReq["uid"] = nPlayerID;
 			jsReq["state"] = nState;
-			pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nOwnerUID, eAsync_ClubRoomNetStateRefreshed, jsReq);
+			pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, getOpts()->getOwnerUID(), eAsync_ClubRoomNetStateRefreshed, jsReq);
 		}
-		else if (m_nOwnerUID) {
+		else if (getOpts()->getOwnerUID()) {
 			jsReq["roomID"] = getRoomID();
-			jsReq["targetUID"] = m_nOwnerUID;
+			jsReq["targetUID"] = getOpts()->getOwnerUID();
 			jsReq["uid"] = nPlayerID;
 			jsReq["state"] = nState;
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_PrivateRoomNetStateRefreshed, jsReq);
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_PrivateRoomNetStateRefreshed, jsReq);
 		}
 	}
 
@@ -763,19 +777,19 @@ void IPrivateRoom::onWillStartGame(IGameRoom* pRoom) {
 
 void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 {
-	if ( isClubRoom() && m_nLeftRounds == getInitRound( m_nRoundLevel ) )
+	if ( isClubRoom() && m_nLeftRounds == getOpts()->getInitRound() )
 	{
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
 		if (isClubRoom()) {
-			jsReq["clubID"] = m_nClubID;
+			jsReq["clubID"] = getClubID();
 			jsReq["roomID"] = getRoomID();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nOwnerUID, eAsync_ClubRoomStart, jsReq);
+			pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, getOpts()->getOwnerUID(), eAsync_ClubRoomStart, jsReq);
 		}
-		else if (m_nOwnerUID) {
+		else if (getOpts()->getOwnerUID()) {
 			jsReq["roomID"] = getRoomID();
-			jsReq["targetUID"] = m_nOwnerUID;
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_PrivateRoomStart, jsReq);
+			jsReq["targetUID"] = getOpts()->getOwnerUID();
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_PrivateRoomStart, jsReq);
 		}
 		
 	}
@@ -787,11 +801,11 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 	if ( isC )
 	{
 		// temp test 
-		auto nIdx = getInitRound(m_nRoundLevel) - m_nLeftRounds + 1;
+		auto nIdx = getOpts()->getInitRound() - m_nLeftRounds + 1;
 		nIdx = nIdx % 10;
 		uint8_t nF = floor(getRoomID()/100000.0f);
 		uint8_t nL = getRoomID() % 10;
-		if ( getCoreRoom()->getRoomType() == eGame_Golden )
+		if ( getOpts()->getGameType() == eGame_Golden )
 		{
 			nL = 0;
 		}
@@ -847,7 +861,7 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 		m_isOneRoundNormalEnd = true;
 	}
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
-	auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, getPayType());
+	auto nNeedDiamond = getDiamondNeed();
 	if ( isAAPay() && nNeedDiamond > 0)  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
 	{
 		auto nCnt = m_pRoom->getSeatCnt();
@@ -913,7 +927,7 @@ bool IPrivateRoom::applyDoDismissCheck() {
 
 uint32_t IPrivateRoom::getCurRoundIdx()
 {
-	return getInitRound(m_nRoundLevel) - m_nLeftRounds;
+	return getOpts()->getInitRound() - m_nLeftRounds;
 }
 
 void IPrivateRoom::doRoomGameOver(bool isDismissed)
@@ -935,32 +949,32 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	}
 
 	// give back room card to room owner ;
-	bool isAlreadyComsumedDiamond = ( isRoomOwnerPay() && (getDiamondNeed(m_nRoundLevel, getPayType() ) > 0 ) );
+	bool isAlreadyComsumedDiamond = ( isRoomOwnerPay() && getDiamondNeed() > 0 && getOpts()->getVipLevel() == 0 );
 	if ( isDismissed && isAlreadyComsumedDiamond && isOneRoundNormalEnd() == false )
 	{
 		Json::Value jsReq;
-		jsReq["diamond"] = m_nVipLevel ? 0 : getDiamondNeed(m_nRoundLevel, getPayType());
+		jsReq["diamond"] = getOpts()->getVipLevel() ? 0 : getDiamondNeed();
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		if ( isClubRoom() )
 		{
-			jsReq["clubID"] = m_nClubID;
+			jsReq["clubID"] = getClubID();
 			jsReq["roomID"] = getRoomID();
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_ClubGiveBackDiamond, jsReq);
-			LOGFMTD("room id = %u dissmiss give back clubId = %u diamond = %u", getRoomID(), m_nClubID, jsReq["diamond"].asUInt());
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_ClubGiveBackDiamond, jsReq);
+			LOGFMTD("room id = %u dissmiss give back clubId = %u diamond = %u", getRoomID(), getClubID(), jsReq["diamond"].asUInt());
 		}
 		else
 		{
-			jsReq["targetUID"] = m_nOwnerUID;
+			jsReq["targetUID"] = getOpts()->getOwnerUID();
 			jsReq["roomID"] = getRoomID();
 			jsReq["reason"] = 1;
-			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_GiveBackDiamond, jsReq);
-			LOGFMTD("room id = %u dissmiss give back uid = %u diamond = %u", getRoomID(), m_nOwnerUID, jsReq["diamond"].asUInt());
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_GiveBackDiamond, jsReq);
+			LOGFMTD("room id = %u dissmiss give back uid = %u diamond = %u", getRoomID(), getOpts()->getOwnerUID(), jsReq["diamond"].asUInt());
 		}
 
 	}
 
 	// find big wineer and pay room card 
-	if ( isWinerPay() && isOneRoundNormalEnd() && getDiamondNeed(m_nRoundLevel, getPayType() ) > 0 )
+	if ( isWinerPay() && isOneRoundNormalEnd() && getDiamondNeed() > 0 )
 	{
 		doProcessWinerPayRoomCard();
 	}
@@ -973,7 +987,7 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 	{
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
-		jsReq["clubID"] = m_nClubID;
+		jsReq["clubID"] = getClubID();
 		jsReq["roomID"] = getRoomID();
 		if ( m_isOneRoundNormalEnd && isEnableClubPointRestrict() ) // inform result to club svr ;
 		{
@@ -993,14 +1007,14 @@ void IPrivateRoom::doRoomGameOver(bool isDismissed)
 			jsReq["result"] = jsResult;
 		}
 
-		pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nClubID, eAsync_ClubRoomGameOvered, jsReq);
+		pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, getClubID(), eAsync_ClubRoomGameOvered, jsReq);
 	}
-	else if (m_nOwnerUID) {
+	else if (getOpts()->getOwnerUID()) {
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
 		jsReq["roomID"] = getRoomID();
-		jsReq["targetUID"] = m_nOwnerUID;
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_PrivateRoomGameOvered, jsReq);
+		jsReq["targetUID"] = getOpts()->getOwnerUID();
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_PrivateRoomGameOvered, jsReq);
 	}
 }
 
@@ -1021,13 +1035,13 @@ uint16_t IPrivateRoom::getPlayerCnt()
 
 void IPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)
 {
-	if (m_nOwnerUID && isClubRoom() == false) {
+	if (getOpts()->getOwnerUID() && isClubRoom() == false) {
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
 		jsReq["roomID"] = getRoomID();
-		jsReq["targetUID"] = m_nOwnerUID;
+		jsReq["targetUID"] = getOpts()->getOwnerUID();
 		jsReq["uid"] = pPlayer->getUserUID();
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_PrivateRoomSitDown, jsReq);
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_PrivateRoomSitDown, jsReq);
 	}
 
 	if (false == isClubRoom())
@@ -1037,12 +1051,12 @@ void IPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)
 
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	Json::Value jsReq;
-	jsReq["clubID"] = m_nClubID;
+	jsReq["clubID"] = getClubID();
 	jsReq["roomID"] = getRoomID();
 	jsReq["uid"] = pPlayer->getUserUID();
-	pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nOwnerUID, eAsync_ClubRoomSitDown, jsReq);
+	pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, getOpts()->getOwnerUID(), eAsync_ClubRoomSitDown, jsReq);
 
-	if (m_nAutoStartCnt) {
+	if (getOpts()->getAutoStartCnt()) {
 		return;
 	}
 
@@ -1058,13 +1072,13 @@ void IPrivateRoom::onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)
 
 void IPrivateRoom::onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)
 {
-	if (m_nOwnerUID && isClubRoom() == false) {
+	if (getOpts()->getOwnerUID() && isClubRoom() == false) {
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
 		jsReq["roomID"] = getRoomID();
-		jsReq["targetUID"] = m_nOwnerUID;
+		jsReq["targetUID"] = getOpts()->getOwnerUID();
 		jsReq["uid"] = nUserUID;
-		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, m_nOwnerUID, eAsync_PrivateRoomStandUp, jsReq);
+		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_PrivateRoomStandUp, jsReq);
 	}
 
 	if (false == isClubRoom())
@@ -1074,12 +1088,12 @@ void IPrivateRoom::onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)
 
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	Json::Value jsReq;
-	jsReq["clubID"] = m_nClubID;
+	jsReq["clubID"] = getClubID();
 	jsReq["roomID"] = getRoomID();
 	jsReq["uid"] = nUserUID;
-	pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, m_nOwnerUID, eAsync_ClubRoomStandUp, jsReq);
+	pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, getOpts()->getOwnerUID(), eAsync_ClubRoomStandUp, jsReq);
 
-	if ( nUserUID != m_nTempOwnerUID || m_nAutoStartCnt )
+	if ( nUserUID != m_nTempOwnerUID || getOpts()->getAutoStartCnt() )
 	{
 		return;
 	}
@@ -1132,8 +1146,12 @@ bool IPrivateRoom::isOneRoundNormalEnd()
 
 void IPrivateRoom::doProcessWinerPayRoomCard()
 {
-	if ( false == isWinerPay() || false == isOneRoundNormalEnd() || 0 == getDiamondNeed(m_nRoundLevel, getPayType()) )
+	if ( false == isWinerPay() || false == isOneRoundNormalEnd() || 0 == getDiamondNeed() )
 	{
+		return;
+	}
+
+	if (isClubRoom() && getOpts()->getVipLevel()) {
 		return;
 	}
 
@@ -1168,7 +1186,7 @@ void IPrivateRoom::doProcessWinerPayRoomCard()
 		return;
 	}
 
-	auto nDiamond = getDiamondNeed(m_nRoundLevel, getPayType());
+	auto nDiamond = getDiamondNeed();
 	uint32_t nDiamondPerBigWiner = ( nDiamond + ( vBigWinerUID.size() - 1 )) / vBigWinerUID.size();
 
 	// do comsume diamond 
@@ -1179,6 +1197,9 @@ void IPrivateRoom::doProcessWinerPayRoomCard()
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	for (auto& ref : vBigWinerUID)
 	{
+		if (getOpts()->getVipLevel() && getOpts()->getOwnerUID() == ref) {
+			continue;
+		}
 		js["playerUID"] = ref;
 		pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, ref, eAsync_Consume_Diamond, js);
 	}
@@ -1187,4 +1208,39 @@ void IPrivateRoom::doProcessWinerPayRoomCard()
 
 bool IPrivateRoom::checkPlayerInThisRoom(uint32_t nSessionID) {
 	return getCoreRoom()->checkPlayerInThisRoom(nSessionID);
+}
+
+ePayRoomCardType IPrivateRoom::getPayType() {
+	if (getOpts()->isAA()) {
+		return ePayType_AA;
+	}
+	else {
+		auto nPayType = getOpts()->getPayType();
+		if (nPayType >= ePayType_Max)
+		{
+			Assert(0, "invalid pay type value");
+			nPayType = ePayType_RoomOwner;
+		}
+		return (ePayRoomCardType)nPayType;
+	}
+}
+
+uint8_t IPrivateRoom::getInitRound() {
+	return getOpts()->getInitRound();
+}
+
+bool IPrivateRoom::isClubRoom() {
+	return getClubID() > 0;
+}
+
+uint32_t IPrivateRoom::getClubID() {
+	return getOpts()->getClubID();
+}
+
+bool IPrivateRoom::isDKRoom() {
+	return getOpts()->isDK();
+}
+
+bool IPrivateRoom::isEnableClubPointRestrict() {
+	return getOpts()->isEnablePointRestrict();
 }

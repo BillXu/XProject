@@ -15,10 +15,12 @@
 #include "Fanxing7Dui.h"
 #include "FanxingDuiDuiHu.h"
 #include "MJReplayFrameType.h"
+#include "SCMJOpts.h"
+#include "IGameRoomDelegate.h"
 
-bool SCMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+bool SCMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,ptrGameOpts);
 	m_cFanxingChecker.init(isEnable19(), isEnableMenQing(), isEnableZZ(), isEnableTDHu(), isEnableTDHu());
 	// add room state ;
 	IGameRoomState* p[] = { new CMJRoomStateWaitReady(), new MJRoomStateWaitPlayerChu(),new SCMJRoomStateWaitPlayerAct(),
@@ -833,46 +835,48 @@ void SCMJRoom::onShowPlayerMiss() {
 }
 
 bool SCMJRoom::isEnableBloodFlow() {
-	return m_jsOpts["enableBloodFlow"].isNull() == false && m_jsOpts["enableBloodFlow"].isUInt() && m_jsOpts["enableBloodFlow"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isEnableBloodFlow();
 }
 
 bool SCMJRoom::isZiMoAddFan() {
-	return m_jsOpts["enableZMAF"].isNull() == false && m_jsOpts["enableZMAF"].isUInt() && m_jsOpts["enableZMAF"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isZiMoAddFan();
 }
 
 bool SCMJRoom::isDianGangZiMo() {
-	return m_jsOpts["enableDGZM"].isNull() == false && m_jsOpts["enableDGZM"].isUInt() && m_jsOpts["enableDGZM"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isDianGangZiMo();
 }
 
 bool SCMJRoom::isEnableExchange3Cards() {
-	return m_jsOpts["enable3Cards"].isNull() == false && m_jsOpts["enable3Cards"].isUInt() && m_jsOpts["enable3Cards"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isEnableExchange3Cards();
 }
 
 bool SCMJRoom::isEnable19() {
-	return m_jsOpts["enable19"].isNull() == false && m_jsOpts["enable19"].isUInt() && m_jsOpts["enable19"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isEnable19();
 }
 
 bool SCMJRoom::isEnableMenQing() {
-	return m_jsOpts["enableMQZZ"].isNull() == false && m_jsOpts["enableMQZZ"].isUInt() && m_jsOpts["enableMQZZ"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isEnableMenQing();
 }
 
 bool SCMJRoom::isEnableZZ() {
-	return m_jsOpts["enableMQZZ"].isNull() == false && m_jsOpts["enableMQZZ"].isUInt() && m_jsOpts["enableMQZZ"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isEnableZZ();
 }
 
 bool SCMJRoom::isEnableTDHu() {
-	return m_jsOpts["enableTDHu"].isNull() == false && m_jsOpts["enableTDHu"].isUInt() && m_jsOpts["enableTDHu"].asUInt() == 1;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->isEnableTDHu();
 }
 
 uint8_t SCMJRoom::getFanLimit() {
-	uint8_t nFanLimit = 5;
-	if (m_jsOpts["fanLimit"].isNull() == false && m_jsOpts["fanLimit"].isUInt()) {
-		nFanLimit = m_jsOpts["fanLimit"].asUInt();
-		if (nFanLimit < 1 || nFanLimit > 10) {
-			nFanLimit = 5;
-		}
-	}
-	return nFanLimit;
+	auto pSCMJOpts = std::dynamic_pointer_cast<SCMJOpts>(getDelegate()->getOpts());
+	return pSCMJOpts->getFanLimit();
 }
 
 void SCMJRoom::addSettle(stSettle& tSettle) {

@@ -19,7 +19,7 @@ bool DDMJPlayerCard::canEatCard(uint8_t nCard, uint8_t nWithA, uint8_t nWithB) {
 }
 
 bool DDMJPlayerCard::canPengWithCard(uint8_t nCard) {
-	VEC_CARD vHoldCards;
+	/*VEC_CARD vHoldCards;
 	getHoldCard(vHoldCards);
 	if (vHoldCards.size() < 5) {
 		VEC_CARD vTemp;
@@ -27,12 +27,12 @@ bool DDMJPlayerCard::canPengWithCard(uint8_t nCard) {
 		if (vTemp.size() > 0) {
 			return false;
 		}
-	}
+	}*/
 	return MJPlayerCard::canPengWithCard(nCard);
 }
 
 bool DDMJPlayerCard::canMingGangWithCard(uint8_t nCard) {
-	VEC_CARD vHoldCards;
+	/*VEC_CARD vHoldCards;
 	getHoldCard(vHoldCards);
 	if (vHoldCards.size() < 5) {
 		VEC_CARD vTemp;
@@ -40,12 +40,12 @@ bool DDMJPlayerCard::canMingGangWithCard(uint8_t nCard) {
 		if (vTemp.size() > 0) {
 			return false;
 		}
-	}
+	}*/
 	return MJPlayerCard::canMingGangWithCard(nCard);
 }
 
 bool DDMJPlayerCard::canAnGangWithCard(uint8_t nCard) {
-	VEC_CARD vHoldCards;
+	/*VEC_CARD vHoldCards;
 	getHoldCard(vHoldCards);
 	if (vHoldCards.size() < 6) {
 		VEC_CARD vTemp;
@@ -53,7 +53,7 @@ bool DDMJPlayerCard::canAnGangWithCard(uint8_t nCard) {
 		if (vTemp.size() > 0) {
 			return false;
 		}
-	}
+	}*/
 	return MJPlayerCard::canAnGangWithCard(nCard);
 }
 
@@ -62,7 +62,7 @@ void DDMJPlayerCard::onVisitPlayerCardInfo(Json::Value& js, bool isSelf) {
 }
 
 bool DDMJPlayerCard::getHoldCardThatCanAnGang(VEC_CARD& vGangCards) {
-	VEC_CARD vHoldCards;
+	/*VEC_CARD vHoldCards;
 	getHoldCard(vHoldCards);
 	if (vHoldCards.size() < 6) {
 		VEC_CARD vTemp;
@@ -70,7 +70,7 @@ bool DDMJPlayerCard::getHoldCardThatCanAnGang(VEC_CARD& vGangCards) {
 		if (vTemp.size() > 0) {
 			return false;
 		}
-	}
+	}*/
 
 	for (auto& vCard : m_vCards)
 	{

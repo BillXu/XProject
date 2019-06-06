@@ -34,7 +34,7 @@ public:
 	};
 
 public:
-	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
+	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)override;
 	IGamePlayer* createGamePlayer()override;
 	uint8_t getRoomType()override;
 	IPoker* getPoker()override;
@@ -69,9 +69,8 @@ public:
 
 	uint8_t getBankerIdx() { return m_nBankerIdx; }
 
-	uint8_t getBaseScore();
+	//СЎПо
 	uint8_t getFanLimit();
-	bool isCircle();
 
 protected:
 	void doProduceNewBanker();

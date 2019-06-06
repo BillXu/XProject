@@ -10,9 +10,11 @@
 #include "BJRoomStateStartGame.h"
 #include "BJRoomStateWaitPlayerReady.h"
 #include "BJPlayerRecorder.h"
-bool BJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "BJOpts.h"
+#include "IGameRoomDelegate.h"
+bool BJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	GameRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	GameRoom::init(pRoomMgr,nSeialNum,nRoomID,ptrGameOpts);
 
 	IGameRoomState* pState = new BJRoomStateWaitReady();
 	addRoomState(pState);
@@ -406,4 +408,29 @@ bool BJRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPor
 		return true;
 	}
 	return false;
+}
+
+uint8_t BJRoom::getRoomRate() {
+	auto pBJOpts = std::dynamic_pointer_cast<BJOpts>(getDelegate()->getOpts());
+	return pBJOpts->getRate();
+}
+
+bool BJRoom::isEnableSanQing() {
+	auto pBJOpts = std::dynamic_pointer_cast<BJOpts>(getDelegate()->getOpts());
+	return pBJOpts->isEnableSanQing();
+}
+
+bool BJRoom::isEnableShunQingDaTou() {
+	auto pBJOpts = std::dynamic_pointer_cast<BJOpts>(getDelegate()->getOpts());
+	return pBJOpts->isEnableShunQingDaTou();
+}
+
+bool BJRoom::isTianJiSaiMa() {
+	auto pBJOpts = std::dynamic_pointer_cast<BJOpts>(getDelegate()->getOpts());
+	return pBJOpts->isTianJiSaiMa();
+}
+
+bool BJRoom::isEnableGiveUp() {
+	auto pBJOpts = std::dynamic_pointer_cast<BJOpts>(getDelegate()->getOpts());
+	return pBJOpts->isEnableGiveUp();
 }

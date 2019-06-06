@@ -36,6 +36,8 @@ public:
 	virtual bool onBuGang(uint8_t nCard, uint8_t nGangGetCard ) = 0;
 	virtual bool onEat(uint8_t nCard, uint8_t nWithA, uint8_t withB ) = 0;
 	virtual bool onChuCard(uint8_t nChuCard) = 0;
+	virtual bool onBuHua(uint8_t nHuaCard, uint8_t nGetCard) = 0;
+	virtual uint8_t getHuaCard() = 0;
 
 	virtual bool getHoldCard(VEC_CARD& vHoldCard ) = 0 ;
 	virtual bool getChuedCard(VEC_CARD& vChuedCard ) = 0 ;
@@ -43,6 +45,7 @@ public:
 	virtual bool getPengedCard(VEC_CARD& vPengedCard ) = 0 ;
 	virtual bool getEatedCard(VEC_CARD& vEatedCard ) = 0 ;
 	virtual bool getAnGangedCard(VEC_CARD& vAnGanged) = 0;
+	virtual bool getBuHuaCard(VEC_CARD& vHuaCard) = 0;
 	virtual uint32_t getNewestFetchedCard() = 0 ;
 
 	virtual void addLouPengedCard(uint8_t nLouPengedCard) = 0;

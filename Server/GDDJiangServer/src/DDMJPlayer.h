@@ -13,8 +13,10 @@ public:
 	uint32_t addGuangSingleOffset(int32_t nOffset, uint32_t nMaxOffset = 0);
 	bool canBackGain(uint32_t nMaxOffset = 0);
 	void setBestCards(uint16_t nFan);
+	void setBestChips(uint32_t nBestChips);
 	Json::Value getBestCards() { return m_jsBestCards; }
 	uint16_t getBestFan() { return m_nBestFan; }
+	uint32_t getBestChips() { return m_nBestChips; }
 	void addExtraTime(float fTime);
 	float getExtraTime() { return m_nExtraTime; }
 protected:
@@ -22,5 +24,6 @@ protected:
 
 	Json::Value m_jsBestCards;
 	uint16_t m_nBestFan;
+	uint32_t m_nBestChips;
 	float m_nExtraTime;
 };

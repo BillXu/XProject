@@ -12,9 +12,10 @@
 #include "NCMJRoomStateAfterChiOrPeng.h"
 #include "MJReplayFrameType.h"
 #include "IGameRoomDelegate.h"
-bool NCMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "NCMJOpts.h"
+bool NCMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,ptrGameOpts);
 	clearOneCircleEnd();
 	// add room state ;
 	IGameRoomState* p[] = { new MJRoomStateAutoStartWaitReady(), new MJRoomStateWaitPlayerChu(),new NCMJRoomStateWaitPlayerAct(),
@@ -634,19 +635,8 @@ bool NCMJRoom::canGang() {
 }
 
 uint8_t NCMJRoom::getFanLimit() {
-	uint8_t nFanLimit = 0;
-	if (m_jsOpts["fanLimit"].isNull() == false && m_jsOpts["fanLimit"].isUInt()) {
-		nFanLimit = m_jsOpts["fanLimit"].asUInt();
-	}
-	return nFanLimit;
-}
-
-uint8_t NCMJRoom::getBaseScore() {
-	return m_jsOpts["baseScore"].isUInt() ? m_jsOpts["baseScore"].asUInt() : 1;
-}
-
-bool NCMJRoom::isCircle() {
-	return m_jsOpts["circle"].asBool();
+	auto pNCMJOpts = std::dynamic_pointer_cast<NCMJOpts>(getDelegate()->getOpts());
+	return pNCMJOpts->getFanLimit();
 }
 
 void NCMJRoom::addSettle(stSettle& tSettle) {

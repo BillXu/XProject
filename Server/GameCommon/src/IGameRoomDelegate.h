@@ -2,6 +2,7 @@
 #include "NativeTypes.h"
 class IGameRoom;
 class IGamePlayer;
+class IGameOpts;
 class IGameRoomDelegate
 {
 public:
@@ -20,4 +21,5 @@ public:
 	virtual uint32_t getCurRoundIdx() = 0;
 	virtual uint32_t getSitDownDiamondConsume() = 0;
 	virtual void packStartGameMsg(Json::Value& jsMsg) = 0;
+	virtual std::shared_ptr<IGameOpts> getOpts() = 0;
 };

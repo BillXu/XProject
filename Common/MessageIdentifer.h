@@ -23,6 +23,7 @@ enum eMsgPort
 	ID_MSG_PORT_AHMJ,
 	ID_MSG_PORT_NCMJ,
 	ID_MSG_PORT_DDMJ,
+	ID_MSG_PORT_SZMJ,
 	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_MAX,
 };
@@ -259,7 +260,7 @@ enum eMsgType
 	MSG_ROOM_NIUNIU_GAME_END, 
 	// svr: { bankerIdx : 2 , result : [ { uid : 23 , offset : 23, final : -23 }, .... ] }
 	MSG_ROOM_GAME_OVER,
-	// svr : { dismissID : 23 , result: [ { uid : 23 , final : -23 }, .... ]  }
+	// svr : { dismissID : 23 , result: [ { uid : 23 , final : -23 , anGangCnt : 23 , cycloneCnt : 23 , dianPaoCnt : 23 , huCnt : 23 , mingGangCnt : 23 , ZMCnt : 23 , bestCards : 23 , bestChips : 23 , extraTime : 60.2 }, .... ]  }
 	// dismissID is null or 0 , means normal dismiss ;
 	// dismissID is 1 , means system dismiss room ;
 	// dismissID biger than 1 , means player dismiss room ;
@@ -689,6 +690,8 @@ enum eMsgType
 	MSG_ROOM_SICHUAN_MAJIANG_BEGIN = 2000, //四川麻将命令号开始标记
 
 	MSG_ROOM_SCMJ_GAME_END, //四川麻将游戏结束
+	// realTimeCal : { { actType : 1, detial : { {idx : 0, offset : 1} , {idx : 1, offset : -1} ... }, (msg : { ...as hu message }) } , {} ... }
+	// players : { { idx : 0, offset : 10, chips : 10, holdCard : { 12, 23 ,... } }, {}... }
 
 	MSG_ROOM_SCMJ_PLAYER_HU, //四川麻将胡
 
@@ -706,6 +709,9 @@ enum eMsgType
 	MSG_ROOM_MQMJ_GAME_START, //莫旗麻将游戏开始消息
 
 	MSG_ROOM_MQMJ_PLAYER_HU, //莫旗麻将胡
+	//{ isZiMo : 0/1, huCard : 23, detail : {...} }
+	//detail胡 : { dianPaoIdx : 1, huPlayers : { { idx : 0, vhuTypes : { 1,2... } }, { }... }  }
+	//detail自摸 : { huIdx : 0, vhuTypes : { 1,2,... } }
 
 	MSG_ROOM_MQMJ_WAIT_ACT_AFTER_CP, //莫旗麻将吃碰后等待玩家操作
 
@@ -722,6 +728,7 @@ enum eMsgType
 	MSG_ROOM_FXMJ_REAL_TIME_CELL, //阜新麻将实时结算
 
 	MSG_ROOM_PLAYER_EXCHANGE_SEAT, //麻将玩家重新分配位置
+	//{detail : { {uid : 123, idx : 0}, {}, ...} }
 
 	MSG_ROOM_PLAYER_WAIT_IDX, //麻将发送等待玩家索引
 

@@ -48,6 +48,7 @@ public:
 	bool onBuGang(uint8_t nCard, uint8_t nGangGetCard ) final;
 	bool onEat(uint8_t nCard, uint8_t nWithA, uint8_t withB) final;
 	bool onChuCard(uint8_t nChuCard)override;
+	bool onBuHua(uint8_t nHuaCard, uint8_t nGetCard)override;
 
 	bool getHoldCard(VEC_CARD& vHoldCard) final;
 	bool getChuedCard(VEC_CARD& vChuedCard) final;
@@ -57,6 +58,8 @@ public:
 	bool getBuGangCard(VEC_CARD& vGangCard);
 	bool getPengedCard(VEC_CARD& vPengedCard) final;
 	bool getEatedCard(VEC_CARD& vEatedCard) final;
+	bool getBuHuaCard(VEC_CARD& vHuaCard)final;
+	uint8_t getHuaCard()override;
 
 	uint32_t getNewestFetchedCard()final;
 	void addLouPengedCard( uint8_t nLouPengedCard )final;

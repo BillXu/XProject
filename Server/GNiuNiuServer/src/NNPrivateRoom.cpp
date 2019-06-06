@@ -5,11 +5,12 @@
 #include "IGameRoomManager.h"
 #include "AsyncRequestQuene.h"
 #include "../ServerCommon/ISeverApp.h"
-bool NNPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "IPokerOpts.h"
+bool NNPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
-	m_isForbitEnterRoomWhenStarted = vJsOpts["forbidJoin"].asUInt() == 1;
-	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
+	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
+	//m_isForbitEnterRoomWhenStarted = vJsOpts["forbidJoin"].asUInt() == 1;
+	//m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
 	return true;
 }
 
@@ -28,20 +29,20 @@ GameRoom* NNPrivateRoom::doCreatRealRoom()
 	return new NNRoom();
 }
 
-uint8_t NNPrivateRoom::getInitRound( uint8_t nLevel )
-{
-	uint8_t vJun[] = { 10 , 20 , 30 };
-	if ( nLevel >= sizeof(vJun) / sizeof(uint8_t) )
-	{
-		LOGFMTE( "invalid level type = %u",nLevel );
-		nLevel = 0;
-	}
-	return vJun[nLevel];
-}
+//uint8_t NNPrivateRoom::getInitRound( uint8_t nLevel )
+//{
+//	uint8_t vJun[] = { 10 , 20 , 30 };
+//	if ( nLevel >= sizeof(vJun) / sizeof(uint8_t) )
+//	{
+//		LOGFMTE( "invalid level type = %u",nLevel );
+//		nLevel = 0;
+//	}
+//	return vJun[nLevel];
+//}
 
 bool NNPrivateRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID)
 {
-	if (nMsgType == MSG_PLAYER_SIT_DOWN && m_isForbitEnterRoomWhenStarted && isRoomStarted() )
+	if (nMsgType == MSG_PLAYER_SIT_DOWN && std::dynamic_pointer_cast<IPokerOpts>(getOpts())->isForbitEnterRoomWhenStarted() && isRoomStarted() )
 	{
 		prealMsg["ret"] = 8;
 		sendMsgToPlayer(prealMsg, nMsgType, nSessionID);
@@ -76,11 +77,11 @@ void NNPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )
 
 bool NNPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	if ( m_isOpen == false && m_nAutoOpenCnt > 0)
+	if ( m_isOpen == false && getOpts()->getAutoStartCnt() > 0)
 	{
 		uint8_t nCnt = 0;
 		auto pNRoom = ((NNRoom*)pRoom);
-		for (uint8_t nIdx = 0; nIdx < pNRoom->getSeatCnt(); ++nIdx)
+		for (uint8_t nIdx = 0; nIdx < getOpts()->getSeatCnt(); ++nIdx)
 		{
 			if (pNRoom->getPlayerByIdx(nIdx))
 			{
@@ -88,7 +89,7 @@ bool NNPrivateRoom::canStartGame(IGameRoom* pRoom)
 			}
 		}
 
-		m_isOpen = nCnt >= m_nAutoOpenCnt;
+		m_isOpen = nCnt >= getOpts()->getAutoStartCnt();
 		if (m_isOpen)
 		{
 			m_isOpen = true;

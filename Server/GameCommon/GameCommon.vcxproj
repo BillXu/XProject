@@ -82,20 +82,43 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AHMJOpts.cpp" />
+    <ClCompile Include="src\BJOpts.cpp" />
+    <ClCompile Include="src\CFMJOpts.cpp" />
+    <ClCompile Include="src\DDMJOpts.cpp" />
+    <ClCompile Include="src\DDZOpts.cpp" />
+    <ClCompile Include="src\FXMJOpts.cpp" />
     <ClCompile Include="src\GameRoom.cpp" />
+    <ClCompile Include="src\GoldenOpts.cpp" />
+    <ClCompile Include="src\IGameOpts.cpp" />
     <ClCompile Include="src\IGameRecorder.cpp" />
     <ClCompile Include="src\IGameRoomManager.cpp" />
+    <ClCompile Include="src\IMJOpts.cpp" />
     <ClCompile Include="src\IMJPoker.cpp" />
     <ClCompile Include="src\IMJRoom.cpp" />
     <ClCompile Include="src\IMJPlayer.cpp" />
+    <ClCompile Include="src\LuoMJOpts.cpp" />
     <ClCompile Include="src\MJPlayerCard.cpp" />
     <ClCompile Include="src\IPrivateRoom.cpp" />
+    <ClCompile Include="src\MQMJOpts.cpp" />
+    <ClCompile Include="src\NCMJOpts.cpp" />
+    <ClCompile Include="src\NNOpts.cpp" />
+    <ClCompile Include="src\SCMJOpts.cpp" />
+    <ClCompile Include="src\SZMJOpts.cpp" />
+    <ClCompile Include="src\TestMJOpts.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AHMJOpts.h" />
+    <ClInclude Include="src\BJOpts.h" />
+    <ClInclude Include="src\CFMJOpts.h" />
+    <ClInclude Include="src\DDMJOpts.h" />
+    <ClInclude Include="src\DDZOpts.h" />
     <ClInclude Include="src\Fanxing7Dui.h" />
     <ClInclude Include="src\FanxingChecker.h" />
+    <ClInclude Include="src\FanxingDiHu.h" />
     <ClInclude Include="src\FanxingDuiDuiHu.h" />
     <ClInclude Include="src\FanxingGangKai.h" />
+    <ClInclude Include="src\FanxingHunYiSe.h" />
     <ClInclude Include="src\FanxingMenQing.h" />
     <ClInclude Include="src\FanxingQiangGang.h" />
     <ClInclude Include="src\FanxingQingYiSe.h" />
@@ -103,18 +126,24 @@
     <ClInclude Include="src\FanxingShuang7Dui.h" />
     <ClInclude Include="src\FanxingTianHu.h" />
     <ClInclude Include="src\FanxingHaiDiLaoYue.h" />
+    <ClInclude Include="src\FXMJOpts.h" />
     <ClInclude Include="src\GameRoom.h" />
+    <ClInclude Include="src\GoldenOpts.h" />
     <ClInclude Include="src\IFanxing.h" />
+    <ClInclude Include="src\IGameOpts.h" />
     <ClInclude Include="src\IGamePlayer.h" />
     <ClInclude Include="src\IGameRecorder.h" />
     <ClInclude Include="src\IGameRoom.h" />
     <ClInclude Include="src\IGameRoomDelegate.h" />
     <ClInclude Include="src\IGameRoomManager.h" />
+    <ClInclude Include="src\IMJOpts.h" />
     <ClInclude Include="src\IMJPlayerCard.h" />
     <ClInclude Include="src\IMJPoker.h" />
     <ClInclude Include="src\IPoker.h" />
     <ClInclude Include="src\IMJRoom.h" />
     <ClInclude Include="src\IGameRoomState.h" />
+    <ClInclude Include="src\IPokerOpts.h" />
+    <ClInclude Include="src\LuoMJOpts.h" />
     <ClInclude Include="src\MJDefine.h" />
     <ClInclude Include="src\MJGameReplay.h" />
     <ClInclude Include="src\IMJPlayer.h" />
@@ -123,6 +152,7 @@
     <ClInclude Include="src\MJReplayFrameType.h" />
     <ClInclude Include="src\MJRoomStateAskForPengOrHu.h" />
     <ClInclude Include="src\MJRoomStateAskForRobotGang.h" />
+    <ClInclude Include="src\MJRoomStateAutoBuHua.h" />
     <ClInclude Include="src\MJRoomStateAutoStartWaitReady.h" />
     <ClInclude Include="src\MJRoomStateDoPlayerAct.h" />
     <ClInclude Include="src\MJRoomStateGameEnd.h" />
@@ -130,8 +160,14 @@
     <ClInclude Include="src\MJRoomStateWaitPlayerAct.h" />
     <ClInclude Include="src\MJRoomStateWaitPlayerChu.h" />
     <ClInclude Include="src\MJRoomStateWaitReady.h" />
+    <ClInclude Include="src\MQMJOpts.h" />
+    <ClInclude Include="src\NCMJOpts.h" />
+    <ClInclude Include="src\NNOpts.h" />
     <ClInclude Include="src\PokerDefine.h" />
+    <ClInclude Include="src\SCMJOpts.h" />
     <ClInclude Include="src\stEnterRoomData.h" />
+    <ClInclude Include="src\SZMJOpts.h" />
+    <ClInclude Include="src\TestMJOpts.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

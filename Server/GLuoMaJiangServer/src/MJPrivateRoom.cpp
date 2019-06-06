@@ -2,18 +2,10 @@
 #include "log4z.h"
 #include "LuoMJRoom.h"
 #include "LuoMJPlayer.h"
+#include "IGameOpts.h"
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new LuoMJRoom();
-}
-
-uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
-{
-	if (nLevel > 1) {
-		return 1;
-	}
-	uint8_t vRounds[2] = { 8, 16 };
-	return vRounds[nLevel];
 }
 
 void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
@@ -53,7 +45,7 @@ bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 
 void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
 	IPrivateRoom::onStartGame(pRoom);
-	if (m_nLeftRounds == getInitRound(m_nRoundLevel))
+	if (m_nLeftRounds == getOpts()->getInitRound())
 	{
 		((LuoMJRoom*)pRoom)->doRandomChangeSeat();
 	}

@@ -7,6 +7,7 @@
 #include <ctime>
 #include <algorithm>
 #include "IPrivateRoom.h"
+#include "IGameOpts.h"
 #define MAX_CREATE_ROOM_CNT 10
 IGameRoomManager::~IGameRoomManager()
 {
@@ -176,12 +177,22 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 			break;
 		}
 
-		uint32_t nClubID = jsReqContent["clubID"].asUInt();
-		uint32_t nClubDiamond = jsReqContent["diamond"].asUInt();
-		auto nRoomType = jsReqContent["gameType"].asUInt();
-		auto nLevel = jsReqContent["level"].asUInt();
+		Json::Value jscreateOpts = jsReqContent;
+		auto pGameOpts = IGameOpts::parseOpts(jscreateOpts);
+		if (pGameOpts == nullptr) {
+			jsResult["ret"] = 8;
+			break;
+		}
 
-		uint8_t nPayType = jsReqContent["payType"].asUInt();
+		//uint32_t nClubID = jsReqContent["clubID"].asUInt();
+		uint32_t nClubDiamond = jsReqContent["diamond"].asUInt();
+		//auto nRoomType = jsReqContent["gameType"].asUInt();
+		//auto nLevel = jsReqContent["level"].asUInt();
+
+		uint8_t nPayType = pGameOpts->getPayType();
+		if (pGameOpts->isAA()) {
+			nPayType = ePayType_AA;
+		}
 		if (nPayType > ePayType_Max)
 		{
 			Assert(0, "invalid pay type value ");
@@ -190,7 +201,7 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		uint32_t nDiamondNeed = 0;
 		if ( nPayType == ePayType_RoomOwner && false == isCreateRoomFree() )
 		{
-			nDiamondNeed = getDiamondNeed(nRoomType, nLevel, (ePayRoomCardType)nPayType,jsReqContent["seatCnt"].asUInt());
+			nDiamondNeed = pGameOpts->getDiamondNeed();
 		}
 
 		if ( nClubDiamond < nDiamondNeed)
@@ -200,11 +211,11 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		}
 
 		// do create room ;
-		auto pRoom = createRoom(nRoomType);
+		auto pRoom = createRoom(pGameOpts->getGameType());
 		if ( !pRoom )
 		{
 			jsResult["ret"] = 3;
-			LOGFMTE("game room type is null , club id = %u create room failed", nClubID );
+			LOGFMTE("game room type is null , club id = %u create room failed", pGameOpts->getClubID());
 			break;
 		}
 
@@ -212,14 +223,14 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		if ( nNewRoomID == 0 )
 		{
 			jsResult["ret"] = 4;
-			LOGFMTE("game room type is null , club id = %u create room failed", nClubID);
+			LOGFMTE("game room type is null , club id = %u create room failed", pGameOpts->getClubID());
 			delete pRoom;
 			pRoom = nullptr;
 			break;
 		}
 
-		Json::Value jscreateOpts = jsReqContent;
-		pRoom->init(this, generateSieralID(), nNewRoomID, jsReqContent["seatCnt"].asUInt(), jscreateOpts);
+		//Json::Value jscreateOpts = jsReqContent;
+		pRoom->init(this, generateSieralID(), nNewRoomID, pGameOpts);
 		m_vRooms[pRoom->getRoomID()] = pRoom;
 		
 		jsResult["roomID"] = nNewRoomID;
@@ -641,21 +652,36 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 
 			jsUserData["uid"] = retContent["uid"];
 			jsUserData["vipLevel"] = retContent["vipLevel"];
-			uint32_t nVipLevel = retContent["vipLevel"].asUInt();
+
+			auto pGameOpts = IGameOpts::parseOpts(jsUserData);
+			if (pGameOpts == nullptr) {
+				nRet = 8;
+				break;
+			}
+
+			//uint32_t nVipLevel = retContent["vipLevel"].asUInt();
 			auto nDiamond = retContent["diamond"].asUInt();
 			auto nAlreadyRoomCnt = retContent["alreadyRoomCnt"].asUInt();
-			uint8_t nDaiKai = jsUserData["isDK"].isUInt() ? jsUserData["isDK"].asUInt() : 0;
-			if (nDaiKai) {
+			//uint8_t nDaiKai = jsUserData["isDK"].isUInt() ? jsUserData["isDK"].asUInt() : 0;
+			if (pGameOpts->isDK()) {
 				if (nAlreadyRoomCnt > 20) {
 					nRet = 7;
 					break;
 				}
 			}
 
-			auto nRoomType = jsUserData["gameType"].asUInt();
-			auto nLevel = jsUserData["level"].asUInt();
-			uint8_t nPayType = ePayType_RoomOwner;
-			if (jsUserData["isAA"].isNull() == false)
+			//auto nRoomType = jsUserData["gameType"].asUInt();
+			//auto nLevel = jsUserData["level"].asUInt();
+			uint8_t nPayType = pGameOpts->getPayType();
+			if (pGameOpts->isAA()) {
+				nPayType = ePayType_AA;
+			}
+			if (nPayType > ePayType_Max)
+			{
+				Assert(0, "invalid pay type value ");
+				nPayType = ePayType_RoomOwner;
+			}
+			/*if (jsUserData["isAA"].isNull() == false)
 			{
 				if (jsUserData["isAA"].asUInt() == 1)
 				{
@@ -678,7 +704,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 					}
 				}
 
-			}
+			}*/
 			auto isRoomOwnerPay = (nPayType == ePayType_RoomOwner);
 #ifndef _DEBUG
 			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
@@ -687,12 +713,17 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 				break;
 			}
 #endif // _DEBUG
-
-			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel, (ePayRoomCardType)nPayType,jsUserData["seatCnt"].asUInt() );
-			
-			if (nVipLevel) {
+			auto nDiamondNeed = pGameOpts->getDiamondNeed();
+			if (isCreateRoomFree() || pGameOpts->getVipLevel())
+			{
 				nDiamondNeed = 0;
 			}
+
+			//auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel, (ePayRoomCardType)nPayType,jsUserData["seatCnt"].asUInt() );
+			
+			/*if (nVipLevel) {
+				nDiamondNeed = 0;
+			}*/
 
 			if ( nDiamond < nDiamondNeed )
 			{
@@ -701,7 +732,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			}
 
 			// do create room ;
-			auto pRoom = createRoom(nRoomType);
+			auto pRoom = createRoom(pGameOpts->getGameType());
 			if (!pRoom)
 			{
 				nRet = 4;
@@ -714,10 +745,12 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			{
 				nRet = 6;
 				LOGFMTE("game room type is null , uid = %u create room failed", nUserID);
+				delete pRoom;
+				pRoom = nullptr;
 				break;
 			}
 
-			pRoom->init(this, generateSieralID(), nNewRoomID, jsUserData["seatCnt"].asUInt(), jsUserData);
+			pRoom->init(this, generateSieralID(), nNewRoomID, pGameOpts);
 			m_vRooms[pRoom->getRoomID()] = pRoom;
 			nRoomID = pRoom->getRoomID();
 			// inform do created room ;
@@ -725,7 +758,7 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			jsInformCreatRoom["targetUID"] = nUserID;
 			jsInformCreatRoom["roomID"] = nRoomID;
 			jsInformCreatRoom["port"] = pAsync->getSvrApp()->getLocalSvrMsgPortType();
-			jsInformCreatRoom["isDK"] = nDaiKai;
+			jsInformCreatRoom["isDK"] = pGameOpts->isDK() ? 1 : 0;
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, nUserID, eAsync_Inform_CreatedRoom, jsInformCreatRoom );
 			 
 			// consume diamond 

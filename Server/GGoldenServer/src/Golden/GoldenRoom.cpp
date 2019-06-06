@@ -8,17 +8,20 @@
 #include "GoldenRoomStateGameEnd.h"
 #include "GoldenPlayerRecorder.h"
 #include "GoldenDefine.h"
-bool GoldenRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "GoldenOpts.h"
+#include "IGameRoomDelegate.h"
+bool GoldenRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
+	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
 	m_nBankerIdx = -1;
 	m_nLastWinIdx = 0;
 	m_nCurCircle = 0;
 	m_nCurMutiple = 0;
 	m_nGoldPool = 0;
 
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(ptrGameOpts);
 	for (uint8_t i = 0; i < sizeof(m_aCallScore) / sizeof(m_aCallScore[0]); i++) {
-		m_aCallScore[i] = (i + 1) * getBaseScore() * (getMultiple() / 10);
+		m_aCallScore[i] = (i + 1) * pGoldenOpts->getBaseScore() * (pGoldenOpts->getMultiple() / 10);
 	}
 	
 	IGameRoomState* pState = new GoldenRoomStateWaitReady();
@@ -515,17 +518,20 @@ bool GoldenRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSende
 
 bool GoldenRoom::isEnable235()
 {
-	return m_jsOpts["enable235"].isNull() == false && m_jsOpts["enable235"].asUInt() == 1;
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->isEnable235();
 }
 
 bool GoldenRoom::isEnableStraight()
 {
-	return m_jsOpts["enableStraight"].isNull() == false && m_jsOpts["enableStraight"].asUInt() == 1;
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->isEnableStraight();
 }
 
 bool GoldenRoom::isEnableXiQian()
 {
-	return m_jsOpts["enableXiQian"].isNull() == false && m_jsOpts["enableXiQian"].asUInt() == 1;
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->isEnableXiQian();
 }
 
 bool GoldenRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
@@ -963,15 +969,8 @@ uint8_t GoldenRoom::getNextMoveIdx(uint8_t nIdx) {
 }
 
 uint8_t GoldenRoom::getBaseScore() {
-	if (m_jsOpts["baseScore"].isNull()) {
-		return 1;
-	}
-	else if (m_jsOpts["baseScore"].asUInt() > 10) {
-		return 10;
-	}
-	else {
-		return m_jsOpts["baseScore"].asUInt();
-	}
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->getBaseScore();
 }
 
 uint16_t GoldenRoom::getBaseStake() {
@@ -979,42 +978,33 @@ uint16_t GoldenRoom::getBaseStake() {
 }
 
 uint8_t GoldenRoom::getMultiple() {
-	if (m_jsOpts["multiple"].asUInt() < 20) {
-		return 10;
-	}
-	else if (m_jsOpts["multiple"].asUInt() > 100) {
-		return 10;
-	}
-	else {
-		return m_jsOpts["multiple"].asUInt() / 10 * 10;
-	}
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->getMultiple();
 }
 
 uint8_t GoldenRoom::getMustMenCircle() {
-	return m_jsOpts["mustMen"].isNull() ? 0 : m_jsOpts["mustMen"].asUInt();
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->getMustMenCircle();
 }
 
 uint8_t GoldenRoom::getCanPKCircle() {
-	return m_jsOpts["pkCircleLimit"].isNull() ? 0 : m_jsOpts["pkCircleLimit"].asUInt();
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->getCanPKCircle();
 }
 
 uint8_t GoldenRoom::getCircleLimit() {
-	return m_jsOpts["circleLimit"].isNull() ? 0 : m_jsOpts["circleLimit"].asUInt();
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->getCircleLimit();
 }
 
 uint8_t GoldenRoom::getPKTimes() {
-	if (m_jsOpts["pktimes"].isNull() || m_jsOpts["pktimes"].isUInt() == false) {
-		return 1;
-	}
-	uint8_t nTimes = m_jsOpts["pktimes"].asUInt();
-	if (nTimes < 1 || nTimes > 5) {
-		nTimes = 1;
-	}
-	return nTimes;
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->getPKTimes();
 }
 
 uint16_t GoldenRoom::getWaitActTime() {
-	return m_jsOpts["waitActTime"].isUInt() ? m_jsOpts["waitActTime"].asUInt() : 0;
+	auto pGoldenOpts = std::dynamic_pointer_cast<GoldenOpts>(getDelegate()->getOpts());
+	return pGoldenOpts->getWaitActTime();
 }
 
 uint16_t GoldenRoom::getCallCoin() {

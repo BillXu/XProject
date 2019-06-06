@@ -5,17 +5,18 @@
 #include "IGameRoomManager.h"
 #include "AsyncRequestQuene.h"
 #include "../ServerCommon/ISeverApp.h"
-bool GoldenPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "IPokerOpts.h"
+bool GoldenPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
-	m_isForbitEnterRoomWhenStarted = vJsOpts["forbidJoin"].asUInt() == 1;
-	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
+	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
+	/*m_isForbitEnterRoomWhenStarted = vJsOpts["forbidJoin"].asUInt() == 1;
+	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();*/
 	return true;
 }
 
 uint8_t GoldenPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-	if (m_isForbitEnterRoomWhenStarted && isRoomStarted() )
+	if (std::dynamic_pointer_cast<IPokerOpts>(getOpts())->isForbitEnterRoomWhenStarted() && isRoomStarted() )
 	{
 		return 7;
 	}
@@ -28,16 +29,16 @@ GameRoom* GoldenPrivateRoom::doCreatRealRoom()
 	return new GoldenRoom();
 }
 
-uint8_t GoldenPrivateRoom::getInitRound( uint8_t nLevel )
-{
-	uint8_t vJun[] = { 10 , 20 , 30 };
-	if ( nLevel >= sizeof(vJun) / sizeof(uint8_t) )
-	{
-		LOGFMTE( "invalid level type = %u",nLevel );
-		nLevel = 0;
-	}
-	return vJun[nLevel];
-}
+//uint8_t GoldenPrivateRoom::getInitRound( uint8_t nLevel )
+//{
+//	uint8_t vJun[] = { 10 , 20 , 30 };
+//	if ( nLevel >= sizeof(vJun) / sizeof(uint8_t) )
+//	{
+//		LOGFMTE( "invalid level type = %u",nLevel );
+//		nLevel = 0;
+//	}
+//	return vJun[nLevel];
+//}
 
 void GoldenPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )
 {
@@ -65,11 +66,11 @@ void GoldenPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )
 
 bool GoldenPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	if ( m_isOpen == false && m_nAutoOpenCnt > 0)
+	if ( m_isOpen == false && getOpts()->getAutoStartCnt() > 0)
 	{
 		uint8_t nCnt = 0;
 		auto pGoldenRoom = ((GoldenRoom*)pRoom);
-		for (uint8_t nIdx = 0; nIdx < pGoldenRoom->getSeatCnt(); ++nIdx)
+		for (uint8_t nIdx = 0; nIdx < getOpts()->getSeatCnt(); ++nIdx)
 		{
 			if (pGoldenRoom->getPlayerByIdx(nIdx))
 			{
@@ -77,7 +78,7 @@ bool GoldenPrivateRoom::canStartGame(IGameRoom* pRoom)
 			}
 		}
 
-		m_isOpen = nCnt >= m_nAutoOpenCnt;
+		m_isOpen = nCnt >= getOpts()->getAutoStartCnt();
 		if (m_isOpen)
 		{
 			m_isOpen = true;

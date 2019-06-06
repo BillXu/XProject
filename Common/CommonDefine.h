@@ -100,6 +100,7 @@ enum eGameType
 	eGame_AHMJ,
 	eGame_NCMJ,
 	eGame_DDMJ,
+	eGame_SZMJ,
 	eGame_Max,
 };
 
@@ -132,6 +133,7 @@ enum eRoomState
 	eRoomState_WaitPlayerChu, // 等待玩家出牌 { idx : 2 }
 	eRoomState_AfterChiOrPeng, //吃碰后等待玩家操作
 	eRoomState_AfterGang, //杠后等待玩家操作（摸牌前）
+	eRoomState_AutoBuHua, //游戏开始时自动补花
 	eRoomState_MJ_Common_Max = 80, 
 
 	// bj specail 

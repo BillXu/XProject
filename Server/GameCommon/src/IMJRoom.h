@@ -8,7 +8,7 @@ class IMJRoom
 	:public GameRoom
 {
 public:
-	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
+	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 public:
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSessionID) override;
@@ -48,8 +48,17 @@ public:
 	void sendRoomInfo(uint32_t nSessionID)override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	virtual bool canGang();
+	virtual bool canBuHua();
+	virtual bool isDoAutoBuHua() { return true; }
+	virtual bool doPlayerBuHua(uint8_t nIdx = -1);
+	virtual bool onPlayerBuHua(uint8_t nIdx);
+
+	virtual void packStartGameReplyInfo(Json::Value& jsFrameArg);
+	uint8_t getBaseScore();
+	bool isCircle();
 
 protected:
 	uint8_t m_nBankerIdx;
 	FanxingChecker* m_pFanxingChecker;
+	//bool m_bDoAutoBuHua = true;
 };

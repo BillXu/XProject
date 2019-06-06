@@ -2,23 +2,24 @@
 #include "log4z.h"
 #include "MQMJRoom.h"
 #include "MQMJPlayer.h"
+#include "IGameOpts.h"
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new MQMJRoom();
 }
 
-uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
-{
-#ifdef _DEBUG
-	return 2;
-#endif // _DEBUG
-
-	if (nLevel > 1) {
-		return 1;
-	}
-	uint8_t vRounds[2] = { 8, 16 };
-	return vRounds[nLevel];
-}
+//uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
+//{
+//#ifdef _DEBUG
+//	return 2;
+//#endif // _DEBUG
+//
+//	if (nLevel > 1) {
+//		return 1;
+//	}
+//	uint8_t vRounds[2] = { 8, 16 };
+//	return vRounds[nLevel];
+//}
 
 void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 {
@@ -57,7 +58,7 @@ bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 
 void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
 	IPrivateRoom::onStartGame(pRoom);
-	if (m_nLeftRounds == getInitRound(m_nRoundLevel))
+	if (m_nLeftRounds == getOpts()->getInitRound())
 	{
 		((MQMJRoom*)pRoom)->doRandomChangeSeat();
 	}

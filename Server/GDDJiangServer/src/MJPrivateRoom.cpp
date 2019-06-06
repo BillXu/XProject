@@ -2,22 +2,10 @@
 #include "log4z.h"
 #include "DDMJRoom.h"
 #include "DDMJPlayer.h"
+#include "DDMJOpts.h"
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new DDMJRoom();
-}
-
-uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
-{
-#ifdef _DEBUG
-	return 2;
-#endif // _DEBUG
-
-	if (nLevel > 1) {
-		return 1;
-	}
-	uint8_t vRounds[2] = { 8, 16 };
-	return vRounds[nLevel];
 }
 
 void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
@@ -43,6 +31,7 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		jsPlayer["mingGangCnt"] = pp->getMingGangCnt();
 		jsPlayer["ZMCnt"] = pp->getZiMoCnt();
 		jsPlayer["bestCards"] = pp->getBestCards();
+		jsPlayer["bestChips"] = pp->getBestChips();
 		jsPlayer["extraTime"] = pp->getExtraTime();
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
@@ -57,9 +46,12 @@ bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 
 void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
 	IPrivateRoom::onStartGame(pRoom);
-	if (m_nLeftRounds == getInitRound(m_nRoundLevel))
+	if (m_nLeftRounds == getOpts()->getInitRound())
 	{
-		((DDMJRoom*)pRoom)->doRandomChangeSeat();
+		auto pGameOpts = std::dynamic_pointer_cast<DDMJOpts>(getOpts());
+		if (pGameOpts->isRandomChangeSeat()) {
+			((DDMJRoom*)pRoom)->doRandomChangeSeat();
+		}
 	}
 }
 

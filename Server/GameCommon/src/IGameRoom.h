@@ -4,6 +4,7 @@
 #include "MessageIdentifer.h"
 #include <memory>
 #include "ServerCommon.h"
+class IGameOpts;
 class IGameRoomManager;
 struct stMsg;
 struct stEnterRoomData;
@@ -12,7 +13,7 @@ class IGameRoom
 {
 public:
 	virtual ~IGameRoom(){}
-	virtual bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts ) = 0;
+	virtual bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts ) = 0;
 	virtual uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer ) = 0 ; // 0 can enter , 1 room is full ;
 	virtual bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer) = 0;
 	virtual bool isRoomFull() = 0;

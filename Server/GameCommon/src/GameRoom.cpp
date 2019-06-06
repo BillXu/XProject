@@ -8,24 +8,25 @@
 #include <ctime>
 #include "IGameRoomState.h"
 #include "IPoker.h"
-bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "IGameOpts.h"
+bool GameRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
 	m_nTempID = 0;
 	m_pDelegate = nullptr;
 	m_pRoomMgr = pRoomMgr;
 	m_nSieralNum = nSeialNum;
 	m_nRoomID = nRoomID;
-	m_vPlayers.resize(nSeatCnt);
-	m_jsOpts = vJsOpts;
+	m_vPlayers.resize(ptrGameOpts->getSeatCnt());
+	//m_jsOpts = vJsOpts;
 	m_vStandPlayers.clear();
-	getPoker()->init(vJsOpts);
+	getPoker()->init(ptrGameOpts->getJSOpts());
 
 	m_ptrCurRoundRecorder = nullptr;
 	m_ptrRoomRecorder = createRoomRecorder();
-	m_ptrRoomRecorder->init(nSeialNum, nRoomID, getRoomType(), vJsOpts["uid"].asUInt(),vJsOpts["clubID"].asUInt() ,vJsOpts);
+	m_ptrRoomRecorder->init(nSeialNum, nRoomID, ptrGameOpts->getGameType(), ptrGameOpts->getOwnerUID(), ptrGameOpts->getClubID() , ptrGameOpts->getJSOpts());
 
 	m_ptrGameReplay = std::make_shared<MJReplayGame>();
-	m_ptrGameReplay->init(m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType(), vJsOpts, getRoomID());
+	m_ptrGameReplay->init(m_pRoomMgr->getSvrApp()->getLocalSvrMsgPortType(), ptrGameOpts->getJSOpts(), getRoomID());
 	return true;
 }
 
@@ -784,7 +785,7 @@ bool GameRoom::onPlayerSetNewSessionID(uint32_t nPlayerID, uint32_t nSessinID)
 
 void GameRoom::packRoomInfo(Json::Value& jsRoomInfo)
 {
-	jsRoomInfo["opts"] = m_jsOpts;
+	jsRoomInfo["opts"] = getDelegate()->getOpts()->getJSOpts();
 	jsRoomInfo["roomID"] = getRoomID();
 
 	Json::Value jsStateInfo;

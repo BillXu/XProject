@@ -15,14 +15,17 @@
 #include "NiuNiu\NiuNiuPlayerRecorder.h"
 #include "NiuNiu\NNRoomStateStartGameNoNiuLeaveBanker.h"
 #include "IGameRoomDelegate.h"
-bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "NNOpts.h"
+bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
+	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
+	auto pNNMJOpts = std::dynamic_pointer_cast<NNOpts>(ptrGameOpts);
+
 	m_nLastNiuNiuIdx = -1;
 	m_nBankerIdx = -1;
 	m_nBottomTimes = 1;
-	m_eDecideBankerType = (eDecideBankerType)vJsOpts["bankType"].asUInt();
-	m_eResultType = vJsOpts["fanBei"].asUInt();
+	m_eDecideBankerType = (eDecideBankerType)pNNMJOpts->getBankType();
+	m_eResultType = pNNMJOpts->getFanBei();
 	
 	IGameRoomState* pState = new NNRoomStateWaitReady();
 	addRoomState(pState);
@@ -75,8 +78,9 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 
 IGamePlayer* NNRoom::createGamePlayer()
 {
+	auto pNNMJOpts = std::dynamic_pointer_cast<NNOpts>(getDelegate()->getOpts());
 	auto p = new NNPlayer();
-	p->getPlayerCard()->setOpts(m_jsOpts["wuHua"].asUInt() == 1 , m_jsOpts["zhaDan"].asUInt() == 1, m_jsOpts["wuXiao"].asUInt() == 1, m_jsOpts["shunKan"].asUInt() == 1, m_jsOpts["fengKuang"].asUInt() == 1 );
+	p->getPlayerCard()->setOpts(pNNMJOpts->isEnableWuHua(), pNNMJOpts->isEnableZhaDan(), pNNMJOpts->isEnableWuXiao(), pNNMJOpts->isEnableShunKan(), pNNMJOpts->isEnableFengKuang());
 	return p;
 }
 
@@ -828,7 +832,8 @@ bool NNRoom::onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPor
 
 bool NNRoom::isEnableTuiZhu()
 {
-	return m_jsOpts["tuiZhu"].isNull() == false && m_jsOpts["tuiZhu"].asUInt() >= 1;
+	auto pNNMJOpts = std::dynamic_pointer_cast<NNOpts>(getDelegate()->getOpts());
+	return pNNMJOpts->isEnableTuiZhu();
 }
 
 bool NNRoom::isEnableTuiZhuang()
@@ -838,7 +843,8 @@ bool NNRoom::isEnableTuiZhuang()
 		return true;
 	}
 
-	return m_jsOpts["tuiZhuang"].isNull() == false && m_jsOpts["tuiZhuang"].asUInt() == 1;
+	auto pNNMJOpts = std::dynamic_pointer_cast<NNOpts>(getDelegate()->getOpts());
+	return pNNMJOpts->isEnableTuiZhuang();
 }
 
 void NNRoom::onTimeOutPlayerAutoBet()
@@ -920,12 +926,8 @@ void NNRoom::invokerTuoGuanAction(uint8_t nTargetIdx)
 
 uint8_t NNRoom::getMiniBetTimes()
 {
-	if (m_jsOpts["diFen"].isNull())
-	{
-		LOGFMTE( "opts di fen  is null " );
-		return 1;
-	}
-	return m_jsOpts["diFen"].asUInt();
+	auto pNNMJOpts = std::dynamic_pointer_cast<NNOpts>(getDelegate()->getOpts());
+	return pNNMJOpts->getBaseScore();
 }
 
 bool NNRoom::isFirstRound()

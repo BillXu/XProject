@@ -19,13 +19,13 @@ class DDMJFanxingChecker
 public:
 	void init() {
 		addFanxing(new FanxingDuiDuiHu());
-		addFanxing(new FanxingGangKai());
+		//addFanxing(new FanxingGangKai());
 		addFanxing(new DDMJFanxingJiaHu());
 		addFanxing(new DDMJFanxingBianHu());
 		addFanxing(new FanxingQiangGang());
 		addFanxing(new DDMJFanxingGangHouPao());
-		addFanxing(new DDMJFanxingHaiDiLaoYue());
-		addFanxing(new FanxingMenQing());
+		//addFanxing(new DDMJFanxingHaiDiLaoYue());
+		//addFanxing(new FanxingMenQing());
 	}
 
 	bool checkFanxing(eFanxingType nType, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom) {
@@ -42,11 +42,11 @@ public:
 		for (auto& ref : m_vFanxing)
 		{
 			if (isDDH) {
-				if (ref.first == eFanxing_JiaHu) {
+				/*if (ref.first == eFanxing_JiaHu) {
 					if (pCard->getHoldCardCnt() > 2) {
 						continue;
 					}
-				}
+				}*/
 				if (ref.first == eFanxing_BianHu) {
 					continue;
 				}
@@ -65,12 +65,12 @@ public:
 				else if (ref.first == eFanxing_BianHu) {
 					isBian = true;
 				}
-				else if (ref.first == eFanxing_GangKai) {
+				/*else if (ref.first == eFanxing_GangKai) {
 					auto it_ = std::find(vFanxing.begin(), vFanxing.end(), eFanxing_HaiDiLaoYue);
 					if (it_ != vFanxing.end()) {
 						vFanxing.erase(it_);
 					}
-				}
+				}*/
 				vFanxing.push_back((eFanxingType)ref.first);
 			}
 		}

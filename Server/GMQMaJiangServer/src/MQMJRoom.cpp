@@ -16,10 +16,11 @@
 #include "MJReplayFrameType.h"
 #include "MQMJPoker.h"
 #include "IGameRoomDelegate.h"
+#include "MQMJOpts.h"
 
-bool MQMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+bool MQMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,ptrGameOpts);
 	m_cFanxingChecker.init();
 	m_vGainChip.resize(getSeatCnt());
 	m_nGangCnt = 0;
@@ -971,23 +972,18 @@ uint8_t MQMJRoom::getNextActPlayerIdx(uint8_t nCurActIdx) {
 }
 
 uint8_t MQMJRoom::getFanLimit() {
-	uint8_t nFanLimit = 0;
-	if (m_jsOpts["fanLimit"].isNull() == false && m_jsOpts["fanLimit"].isUInt()) {
-		nFanLimit = m_jsOpts["fanLimit"].asUInt();
-	}
-	return nFanLimit;
+	auto pMQMJOpts = std::dynamic_pointer_cast<MQMJOpts>(getDelegate()->getOpts());
+	return pMQMJOpts->getFanLimit();
 }
 
 bool MQMJRoom::isDPOnePay() {
-	return m_jsOpts["dpOnePay"].isUInt() ? m_jsOpts["dpOnePay"].asBool() : false;
-}
-
-uint8_t MQMJRoom::getBaseScore() {
-	return m_jsOpts["baseScore"].isUInt() ? m_jsOpts["baseScore"].asUInt() : 1;
+	auto pMQMJOpts = std::dynamic_pointer_cast<MQMJOpts>(getDelegate()->getOpts());
+	return pMQMJOpts->isDianPaoOnePay();
 }
 
 uint32_t MQMJRoom::getGuang() {
-	return m_jsOpts["guang"].isUInt() ? m_jsOpts["guang"].asUInt() : 0;
+	auto pMQMJOpts = std::dynamic_pointer_cast<MQMJOpts>(getDelegate()->getOpts());
+	return pMQMJOpts->getGuang();
 }
 
 void MQMJRoom::addSettle(stSettle& tSettle) {

@@ -16,9 +16,10 @@
 #include "MJReplayFrameType.h"
 #include "LuoMJPoker.h"
 #include "IGameRoomDelegate.h"
-bool LuoMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "LuoMJOpts.h"
+bool LuoMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID, ptrGameOpts);
 	m_cFanxingChecker.init();
 	m_vGainChip.resize(getSeatCnt());
 	m_nDice = 0;
@@ -940,35 +941,33 @@ uint8_t LuoMJRoom::getNextActPlayerIdx(uint8_t nCurActIdx) {
 }
 
 uint8_t LuoMJRoom::getFanLimit() {
-	uint8_t nFanLimit = 0;
-	if (m_jsOpts["fanLimit"].isNull() == false && m_jsOpts["fanLimit"].isUInt()) {
-		nFanLimit = m_jsOpts["fanLimit"].asUInt();
-	}
-	return nFanLimit;
+	auto pLuoMJOpts = std::dynamic_pointer_cast<LuoMJOpts>(getDelegate()->getOpts());
+	return pLuoMJOpts->getFanLimit();
 }
 
 bool LuoMJRoom::isDPOnePay() {
-	return m_jsOpts["dpOnePay"].isUInt() ? m_jsOpts["dpOnePay"].asBool() : false;
-}
-
-uint8_t LuoMJRoom::getBaseScore() {
-	return m_jsOpts["baseScore"].isUInt() ? m_jsOpts["baseScore"].asUInt() : 1;
+	auto pLuoMJOpts = std::dynamic_pointer_cast<LuoMJOpts>(getDelegate()->getOpts());
+	return pLuoMJOpts->isDianPaoOnePay();
 }
 
 uint32_t LuoMJRoom::getGuang() {
-	return m_jsOpts["guang"].isUInt() ? m_jsOpts["guang"].asUInt() : 0;
+	auto pLuoMJOpts = std::dynamic_pointer_cast<LuoMJOpts>(getDelegate()->getOpts());
+	return pLuoMJOpts->getGuang();
 }
 
 bool LuoMJRoom::isEnableSB1() {
-	return m_jsOpts["sb1"].asBool();
+	auto pLuoMJOpts = std::dynamic_pointer_cast<LuoMJOpts>(getDelegate()->getOpts());
+	return pLuoMJOpts->isEnableSB1();
 }
 
 bool LuoMJRoom::isEnableCaiGang() {
-	return m_jsOpts["caiGang"].asBool();
+	auto pLuoMJOpts = std::dynamic_pointer_cast<LuoMJOpts>(getDelegate()->getOpts());
+	return pLuoMJOpts->isEnableCaiGang();
 }
 
 bool LuoMJRoom::isEnableHunPiao() {
-	return m_jsOpts["hunPiao"].asBool();
+	auto pLuoMJOpts = std::dynamic_pointer_cast<LuoMJOpts>(getDelegate()->getOpts());
+	return pLuoMJOpts->isEnableHunPiao();
 }
 
 void LuoMJRoom::addSettle(stSettle& tSettle) {

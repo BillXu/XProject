@@ -6,7 +6,7 @@ class GoldenRoom
 	:public GameRoom
 {
 public:
-	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
+	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)override;
 	IGamePlayer* createGamePlayer()override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID )override;

@@ -42,7 +42,7 @@ public:
 		}
 	};
 public:
-	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)override;
+	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)override;
 	IGamePlayer* createGamePlayer()override;
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	void visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, uint32_t nVisitorSessionID)override;
@@ -86,7 +86,6 @@ public:
 
 	uint8_t getFanLimit();
 	bool isDPOnePay();
-	uint8_t getBaseScore();
 	uint32_t getGuang();
 
 	void addGain(uint8_t nIdx, stSettleGain stGain);
@@ -114,7 +113,7 @@ protected:
 	std::vector<std::vector<stSettleGain>> m_vGainChip;
 	uint8_t m_nGangCnt;
 	uint8_t m_nDice;
-	uint8_t m_nR7;
-	uint8_t m_nR15;
+	uint8_t m_nR8;
+	uint8_t m_nR16;
 
 };

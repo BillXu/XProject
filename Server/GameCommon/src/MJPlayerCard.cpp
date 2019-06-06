@@ -699,6 +699,17 @@ bool MJPlayerCard::getEatedCard(VEC_CARD& vEatedCard)
 	return false == vEatedCard.empty();
 }
 
+bool MJPlayerCard::getBuHuaCard(VEC_CARD& vHuaCard) {
+	for (auto ref : m_vMingCardInfo)
+	{
+		if (ref.eAct == eMJAct_BuHua)
+		{
+			vHuaCard.push_back(ref.nTargetCard);
+		}
+	}
+	return !vHuaCard.empty();
+}
+
 bool MJPlayerCard::isCardTypeMustKeZi(uint8_t nCardType)
 {
 	return nCardType == eCT_Jian || eCT_Feng == nCardType ;
@@ -1088,4 +1099,38 @@ uint8_t MJPlayerCard::tryToFindMiniQueCnt(VEC_CARD vWaitCheck, bool isMustKeZi, 
 		vNotShun = vThisBestNotShun;
 	}
 	return nQueCnt;
+}
+
+bool MJPlayerCard::onBuHua(uint8_t nHuaCard, uint8_t nGetCard) {
+	if (!isHaveCard(nHuaCard))
+	{
+		LOGFMTE("you don't have this card , how can bu hua ?  = %u", nHuaCard);
+		return false;
+	}
+
+	// remove hold card 
+	removeHoldCard(nHuaCard);
+
+	//addCardToVecAsc(m_vGanged, nCard);
+	VEC_INVOKE_ACT_INFO::value_type tBuHua;
+	tBuHua.nTargetCard = nHuaCard;
+	tBuHua.nInvokerIdx = 0;
+	tBuHua.eAct = eMJAct_BuHua;
+	m_vMingCardInfo.push_back(tBuHua);
+
+	// new get card ;
+	onMoCard(nGetCard);
+
+	//debugCardInfo();
+	return true;
+}
+
+uint8_t MJPlayerCard::getHuaCard() {
+	if (m_vCards[eCT_Jian].size()) {
+		return m_vCards[eCT_Jian].front();
+	}
+	else if (m_vCards[eCT_Hua].size()) {
+		return m_vCards[eCT_Hua].front();
+	}
+	return 0;
 }

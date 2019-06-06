@@ -16,7 +16,7 @@ public:
 	};
 public:
 	~IPrivateRoom();
-	bool init( IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts )override;
+	bool init( IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)override;
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	bool onPlayerEnter(stEnterRoomData* pEnterRoomPlayer)override;
 	bool isRoomFull()final;
@@ -30,9 +30,11 @@ public:
 	void sendMsgToPlayer(Json::Value& prealMsg, uint16_t nMsgType, uint32_t nSessionID)final;
 
 	virtual GameRoom* doCreatRealRoom() = 0;
-	uint8_t getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType );
+	//uint8_t getDiamondNeed( uint8_t nLevel, ePayRoomCardType nPayType );
+	uint8_t getDiamondNeed();
 	uint32_t getSitDownDiamondConsume()override;
-	virtual uint8_t getInitRound(uint8_t nLevel) = 0;
+	//virtual uint8_t getInitRound(uint8_t nLevel) = 0;
+	uint8_t getInitRound();
 
 	void packRoomInfo(Json::Value& jsRoomInfo)override;
 	void packStartGameMsg(Json::Value& jsMsg)override;
@@ -55,9 +57,9 @@ public:
 	virtual void doSendRoomGameOverInfoToClient( bool isDismissed ) = 0;
 	GameRoom* getCoreRoom();
 	uint16_t getPlayerCnt()override;
-	bool isClubRoom() { return m_nClubID > 0; }
-	uint32_t getClubID() { return m_nClubID; }
-	bool isDKRoom() { return m_bDaiKai; }
+	bool isClubRoom();
+	uint32_t getClubID();
+	bool isDKRoom();
 
 	void onPlayerSitDown(IGameRoom* pRoom, IGamePlayer* pPlayer)override;
 	void onPlayerStandedUp(IGameRoom* pRoom, uint32_t nUserUID)override;
@@ -70,31 +72,33 @@ public:
 	virtual bool applyDoDismissCheck();
 
 	bool checkPlayerInThisRoom(uint32_t nSessionID)override;
+
+	std::shared_ptr<IGameOpts> getOpts()override { return m_pGameOpts; }
 protected:
 	bool isRoomStarted();
 	bool isOneRoundNormalEnd();
 	bool onProcessWhiteListSitDown(Json::Value& prealMsg,uint32_t nSessionID );
-	bool isRoomOwnerPay() { return ePayType_RoomOwner == m_nPayType; }
-	bool isAAPay() { return ePayType_AA == m_nPayType;  }
-	bool isWinerPay() { return ePayType_Winer == m_nPayType; }
-	ePayRoomCardType getPayType() { return m_nPayType; }
+	bool isRoomOwnerPay() { return ePayType_RoomOwner == getPayType(); }
+	bool isAAPay() { return ePayType_AA == getPayType();  }
+	bool isWinerPay() { return ePayType_Winer == getPayType(); }
+	ePayRoomCardType getPayType();
 	void doProcessWinerPayRoomCard();
-	bool isEnableClubPointRestrict() { return m_isEnablePointRestrict; }
+	bool isEnableClubPointRestrict();
 protected:
 	IGameRoomManager* m_pRoomMgr;
-	uint32_t m_nOwnerUID;
+	//uint32_t m_nOwnerUID;
 	uint32_t m_nTempOwnerUID;
-	uint32_t m_nAutoStartCnt;
-	uint32_t m_nClubID;
-	bool m_bDaiKai;
-	ePayRoomCardType m_nPayType;
-	bool m_isEnableWhiteList;
-	uint32_t m_nVipLevel;
+	//uint32_t m_nAutoStartCnt;
+	//uint32_t m_nClubID;
+	//bool m_bDaiKai;
+	//ePayRoomCardType m_nPayType;
+	//bool m_isEnableWhiteList;
+	//uint32_t m_nVipLevel;
 
-	bool m_isEnablePointRestrict;
+	//bool m_isEnablePointRestrict;
 	bool m_isOpen; 
 
-	uint8_t m_nRoundLevel; // round level , comsume card and init round deponeded on this level ;
+	//uint8_t m_nRoundLevel; // round level , comsume card and init round deponeded on this level ;
 	uint8_t m_nLeftRounds;
 
 	bool m_isOneRoundNormalEnd;
@@ -107,6 +111,7 @@ protected:
 	uint32_t m_nApplyDismissUID;
 
 	GameRoom* m_pRoom;
+	std::shared_ptr<IGameOpts> m_pGameOpts;
 
 	CTimer m_tAutoDismissTimer;
 

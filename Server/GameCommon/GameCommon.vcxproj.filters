@@ -30,6 +30,15 @@
     <Filter Include="src\PokerBase">
       <UniqueIdentifier>{0f1bc2ec-7f30-4a9c-af0c-8a4967ebadf6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Game\Opts">
+      <UniqueIdentifier>{2c4a7348-4572-4541-a766-ff47cbc32ea6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Game\Opts\MJOpts">
+      <UniqueIdentifier>{385e7481-4422-4347-8eb4-2274dc463646}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Game\Opts\PokerOpts">
+      <UniqueIdentifier>{17eacd6c-7662-461f-8117-f1ff4c87b411}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -58,6 +67,54 @@
     </ClCompile>
     <ClCompile Include="src\IMJPoker.cpp">
       <Filter>src\MJBase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IGameOpts.cpp">
+      <Filter>src\Game\Opts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CFMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DDMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FXMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LuoMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TestMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MQMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NCMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SCMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BJOpts.cpp">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DDZOpts.cpp">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AHMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GoldenOpts.cpp">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NNOpts.cpp">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SZMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +237,66 @@
     </ClInclude>
     <ClInclude Include="src\MJRoomStateAutoStartWaitReady.h">
       <Filter>src\MJBase\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MJRoomStateAutoBuHua.h">
+      <Filter>src\MJBase\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IGameOpts.h">
+      <Filter>src\Game\Opts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FXMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuoMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TestMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MQMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NCMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SCMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BJOpts.h">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IPokerOpts.h">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDZOpts.h">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AHMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GoldenOpts.h">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NNOpts.h">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SZMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingHunYiSe.h">
+      <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FanxingDiHu.h">
+      <Filter>src\MJBase\Fanxing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

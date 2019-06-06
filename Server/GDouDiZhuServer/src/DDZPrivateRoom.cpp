@@ -6,10 +6,11 @@
 #include "IGameRoomManager.h"
 #include "AsyncRequestQuene.h"
 #include "../ServerCommon/ISeverApp.h"
-bool DDZPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "IGameOpts.h"
+bool DDZPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
-	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
+	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
+	//m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
 	return true;
 }
 
@@ -18,16 +19,16 @@ GameRoom* DDZPrivateRoom::doCreatRealRoom()
 	return new DDZRoom();
 }
 
-uint8_t DDZPrivateRoom::getInitRound(uint8_t nLevel)
-{
-	uint8_t vJun[] = { 9 , 18 , 27 , 8 , 16 };
-	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
-	{
-		LOGFMTE("invalid level type = %u", nLevel);
-		nLevel = 0;
-	}
-	return vJun[nLevel];
-}
+//uint8_t DDZPrivateRoom::getInitRound(uint8_t nLevel)
+//{
+//	uint8_t vJun[] = { 9 , 18 , 27 , 8 , 16 };
+//	if (nLevel >= sizeof(vJun) / sizeof(uint8_t))
+//	{
+//		LOGFMTE("invalid level type = %u", nLevel);
+//		nLevel = 0;
+//	}
+//	return vJun[nLevel];
+//}
 
 void DDZPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 {
@@ -56,7 +57,7 @@ void DDZPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 
 bool DDZPrivateRoom::canStartGame(IGameRoom* pRoom)
 {
-	if (m_isOpen == false && m_nAutoOpenCnt > 0)
+	if (m_isOpen == false && getOpts()->getAutoStartCnt() > 0)
 	{
 		uint8_t nCnt = 0;
 		auto pNRoom = ((DDZRoom*)pRoom);
@@ -68,7 +69,7 @@ bool DDZPrivateRoom::canStartGame(IGameRoom* pRoom)
 			}
 		}
 
-		m_isOpen = nCnt >= m_nAutoOpenCnt;
+		m_isOpen = nCnt >= getOpts()->getAutoStartCnt();
 		if (m_isOpen)
 		{
 			m_isOpen = true;

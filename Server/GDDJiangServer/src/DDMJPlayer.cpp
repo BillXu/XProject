@@ -3,6 +3,7 @@ void DDMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
 	IMJPlayer::init(pData, nIdx);
 	m_jsBestCards.clear();
 	m_nBestFan = -1;
+	m_nBestChips = 0;
 	m_nExtraTime = 0;
 }
 
@@ -43,6 +44,12 @@ void DDMJPlayer::setBestCards(uint16_t nFan) {
 	if (uint16_t(-1) == m_nBestFan || m_nBestFan < nFan) {
 		m_nBestFan = nFan;
 		((DDMJPlayerCard*)getPlayerCard())->onVisitPlayerCardBaseInfo(m_jsBestCards);
+	}
+}
+
+void DDMJPlayer::setBestChips(uint32_t nBestChips) {
+	if (m_nBestChips < nBestChips) {
+		m_nBestChips = nBestChips;
 	}
 }
 

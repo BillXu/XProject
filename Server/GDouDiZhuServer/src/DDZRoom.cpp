@@ -12,17 +12,18 @@
 #include "DDZRoomStateDouble.h"
 #include "DDZRoomManager.h"
 #include "IGameRoomDelegate.h"
-bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+#include "DDZOpts.h"
+bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
-	m_nFirstRobotBankerIdx = rand() % getSeatCnt();
+	GameRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
+	m_nFirstRobotBankerIdx = rand() % ptrGameOpts->getSeatCnt();
 	m_vDiPai.clear();
 	m_nBankerIdx = 0;
 	m_nBankerTimes = 0;
 	m_nBombCnt = 0;
 
 	IGameRoomState* pState = nullptr;
-	if (vJsOpts["isChaoZhuang"].isNull() == false && vJsOpts["isChaoZhuang"].asUInt() == 1)
+	if (std::dynamic_pointer_cast<DDZOpts>(ptrGameOpts)->isEnableChaoZhuang())
 	{
 		pState = new JJDDZRoomStateWaitReadyChaoZhuangMode();
 		addRoomState(pState);
@@ -108,12 +109,7 @@ void DDZRoom::visitPlayerInfo(IGamePlayer* pPlayer, Json::Value& jsPlayerInfo, u
 
 uint8_t DDZRoom::getRoomType()
 {
-	if (m_jsOpts["gameType"].isNull())
-	{
-		LOGFMTE("do not have game type key ");
-		return eGame_Max;
-	}
-	return m_jsOpts["gameType"].asUInt();
+	return getDelegate()->getOpts()->getGameType();
 }
 
 void DDZRoom::onWillStartGame()
@@ -297,55 +293,52 @@ void DDZRoom::increaseBombCount()
 
 uint32_t DDZRoom::fengDing()
 {
-	if (m_jsOpts["maxBet"].isNull() == false && m_jsOpts["maxBet"].isUInt() == false )
-	{
-		return 0; // not limit 
-	}
-	return m_jsOpts["maxBet"].asUInt();
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->getFengDing();
 }
 
 DDZ_RotLandlordType DDZRoom::getRLT()
 {
-	if (m_jsOpts["rlt"].isUInt())
-	{
-		uint8_t nRLT = m_jsOpts["rlt"].asUInt();
-		if (nRLT < eFALRLT_Max) {
-			return (DDZ_RotLandlordType)nRLT;
-		}
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	auto nRLT = pDDZOpts->getRLT();
+	if (nRLT < eFALRLT_Max) {
+		return (DDZ_RotLandlordType)nRLT;
 	}
 	return eFALRLT_Call;
 }
 
 bool DDZRoom::isCYDDZ()
 {
-	return eGame_CYDouDiZhu == getRoomType();
+	return eGame_CYDouDiZhu == getDelegate()->getOpts()->getGameType();
 }
 
 bool DDZRoom::isCanDouble()
 {
-	return m_jsOpts["double"].asBool();
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->isEnableDouble();
 }
 
 uint8_t DDZRoom::getBaseScore()
 {
-	if (m_jsOpts["baseScore"].isUInt()) {
-		uint8_t nBaseScore = m_jsOpts["baseScore"].asUInt();
-		if (nBaseScore == 0 || nBaseScore > 100) {
-			nBaseScore = 1;
-		}
-		return nBaseScore;
-	}
-	return 1;
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->getBaseScore();
 }
 
 uint32_t DDZRoom::getFanLimit()
 {
-	return m_jsOpts["fanLimit"].isUInt() ? m_jsOpts["fanLimit"].asUInt() : 0;
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->getFanLimit();
+}
+
+bool DDZRoom::isChaoZhuang() {
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->isEnableChaoZhuang();
 }
 
 bool DDZRoom::isNotShuffle()
 {
-	return m_jsOpts["notShuffle"].asBool();
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->isNotShuffle();
 }
 
 void DDZRoom::addNotShuffleCards(std::vector<uint8_t>& vCards)

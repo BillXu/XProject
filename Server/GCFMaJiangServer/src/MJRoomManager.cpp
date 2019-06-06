@@ -5,29 +5,29 @@ IGameRoom* MJRoomManager::createRoom(uint8_t nGameType)
 	return new MJPrivateRoom();
 }
 
-uint16_t MJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType, uint16_t nSeatCnt)
-{
-	if (isCreateRoomFree())
-	{
-		return 0;
-	}
-#ifdef _DEBUG
-	return 0;
-#endif // _DEBUG
-
-	if (nLevel > 5)
-	{
-		LOGFMTE("invalid room level for game = %u , level = %u", nGameType, nLevel);
-		nLevel = 1;
-	}
-
-	// is aa true ;
-	if (ePayType_AA == payType)
-	{
-		uint16_t vAA[] = { 1 , 2 , 1 , 1 , 2 , 2 };
-		return vAA[nLevel];
-	}
-
-	uint16_t vFangZhu[] = { 4 , 8 , 2 , 4 , 6 , 8 };
-	return vFangZhu[nLevel];
-}
+//uint16_t MJRoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel, ePayRoomCardType payType, uint16_t nSeatCnt)
+//{
+//	if (isCreateRoomFree())
+//	{
+//		return 0;
+//	}
+//#ifdef _DEBUG
+//	return 0;
+//#endif // _DEBUG
+//
+//	if (nLevel > 5)
+//	{
+//		LOGFMTE("invalid room level for game = %u , level = %u", nGameType, nLevel);
+//		nLevel = 1;
+//	}
+//
+//	// is aa true ;
+//	if (ePayType_AA == payType)
+//	{
+//		uint16_t vAA[] = { 1 , 2 , 1 , 1 , 2 , 2 };
+//		return vAA[nLevel];
+//	}
+//
+//	uint16_t vFangZhu[] = { 4 , 8 , 2 , 4 , 6 , 8 };
+//	return vFangZhu[nLevel];
+//}

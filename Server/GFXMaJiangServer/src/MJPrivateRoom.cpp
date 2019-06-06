@@ -2,23 +2,15 @@
 #include "log4z.h"
 #include "FXMJRoom.h"
 #include "FXMJPlayer.h"
-bool MJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts) {
+#include "IMJOpts.h"
+bool MJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts) {
 	m_mPreSitIdxes.clear();
-	return IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
+	return IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, ptrGameOpts);
 }
 
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new FXMJRoom();
-}
-
-uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
-{
-	if (nLevel > 3) {
-		return 6;
-	}
-	uint8_t vRounds[8] = { 1, 2, 3, 4, 6, 12, 18, 24 };
-	return vRounds[nLevel];
 }
 
 void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
@@ -71,8 +63,8 @@ bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 }
 
 bool MJPrivateRoom::isCircle() {
-	auto pRoom = (FXMJRoom*)getCoreRoom();
-	return pRoom->isCircle();
+	auto pIMJOpts = std::dynamic_pointer_cast<IMJOpts>(getOpts());
+	return pIMJOpts->isCircle();
 }
 
 void MJPrivateRoom::decreaseLeftRound() {

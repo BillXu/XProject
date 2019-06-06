@@ -9,9 +9,9 @@
 #include "MJRoomStateDoPlayerAct.h"
 #include "MJRoomStateAskForRobotGang.h"
 #include "MJRoomStateAskForPengOrHu.h"
-bool TestMJ::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+bool TestMJ::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,ptrGameOpts);
 	// add room state ;
 	IGameRoomState* p[] = { new CMJRoomStateWaitReady(), new MJRoomStateWaitPlayerChu(),new MJRoomStateWaitPlayerAct(),new MJRoomStateStartGame(),new MJRoomStateGameEnd(),new MJRoomStateDoPlayerAct(),new MJRoomStateAskForRobotGang(),new MJRoomStateAskForPengOrHu()};
 	for ( auto& pS : p )

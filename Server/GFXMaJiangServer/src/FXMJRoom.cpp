@@ -15,10 +15,12 @@
 #include "FanxingDuiDuiHu.h"
 #include "MJReplayFrameType.h"
 #include "FXMJPoker.h"
+#include "FXMJOpts.h"
+#include "IGameRoomDelegate.h"
 
-bool FXMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts)
+bool FXMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
-	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,nSeatCnt,vJsOpts);
+	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID, ptrGameOpts);
 	m_mSitedIdxes.clear();
 	m_cFanxingChecker.init();
 	m_vGainChip.resize(getSeatCnt());
@@ -1516,55 +1518,53 @@ uint8_t FXMJRoom::getNextActPlayerIdx(uint8_t nCurActIdx) {
 }
 
 uint8_t FXMJRoom::getFanLimit() {
-	uint8_t nFanLimit = 0;
-	if (m_jsOpts["fanLimit"].isNull() == false && m_jsOpts["fanLimit"].isUInt()) {
-		nFanLimit = m_jsOpts["fanLimit"].asUInt();
-	}
-	return nFanLimit;
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->getFanLimit();
 }
 
 bool FXMJRoom::isDPOnePay() {
-	return m_jsOpts["dpOnePay"].isUInt() ? m_jsOpts["dpOnePay"].asBool() : false;
-}
-
-uint8_t FXMJRoom::getBaseScore() {
-	return m_jsOpts["baseScore"].isUInt() ? m_jsOpts["baseScore"].asUInt() : 1;
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isDianPaoOnePay();
 }
 
 uint32_t FXMJRoom::getGuang() {
-	return m_jsOpts["guang"].isUInt() ? m_jsOpts["guang"].asUInt() : 0;
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->getGuang();
 }
 
 bool FXMJRoom::isEnable7Pair() {
-	return m_jsOpts["pair7"].asBool();
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isEnable7Pair();
 }
 
 bool FXMJRoom::isEnableOOT() {
-	return m_jsOpts["only1Type"].asBool();
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isEnableOnlyOneType();
 }
 
 bool FXMJRoom::isEnableSB1() {
-	return m_jsOpts["sb1"].asBool();
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isEnableSB1();
 }
 
 bool FXMJRoom::isEnableFollow() {
-	return m_jsOpts["follow"].asBool();
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isEnableFollow();
 }
 
 bool FXMJRoom::isEnableZha5() {
-	return m_jsOpts["zha5"].asBool();
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isEnableZha5();
 }
 
 bool FXMJRoom::isEnableCool() {
-	return m_jsOpts["cool"].asBool();
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isEnableCool();
 }
 
 bool FXMJRoom::isEnablePJH() {
-	return m_jsOpts["pjh"].asBool();
-}
-
-bool FXMJRoom::isCircle() {
-	return m_jsOpts["circle"].asBool();
+	auto pFXMJOpts = std::dynamic_pointer_cast<FXMJOpts>(getDelegate()->getOpts());
+	return pFXMJOpts->isEnablePJH();
 }
 
 void FXMJRoom::addSettle(stSettle& tSettle) {

@@ -2,31 +2,32 @@
 #include "log4z.h"
 #include "NCMJRoom.h"
 #include "NCMJPlayer.h"
+#include "IMJOpts.h"
 GameRoom* MJPrivateRoom::doCreatRealRoom()
 {
 	return new NCMJRoom();
 }
 
-uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
-{
-#ifdef _DEBUG
-	return 2;
-#endif // _DEBUG
-
-	if (isCircle()) {
-		if (nLevel < 2 || nLevel > 5) {
-			nLevel = 2;
-		}
-	}
-	else {
-		if (nLevel > 1) {
-			nLevel = 0;
-		}
-	}
-
-	uint8_t vRounds[6] = { 8, 16, 1, 2, 3, 4 };
-	return vRounds[nLevel];
-}
+//uint8_t MJPrivateRoom::getInitRound(uint8_t nLevel)
+//{
+//#ifdef _DEBUG
+//	return 2;
+//#endif // _DEBUG
+//
+//	if (isCircle()) {
+//		if (nLevel < 2 || nLevel > 5) {
+//			nLevel = 2;
+//		}
+//	}
+//	else {
+//		if (nLevel > 1) {
+//			nLevel = 0;
+//		}
+//	}
+//
+//	uint8_t vRounds[6] = { 8, 16, 1, 2, 3, 4 };
+//	return vRounds[nLevel];
+//}
 
 void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 {
@@ -63,8 +64,8 @@ bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 }
 
 bool MJPrivateRoom::isCircle() {
-	auto pRoom = (NCMJRoom*)getCoreRoom();
-	return pRoom->isCircle();
+	auto pMJOpts = std::dynamic_pointer_cast<IMJOpts>(getOpts());
+	return pMJOpts->isCircle();
 }
 
 void MJPrivateRoom::decreaseLeftRound() {
