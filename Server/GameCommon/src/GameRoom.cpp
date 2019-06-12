@@ -330,7 +330,7 @@ bool GameRoom::doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer, uint16_t nIdx 
 	m_vStandPlayers.erase(pStand);
 
 	auto p = createGamePlayer();
-	p->init(pEnterRoomPlayer, nIdx);
+	p->init(this, pEnterRoomPlayer, nIdx);
 	m_vPlayers[p->getIdx()] = p;
 	
 	Json::Value jsRoomPlayerSitDown;

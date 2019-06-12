@@ -114,19 +114,19 @@ uint8_t SZMJPlayerCard::getHoldCardCnt() {
 	return vHoldCard.size();
 }
 
-uint8_t SZMJPlayerCard::getHuaCard() {
-	if (m_vCards[eCT_Jian].size()) {
-		return m_vCards[eCT_Jian].front();
-	}
-	else if (m_vCards[eCT_Hua].size()) {
-		for (auto tCard : m_vCards[eCT_Hua]) {
-			if (9 != card_Value(tCard)) {
-				return tCard;
-			}
-		}
-	}
-	return 0;
-}
+//uint8_t SZMJPlayerCard::getHuaCard() {
+//	if (m_vCards[eCT_Jian].size()) {
+//		return m_vCards[eCT_Jian].front();
+//	}
+//	else if (m_vCards[eCT_Hua].size()) {
+//		for (auto tCard : m_vCards[eCT_Hua]) {
+//			if (9 != card_Value(tCard)) {
+//				return tCard;
+//			}
+//		}
+//	}
+//	return 0;
+//}
 
 uint8_t SZMJPlayerCard::getHuaCntWithoutHuTypeHuaCnt() {
 	VEC_CARD vCard, vHuaCard;

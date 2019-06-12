@@ -5,7 +5,7 @@ class FXMJPlayer
 	:public IMJPlayer
 {
 public:
-	void init(stEnterRoomData* pData, uint16_t nIdx)override;
+	void init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx)override;
 	IMJPlayerCard* getPlayerCard()override;
 	void onGameWillStart()override;
 	void clearGangFlag() { clearFlag(eMJActFlag_Gang); }

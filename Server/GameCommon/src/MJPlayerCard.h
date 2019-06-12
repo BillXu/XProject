@@ -70,10 +70,10 @@ protected:
 	void addHoldCard( uint8_t nCard );
 	void removeHoldCard(uint8_t nCard);
 	virtual bool isCardTypeMustKeZi(uint8_t nCardType);
+	uint8_t tryToFindMiniQueCnt(VEC_CARD vWaitCheck, bool isMustKeZi, VEC_CARD& vNotShun, uint8_t& nQueCnt, uint8_t nMaxQueCnt);
 private:
 	bool canHoldCard7PairHu(uint8_t& nJiang, uint8_t nBaiDaCnt);
 	bool isHoldCardCanHuNormal(uint8_t& nJiang, uint8_t nBaiDaCnt);  // must not be override 
-	uint8_t tryToFindMiniQueCnt(VEC_CARD vWaitCheck, bool isMustKeZi, VEC_CARD& vNotShun, uint8_t& nQueCnt, uint8_t nMaxQueCnt);
 public:
 	void debugCardInfo();
 protected:

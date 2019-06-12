@@ -104,6 +104,7 @@
     <ClCompile Include="src\NCMJOpts.cpp" />
     <ClCompile Include="src\NNOpts.cpp" />
     <ClCompile Include="src\SCMJOpts.cpp" />
+    <ClCompile Include="src\SDMJOpts.cpp" />
     <ClCompile Include="src\SZMJOpts.cpp" />
     <ClCompile Include="src\TestMJOpts.cpp" />
   </ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="src\NNOpts.h" />
     <ClInclude Include="src\PokerDefine.h" />
     <ClInclude Include="src\SCMJOpts.h" />
+    <ClInclude Include="src\SDMJOpts.h" />
     <ClInclude Include="src\stEnterRoomData.h" />
     <ClInclude Include="src\SZMJOpts.h" />
     <ClInclude Include="src\TestMJOpts.h" />

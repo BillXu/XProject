@@ -5,12 +5,13 @@
 #include "CommonDefine.h"
 #include <memory>
 #include "IGameRecorder.h"
+class IGameRoom;
 class IPlayerRecorder;
 class IGamePlayer
 {
 public:
 	virtual ~IGamePlayer(){}
-	virtual void init(stEnterRoomData* pEnterPlayer, uint16_t nIdx )
+	virtual void init(IGameRoom* pRoom, stEnterRoomData* pEnterPlayer, uint16_t nIdx)
 	{
 		m_nSessionID = pEnterPlayer->nSessionID;
 		m_nUserUID = pEnterPlayer->nUserUID;
@@ -20,6 +21,9 @@ public:
 		m_nState = 0;
 		m_nCurOffset = 0;
 		m_nRace = 0;
+
+		m_pRoom = pRoom;
+
 		setState(eRoomPeer_WaitNextGame);
 	}
 
@@ -129,6 +133,8 @@ public:
 		ptrPlayerReocrder->setRecorder(getUserUID(), getSingleOffset());
 		return true;
 	}
+
+	IGameRoom* getRoom() { return m_pRoom; }
 private:
 	bool m_isOnline = true;
 	uint32_t m_nSessionID;
@@ -139,4 +145,6 @@ private:
 	int32_t m_nChips;
 	uint32_t m_nState;
 	uint32_t m_nRace;
+
+	IGameRoom* m_pRoom;
 };

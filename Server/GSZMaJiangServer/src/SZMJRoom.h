@@ -106,4 +106,5 @@ protected:
 	bool m_bFanBei;
 	bool m_bWillFanBei;
 	bool m_bBankerHu;
+	bool m_bHuangZhuang;
 };

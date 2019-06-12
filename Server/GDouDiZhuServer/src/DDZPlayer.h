@@ -5,7 +5,7 @@ class DDZPlayer
 	:public IGamePlayer
 {
 public:
-	void init(stEnterRoomData* pData, uint16_t nIdx)override;
+	void init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx)override;
 	DDZPlayer() { m_isChaoZhuang = false; }
 	void onGameWillStart()override;
 	void onGameDidEnd()override;

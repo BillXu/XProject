@@ -1,6 +1,6 @@
 #include "FXMJPlayer.h"
-void FXMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
-	IMJPlayer::init(pData, nIdx);
+void FXMJPlayer::init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx) {
+	IMJPlayer::init(pRoom, pData, nIdx);
 	m_nCoolCnt = 0;
 }
 

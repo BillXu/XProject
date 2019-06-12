@@ -1,6 +1,6 @@
 #include "DDMJPlayer.h"
-void DDMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
-	IMJPlayer::init(pData, nIdx);
+void DDMJPlayer::init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx) {
+	IMJPlayer::init(pRoom, pData, nIdx);
 	m_jsBestCards.clear();
 	m_nBestFan = -1;
 	m_nBestChips = 0;

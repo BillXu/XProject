@@ -98,6 +98,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GDDMaJiangServer", "GDDJian
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GSZMaJiangServer", "GSZMaJiangServer\GSZMaJiangServer.vcxproj", "{2E6CE571-04C0-46E3-906E-49E21403C150}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GSDMaJiangServer", "GSDMaJiangServer\GSDMaJiangServer.vcxproj", "{025818F1-6D37-4AE8-B7BB-5BBB3541679F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -196,6 +198,10 @@ Global
 		{2E6CE571-04C0-46E3-906E-49E21403C150}.Debug|Win32.Build.0 = Debug|Win32
 		{2E6CE571-04C0-46E3-906E-49E21403C150}.Release|Win32.ActiveCfg = Release|Win32
 		{2E6CE571-04C0-46E3-906E-49E21403C150}.Release|Win32.Build.0 = Release|Win32
+		{025818F1-6D37-4AE8-B7BB-5BBB3541679F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{025818F1-6D37-4AE8-B7BB-5BBB3541679F}.Debug|Win32.Build.0 = Debug|Win32
+		{025818F1-6D37-4AE8-B7BB-5BBB3541679F}.Release|Win32.ActiveCfg = Release|Win32
+		{025818F1-6D37-4AE8-B7BB-5BBB3541679F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,6 @@
 #include "CFMJPlayer.h"
-void CFMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
-	IMJPlayer::init(pData, nIdx);
+void CFMJPlayer::init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx) {
+	IMJPlayer::init(pRoom, pData, nIdx);
 	m_nExtraTime = 0;
 }
 

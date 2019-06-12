@@ -9,7 +9,7 @@ public:
 	void onGameWillStart()override;
 	void addExtraTime(float fTime);
 	float getExtraTime() { return m_nExtraTime; }
-	void init(stEnterRoomData* pData, uint16_t nIdx)override;
+	void init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx)override;
 	void clearGangFlag() { clearFlag(eMJActFlag_Gang); }
 	bool haveGangFlag() { return haveFlag(eMJActFlag_Gang); }
 protected:

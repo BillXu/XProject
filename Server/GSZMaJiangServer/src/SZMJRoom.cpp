@@ -27,6 +27,7 @@ bool SZMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRo
 	m_bFanBei = false;
 	m_bWillFanBei = false;
 	m_bBankerHu = false;
+	m_bHuangZhuang = true;
 	// add room state ;
 	IGameRoomState* p[] = { new CMJRoomStateWaitReady(), new SZMJRoomStateWaitPlayerChu(),new SZMJRoomStateWaitPlayerAct(),
 		new SZMJRoomStateStartGame(),new MJRoomStateGameEnd(),new MJRoomStateDoPlayerAct(),new SZMJRoomStateAskForRobotGang(),
@@ -181,6 +182,10 @@ bool SZMJRoom::isRoomOver() {
 }
 
 void SZMJRoom::onGameEnd() {
+	if (m_bHuangZhuang && isDiLing()) {
+		m_bWillFanBei = true;
+	}
+
 	Json::Value jsReal, jsPlayers;
 	settleInfoToJson(jsReal);
 
@@ -223,6 +228,7 @@ void SZMJRoom::doProduceNewBanker() {
 	}
 
 	m_bBankerHu = false;
+	m_bHuangZhuang = true;
 }
 
 void SZMJRoom::doFanBei() {
@@ -273,6 +279,7 @@ void SZMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		return;
 	}
 
+	m_bHuangZhuang = false;
 	Json::Value jsDetail, jsMsg;
 	bool isZiMo = vHuIdx.front() == nInvokeIdx;
 	jsMsg["isZiMo"] = isZiMo ? 1 : 0;
@@ -288,6 +295,9 @@ void SZMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			LOGFMTE("room id = %u zi mo player is nullptr idx = %u ", getRoomID(), nInvokeIdx);
 			return;
 		}
+
+		m_bBankerHu = nInvokeIdx == getBankerIdx();
+
 		pZiMoPlayer->addZiMoCnt();
 		pZiMoPlayer->setState(eRoomPeer_AlreadyHu);
 		// svr :{ huIdx : 234 , baoPaiIdx : 2 , winCoin : 234,huardSoftHua : 23, isGangKai : 0 ,vhuTypes : [ eFanxing , ], LoseIdxs : [ {idx : 1 , loseCoin : 234 }, .... ]   }
@@ -360,6 +370,9 @@ void SZMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 				if (iter != vHuIdx.end())
 				{
 					vOrderHu.push_back(nCheckIdx);
+					if (nCheckIdx == getBankerIdx()) {
+						m_bBankerHu = true;
+					}
 				}
 			}
 		}

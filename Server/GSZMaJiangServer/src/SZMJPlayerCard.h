@@ -5,12 +5,12 @@ class SZMJPlayerCard
 {
 public:
 	void reset() override;
-	bool canPengWithCard(uint8_t nCard) override { return false; }
+	bool canEatCard(uint8_t nCard, uint8_t nWith1 = 0, uint8_t nWith2 = 0) override { return false; }
 	bool canHuWitCard(uint8_t nCard)override;
 	bool canHuWitCard(uint8_t nCard, bool isRotGang);
 	void onDoHu(uint16_t nInvokerIdx, uint8_t nHuCard, bool isInvokerHaveGangFlag)override;
 	bool isHoldCardCanHu(uint8_t& nJiang) override;
-	uint8_t getHuaCard()override;
+	//uint8_t getHuaCard()override;
 	bool isHaveCards(VEC_CARD vCards);
 
 	bool isHoldCardCanHu(uint8_t& nJiang, bool isGangKai);

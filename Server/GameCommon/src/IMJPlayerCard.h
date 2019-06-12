@@ -2,6 +2,7 @@
 #include "NativeTypes.h"
 #include <vector>
 #include "json\json.h"
+class IGamePlayer;
 class IMJPlayerCard
 {
 public:
@@ -49,4 +50,9 @@ public:
 	virtual uint32_t getNewestFetchedCard() = 0 ;
 
 	virtual void addLouPengedCard(uint8_t nLouPengedCard) = 0;
+	
+	void setPlayer(IGamePlayer* pPlayer) { m_pPlayer = pPlayer; }
+	IGamePlayer* getPlayer() { return m_pPlayer; }
+private:
+	IGamePlayer* m_pPlayer;
 };

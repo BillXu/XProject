@@ -5,9 +5,9 @@
 #include "AsyncRequestQuene.h"
 #include "IMJPlayerCard.h"
 
-void IMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx )
+void IMJPlayer::init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx )
 {
-	IGamePlayer::init(pData, nIdx);
+	IGamePlayer::init(pRoom, pData, nIdx);
 	setState(eRoomPeer_WaitNextGame);
 	m_nHuCnt = 0 ;
 	m_nZiMoCnt = 0 ;
@@ -17,6 +17,7 @@ void IMJPlayer::init(stEnterRoomData* pData, uint16_t nIdx )
 	m_nHuaGangCnt = 0;
 	m_nBankerCnt = 0;
 	getPlayerCard()->reset();
+	getPlayerCard()->setPlayer(this);
 }
 
 void IMJPlayer::onGameWillStart()

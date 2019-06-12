@@ -27,7 +27,7 @@ public:
 		eMJActFlag_Max,
 	};
 public:
-	void init(stEnterRoomData* pData, uint16_t nIdx )override;
+	void init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx )override;
 	void onGameWillStart()override;
 	void onGameStart()override;
 	void onGameDidEnd()override;

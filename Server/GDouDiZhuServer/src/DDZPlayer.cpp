@@ -1,6 +1,6 @@
 #include "DDZPlayer.h"
-void DDZPlayer::init(stEnterRoomData* pData, uint16_t nIdx) {
-	IGamePlayer::init(pData, nIdx);
+void DDZPlayer::init(IGameRoom* pRoom, stEnterRoomData* pData, uint16_t nIdx) {
+	IGamePlayer::init(pRoom, pData, nIdx);
 	m_nExtraTime = 0;
 }
 
