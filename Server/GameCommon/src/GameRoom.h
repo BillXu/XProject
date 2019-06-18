@@ -65,6 +65,7 @@ public:
 	virtual bool doPlayerSitDown(stEnterRoomData* pEnterRoomPlayer,uint16_t nIdx );
 	virtual bool doPlayerStandUp(uint32_t nUserUID);
 	virtual bool doPlayerLeaveRoom( uint32_t nUserUID );
+	virtual bool isOneCircleEnd() { return true; }
 
 	uint32_t getRoomID()final;
 	uint32_t getSeiralNum()final;

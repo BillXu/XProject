@@ -801,3 +801,15 @@ bool AHMJRoom::isGameOver() {
 	}
 	return false;
 }
+
+bool AHMJRoom::isOneCircleEnd() {
+	if (isCircle()) {
+		bool isEnd = false;
+		if (m_bOneCircleEnd) {
+			isEnd = true;
+			clearOneCircleEnd();
+		}
+		return isEnd;
+	}
+	return true;
+}

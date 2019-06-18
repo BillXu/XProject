@@ -42,7 +42,9 @@ public:
 	void addGameCnt();
 	void addTotalDiamond(int32_t nDiamond);
 	uint32_t getPoint();
+	uint32_t getTotalPoint();
 	bool addPoint(int32_t nOffset);
+	bool addTotalPoint(int32_t nOffset);
 	void savePointRecord(int32_t nOffset, Json::Value jsDetail);
 	void savePoint();
 	uint32_t getWithdrawPoint();

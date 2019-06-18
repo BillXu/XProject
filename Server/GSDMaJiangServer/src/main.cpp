@@ -1,12 +1,12 @@
 #include "MJServer.h"
 #include "Application.h"
 #include "MJPlayerCard.h"
-#include "SZMJPlayerCard.h"
+#include "SDMJPlayerCard.h"
 
 #include "IMJPoker.h"
 void tempTest()
 {
-	SZMJPlayerCard peer;
+	SDMJPlayerCard peer;
 	peer.addDistributeCard(make_Card_Num(eCT_Tong, 6));
 	peer.addDistributeCard(make_Card_Num(eCT_Tong, 7));
 	peer.addDistributeCard(make_Card_Num(eCT_Tong, 7));

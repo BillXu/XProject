@@ -119,6 +119,9 @@
     <ClCompile Include="src\SDMJOpts.cpp">
       <Filter>src\Game\Opts\MJOpts</Filter>
     </ClCompile>
+    <ClCompile Include="src\YZMJOpts.cpp">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\IGameRecorder.h">
@@ -302,6 +305,9 @@
       <Filter>src\MJBase\Fanxing</Filter>
     </ClInclude>
     <ClInclude Include="src\SDMJOpts.h">
+      <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\YZMJOpts.h">
       <Filter>src\Game\Opts\MJOpts</Filter>
     </ClInclude>
   </ItemGroup>

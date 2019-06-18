@@ -53,10 +53,16 @@ public:
 	typedef std::map<uint32_t, CPlayer*> MAP_UID_PLAYERS ;
 	typedef std::list<CPlayer*> LIST_PLAYERS ;
 	typedef std::map<uint32_t, std::vector<std::string>> MAP_ID_GATE_IP;
+	struct PlayerTotalPointRankInfo
+	{
+		uint32_t nUserUID;
+		uint32_t nTotalPoint;
+	};
 public:
 	CPlayerManager();
 	~CPlayerManager();
 	void init(IServerApp* svrApp)override;
+	void onConnectedSvr(bool isReconnected)override;
 	bool onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSenderID )override ;
 	bool onMsg(Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID)override;
 	CPlayer* getPlayerByUserUID( uint32_t nUserUID );
@@ -70,12 +76,17 @@ public:
 	bool initGateIP();
 	std::string getGateIP(uint8_t nGateLevel, uint32_t nUserID);
 	std::string getSpecialGateIP(uint32_t nUserID);
+
+	void addPTPR(PlayerTotalPointRankInfo ptprInfo);
 protected:
 	bool onPublicMsg( stMsg* prealMsg , eMsgPort eSenderPort , uint32_t nSessionID );
 	void addActivePlayer( CPlayer* pNewPlayer );
 	void logState();
 	CPlayer* getReserverPlayerObj();
 	void onTimeSave()override;
+
+	void readPTPR();//¶ÁÈ¡Íæ¼Ò total point rank info
+	void sortPTPR();
 protected:
 	// logic data ;
 	MAP_UID_PLAYERS m_vAllActivePlayers ;
@@ -84,4 +95,6 @@ protected:
 
 	CPlayerBrifDataCacher m_tPlayerDataCaher ;
 	MAP_ID_GATE_IP m_mGateIP;
+
+	std::vector<PlayerTotalPointRankInfo> m_vPlayerTotalPointRank;
 };

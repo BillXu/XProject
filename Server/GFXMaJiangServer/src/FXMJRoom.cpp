@@ -1931,3 +1931,15 @@ void FXMJRoom::onPlayerLouHu(uint8_t nIdx, uint8_t nCard) {
 		pCard->onPlayerLouHu(nCard);
 	}
 }
+
+bool FXMJRoom::isOneCircleEnd() {
+	if (isCircle()) {
+		bool isEnd = false;
+		if (m_bOneCircleEnd) {
+			isEnd = true;
+			clearOneCircleEnd();
+		}
+		return isEnd;
+	}
+	return true;
+}

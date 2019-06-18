@@ -107,7 +107,7 @@ public:
 	void onPrePlayerGang();
 
 	bool isHaveCyclone() { return false; }
-	bool isOneCircleEnd() { return m_bOneCircleEnd; }
+	bool isOneCircleEnd()override;
 	void signOneCircleEnd() { m_bOneCircleEnd = true; }
 	void clearOneCircleEnd() { m_bOneCircleEnd = false; }
 protected:

@@ -67,16 +67,16 @@ bool MJPrivateRoom::isCircle() {
 	return pRoom->isCircle();
 }
 
-void MJPrivateRoom::decreaseLeftRound() {
-	if (isCircle()) {
-		auto pRoom = (AHMJRoom*)getCoreRoom();
-		if (pRoom->isOneCircleEnd()) {
-			pRoom->clearOneCircleEnd();
-		}
-		else {
-			return;
-		}
-	}
-
-	IPrivateRoom::decreaseLeftRound();
-}
+//void MJPrivateRoom::decreaseLeftRound() {
+//	if (isCircle()) {
+//		auto pRoom = (AHMJRoom*)getCoreRoom();
+//		if (pRoom->isOneCircleEnd()) {
+//			pRoom->clearOneCircleEnd();
+//		}
+//		else {
+//			return;
+//		}
+//	}
+//
+//	IPrivateRoom::decreaseLeftRound();
+//}

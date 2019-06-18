@@ -786,3 +786,15 @@ bool NCMJRoom::isGameOver() {
 	}
 	return false;
 }
+
+bool NCMJRoom::isOneCircleEnd() {
+	if (isCircle()) {
+		bool isEnd = false;
+		if (m_bOneCircleEnd) {
+			isEnd = true;
+			clearOneCircleEnd();
+		}
+		return isEnd;
+	}
+	return true;
+}

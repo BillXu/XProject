@@ -10,5 +10,5 @@ public:
 	void doSendRoomGameOverInfoToClient(bool isDismissed)override;
 	bool canStartGame(IGameRoom* pRoom)override;
 	bool isCircle();
-	void decreaseLeftRound()override;
+	//void decreaseLeftRound()override;
 };

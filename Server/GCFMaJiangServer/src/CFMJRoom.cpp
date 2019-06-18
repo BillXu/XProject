@@ -774,3 +774,15 @@ bool CFMJRoom::isGameOver() {
 	}
 	return false;
 }
+
+bool CFMJRoom::isOneCircleEnd() {
+	if (isCircle()) {
+		bool isEnd = false;
+		if (m_bOneCircleEnd) {
+			isEnd = true;
+			clearOneCircleEnd();
+		}
+		return isEnd;
+	}
+	return true;
+}

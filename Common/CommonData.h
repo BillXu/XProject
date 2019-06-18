@@ -37,6 +37,7 @@ struct stServerBaseData
 	uint32_t tPointCalculateData;
 	uint32_t nPointTotalGame;
 	uint32_t nWithdrawTotalGame;
+	uint32_t nTotalPoint;
 
 	//vip
 	uint32_t nVipLevel;

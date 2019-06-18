@@ -102,6 +102,7 @@ enum eGameType
 	eGame_DDMJ,
 	eGame_SZMJ,
 	eGame_SDMJ,
+	eGame_YZMJ,
 	eGame_Max,
 };
 
@@ -253,6 +254,11 @@ enum eFanxingType
 	eFanXing_SD_FengMingKe, //苏州百搭风明刻
 	eFanXing_SD_FengAnKe, //苏州百搭风暗刻
 	eFanXing_SD_LuoDa, //落搭，无百搭
+
+	eFanxing_DoubleShuangQiDui, // 双双七对
+	eFanxing_TribleShuangQiDui, // 三双七对
+	eFanxing_FengQing, //风清
+	eFanxing_YiTiaoLong, //一条龙
 
 	eFanxing_Max, // 没有胡
 };

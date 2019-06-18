@@ -43,13 +43,20 @@ bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 	return true;
 }
 
-void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
-	IPrivateRoom::onStartGame(pRoom);
-	if (m_nLeftRounds == getOpts()->getInitRound())
-	{
+void MJPrivateRoom::onWillStartGame(IGameRoom* pRoom) {
+	if (eState_WaitStart == m_nPrivateRoomState) {
 		((LuoMJRoom*)pRoom)->doRandomChangeSeat();
 	}
+	IPrivateRoom::onWillStartGame(pRoom);
 }
+
+//void MJPrivateRoom::onStartGame(IGameRoom* pRoom) {
+//	IPrivateRoom::onStartGame(pRoom);
+//	if (m_nLeftRounds == getOpts()->getInitRound())
+//	{
+//		((LuoMJRoom*)pRoom)->doRandomChangeSeat();
+//	}
+//}
 
 uint8_t MJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer) {
 	if (m_pRoom)

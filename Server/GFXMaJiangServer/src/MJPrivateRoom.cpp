@@ -67,19 +67,19 @@ bool MJPrivateRoom::isCircle() {
 	return pIMJOpts->isCircle();
 }
 
-void MJPrivateRoom::decreaseLeftRound() {
-	if (isCircle()) {
-		auto pRoom = (FXMJRoom*)getCoreRoom();
-		if (pRoom->isOneCircleEnd()) {
-			pRoom->clearOneCircleEnd();
-		}
-		else {
-			return;
-		}
-	}
-	
-	IPrivateRoom::decreaseLeftRound();
-}
+//void MJPrivateRoom::decreaseLeftRound() {
+//	if (isCircle()) {
+//		auto pRoom = (FXMJRoom*)getCoreRoom();
+//		if (pRoom->isOneCircleEnd()) {
+//			pRoom->clearOneCircleEnd();
+//		}
+//		else {
+//			return;
+//		}
+//	}
+//	
+//	IPrivateRoom::decreaseLeftRound();
+//}
 
 bool MJPrivateRoom::applyDoDismissCheck() {
 	return m_vPlayerAgreeDismissRoom.size() + 1 >= getPlayerCnt();

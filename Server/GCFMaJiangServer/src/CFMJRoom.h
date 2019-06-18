@@ -63,7 +63,7 @@ public:
 	bool onWaitPlayerActAfterCP(uint8_t nIdx);
 	bool isGameOver()override;
 
-	bool isOneCircleEnd() { return m_bOneCircleEnd; }
+	bool isOneCircleEnd()override;
 	void signOneCircleEnd() { m_bOneCircleEnd = true; }
 	void clearOneCircleEnd() { m_bOneCircleEnd = false; }
 

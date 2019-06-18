@@ -68,7 +68,7 @@ public:
 	uint16_t getSeatCnt() override;
 
 	bool isRoomOver() override;
-	virtual void decreaseLeftRound();
+	void decreaseLeftRound();
 	virtual bool applyDoDismissCheck();
 
 	bool checkPlayerInThisRoom(uint32_t nSessionID)override;

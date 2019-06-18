@@ -25,6 +25,7 @@ enum eMsgPort
 	ID_MSG_PORT_DDMJ,
 	ID_MSG_PORT_SZMJ,
 	ID_MSG_PORT_SDMJ,
+	ID_MSG_PORT_YZMJ,
 	ID_MSG_PORT_ALL_SERVER,
 	ID_MSG_PORT_MAX,
 };
@@ -137,6 +138,10 @@ enum eMsgType
 	MSG_PLAYER_GET_VIP_INFO,
 	// client : { }
 	// svr : { vipLevel : 0, vipInvalidTime : 0 }
+
+	MSG_PLAYER_GET_TOTAL_POINT_RANK_INFO,
+	// client : { }
+	// svr : { rankInfo : { { uid : 123, totalPoint : 123 } ,{},... } }
 
 	MSG_CREATE_ROOM = 300,
 	// client: { uid : 234 ,gameType : 0 , seatCnt : 4 , payType : 1 , level : 2 , opts : {  .... }  }

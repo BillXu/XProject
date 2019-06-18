@@ -713,7 +713,7 @@ uint8_t SDMJPlayerCard::isHaveDa() {
 	if (daCardType > eCT_Hua)
 	{
 		LOGFMTE("isHaveDa parse card type error so do not have this card = %u", getBaiDaCard());
-		return false;
+		return 0;
 	}
 	auto& vCard = m_vCards[daCardType];
 	auto cnt = std::count(vCard.begin(), vCard.end(), getBaiDaCard());

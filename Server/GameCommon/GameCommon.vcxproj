@@ -107,6 +107,7 @@
     <ClCompile Include="src\SDMJOpts.cpp" />
     <ClCompile Include="src\SZMJOpts.cpp" />
     <ClCompile Include="src\TestMJOpts.cpp" />
+    <ClCompile Include="src\YZMJOpts.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AHMJOpts.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="src\stEnterRoomData.h" />
     <ClInclude Include="src\SZMJOpts.h" />
     <ClInclude Include="src\TestMJOpts.h" />
+    <ClInclude Include="src\YZMJOpts.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

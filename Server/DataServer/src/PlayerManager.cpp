@@ -13,6 +13,7 @@
 #include "MailModule.h"
 #include "PlayerGameData.h"
 #include "Utility.h"
+#include <algorithm>
 void CPlayerBrifDataCacher::stPlayerDataPrifle::recivedData(Json::Value& jsData, IServerApp* pApp )
 {
 	if ( isContentData() )
@@ -248,6 +249,80 @@ void CPlayerManager::init(IServerApp* svrApp)
 	m_tPlayerDataCaher.init(svrApp);
 }
 
+void CPlayerManager::onConnectedSvr(bool isReconnected)
+{
+	if (isReconnected == false) {
+		readPTPR();
+	}
+}
+
+void CPlayerManager::readPTPR() {
+	Json::Value jssql;
+	jssql["sql"] = "select userUID, totalPoint from playerbasedata order by totalPoint desc limit 20;";
+	getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Select, jssql, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+		uint32_t nAft = retContent["afctRow"].asUInt();
+		auto jsData = retContent["data"];
+		if (nAft == 0 || jsData.isNull())
+		{
+			LOGFMTE("finish read total point rank info with read nothing");
+			return;
+		}
+
+		for (uint32_t nRowIdx = 0; nRowIdx < nAft; ++nRowIdx)
+		{
+			auto jsRow = jsData[nRowIdx];
+			PlayerTotalPointRankInfo ptpr;
+
+			ptpr.nUserUID = jsRow["userUID"].asUInt();
+			ptpr.nTotalPoint = jsRow["totalPoint"].asUInt();
+			m_vPlayerTotalPointRank.push_back(ptpr);
+		}
+
+		LOGFMTD("finish read total point rank info with success read");
+	});
+}
+
+void CPlayerManager::addPTPR(PlayerTotalPointRankInfo ptprInfo) {
+	auto iter = std::find_if(m_vPlayerTotalPointRank.begin(), m_vPlayerTotalPointRank.end(), [ptprInfo](const PlayerTotalPointRankInfo& tPtpri) {
+		return tPtpri.nUserUID == ptprInfo.nUserUID;
+	});
+
+	bool needRsort = false;
+
+	if (iter != m_vPlayerTotalPointRank.end()) {
+		iter->nTotalPoint = ptprInfo.nTotalPoint;
+		needRsort = true;
+	}
+	else {
+		if (m_vPlayerTotalPointRank.size()) {
+			auto iter_rbegin = m_vPlayerTotalPointRank.rbegin();
+			if (iter_rbegin->nTotalPoint < ptprInfo.nTotalPoint) {
+				if (m_vPlayerTotalPointRank.size() < 20) {
+					m_vPlayerTotalPointRank.push_back(ptprInfo);
+				}
+				else {
+					m_vPlayerTotalPointRank.pop_back();
+					m_vPlayerTotalPointRank.push_back(ptprInfo);
+				}
+				needRsort = true;
+			}
+		}
+		else {
+			m_vPlayerTotalPointRank.push_back(ptprInfo);
+		}
+	}
+
+	if (needRsort) {
+		sortPTPR();
+	}
+}
+
+void CPlayerManager::sortPTPR() {
+	std::sort(m_vPlayerTotalPointRank.begin(), m_vPlayerTotalPointRank.end(), [](const PlayerTotalPointRankInfo& ptpr_l, const PlayerTotalPointRankInfo& ptpr_r) {
+		return ptpr_l.nTotalPoint > ptpr_r.nTotalPoint;
+	});
+}
+
 void CPlayerManager::onExit()
 {
 	auto iter = m_vAllActivePlayers.begin();
@@ -295,6 +370,20 @@ bool CPlayerManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort e
 	auto pTargetPlayer = getPlayerByUserUID(nTargetID);
 	if (pTargetPlayer && pTargetPlayer->onMsg(prealMsg, nMsgType, eSenderPort, nSenderID) )
 	{
+		return true;
+	}
+
+	if ( nMsgType == MSG_PLAYER_GET_TOTAL_POINT_RANK_INFO )
+	{
+		Json::Value jsInfo, jsPlayers;
+		for (auto ref : m_vPlayerTotalPointRank) {
+			Json::Value jsPlayerInfo;
+			jsPlayerInfo["uid"] = ref.nUserUID;
+			jsPlayerInfo["totalPoint"] = ref.nTotalPoint;
+			jsPlayers[jsPlayers.size()] = jsPlayerInfo;
+		}
+		jsInfo["rankInfo"] = jsPlayers;
+		sendMsg(jsInfo, nMsgType, nTargetID, nSenderID, ID_MSG_PORT_CLIENT);
 		return true;
 	}
 

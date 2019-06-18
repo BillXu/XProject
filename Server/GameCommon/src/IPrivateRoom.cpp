@@ -772,12 +772,25 @@ void IPrivateRoom::onWillStartGame(IGameRoom* pRoom) {
 	if (eState_WaitStart == m_nPrivateRoomState)
 	{
 		m_nPrivateRoomState = eState_Started;
+
+		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+		Json::Value jsReq;
+		if (isClubRoom()) {
+			jsReq["clubID"] = getClubID();
+			jsReq["roomID"] = getRoomID();
+			pAsync->pushAsyncRequest(ID_MSG_PORT_CLUB, getOpts()->getOwnerUID(), eAsync_ClubRoomStart, jsReq);
+		}
+		else if (getOpts()->getOwnerUID()) {
+			jsReq["roomID"] = getRoomID();
+			jsReq["targetUID"] = getOpts()->getOwnerUID();
+			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_PrivateRoomStart, jsReq);
+		}
 	}
 }
 
 void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 {
-	if ( isClubRoom() && m_nLeftRounds == getOpts()->getInitRound() )
+	/*if ( isClubRoom() && m_nLeftRounds == getOpts()->getInitRound() )
 	{
 		auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 		Json::Value jsReq;
@@ -792,7 +805,7 @@ void IPrivateRoom::onStartGame(IGameRoom* pRoom)
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, getOpts()->getOwnerUID(), eAsync_PrivateRoomStart, jsReq);
 		}
 		
-	}
+	}*/
 }
 
 bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
@@ -918,7 +931,9 @@ bool IPrivateRoom::isRoomOver() {
 }
 
 void IPrivateRoom::decreaseLeftRound() {
-	--m_nLeftRounds;
+	if (getCoreRoom()->isOneCircleEnd()) {
+		--m_nLeftRounds;
+	}
 }
 
 bool IPrivateRoom::applyDoDismissCheck() {
