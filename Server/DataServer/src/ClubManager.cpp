@@ -397,6 +397,28 @@ bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 		return true;
 	}
 
+	if (eAsync_HttpCmd_ChangeClubVipLevel == nRequestType) {
+		if (jsReqContent["clubID"].isNull())
+		{
+			jsResult["ret"] = 1;
+			return true;
+		}
+
+		auto nClubID = jsReqContent["clubID"].asUInt();
+		auto iterClub = m_vClubs.find(nClubID);
+		if (iterClub == m_vClubs.end())
+		{
+			jsResult["ret"] = 2;
+			return true;
+		}
+
+		uint8_t nVipLevel = jsReqContent["level"].asUInt();
+		uint32_t nDayTime = jsReqContent["dayTime"].asUInt();
+
+		iterClub->second->changeVip(nVipLevel, nDayTime);
+		return true;
+	}
+
 	for (auto& ref : m_vClubs)
 	{
 		if ( ref.second->onAsyncRequest(nRequestType, jsReqContent, jsResult) )
@@ -441,7 +463,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 {
 	auto asyq = getSvrApp()->getAsynReqQueue();
 	std::ostringstream ss;
-	ss << "SELECT clubID,name,opts,state,cprState,autoJoin,diamond ,notice FROM clubs where isDelete = 0 limit 10 OFFSET " << nAlreadyReadCnt << ";";
+	ss << "SELECT clubID,name,opts,state,cprState,autoJoin,vipLevel,vipInvalidTime,diamond,notice FROM clubs where isDelete = 0 limit 10 OFFSET " << nAlreadyReadCnt << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Select, jsReq, [this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData ,bool isTimeOut) {
@@ -470,7 +492,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 			Json::Reader jsr;
 			Json::Value jsOpts;
 			jsr.parse(jsRow["opts"].asString(), jsOpts );
-			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(), jsRow["cprState"].asUInt(), jsRow["autoJoin"].asUInt(), jsRow["diamond"].asUInt(),jsRow["notice"].asString());
+			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(), jsRow["cprState"].asUInt(), jsRow["autoJoin"].asUInt(), jsRow["vipLevel"].asUInt(), jsRow["vipInvalidTime"].asUInt(), jsRow["diamond"].asUInt(),jsRow["notice"].asString());
 			m_vClubs[p->getClubID()] = p;
 		}
 

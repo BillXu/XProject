@@ -52,7 +52,7 @@ public:
 	typedef std::map<uint32_t, stClubEvent*> MAP_EVENT;
 public:
 	~Club();
-	bool init( ClubManager * pClubMgr, uint32_t nClubID, std::string& strClubName,Json::Value& jsCreateRoomOpts, uint32_t nCapacity, uint16_t nMaxMgrCnt, uint8_t nState = 0, uint8_t nCPRoomState = 0, uint8_t nAutoJoin = 0, uint32_t nDiamond = 0 , std::string strNotice = "");
+	bool init( ClubManager * pClubMgr, uint32_t nClubID, std::string& strClubName,Json::Value& jsCreateRoomOpts, uint32_t nCapacity, uint16_t nMaxMgrCnt, uint8_t nState = 0, uint8_t nCPRoomState = 0, uint8_t nAutoJoin = 0, uint8_t nVipLevel = 0, uint32_t tVipInvalidTime = 0, uint32_t nDiamond = 0 , std::string strNotice = "");
 	bool onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID );
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
 	void onTimeSave();
@@ -87,6 +87,8 @@ public:
 	void updateMemberPlayTime(uint32_t nMemberUID, uint32_t nPlayTime);
 	void clearLackDiamond(); //仅供外部调用，验证gateType
 	uint8_t transferCreator(uint32_t nMemberUID);
+	uint8_t getVipLevel() { return m_nVipLevel; }
+	uint8_t changeVip(uint32_t nVipLevel, uint32_t nDay = 0);
 protected:
 	void readClubEvents( uint32_t nAlreadyCnt );
 	void readClubMemebers( uint32_t nAlreadyCnt );
@@ -109,6 +111,7 @@ protected:
 	void joinIRT(uint32_t nUserID);
 	void removeFromIRT(uint32_t nUserID);
 	void sendIRT(Json::Value& jsMsg);
+	void sortVipInfo();
 protected:
 	uint8_t m_nState;  // 0 normal , 1 pause ;
 	uint32_t m_nCapacity;
@@ -121,6 +124,8 @@ protected:
 	Json::Value m_jsCreateRoomOpts;
 	uint8_t m_nCreatePRoomState; // 0 can not, 1 can
 	uint8_t m_nAutoJoin;
+	uint8_t m_nVipLevel;
+	uint32_t m_tVipInvalidTime;
 	bool m_isCreatingRoom; 
 	MAP_MEMBER m_vMembers;
 	MAP_EVENT m_vEvents;

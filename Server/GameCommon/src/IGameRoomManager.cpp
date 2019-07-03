@@ -180,6 +180,7 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		uint32_t nClubDiamond = jsReqContent["diamond"].asUInt();
 		auto nRoomType = jsReqContent["gameType"].asUInt();
 		auto nLevel = jsReqContent["level"].asUInt();
+		auto nVipLevel = jsReqContent["vipLevel"].asUInt();
 
 		uint8_t nPayType = jsReqContent["payType"].asUInt();
 		if (nPayType > ePayType_Max)
@@ -191,6 +192,10 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		if ( nPayType == ePayType_RoomOwner && false == isCreateRoomFree() )
 		{
 			nDiamondNeed = getDiamondNeed(nRoomType, nLevel, (ePayRoomCardType)nPayType,jsReqContent["seatCnt"].asUInt());
+		}
+
+		if (nVipLevel) {
+			nDiamondNeed = 0;
 		}
 
 		if ( nClubDiamond < nDiamondNeed)

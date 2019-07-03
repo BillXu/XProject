@@ -36,7 +36,7 @@ Club::~Club()
 	m_vInvitations.clear();
 }
 
-bool Club::init( ClubManager * pClubMgr,uint32_t nClubID ,std::string& strClubName, Json::Value& jsCreateRoomOpts, uint32_t nCapacity , uint16_t nMaxMgrCnt, uint8_t nState, uint8_t nCPRoomState, uint8_t nAutoJoin, uint32_t nDiamond,std::string strNotice)
+bool Club::init( ClubManager * pClubMgr,uint32_t nClubID ,std::string& strClubName, Json::Value& jsCreateRoomOpts, uint32_t nCapacity , uint16_t nMaxMgrCnt, uint8_t nState, uint8_t nCPRoomState, uint8_t nAutoJoin, uint8_t nVipLevel, uint32_t tVipInvalidTime, uint32_t nDiamond,std::string strNotice)
 {
 	m_pMgr = pClubMgr;
 	m_jsCreateRoomOpts = jsCreateRoomOpts;
@@ -48,6 +48,8 @@ bool Club::init( ClubManager * pClubMgr,uint32_t nClubID ,std::string& strClubNa
 	m_nState = nState;
 	m_nCreatePRoomState = nCPRoomState;
 	m_nAutoJoin = nAutoJoin;
+	m_nVipLevel = nVipLevel;
+	m_tVipInvalidTime = tVipInvalidTime;
 	m_nDiamond = nDiamond;
 	m_isCreatingRoom = false;
 	m_fDelayTryCreateRoom = 0;
@@ -56,6 +58,8 @@ bool Club::init( ClubManager * pClubMgr,uint32_t nClubID ,std::string& strClubNa
 	m_nMaxRoomIdx = 0;
 	m_isFinishReadEvent = false;
 	m_isFinishReadMembers = false;
+
+	sortVipInfo();
 	return true;
 }
 
@@ -172,6 +176,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		jsCreate["clubID"] = getClubID();
 		//m_jsCreateRoomOpts["diamond"] = getDiamond();
 		jsCreate["clubName"] = getName();
+		jsCreate["vipLevel"] = getVipLevel();
 		auto nPort = getTargetPortByGameType(nRoomType);
 		if (nPort >= ID_MSG_PORT_MAX)
 		{
@@ -307,9 +312,27 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		auto p = new stClubEvent();
 		p->nEventID = ++m_nMaxEventID;
 		p->nEventType = eClubEvent_ApplyJoin;
-		p->nState = eEventState_WaitProcesse;
+		//p->nState = eEventState_WaitProcesse;
 		p->nTime = time(nullptr);
 		p->jsEventDetail["uid"] = nUID;
+
+		if (m_nAutoJoin == 0) {
+			p->nState = eEventState_WaitProcesse;
+		}
+		else {
+			p->nState = eEventState_Processed;
+			p->jsEventDetail["respUID"] = 0;
+			p->jsEventDetail["isAgree"] = 1;
+
+			addMember(nUID);
+			// post mail to the player ;
+			Json::Value js;
+			js["clubID"] = getClubID();
+			js["clubName"] = m_strName;
+			js["nIsAgree"] = 1;
+			postMail(nUID, eMail_ResponeClubApplyJoin, js, eMailState_SysProcessed);
+		}
+
 		addEvent(p);
 	}
 	break;
@@ -1349,7 +1372,7 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 		p->nTime = time(nullptr);
 		p->jsEventDetail["uid"] = nUID;
 
-		if (m_nAutoJoin) {
+		if (m_nAutoJoin == 0) {
 			p->nState = eEventState_WaitProcesse;
 		}
 		else {
@@ -1890,6 +1913,7 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 
 void Club::onTimeSave()
 {
+	sortVipInfo();
 	if ( m_isClubInfoDirty )
 	{
 		m_isClubInfoDirty = false;
@@ -1898,7 +1922,7 @@ void Club::onTimeSave()
 		auto strOpts = jsw.write(m_jsCreateRoomOpts);
 		Json::Value jssql;
 		char pBuffer[2024] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer), "update clubs set ownerUID = '%u', opts = '%s',name = '%s',state = '%u',cprState = '%u', autoJoin = '%u', notice = '%s' where clubID = %u limit 1 ;", getCreatorUID(), strOpts.c_str(), m_strName.c_str(), m_nState, m_nCreatePRoomState, m_nAutoJoin, m_strNotice.c_str(),getClubID());
+		sprintf_s(pBuffer, sizeof(pBuffer), "update clubs set ownerUID = '%u', opts = '%s',name = '%s',state = '%u',cprState = '%u', autoJoin = '%u', vipLevel = '%u', vipInvalidTime = '%u', notice = '%s' where clubID = %u limit 1 ;", getCreatorUID(), strOpts.c_str(), m_strName.c_str(), m_nState, m_nCreatePRoomState, m_nAutoJoin, m_nVipLevel, m_tVipInvalidTime, m_strNotice.c_str(),getClubID());
 		jssql["sql"] = pBuffer;
 		m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Update, jssql);
 	}
@@ -2130,6 +2154,7 @@ void Club::updateCreateRoom()
 		m_jsCreateRoomOpts["clubID"] = getClubID();
 		//m_jsCreateRoomOpts["diamond"] = getDiamond();
 		m_jsCreateRoomOpts["clubName"] = getName();
+		m_jsCreateRoomOpts["vipLevel"] = getVipLevel();
 		auto nPort = getTargetPortByGameType(nRoomType);
 		if ( nPort >= ID_MSG_PORT_MAX)
 		{
@@ -2718,4 +2743,47 @@ void Club::sendIRT(Json::Value& jsMsg) {
 	for (auto nInvalidUID : vInvalid) {
 		removeFromIRT(nInvalidUID);
 	}
+}
+
+void Club::sortVipInfo() {
+	if (getVipLevel()) {
+		auto tNow = time(nullptr);
+		if (m_tVipInvalidTime > tNow) {
+			return;
+		}
+
+		m_nVipLevel = 0;
+		m_isClubInfoDirty = true;
+	}
+}
+
+uint8_t Club::changeVip(uint32_t nVipLevel, uint32_t nDay) {
+	sortVipInfo();
+	LOGFMTD("clubID = %u change vipLevel = %u , dayTime = %u", getClubID(), nVipLevel, nDay);
+	uint8_t nRet = 0;
+	if (nVipLevel) {
+		if (nDay) {
+			if (getVipLevel()) {
+				m_tVipInvalidTime += nDay * 24 * 60 * 60;
+			}
+			else {
+				m_tVipInvalidTime = time(nullptr) + nDay * 24 * 60 * 60;
+			}
+			m_nVipLevel = nVipLevel;
+			m_isLackDiamond = false;
+		}
+		else {
+			nRet = 8;
+		}
+	}
+	else {
+		m_nVipLevel = 0;
+		m_tVipInvalidTime = 0;
+	}
+
+	if (nRet == 0) {
+		m_isClubInfoDirty = true;
+	}
+	LOGFMTD("clubID = %u change vip ret = %u, final Level = %u , invalidTime = %u", getClubID(), nRet, m_nVipLevel, m_tVipInvalidTime);
+	return nRet;
 }

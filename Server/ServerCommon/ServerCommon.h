@@ -125,6 +125,7 @@ enum eAsyncReq
 	eAsync_PrivateRoomStart,
 	eAsync_PrivateRoomGameOvered,
 	eAsync_PrivateRoomNetStateRefreshed,
+	eAsync_HttpCmd_ChangeClubVipLevel, // { clubID : 123, level : 1, dayTime : 30 } svr : { ret : 0 }
 
 	//// above is new 
 	//eAsync_CreateRoom, // extern MSG_CREATE_ROOM client , addtion : { roomID : 235, createUID : 3334, serialNum : 23455, chatRoomID : 2345234 }  // result : { ret : 0 } , must success ;

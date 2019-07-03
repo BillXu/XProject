@@ -848,6 +848,9 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 	}
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	auto nNeedDiamond = getDiamondNeed(m_nRoundLevel, getPayType());
+	if (isClubRoom() && m_nVipLevel) {
+		nNeedDiamond = 0;
+	}
 	if ( isAAPay() && nNeedDiamond > 0)  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
 	{
 		auto nCnt = m_pRoom->getSeatCnt();
