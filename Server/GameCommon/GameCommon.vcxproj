@@ -102,6 +102,7 @@
     <ClCompile Include="src\IPrivateRoom.cpp" />
     <ClCompile Include="src\MQMJOpts.cpp" />
     <ClCompile Include="src\NCMJOpts.cpp" />
+    <ClCompile Include="src\NJMJOpts.cpp" />
     <ClCompile Include="src\NNOpts.cpp" />
     <ClCompile Include="src\SCMJOpts.cpp" />
     <ClCompile Include="src\SDMJOpts.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="src\MJRoomStateWaitReady.h" />
     <ClInclude Include="src\MQMJOpts.h" />
     <ClInclude Include="src\NCMJOpts.h" />
+    <ClInclude Include="src\NJMJOpts.h" />
     <ClInclude Include="src\NNOpts.h" />
     <ClInclude Include="src\PokerDefine.h" />
     <ClInclude Include="src\SCMJOpts.h" />

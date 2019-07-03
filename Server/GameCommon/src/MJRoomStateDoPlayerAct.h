@@ -67,6 +67,12 @@ public:
 		case eMJAct_AnGang:
 		case eMJAct_MingGang:
 		{
+			if (((IMJRoom*)getRoom())->isRoomOver())
+			{
+				getRoom()->goToState(eRoomState_GameEnd);
+				return;
+			}
+
 			Json::Value jsValue;
 			jsValue["idx"] = m_nActIdx;
 			getRoom()->goToState(eRoomState_WaitPlayerAct, &jsValue);
@@ -101,6 +107,12 @@ public:
 		}
 			break;
 		case eMJAct_Chu:
+			if (((IMJRoom*)getRoom())->isRoomOver())
+			{
+				getRoom()->goToState(eRoomState_GameEnd);
+				return;
+			}
+
 			if (((IMJRoom*)getRoom())->isAnyPlayerPengOrHuThisCard(m_nActIdx, m_nCard))
 			{
 				Json::Value jsValue;

@@ -710,6 +710,18 @@ bool MJPlayerCard::getBuHuaCard(VEC_CARD& vHuaCard) {
 	return !vHuaCard.empty();
 }
 
+uint8_t MJPlayerCard::getBuHuaCnt() {
+	uint8_t nCnt = 0;
+	for (auto ref : m_vMingCardInfo)
+	{
+		if (ref.eAct == eMJAct_BuHua)
+		{
+			nCnt++;
+		}
+	}
+	return nCnt;
+}
+
 bool MJPlayerCard::isCardTypeMustKeZi(uint8_t nCardType)
 {
 	return nCardType == eCT_Jian || eCT_Feng == nCardType ;
@@ -1133,4 +1145,13 @@ uint8_t MJPlayerCard::getHuaCard() {
 		return m_vCards[eCT_Hua].front();
 	}
 	return 0;
+}
+
+uint8_t MJPlayerCard::getMingCardInvokerIdx(uint8_t nCard, eMJActType nActType) {
+	for (auto& ref : m_vMingCardInfo) {
+		if (ref.eAct == nActType && ref.nTargetCard == nCard) {
+			return ref.nInvokerIdx;
+		}
+	}
+	return -1;
 }

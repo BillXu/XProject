@@ -148,6 +148,7 @@ bool CPlayerBaseData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 	{
 		m_stBaseData.dfJ = recvValue["J"].asDouble();
 		m_stBaseData.dfW = recvValue["W"].asDouble();
+		m_stBaseData.sAddress = recvValue["address"].asString();
 		return true;
 	}
 	else if ( MSG_PLAYER_REFRESH_MONEY == nmsgType )

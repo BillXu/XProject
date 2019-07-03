@@ -31,6 +31,7 @@ public:
 	bool isPlayerReady()override { return m_isReadingDB == false; }
 	double getGPS_J() { return m_stBaseData.dfJ; }
 	double getGPS_W() { return m_stBaseData.dfW; }
+	std::string getAddress() { return m_stBaseData.sAddress; }
 	void onLeaveClub( uint32_t nClubID );
 	void onJoinClub( uint32_t nClubID );
 	void onCreatedClub(uint32_t nClubID);

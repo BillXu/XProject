@@ -103,6 +103,7 @@ enum eGameType
 	eGame_SZMJ,
 	eGame_SDMJ,
 	eGame_YZMJ,
+	eGame_NJMJ,
 	eGame_Max,
 };
 
@@ -212,6 +213,7 @@ enum eMJActType
 	eMJAct_Ting,
 	eMJAct_Cyclone, //Ðý·ç¸Ü
 	eMJAct_MingGang_Pre,
+	eMJAct_ZiDaAnGang, //×Ô´ò°µ¸Ü
 	eMJAct_Max,
 };
 

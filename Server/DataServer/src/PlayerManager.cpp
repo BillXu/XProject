@@ -182,6 +182,7 @@ void CPlayerBrifDataCacher::visitBrifData(Json::Value& jsBrifData, CPlayer* pPla
 	jsBrifData["ip"] = pPlayer->getIp();
 	jsBrifData["J"] = pPlayer->getBaseData()->getGPS_J();
 	jsBrifData["W"] = pPlayer->getBaseData()->getGPS_W();
+	jsBrifData["address"] = pPlayer->getBaseData()->getAddress().c_str();
 
 	auto gd = (CPlayerGameData*)pPlayer->getComponent(ePlayerComponent_PlayerGameData);
 	jsBrifData["isInRoom"] = gd->getStayInRoom().isEmpty() ? 0 : 1;
