@@ -54,6 +54,7 @@ bool Club::init( ClubManager * pClubMgr,uint32_t nClubID ,std::string& strClubNa
 	m_isCreatingRoom = false;
 	m_fDelayTryCreateRoom = 0;
 	m_isClubInfoDirty = false;
+	m_bVipInfoDirty = false;
 	m_strNotice = strNotice;
 	m_nMaxRoomIdx = 0;
 	m_isFinishReadEvent = false;
@@ -737,6 +738,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 	break;
 	case MSG_CLUB_REQ_INFO:
 	{
+		sortVipInfo();
 		Json::Value jsInfo;
 		jsInfo["name"] = m_strName;
 		jsInfo["clubID"] = m_nClubID;
@@ -749,6 +751,8 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		jsInfo["state"] = m_nState;
 		jsInfo["inviteCnt"] = m_vInvitations.size();
 		jsInfo["notice"] = m_strNotice;
+		jsInfo["vipLevel"] = getVipLevel();
+		jsInfo["vipInvalidTime"] = m_tVipInvalidTime;
 
 		if ( isEnablePointsRestrict() )
 		{
@@ -1913,7 +1917,6 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 
 void Club::onTimeSave()
 {
-	sortVipInfo();
 	if ( m_isClubInfoDirty )
 	{
 		m_isClubInfoDirty = false;
@@ -1922,7 +1925,23 @@ void Club::onTimeSave()
 		auto strOpts = jsw.write(m_jsCreateRoomOpts);
 		Json::Value jssql;
 		char pBuffer[2024] = { 0 };
-		sprintf_s(pBuffer, sizeof(pBuffer), "update clubs set ownerUID = '%u', opts = '%s',name = '%s',state = '%u',cprState = '%u', autoJoin = '%u', vipLevel = '%u', vipInvalidTime = '%u', notice = '%s' where clubID = %u limit 1 ;", getCreatorUID(), strOpts.c_str(), m_strName.c_str(), m_nState, m_nCreatePRoomState, m_nAutoJoin, m_nVipLevel, m_tVipInvalidTime, m_strNotice.c_str(),getClubID());
+		sprintf_s(pBuffer, sizeof(pBuffer), "update clubs set ownerUID = '%u', opts = '%s',name = '%s',state = '%u',cprState = '%u', autoJoin = '%u', notice = '%s' where clubID = %u limit 1 ;", getCreatorUID(), strOpts.c_str(), m_strName.c_str(), m_nState, m_nCreatePRoomState, m_nAutoJoin, m_strNotice.c_str(),getClubID());
+		jssql["sql"] = pBuffer;
+		m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Update, jssql);
+	}
+
+	onSaveVipInfo();
+}
+
+void Club::onSaveVipInfo() {
+	sortVipInfo();
+	if (m_bVipInfoDirty)
+	{
+		m_bVipInfoDirty = false;
+
+		Json::Value jssql;
+		char pBuffer[2024] = { 0 };
+		sprintf_s(pBuffer, sizeof(pBuffer), "update clubs set vipLevel = %u, vipInvalidTime = %u where clubID = %u limit 1 ;", getVipLevel(), m_tVipInvalidTime, getClubID());
 		jssql["sql"] = pBuffer;
 		m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Update, jssql);
 	}
@@ -2753,7 +2772,7 @@ void Club::sortVipInfo() {
 		}
 
 		m_nVipLevel = 0;
-		m_isClubInfoDirty = true;
+		m_bVipInfoDirty = true;
 	}
 }
 
@@ -2782,8 +2801,10 @@ uint8_t Club::changeVip(uint32_t nVipLevel, uint32_t nDay) {
 	}
 
 	if (nRet == 0) {
-		m_isClubInfoDirty = true;
+		m_bVipInfoDirty = true;
 	}
+
+	onSaveVipInfo();
 	LOGFMTD("clubID = %u change vip ret = %u, final Level = %u , invalidTime = %u", getClubID(), nRet, m_nVipLevel, m_tVipInvalidTime);
 	return nRet;
 }

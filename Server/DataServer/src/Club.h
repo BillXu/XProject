@@ -56,6 +56,7 @@ public:
 	bool onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID );
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
 	void onTimeSave();
+	void onSaveVipInfo();
 	uint32_t getClubID();
 	uint16_t getMgrCnt();
 	uint32_t getCreatorUID();
@@ -139,6 +140,7 @@ protected:
 	bool m_isLackDiamond;
 	float m_fDelayTryCreateRoom;
 	bool m_isClubInfoDirty;
+	bool m_bVipInfoDirty;
 	uint32_t m_nMaxRoomIdx;
 
 	bool m_isFinishReadEvent;
