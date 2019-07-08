@@ -1314,6 +1314,59 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 
 	switch ( nRequestType )
 	{
+	case eAsync_HttpCmd_UpdateClubName:
+	{
+		uint8_t nRet = 0;
+		uint32_t nUserUID = 0;
+		std::string strNewName = jsReqContent["name"].asString();
+		do
+		{
+			if (jsReqContent["uid"].isUInt() == false)
+			{
+				nRet = 4;
+				break;
+			}
+			nUserUID = jsReqContent["uid"].asUInt();
+
+			if (nUserUID == 0) {
+				nRet = 4;
+				break;
+			}
+
+			auto pmem = getMember(nUserUID);
+			if (pmem == nullptr || pmem->ePrivilige < eClubPrivilige_Manager)
+			{
+				nRet = 1;
+				break;
+			}
+
+			if (strNewName == m_strName)
+			{
+				nRet = 2;
+				break;
+			}
+
+			if (m_pMgr->isNameDuplicate(strNewName))
+			{
+				nRet = 3;
+				break;
+			}
+
+		} while (0);
+
+		jsResult["ret"] = nRet;
+
+		if (nRet)
+		{
+			LOGFMTE("update club name error, apply uid = %u, clubID = %u, ret = %u", nUserUID, getClubID(), nRet);
+			break;
+		}
+		m_strName = strNewName;
+		m_isClubInfoDirty = true;
+		onTimeSave();
+		LOGFMTE("success update club name, apply uid = %u, clubID = %u, ret = %u", nUserUID, getClubID(), nRet);
+	}
+	break;
 	case eAsync_HttpCmd_ApplyJoinClub:
 	{
 		uint8_t nRet = 0;
@@ -1434,6 +1487,7 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 			m_isLackDiamond = false;
 		}
 		m_isClubInfoDirty = true;
+		onTimeSave();
 	}
 	break;
 	case eAsync_HttpCmd_UpdateClubAutoJoin:
