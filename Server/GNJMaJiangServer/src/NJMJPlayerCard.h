@@ -21,7 +21,8 @@ public:
 
 	bool isSiLianFeng();
 	bool isZiDaAnGang(uint8_t nCard);
-	bool getNormalBaoPaiIdx(uint8_t& nBaoIdx);
+	bool getWaiBaoIdx(uint8_t& nBaoIdx, bool isZiMo = false);
+	bool getNormalBaoIdx(uint8_t& nBaoIdx, bool isZiMo = false);
 	bool isKuaiZhaoHu(uint8_t nCard, uint8_t& nBaoIdx);
 	bool isKuaiZhaoZiMo(uint8_t& nBaoIdx);
 

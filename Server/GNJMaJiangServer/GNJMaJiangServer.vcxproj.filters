@@ -13,13 +13,13 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="src\SZMJ">
+    <Filter Include="src\NJMJ">
       <UniqueIdentifier>{3071387a-e0d0-43d6-842f-2e38a1665934}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\SZMJ\state">
+    <Filter Include="src\NJMJ\state">
       <UniqueIdentifier>{6c69e078-4952-436e-a2b8-930168fbd19c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\SZMJ\Fanxing">
+    <Filter Include="src\NJMJ\Fanxing">
       <UniqueIdentifier>{da1c0baf-d23b-498d-bb48-b4161063eb3f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -34,34 +34,34 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJRoom.h">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJPoker.h">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJPlayerCard.h">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJPlayer.h">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJRoomStateWaitPlayerChu.h">
-      <Filter>src\SZMJ\state</Filter>
+      <Filter>src\NJMJ\state</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJRoomStateWaitPlayerAct.h">
-      <Filter>src\SZMJ\state</Filter>
+      <Filter>src\NJMJ\state</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJRoomStateStartGame.h">
-      <Filter>src\SZMJ\state</Filter>
+      <Filter>src\NJMJ\state</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJRoomStateAskForRobotGang.h">
-      <Filter>src\SZMJ\state</Filter>
+      <Filter>src\NJMJ\state</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJRoomStateAskForPengOrHu.h">
-      <Filter>src\SZMJ\state</Filter>
+      <Filter>src\NJMJ\state</Filter>
     </ClInclude>
     <ClInclude Include="src\NJMJFanxingChecker.h">
-      <Filter>src\SZMJ\Fanxing</Filter>
+      <Filter>src\NJMJ\Fanxing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -78,16 +78,16 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\NJMJRoom.cpp">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClCompile>
     <ClCompile Include="src\NJMJPoker.cpp">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClCompile>
     <ClCompile Include="src\NJMJPlayerCard.cpp">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClCompile>
     <ClCompile Include="src\NJMJPlayer.cpp">
-      <Filter>src\SZMJ</Filter>
+      <Filter>src\NJMJ</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

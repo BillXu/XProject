@@ -174,7 +174,7 @@ public:
 			case eMJAct_Hu:
 			{
 				uint8_t nJiang = 0;
-				if (!pMJCard->isHoldCardCanHu(nJiang, pPlayer->haveGangFlag() || pPlayer->haveFlag(IMJPlayer::eMJActFlag_BuHua)))
+				if (!pMJCard->isHoldCardCanHu(nJiang))
 				{
 					nRet = 3;
 				}

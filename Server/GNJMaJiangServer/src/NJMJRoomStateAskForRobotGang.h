@@ -95,7 +95,7 @@ public:
 			}
 
 			auto pMJCard = (NJMJPlayerCard*)((IMJPlayer*)pPlayer)->getPlayerCard();
-			if (!pMJCard->canHuWitCard(m_nCard, true))
+			if (!pMJCard->canHuWitCard(m_nCard))
 			{
 				nRet = 2;
 				LOGFMTE("why you can not hu ? svr bug ");

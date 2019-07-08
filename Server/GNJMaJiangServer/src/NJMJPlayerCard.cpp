@@ -48,14 +48,19 @@ bool NJMJPlayerCard::canHuWitCard(uint8_t nCard) {
 	if (bSelfHu) {
 		do
 		{
-			if (getNormalBaoPaiIdx(nBaoIdx)) {
+			if (getWaiBaoIdx(nBaoIdx)) {
 				if (pRoom->checkBaoGuang(nBaoIdx)) {
 					bSelfHu = false;
 					break;
 				}
 			}
-
-			if (pRoom->checkHuGuang(nBaoIdx)) {
+			else if (getNormalBaoIdx(nBaoIdx)) {
+				if (pRoom->checkGuang(nBaoIdx)) {
+					bSelfHu = false;
+					break;
+				}
+			}
+			else if (pRoom->checkHuGuang(nBaoIdx)) {
 				bSelfHu = false;
 				break;
 			}
@@ -107,6 +112,36 @@ bool NJMJPlayerCard::isHoldCardCanHu(uint8_t& nJiang) {
 	}
 
 	bool bSelfHu = MJPlayerCard::isHoldCardCanHu(nJiang);
+
+	if (bSelfHu) {
+		do
+		{
+			if (getWaiBaoIdx(nBaoIdx, true)) {
+				if (pRoom->checkBaoGuang(nBaoIdx)) {
+					bSelfHu = false;
+					break;
+				}
+			}
+			else if (getNormalBaoIdx(nBaoIdx, true)) {
+				if (pRoom->checkGuang(nBaoIdx)) {
+					bSelfHu = false;
+					break;
+				}
+			}
+
+			auto nBuHuaCnt = getBuHuaCnt();
+			if (nBuHuaCnt < 4) {
+				bSelfHu = checkDaHu();
+			}
+
+		} while (false);
+
+		if (bSelfHu) {
+			bSelfHu = checkYiDuiDaoDi();
+		}
+	}
+
+	return bSelfHu;
 }
 
 bool NJMJPlayerCard::isHaveCards(VEC_CARD vCards) {

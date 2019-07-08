@@ -157,6 +157,7 @@ public:
 	uint32_t getLBTCnt() { return m_nLeiBaTaCnt; }
 	bool checkBaoGuang(uint8_t& nIdx);
 	bool checkHuGuang(uint8_t& nIdx);
+	bool checkGuang(uint8_t nIdx);
 protected:
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime);

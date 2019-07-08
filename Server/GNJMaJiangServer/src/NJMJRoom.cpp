@@ -613,7 +613,7 @@ void NJMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 
 	// check hu .
 	uint8_t nJiang = 0;
-	if (pMJCard->isHoldCardCanHu(nJiang, pPlayer->haveGangFlag() || pPlayer->haveFlag(IMJPlayer::eMJActFlag_BuHua)))
+	if (pMJCard->isHoldCardCanHu(nJiang))
 	{
 		Json::Value jsAct;
 		jsAct["act"] = eMJAct_Hu;
@@ -958,6 +958,22 @@ bool NJMJRoom::checkBaoGuang(uint8_t& nIdx) {
 bool NJMJRoom::checkHuGuang(uint8_t& nIdx) {
 	nIdx = m_cCheckHuCard.m_nIdx;
 
+	if ((uint8_t)-1 == nIdx) {
+		return true;
+	}
+
+	if (getGuang()) {
+		auto pPlayer = (NJMJPlayer*)getPlayerByIdx(nIdx);
+		if (pPlayer && pPlayer->canBackGain(getGuang())) {
+			return false;
+		}
+		return true;
+	}
+
+	return false;
+}
+
+bool NJMJRoom::checkGuang(uint8_t nIdx) {
 	if ((uint8_t)-1 == nIdx) {
 		return true;
 	}
