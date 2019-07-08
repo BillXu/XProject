@@ -416,6 +416,7 @@ bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 		uint32_t nDayTime = jsReqContent["dayTime"].asUInt();
 
 		iterClub->second->changeVip(nVipLevel, nDayTime);
+		jsResult["ret"] = 0;
 		return true;
 	}
 
