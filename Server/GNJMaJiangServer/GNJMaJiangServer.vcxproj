@@ -91,6 +91,7 @@
     <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJServer.h" />
     <ClInclude Include="src\NJMJFanxingChecker.h" />
+    <ClInclude Include="src\NJMJFanxingDiHu.h" />
     <ClInclude Include="src\NJMJPlayer.h" />
     <ClInclude Include="src\NJMJPlayerCard.h" />
     <ClInclude Include="src\NJMJPoker.h" />
@@ -106,6 +107,8 @@
     <ClCompile Include="src\MJPrivateRoom.cpp" />
     <ClCompile Include="src\MJRoomManager.cpp" />
     <ClCompile Include="src\MJServer.cpp" />
+    <ClCompile Include="src\NJMJFanxingChecker.cpp" />
+    <ClCompile Include="src\NJMJFanxingDiHu.cpp" />
     <ClCompile Include="src\NJMJPlayer.cpp" />
     <ClCompile Include="src\NJMJPlayerCard.cpp" />
     <ClCompile Include="src\NJMJPoker.cpp" />

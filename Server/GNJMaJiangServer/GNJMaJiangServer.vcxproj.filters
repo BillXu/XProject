@@ -63,6 +63,9 @@
     <ClInclude Include="src\NJMJFanxingChecker.h">
       <Filter>src\NJMJ\Fanxing</Filter>
     </ClInclude>
+    <ClInclude Include="src\NJMJFanxingDiHu.h">
+      <Filter>src\NJMJ\Fanxing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -88,6 +91,12 @@
     </ClCompile>
     <ClCompile Include="src\NJMJPlayer.cpp">
       <Filter>src\NJMJ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NJMJFanxingChecker.cpp">
+      <Filter>src\NJMJ\Fanxing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NJMJFanxingDiHu.cpp">
+      <Filter>src\NJMJ\Fanxing</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
