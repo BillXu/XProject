@@ -11,6 +11,7 @@
 void NJMJPlayerCard::reset() {
 	MJPlayerCard::reset();
 	m_nHuCard = 0;
+	clearTing();
 }
 
 //bool NJMJPlayerCard::canHuWithCard(uint8_t nCard, bool bNormal) {
@@ -85,20 +86,6 @@ bool NJMJPlayerCard::canHuWitCard(uint8_t nCard) {
 	return bSelfHu;
 }
 
-void NJMJPlayerCard::onDoHu(uint16_t nInvokerIdx, uint8_t nHuCard, bool isInvokerHaveGangFlag) {
-	/*m_nDianPaoIdx = nInvokerIdx;
-	onMoCard(nHuCard);
-	uint8_t nJiang = 0;
-	if (!MJPlayerCard::isHoldCardCanHu(nJiang))
-	{
-		return;
-		LOGFMTE("you can not hu , why do hu ?");
-	}
-	m_nJIang = nJiang;*/
-	//TODO
-	return;
-}
-
 bool NJMJPlayerCard::isHoldCardCanHu(uint8_t& nJiang) {
 	//TODO
 	uint8_t nBaoIdx = -1;
@@ -142,6 +129,20 @@ bool NJMJPlayerCard::isHoldCardCanHu(uint8_t& nJiang) {
 	}
 
 	return bSelfHu;
+}
+
+void NJMJPlayerCard::onDoHu(uint16_t nInvokerIdx, uint8_t nHuCard, bool isInvokerHaveGangFlag) {
+	/*m_nDianPaoIdx = nInvokerIdx;
+	onMoCard(nHuCard);
+	uint8_t nJiang = 0;
+	if (!MJPlayerCard::isHoldCardCanHu(nJiang))
+	{
+	return;
+	LOGFMTE("you can not hu , why do hu ?");
+	}
+	m_nJIang = nJiang;*/
+	//TODO
+	return;
 }
 
 bool NJMJPlayerCard::isHaveCards(VEC_CARD vCards) {
@@ -251,8 +252,7 @@ bool NJMJPlayerCard::checkDuiDuiHu() {
 }
 
 bool NJMJPlayerCard::checkQiDui() {
-	Fanxing7Dui checker;
-	return checker.checkFanxing(this, nullptr, 0, nullptr);
+	return m_b7Pair;
 }
 
 uint8_t NJMJPlayerCard::checkAnKe(uint8_t nHuaCnt) {

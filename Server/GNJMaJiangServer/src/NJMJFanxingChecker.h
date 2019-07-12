@@ -1,25 +1,24 @@
 #pragma once
 #include "FanxingChecker.h"
-#include "Fanxing7Dui.h"
 #include "FanxingDuiDuiHu.h"
 #include "FanxingQiangGang.h"
 #include "FanxingQingYiSe.h"
 #include "FanxingTianHu.h"
 #include "FanxingHunYiSe.h"
-#include "FanxingDiHu.h"
+#include "NJMJFanxingDiHu.h"
 #include "FanxingQuanQiuDuDiao.h"
+struct NJMJRoom::stSortFanInformation;
 class NJMJFanxingChecker
 	:public FanxingChecker
 {
 public:
 	void init() {
-		addFanxing(new Fanxing7Dui());
 		addFanxing(new FanxingDuiDuiHu());
 		addFanxing(new FanxingQiangGang());
 		addFanxing(new FanxingQingYiSe());
 		addFanxing(new FanxingTianHu());
 		addFanxing(new FanxingHunYiSe());
-		addFanxing(new FanxingDiHu());
+		addFanxing(new NJMJFanxingDiHu());
 		addFanxing(new FanxingQuanQiuDuDiao());
 	}
 
@@ -30,7 +29,8 @@ public:
 		return false;
 	}
 
-	void checkFanxing(std::vector<eFanxingType>& vFanxing, IMJPlayer* pPlayer, uint8_t nInvokerIdx, IMJRoom* pmjRoom)override {
+	void checkFanxing(IMJPlayer* pPlayer, uint8_t nInvokerIdx, NJMJRoom::stSortFanInformation& stInformation);
+	/*{
 		if (checkFanxing(eFanxing_TianHu, pPlayer, nInvokerIdx, pmjRoom)) {
 			vFanxing.push_back(eFanxing_TianHu);
 		}
@@ -74,7 +74,7 @@ public:
 		{
 			vFanxing.push_back(eFanxing_PingHu);
 		}
-	}
+	}*/
 
 protected:
 	void eraseVectorOfAll(uint8_t p, std::vector<eFanxingType>& typeVec) {
@@ -85,4 +85,6 @@ protected:
 			it = find(typeVec.begin(), typeVec.end(), p);
 		}
 	}
+
+	void sortHuHuaCnt(uint32_t& nFanCnt, std::vector<eFanxingType>& vFanxing);
 };

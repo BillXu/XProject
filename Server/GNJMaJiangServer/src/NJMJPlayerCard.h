@@ -17,16 +17,24 @@ public:
 
 	uint8_t getHoldCardCnt();
 
-	uint8_t getHuaCntWithoutHuTypeHuaCnt();
+	uint8_t getHuaCntWithoutHuTypeHuaCnt(std::vector<eFanxingType>& vFanxing, bool isKuaiZhaoHu = false);
 
 	bool isSiLianFeng();
 	bool isZiDaAnGang(uint8_t nCard);
 	bool getWaiBaoIdx(uint8_t& nBaoIdx, bool isZiMo = false);
 	bool getNormalBaoIdx(uint8_t& nBaoIdx, bool isZiMo = false);
+	bool checkKuaiZhaoHu(uint8_t& nBaoIdx, std::vector<eFanxingType>& vFanxing);
+	bool checkKuaiZhaoZiMo(uint8_t& nBaoIdx, std::vector<eFanxingType>& vFanxing);
+	bool checkQiDui(std::vector<eFanxingType>& vFanxing);
+	bool checkCanHuOnlyOneCard(std::vector<eFanxingType>& vFanxing);
+	bool isTing() { return m_bTing; }
+	void signTing() { m_bTing = true; }
+	void clearTing() { m_bTing = false; }
+
+protected:
 	bool isKuaiZhaoHu(uint8_t nCard, uint8_t& nBaoIdx);
 	bool isKuaiZhaoZiMo(uint8_t& nBaoIdx);
 
-protected:
 	bool checkDaHu();
 	bool eraseVector(uint8_t p, VEC_CARD& typeVec);
 	bool checkHunYiSe();
@@ -45,5 +53,7 @@ protected:
 
 protected:
 	uint8_t m_nHuCard;
+
+	bool m_bTing;
 
 };

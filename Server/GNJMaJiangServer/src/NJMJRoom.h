@@ -104,6 +104,30 @@ public:
 			m_nActType = nActType;
 		}
 	};
+
+	struct stSortFanInformation
+	{
+	public:
+		bool m_bWaiBao = false;
+		bool m_bBaoPai = false;
+		uint8_t m_nBaoIdx = -1;
+		uint32_t m_nHuHuaCnt = 0;
+		uint32_t m_nHoldHuaCnt = 0;
+		std::vector<eFanxingType> m_vFanxing;
+
+		stSortFanInformation() {
+			reset();
+		}
+
+		void reset() {
+			m_bWaiBao = false;
+			m_bBaoPai = false;
+			m_nBaoIdx = -1;
+			m_nHuHuaCnt = 0;
+			m_nHoldHuaCnt = 0;
+			m_vFanxing.clear();
+		}
+	};
 public:
 	bool init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)override;
 	IGamePlayer* createGamePlayer()override;
