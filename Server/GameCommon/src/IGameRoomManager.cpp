@@ -686,11 +686,11 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			}
 			auto isRoomOwnerPay = (nPayType == ePayType_RoomOwner);
 #ifndef _DEBUG
-			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
+			/*if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
 			{
 				nRet = 2;
 				break;
-			}
+			}*/
 #endif // _DEBUG
 
 			auto nDiamondNeed = getDiamondNeed(nRoomType,nLevel, (ePayRoomCardType)nPayType,jsUserData["seatCnt"].asUInt() );
