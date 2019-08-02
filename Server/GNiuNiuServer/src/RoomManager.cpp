@@ -17,7 +17,7 @@ uint16_t RoomManager::getDiamondNeed(uint8_t nGameType, uint8_t nLevel,ePayRoomC
 		return 0;
 	}
 #ifdef _DEBUG
-	//return 0;
+	return 0;
 #endif // _DEBUG
 
 	if (nLevel >= 3)

@@ -114,7 +114,7 @@ void NNRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,ui
 		return;
 	}
 
-	if (nVisitorSessionID == pPlayer->getSessionID())
+	if ( 1 || nVisitorSessionID == pPlayer->getSessionID())
 	{
 		jsPlayerInfo["lastOffset"] = ((NNPlayer*)pPlayer)->getLastOffset();
 		jsPlayerInfo["canTuiZhuang"] = ((NNPlayer*)pPlayer)->getRobotBankerFailedTimes() >= 3;
@@ -554,6 +554,13 @@ void NNRoom::doDistributeCard(uint8_t nCardCnt)
 		playerCard->toJson(jsHoldCards);
 		jsPlayer["idx"] = nIdx;
 		jsPlayer["cards"] = jsHoldCards;
+		if ( nCardCnt > 1 )
+		{
+			jsPlayer["lastOffset"] = pPlayer->getLastOffset();
+			jsPlayer["canTuiZhuang"] = pPlayer->getRobotBankerFailedTimes() >= 3 ? 1 : 0;
+			jsPlayer["isLastTuiZhu"] = pPlayer->isLastTuiZhu() ? 1 : 0;
+		}
+
 		jsVecPlayers[jsVecPlayers.size()] = jsPlayer;
 	}
 

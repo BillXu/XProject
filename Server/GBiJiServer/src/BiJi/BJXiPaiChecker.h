@@ -98,6 +98,10 @@ public:
 			}
 			std::sort(vTemp.begin(),vTemp.end());
 			uint8_t nGroupMin = ((vTemp.front() == 1 && nIdx == 2) ? 12 : vTemp.front());
+			if ((vTemp.front() == 1 && nIdx == 2) && vTemp.back() == 3 )
+			{
+				nGroupMin = 1;
+			}
 
 			if ( (0 != nLastGroupMax) && nGroupMin != ( nLastGroupMax + 1 ) )
 			{

@@ -31,8 +31,8 @@ public:
 		Niu_TongHuaNiu,///
 		Niu_Hulu,///
         Niu_FiveFlower,
-		Niu_FiveSmall,
 		Niu_Boom,
+		Niu_FiveSmall,
 		Niu_TongHuaShun, ///
 		Niu_Max,
 	};
