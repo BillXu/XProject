@@ -353,3 +353,41 @@ bool NJMJPlayerCard::checkYiDuiDaoDi() {
 	}
 	return true;
 }
+
+void NJMJPlayerCard::getNormalHuType(std::vector<eFanxingType>& vFanxing) {
+	if (checkTianHu()) {
+		vFanxing.push_back(eFanxing_TianHu);
+	}
+	else if (checkDiHu()) {
+		vFanxing.push_back(eFanxing_DiHu);
+	}
+
+	if (checkQiDui(vFanxing) == false) {
+		if (checkDuiDuiHu()) {
+			vFanxing.push_back(eFanxing_DuiDuiHu);
+		}
+
+		if (checkQuanQiuDuDiao()) {
+			vFanxing.push_back(eFanxing_QuanQiuDuDiao);
+		}
+	}
+
+	if (checkQingYiSe()) {
+		vFanxing.push_back(eFanxing_QingYiSe);
+	}
+	else if (checkHunYiSe()) {
+		vFanxing.push_back(eFanxing_HunYiSe);
+	}
+
+	if (checkMenQing()) {
+		vFanxing.push_back(eFanxing_MengQing);
+	}
+
+	if (checkYaJue()) {
+		vFanxing.push_back(eFanxing_YaJue);
+	}
+
+	if (checkWuHuaGuo(vFanxing.size())) {
+		vFanxing.push_back(eFanxing_WuHuaGuo);
+	}
+}

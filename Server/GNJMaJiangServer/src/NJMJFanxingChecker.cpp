@@ -18,7 +18,32 @@ void NJMJFanxingChecker::checkFanxing(IMJPlayer* pPlayer, uint8_t nInvokerIdx, N
 	}
 	else {
 		//TODO
-		ss
+		if (pCard->getWaiBaoIdx(stInformation.m_nBaoIdx, bZiMo)) {
+			stInformation.m_bWaiBao = true;
+		}
+		else if (pCard->getNormalBaoIdx(stInformation.m_nBaoIdx, bZiMo)) {
+			stInformation.m_bBaoPai = true;
+		}
+
+		pCard->getNormalHuType(stInformation.m_vFanxing);
+		/*auto pRoom = (NJMJRoom*)pPlayer->getRoom();
+
+		if (checkFanxing(eFanxing_TianHu, pPlayer, nInvokerIdx, pRoom)) {
+			stInformation.m_vFanxing.push_back(eFanxing_TianHu);
+		}
+		else if (checkFanxing(eFanxing_DiHu, pPlayer, nInvokerIdx, pRoom)) {
+			stInformation.m_vFanxing.push_back(eFanxing_DiHu);
+		}
+		
+		if (pCard->checkQiDui(stInformation.m_vFanxing) == false) {
+			if (checkFanxing(eFanxing_DuiDuiHu, pPlayer, nInvokerIdx, pRoom)) {
+				stInformation.m_vFanxing.push_back(eFanxing_DuiDuiHu);
+			}
+
+			if (checkFanxing(eFanxing_QuanQiuDuDiao, pPlayer, nInvokerIdx, pRoom)) {
+				stInformation.m_vFanxing.push_back(eFanxing_QuanQiuDuDiao);
+			}
+		}*/
 	}
 
 	stInformation.m_nHoldHuaCnt = pCard->getHuaCntWithoutHuTypeHuaCnt(stInformation.m_vFanxing, bKuaiZhaoHu);

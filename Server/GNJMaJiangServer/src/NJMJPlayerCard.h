@@ -31,6 +31,8 @@ public:
 	void signTing() { m_bTing = true; }
 	void clearTing() { m_bTing = false; }
 
+	void getNormalHuType(std::vector<eFanxingType>& vFanxing);
+
 protected:
 	bool isKuaiZhaoHu(uint8_t nCard, uint8_t& nBaoIdx);
 	bool isKuaiZhaoZiMo(uint8_t& nBaoIdx);
@@ -42,9 +44,11 @@ protected:
 	bool checkDuiDuiHu();
 	bool checkQiDui();
 	bool checkMenQing();
-	bool checkWuHuaGuo();
+	bool checkWuHuaGuo(bool isDaHu = false);
 	bool checkTianHu();
 	bool checkDiHu();
+	bool checkYaJue();
+	bool checkQuanQiuDuDiao();
 	bool checkYiDuiDaoDi();
 
 	//update by haodi 新增检查暗刻方法
