@@ -73,6 +73,6 @@ private:
 	uint16_t m_nBottomTimes;
 
 	uint16_t m_nLastNiuNiuIdx;
-
+	int16_t m_nLastBankerIdx;
 	CNiuNiuPoker m_tPoker;
 };

@@ -100,7 +100,7 @@ public:
 		uint8_t nSingleType = 0;
 		for (auto& ref : vecCards)
 		{
-			if ( BJ_PARSE_VALUE(ref) == nSingleValue)
+			if ( BJ_PARSE_VALUE(ref) == nSingleValue || ( BJ_PARSE_VALUE(ref) == 1 && nSingleValue == 14 ) )
 			{
 				nSingleType = BJ_PARSE_TYPE(ref);
 				break;

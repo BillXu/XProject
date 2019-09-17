@@ -58,10 +58,10 @@ void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 
 uint8_t BJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-	if (  isRoomStarted() )
-	{
-		return 7;
-	}
+	//if (  isRoomStarted() )
+	//{
+	//	return 7;
+	//}
 
 	return IPrivateRoom::checkPlayerCanEnter(pEnterRoomPlayer);
 }

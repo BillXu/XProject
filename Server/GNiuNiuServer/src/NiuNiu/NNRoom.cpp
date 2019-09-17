@@ -27,6 +27,7 @@ bool NNRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoom
 	m_nLastNiuNiuIdx = -1;
 	m_nBankerIdx = -1;
 	m_nBottomTimes = 1;
+	m_nLastBankerIdx = -1;
 	m_eDecideBankerType = (eDecideBankerType)vJsOpts["bankType"].asUInt();
 	m_eResultType = vJsOpts["fanBei"].asUInt();
 	
@@ -234,6 +235,7 @@ void NNRoom::onGameEnd()
 
 	if ( eDecideBank_NoNiuLeaveBanker == m_eDecideBankerType && pBanker )
 	{
+		m_nLastBankerIdx = m_nBankerIdx;
 		m_nBankerIdx = pBanker->getPlayerCard()->getType() == CNiuNiuPeerCard::Niu_None ? -1 : m_nBankerIdx;
 	}
 
@@ -389,9 +391,11 @@ uint8_t NNRoom::doProduceNewBanker()
 		if ( vCandinates.empty())
 		{
 			LOGFMTE("why look card robot banker candinates is empty room id = %u",getRoomID() );
+			m_nLastBankerIdx = m_nBankerIdx;
 			m_nBankerIdx = -1;
 			break;
 		}
+		m_nLastBankerIdx = m_nBankerIdx;
 		m_nBankerIdx = vCandinates[rand()% vCandinates.size()];
 		// decide robot banker failed
 		for (auto nIdx = 0; nIdx < nSeatCnt && nBiggistRobotTimes > 0 ; ++nIdx )
@@ -431,6 +435,7 @@ uint8_t NNRoom::doProduceNewBanker()
 	
 	if ( ( m_eDecideBankerType != eDecideBank_LookCardThenRobot && m_eDecideBankerType != eDecideBank_NoNiuLeaveBanker ) || m_nBankerIdx == (decltype(m_nBankerIdx))-1 )
 	{
+		m_nLastBankerIdx = m_nBankerIdx;
 		m_nBankerIdx = vCandinates[rand() % vCandinates.size()];
 	}
 
@@ -501,8 +506,13 @@ uint8_t NNRoom::onPlayerDoBet( uint16_t nIdx, uint8_t nBetTimes )
 		return 4;
 	}
 
+	if ( nBetTimes > (getMiniBetTimes() * 2) && (p->getIdx() == m_nLastBankerIdx || p->getLastOffset() <= 0 || p->isLastTuiZhu()))
+	{
+		return 5;
+	}
+
 	nBetTimes = p->doBet(nBetTimes);
-	p->setLastTuiZhu( nBetTimes > ( getMiniBetTimes() * 2 ) );
+	p->setLastTuiZhu( nBetTimes > (getMiniBetTimes() * 2) );
 
 	Json::Value jsRoomBet;
 	jsRoomBet["idx"] = nIdx;
