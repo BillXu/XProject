@@ -4,6 +4,30 @@ class SZMJPlayerCard
 	:public MJPlayerCard
 {
 public:
+	struct stSZHuDetail
+		:public stHuDetail
+	{
+	public:
+		uint8_t getMingKe() {
+			return m_nMingKe;
+		}
+
+		uint8_t getAnKe() {
+			return m_nAnKe;
+		}
+
+		void addAnKe(uint8_t nCnt = 1) {
+			m_nAnKe += nCnt;
+		}
+
+		void addMingKe(uint8_t nCnt = 1) {
+			m_nMingKe += nCnt;
+		}
+	protected:
+		uint8_t m_nAnKe = 0;
+		uint8_t m_nMingKe = 0;
+	};
+public:
 	void reset() override;
 	bool canEatCard(uint8_t nCard, uint8_t nWith1 = 0, uint8_t nWith2 = 0) override { return false; }
 	bool canHuWitCard(uint8_t nCard)override;
@@ -21,7 +45,7 @@ public:
 
 	bool checkDaMenQing();
 	bool checkXiaoMenQing();
-	uint8_t getHuaCntWithoutHuTypeHuaCnt();
+	uint8_t getHuaCntWithoutHuTypeHuaCnt(stHuDetail* pHuDetail = nullptr);
 
 	void setRuleMode(uint8_t nRuleMode);
 
@@ -38,7 +62,7 @@ protected:
 	uint8_t getDianPaoHuHuaRequire();
 
 	//update by haodi 新增检查暗刻方法
-	uint8_t checkAnKe(uint8_t nHuaCnt);//算花使用，返回最终得到的花数，自摸请设置胡牌为0
+	uint8_t checkAnKe(uint8_t nHuaCnt, stHuDetail* pHuDetail = nullptr);//算花使用，返回最终得到的花数，自摸请设置胡牌为0
 	//uint8_t checkAnKe(uint8_t nHuCard);//单纯检测暗刻数量，返回手中拥有暗刻数量,自摸请设置胡牌为0
 
 protected:

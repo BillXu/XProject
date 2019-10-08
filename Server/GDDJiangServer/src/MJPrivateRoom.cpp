@@ -46,7 +46,11 @@ bool MJPrivateRoom::canStartGame(IGameRoom* pRoom) {
 
 void MJPrivateRoom::onWillStartGame(IGameRoom* pRoom) {
 	if (eState_WaitStart == m_nPrivateRoomState) {
-		((DDMJRoom*)pRoom)->doRandomChangeSeat();
+		auto pGameOpts = std::dynamic_pointer_cast<DDMJOpts>(getOpts());
+		if (pGameOpts->isRandomChangeSeat()) {
+			((DDMJRoom*)pRoom)->doRandomChangeSeat();
+		}
+		//((DDMJRoom*)pRoom)->doRandomChangeSeat();
 	}
 	IPrivateRoom::onWillStartGame(pRoom);
 }

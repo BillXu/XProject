@@ -283,7 +283,7 @@ bool SDMJPlayerCard::onChuCard(uint8_t nChuCard) {
 	return bChuResult;
 }
 
-uint8_t SDMJPlayerCard::getHuaCntWithoutHuTypeHuaCnt(bool checkDMQ) {
+uint8_t SDMJPlayerCard::getHuaCntWithoutHuTypeHuaCnt(bool checkDMQ, stHuDetail* pHuDetail) {
 	VEC_CARD vCard, vHuaCard;
 	getBuHuaCard(vHuaCard);
 	uint8_t nHuaCnt = vHuaCard.size();
@@ -331,7 +331,7 @@ uint8_t SDMJPlayerCard::getHuaCntWithoutHuTypeHuaCnt(bool checkDMQ) {
 
 	// check feng an ke 
 	//update by haodi
-	nHuaCnt = checkAnKe(nHuaCnt, checkDMQ);
+	nHuaCnt = checkAnKe(nHuaCnt, checkDMQ, pHuDetail);
 
 	return nHuaCnt;
 }
@@ -539,7 +539,8 @@ bool SDMJPlayerCard::checkHaoHuaQiDui() {
 	return false;
 }
 
-uint8_t SDMJPlayerCard::checkAnKe(uint8_t nHuaCnt, bool checkDMQ) {
+uint8_t SDMJPlayerCard::checkAnKe(uint8_t nHuaCnt, bool checkDMQ, stHuDetail* pHuDetail) {
+	auto sdHuDetail = dynamic_cast<stSDHuDetail*>(pHuDetail);
 	//VEC_CARD vAllCard, vTemp, vFeng;
 	//uint8_t daCnt;
 	//每次验证清空
@@ -613,11 +614,17 @@ uint8_t SDMJPlayerCard::checkAnKe(uint8_t nHuaCnt, bool checkDMQ) {
 			if (nFengJiang != nFengCard) {
 				if (nFengCard == getHuCard())
 				{
+					if (sdHuDetail) {
+						sdHuDetail->addMingKe();
+					}
 					nHuaCnt += 1;
 					m_vFengKe.push_back(eFanXing_SD_FengMingKe);
 				}
 				else
 				{
+					if (sdHuDetail) {
+						sdHuDetail->addAnKe();
+					}
 					nHuaCnt += 2;
 					m_vFengKe.push_back(eFanXing_SD_FengAnKe);
 				}
@@ -628,11 +635,17 @@ uint8_t SDMJPlayerCard::checkAnKe(uint8_t nHuaCnt, bool checkDMQ) {
 		{
 			if (nFengCard == getHuCard())
 			{
+				if (sdHuDetail) {
+					sdHuDetail->addMingKe();
+				}
 				nHuaCnt += 1;
 				m_vFengKe.push_back(eFanXing_SD_FengMingKe);
 			}
 			else
 			{
+				if (sdHuDetail) {
+					sdHuDetail->addAnKe();
+				}
 				nHuaCnt += 2;
 				m_vFengKe.push_back(eFanXing_SD_FengAnKe);
 			}
@@ -642,22 +655,37 @@ uint8_t SDMJPlayerCard::checkAnKe(uint8_t nHuaCnt, bool checkDMQ) {
 			if (nFengJiang == nFengCard) {
 				if (nFengCard == getHuCard())
 				{
+					if (sdHuDetail) {
+						sdHuDetail->addMingKe();
+					}
 					nHuaCnt += 1;
 					m_vFengKe.push_back(eFanXing_SD_FengMingKe);
 				}
 				else
 				{
+					if (sdHuDetail) {
+						sdHuDetail->addAnKe();
+					}
 					nHuaCnt += 2;
 					m_vFengKe.push_back(eFanXing_SD_FengAnKe);
 				}
 			}
 			else {
 				if (nFengCard == getHuCard()) {
+					if (sdHuDetail) {
+						sdHuDetail->addMingKe();
+					}
+					if (sdHuDetail) {
+						sdHuDetail->addAnKe();
+					}
 					nHuaCnt += 3;
 					m_vFengKe.push_back(eFanXing_SD_FengMingKe);
 					m_vFengKe.push_back(eFanXing_SD_FengAnKe);
 				}
 				else {
+					if (sdHuDetail) {
+						sdHuDetail->addAnKe(2);
+					}
 					nHuaCnt += 4;
 					m_vFengKe.push_back(eFanXing_SD_FengAnKe);
 					m_vFengKe.push_back(eFanXing_SD_FengAnKe);

@@ -306,13 +306,16 @@ void SZMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		uint32_t nFanCnt = 0;
 		uint16_t nHoldHuaCnt = 0;
 		uint16_t nHuHuaCnt = getBaseScore();
+		SZMJPlayerCard::stSZHuDetail stHuDetail;
 		auto pZiMoPlayerCard = (SZMJPlayerCard*)pZiMoPlayer->getPlayerCard();
 		pZiMoPlayerCard->setHuCard(0);
 		m_cFanxingChecker.checkFanxing(vType, pZiMoPlayer, nInvokeIdx, this);
 		sortFanxing2FanCnt(vType, nHuHuaCnt);
 		pZiMoPlayer->setBestCards(nHuHuaCnt);
 		if (std::find(vType.begin(), vType.end(), eFanxing_DaMenQing) == vType.end()) {
-			nHoldHuaCnt = pZiMoPlayerCard->getHuaCntWithoutHuTypeHuaCnt();
+			nHoldHuaCnt = pZiMoPlayerCard->getHuaCntWithoutHuTypeHuaCnt(&stHuDetail);
+			jsDetail["mingKe"] = stHuDetail.getMingKe();
+			jsDetail["anKe"] = stHuDetail.getAnKe();
 		}
 		nFanCnt = nHoldHuaCnt + nHuHuaCnt;
 		if (m_bFanBei) {
@@ -397,6 +400,7 @@ void SZMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			jsHuPlayer["idx"] = nHuIdx;
 			pHuPlayer->setState(eRoomPeer_AlreadyHu);
 
+			SZMJPlayerCard::stSZHuDetail stHuDetail;
 			auto pHuPlayerCard = (SZMJPlayerCard*)pHuPlayer->getPlayerCard();
 			pHuPlayerCard->setHuCard(nCard);
 
@@ -408,9 +412,13 @@ void SZMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			m_cFanxingChecker.checkFanxing(vType, pHuPlayer, nInvokeIdx, this);
 			sortFanxing2FanCnt(vType, nHuHuaCnt);
 			pHuPlayer->setBestCards(nHuHuaCnt);
+
 			if (std::find(vType.begin(), vType.end(), eFanxing_DaMenQing) == vType.end()) {
-				nHoldHuaCnt = pHuPlayerCard->getHuaCntWithoutHuTypeHuaCnt();
+				nHoldHuaCnt = pHuPlayerCard->getHuaCntWithoutHuTypeHuaCnt(&stHuDetail);
+				jsHuPlayer["mingKe"] = stHuDetail.getMingKe();
+				jsHuPlayer["anKe"] = stHuDetail.getAnKe();
 			}
+
 			nFanCnt = nHoldHuaCnt + nHuHuaCnt;
 			if (m_bFanBei) {
 				nFanCnt *= 2;
@@ -436,8 +444,8 @@ void SZMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		jsDetail["huPlayers"] = jsHuPlayers;
 	}
 	jsMsg["detail"] = jsDetail;
-	st.jsHuMsg = jsMsg;
 	sendRoomMsg(jsMsg, MSG_ROOM_MQMJ_PLAYER_HU);
+	st.jsHuMsg = jsMsg;
 	addSettle(st);
 }
 

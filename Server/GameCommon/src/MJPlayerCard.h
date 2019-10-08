@@ -15,6 +15,10 @@ public:
 		uint8_t nInvokerIdx = 0 ;
 		eMJActType eAct = eMJAct_Max ;
 	};
+	struct stHuDetail
+	{
+		virtual void a() {}
+	};
 	typedef std::vector<stInvokeActInfo> VEC_INVOKE_ACT_INFO;
 public:
 	virtual uint8_t getBaiDaCard() { return 0;  }  // means no bai Da ;

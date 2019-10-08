@@ -749,6 +749,9 @@ void MJPlayerCard::addHoldCard( uint8_t nCard )
 	else if (nType == eCT_Jian) {
 		nMaxValue = 3;
 	}
+	else if (nType == eCT_Hua) {
+		nMaxValue = 15;
+	}
 	Assert(nValue >= 1 && nValue <= nMaxValue, "invalid card type");
 
 	VEC_CARD& vec = m_vCards[nType];
