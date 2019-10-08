@@ -17,6 +17,8 @@ public:
 	uint16_t getBestFan() { return m_nBestFan; }
 	void addExtraTime(float fTime);
 	float getExtraTime() { return m_nExtraTime; }
+
+	bool confirmNextCardNot(uint8_t& nCard);
 protected:
 	MQMJPlayerCard m_tPlayerCard;
 

@@ -13,7 +13,7 @@ public:
 		int32_t nOffsetPoints;
 		int32_t nInitPoints;
 		uint32_t nPlayTime;
-		stMember() { nOffsetPoints = 0; nInitPoints = 0; }
+		stMember() { nOffsetPoints = 0; nInitPoints = 0; nPlayTime = 0; }
 		int32_t getCurPoint() { return nInitPoints + nOffsetPoints; }
 		void decreasePlayTime() { nPlayTime -= 1; }
 		void updatePlayTime(uint32_t tPlayTime) { nPlayTime = tPlayTime; }
