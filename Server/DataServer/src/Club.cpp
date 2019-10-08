@@ -2749,7 +2749,7 @@ void Club::decreaseMemberPlayTime(uint32_t nMemberUID)
 
 void Club::updateMemberPlayTime(uint32_t nMemberUID, uint32_t nPlayTime) {
 	auto pMember = getMember(nMemberUID);
-	if (pMember && pMember->nPlayTime > 1) {
+	if (pMember) {
 		pMember->updatePlayTime(nPlayTime);
 		saveMemberUpdateToDB(pMember);
 	}
