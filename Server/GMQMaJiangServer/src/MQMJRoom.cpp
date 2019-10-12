@@ -713,6 +713,8 @@ void MQMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 }
 
 void MQMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
+	m_bTestWaitCyclone = false;
+
 	auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer) {
 		LOGFMTE("player idx = %u is null can not tell it wait act", nIdx);
@@ -758,6 +760,8 @@ void MQMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 			pMJCard->getHoldCardThatCanCyclone(vCards);
 			for (auto& ref : vCards)
 			{
+				m_bTestWaitCyclone = true;
+
 				Json::Value jsAct;
 				jsAct["act"] = eMJAct_Cyclone;
 				jsAct["cardNum"] = ref;
@@ -804,6 +808,7 @@ void MQMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 }
 
 bool MQMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
+	m_bTestWaitCyclone = false;
 	auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer) {
 		LOGFMTE("player idx = %u is null can not tell it wait act", nIdx);
@@ -830,6 +835,8 @@ bool MQMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
 			if (pMJCard->getHoldCardThatCanCyclone(vCards)) {
 				for (auto& ref : vCards)
 				{
+					m_bTestWaitCyclone = true;
+
 					Json::Value jsAct;
 					jsAct["act"] = eMJAct_Cyclone;
 					jsAct["cardNum"] = ref;

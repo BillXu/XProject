@@ -99,6 +99,8 @@ public:
 
 	void doRandomChangeSeat();
 	bool doChangeSeat(uint16_t nIdx, uint16_t nWithIdx);
+
+	bool testWaitCyclone() { return m_bTestWaitCyclone; }
 protected:
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime);
@@ -116,5 +118,8 @@ protected:
 	uint8_t m_nDice;
 	uint8_t m_nR7;
 	uint8_t m_nR15;
+
+	//test use may delete
+	bool m_bTestWaitCyclone = false;
 
 };

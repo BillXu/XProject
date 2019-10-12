@@ -201,6 +201,13 @@ public:
 
 		if (eMJAct_Pass == actType)
 		{
+			if (pRoom->testWaitCyclone()) {
+				Json::Value jsRet;
+				jsRet["ret"] = 2;
+				pRoom->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				return true;
+			}
+
 			m_isCanPass = false;
 			if (pRoom->needChu()) {
 				setStateDuringTime(100000000);
