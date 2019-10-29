@@ -401,7 +401,7 @@ enum eMsgType
 	// svr : { ret : 0 }
 	// ret : 0 success , 1 you are not in club ,4 you do not login , invalid player  ;
 	MSG_CLUB_SET_ROOM_OPTS,
-	// client : { clubID : 0 , opts : { }  }
+	// client : { clubID : 0 , opts : { } , (idx : 0) }
 	// svr : { ret :0 }
 	// ret : 0 success , 1 privilige too low ,4 you do not login , invalid player  ; .
 	// opts : create room opts ;
@@ -485,6 +485,24 @@ enum eMsgType
 	// svr : { type : 0, detail : { roomID : 123, clubID : 123, uid : 123 ... } }
 	// type : as defined
 	// detail : follow diffrent with type
+
+	TARGET_NEW_CLUB_MESSAGE = 2850, //新增命令号防冲突标记
+
+	MSG_CLUB_ADD_ROOM_OPTS,
+	// client : { clubID : 0 , opts : { }  }
+	// svr : { ret :0 }
+	// ret : 0 success , 1 privilige too low ,4 you do not login , invalid player  3 same opts, 2 opts out of range; .
+	// opts : create room opts ;
+
+	MSG_CLUB_ERASE_ROOM_OPTS,
+	// client : { clubID : 0 , idx = 0  }
+	// svr : { ret :0 }
+	// ret : 0 success , 1 privilige too low ,4 you do not login , invalid player  3 argument error, 4 erase failed; .
+	// opts : erase room opts ;
+
+	MSG_CLUB_DISMISS_ROOM,
+	// client : { clubID : 0, roomID : 0  }
+	// svr : { clubID : 0, roomID : 0, ret : 0 }
 
 	MSG_CLUB_MSG_END = 2900,
 
