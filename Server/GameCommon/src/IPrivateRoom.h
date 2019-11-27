@@ -69,6 +69,8 @@ protected:
 	ePayRoomCardType getPayType() { return m_nPayType; }
 	void doProcessWinerPayRoomCard();
 	bool isEnableClubPointRestrict() { return m_isEnablePointRestrict; }
+public:
+	static std::vector<uint32_t> s_vTempID; 
 protected:
 	IGameRoomManager* m_pRoomMgr;
 	uint32_t m_nOwnerUID;
@@ -96,8 +98,5 @@ protected:
 	GameRoom* m_pRoom;
 
 	CTimer m_tAutoDismissTimer;
-
-	std::vector<uint32_t> m_vTempID;
-
 	std::vector<uint32_t> m_vAAPayedPlayers;
 };

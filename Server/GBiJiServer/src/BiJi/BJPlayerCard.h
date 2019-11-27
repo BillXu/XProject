@@ -28,6 +28,7 @@ public:
 public:
 	BJPlayerCard();
 	void reset()override;
+	void clearGroup();
 	void addCompositCardNum(uint8_t nCardCompositNum)override;
 	const char* getNameString()override;
 	uint32_t getWeight()override;

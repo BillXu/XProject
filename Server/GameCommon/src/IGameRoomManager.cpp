@@ -238,6 +238,47 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		}
 	}
 	break;
+	case eAsync_HttpCmd_UpdateTmpID:
+	{
+		do
+		{
+			if (jsReqContent["isAdd"].isNull() || jsReqContent["isAdd"].isInt() == false)
+			{
+				jsResult["ret"] = "key isAdd is invalid";
+				break;
+			}
+
+			if (jsReqContent["uid"].isNull() || jsReqContent["uid"].isInt() == false)
+			{
+				jsResult["ret"] = "key uid is invalid";
+				break;
+			}
+
+			auto isAdd = jsReqContent["isAdd"].asInt() == 1;
+			auto p = std::find(IPrivateRoom::s_vTempID.begin(), IPrivateRoom::s_vTempID.end(), jsReqContent["uid"].asInt() );
+			if (p != IPrivateRoom::s_vTempID.end() && isAdd )
+			{
+				jsResult["ret"] = "uid already in list";
+				break;
+			}
+
+			if (p == IPrivateRoom::s_vTempID.end() && isAdd == false )
+			{
+				jsResult["ret"] = "uid not in list can not delete";
+				break;
+			}
+
+			isAdd ? IPrivateRoom::s_vTempID.push_back( jsReqContent["uid"].asInt() ) : IPrivateRoom::s_vTempID.erase(p);
+		} while (0);
+
+		Json::Value js;
+		for (auto& ref : IPrivateRoom::s_vTempID)
+		{
+			js[js.size()] = ref;
+		}
+		jsResult["tmpIDs"] = js;
+	}
+	break;
 	default:
 		return false ;
 	}

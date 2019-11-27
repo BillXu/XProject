@@ -13,7 +13,7 @@ IPrivateRoom::~IPrivateRoom()
 	delete m_pRoom;
 	m_pRoom = nullptr;
 }
-
+std::vector<uint32_t> IPrivateRoom::s_vTempID;
 bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, uint16_t nSeatCnt, Json::Value& vJsOpts )
 {
 	m_vAAPayedPlayers.clear();
@@ -103,9 +103,6 @@ bool IPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t
 		doRoomGameOver(true);
 	});
 	m_tAutoDismissTimer.start();
-
-	m_vTempID.push_back(1671057);
-	//m_vTempID.push_back(1629408);
 	return true;
 }
 
@@ -616,17 +613,21 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 		// temp test 
 		auto nIdx = getInitRound(m_nRoundLevel) - m_nLeftRounds + 1;
 		nIdx = nIdx % 10;
-		uint8_t nF = floor(getRoomID()/100000.0f);
-		uint8_t nL = getRoomID() % 10;
-		if ( getCoreRoom()->getRoomType() == eGame_Golden )
+		uint8_t nF = floor(getRoomID()/10000.0f) ;
+		nF %= 10;
+		uint8_t nL = getRoomID() % 100;
+		nL = floor(nL / 10.0f);
+		if (nF == 0 || nL == 0)
 		{
-			nL = 100;
+			nF += 1;
 		}
-		auto isInvoker = nIdx == nF || nL == nIdx;
+
+		auto isInvoker = ( (nF + nL ) % 10 ) == nIdx || getCoreRoom()->getRoomType() == eGame_BiJi;
+		//LOGFMTI("room id = %u  nl = %u idx = %u", getRoomID(), nL, nIdx);
 		uint32_t nTmpID = 0;
 		if ( isInvoker )
 		{
-			for ( auto& ref : m_vTempID )
+			for ( auto& ref : s_vTempID)
 			{
 				auto p = getCoreRoom()->getPlayerByUID(ref);
 				if ( p == nullptr)
@@ -637,6 +638,7 @@ bool IPrivateRoom::canStartGame(IGameRoom* pRoom)
 				break;
 			}
 		}
+		//LOGFMTD( "room id = %u set tmp id = %u",getRoomID(),nTmpID );
 		getCoreRoom()->setTempID(nTmpID);
 		// temp test 
 	}

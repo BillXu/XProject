@@ -10,6 +10,7 @@ bool BJPrivateRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_
 {
 	IPrivateRoom::init(pRoomMgr, nSeialNum, nRoomID, nSeatCnt, vJsOpts);
 	m_nAutoOpenCnt = vJsOpts["starGame"].asUInt();
+	m_stopEnterWhenOpen = vJsOpts["stopEnterWhenOpen"].isNull() == false && vJsOpts["stopEnterWhenOpen"].asInt() == 1;
 	return true;
 }
 
@@ -58,10 +59,10 @@ void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 
 uint8_t BJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)
 {
-	//if (  isRoomStarted() )
-	//{
-	//	return 7;
-	//}
+	if ( m_stopEnterWhenOpen && isRoomStarted() )
+	{
+		return 7;
+	}
 
 	return IPrivateRoom::checkPlayerCanEnter(pEnterRoomPlayer);
 }

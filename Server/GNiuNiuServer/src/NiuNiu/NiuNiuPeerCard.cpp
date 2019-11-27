@@ -133,7 +133,7 @@ void CNiuNiuPeerCard::reset()
 	m_nPoint = 0 ;
 	m_nGroupIdx = 10 ;
 	m_nWeight = 0 ;
-	
+	m_nCardsSendClientCnt = 0;
 }
 
 CNiuNiuPeerCard::NiuNiuType CNiuNiuPeerCard::getType()
@@ -153,9 +153,13 @@ void CNiuNiuPeerCard::toJson(Json::Value& js)
 		return;
 	}
 
-	for (auto& ref : vHolds)
+	auto cnt = m_nCardsSendClientCnt;
+	for ( auto& ref : vHolds )
 	{
-		js[js.size()] = ref;
+		if ( cnt-- > 0 )
+		{
+			js[js.size()] = ref;
+		}
 	}
 }
 
@@ -348,7 +352,7 @@ bool CNiuNiuPeerCard::checkFiveFlower(std::vector<CCard>& vHoldCards)
 
 	for ( CCard& nCard : vHoldCards)
 	{
-		if ( nCard.GetCardFaceNum() <= 10 )
+		if ( nCard.GetCardFaceNum() < 10 )
 		{
 			return false ;
 		}

@@ -45,12 +45,13 @@ public:
 	void reset() override ;
 	NiuNiuType getType();
 	uint8_t getPoint();
+	void distributeToClient(int cnt) { m_nCardsSendClientCnt += cnt; }
 #ifndef SERVER
     CNiuNiuPeerCard::CardGroup getCardGroup();
 #endif
     uint8_t getAddIdx(){return m_nAddIdx;}
 	uint8_t getHoldCardCnt() { return m_nAddIdx; }
-	void toJson( Json::Value& js );
+	void toJson( Json::Value& js);
 	CNiuNiuPeerCard& operator = (CNiuNiuPeerCard& pRight )
 	{
 		for( uint8_t nIdx = 0 ; nIdx < NIUNIU_HOLD_CARD_COUNT; ++nIdx )
@@ -114,6 +115,7 @@ protected:
 	std::vector<CCard> m_vHoldCards ;
 	uint8_t m_nAddIdx ;
 	uint8_t m_nBiggestCardIdx ;
+	uint8_t m_nCardsSendClientCnt; 
 
 	NiuNiuType m_eType ;
 	uint8_t m_nPoint ;

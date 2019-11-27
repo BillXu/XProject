@@ -13,4 +13,5 @@ public:
 	uint8_t checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer);
 protected:
 	uint8_t m_nAutoOpenCnt;
+	bool m_stopEnterWhenOpen;
 };

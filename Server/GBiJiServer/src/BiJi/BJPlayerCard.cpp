@@ -74,6 +74,15 @@ void BJPlayerCard::reset()
 	}
 }
 
+void BJPlayerCard::clearGroup()
+{
+	m_nCurGroupIdx = 0;
+	for (auto& ref : m_vGroups)
+	{
+		ref.reset();
+	}
+}
+
 void BJPlayerCard::addCompositCardNum(uint8_t nCardCompositNum)
 {
 	if ( m_vHoldCards.size() >= 9 )
