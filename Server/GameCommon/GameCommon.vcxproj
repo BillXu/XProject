@@ -89,6 +89,7 @@
     <ClCompile Include="src\DDZOpts.cpp" />
     <ClCompile Include="src\FXMJOpts.cpp" />
     <ClCompile Include="src\GameRoom.cpp" />
+    <ClCompile Include="src\GDOpts.cpp" />
     <ClCompile Include="src\GoldenOpts.cpp" />
     <ClCompile Include="src\IGameOpts.cpp" />
     <ClCompile Include="src\IGameRecorder.cpp" />
@@ -131,6 +132,7 @@
     <ClInclude Include="src\FanxingHaiDiLaoYue.h" />
     <ClInclude Include="src\FXMJOpts.h" />
     <ClInclude Include="src\GameRoom.h" />
+    <ClInclude Include="src\GDOpts.h" />
     <ClInclude Include="src\GoldenOpts.h" />
     <ClInclude Include="src\IFanxing.h" />
     <ClInclude Include="src\IGameOpts.h" />

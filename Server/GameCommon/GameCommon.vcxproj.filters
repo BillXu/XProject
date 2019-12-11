@@ -125,6 +125,9 @@
     <ClCompile Include="src\NJMJOpts.cpp">
       <Filter>src\Game\Opts\MJOpts</Filter>
     </ClCompile>
+    <ClCompile Include="src\GDOpts.cpp">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\IGameRecorder.h">
@@ -315,6 +318,9 @@
     </ClInclude>
     <ClInclude Include="src\NJMJOpts.h">
       <Filter>src\Game\Opts\MJOpts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDOpts.h">
+      <Filter>src\Game\Opts\PokerOpts</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

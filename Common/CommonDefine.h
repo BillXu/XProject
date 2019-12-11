@@ -104,6 +104,7 @@ enum eGameType
 	eGame_SDMJ,
 	eGame_YZMJ,
 	eGame_NJMJ,
+	eGame_GuanDan,
 	eGame_Max,
 };
 
@@ -147,6 +148,8 @@ enum eRoomState
 	eRoomState_JJ_DDZ_Ti_La_Chuai, 
 	eRoomState_JJ_DDZ_Chao_Zhuang,
 	eRoomState_DDZ_Double,
+	eRoomState_GD_PayTribute,
+	eRoomState_GD_BackTribute,
 
 	// above is new ;
 	eRoomState_None,
