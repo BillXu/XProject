@@ -16,6 +16,9 @@
     <Filter Include="src\TestMJ">
       <UniqueIdentifier>{3071387a-e0d0-43d6-842f-2e38a1665934}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NJMJ">
+      <UniqueIdentifier>{9323894e-09fd-4b54-ae71-203d1b4fe00e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MJRoomManager.h">
@@ -35,6 +38,18 @@
     </ClInclude>
     <ClInclude Include="src\TestMJPlayerCard.h">
       <Filter>src\TestMJ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NJMJ.h">
+      <Filter>src\NJMJ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NJPlayer.h">
+      <Filter>src\NJMJ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NJPlayerCard.h">
+      <Filter>src\NJMJ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OptsNJ.h">
+      <Filter>src\NJMJ</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +73,15 @@
     </ClCompile>
     <ClCompile Include="src\TestMJPlayerCard.cpp">
       <Filter>src\TestMJ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NJMJ.cpp">
+      <Filter>src\NJMJ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NJPlayer.cpp">
+      <Filter>src\NJMJ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NJPlayerCard.cpp">
+      <Filter>src\NJMJ</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

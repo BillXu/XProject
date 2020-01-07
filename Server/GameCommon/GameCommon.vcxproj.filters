@@ -30,6 +30,9 @@
     <Filter Include="src\PokerBase">
       <UniqueIdentifier>{0f1bc2ec-7f30-4a9c-af0c-8a4967ebadf6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Opts">
+      <UniqueIdentifier>{0db27f94-0538-4e0d-8f2a-0d20c308d7b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -177,6 +180,9 @@
     </ClInclude>
     <ClInclude Include="src\FanxingHaiDiLaoYue.h">
       <Filter>src\MJBase\Fanxing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IOpts.h">
+      <Filter>src\Opts</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

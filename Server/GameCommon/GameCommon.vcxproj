@@ -112,6 +112,7 @@
     <ClInclude Include="src\IGameRoomManager.h" />
     <ClInclude Include="src\IMJPlayerCard.h" />
     <ClInclude Include="src\IMJPoker.h" />
+    <ClInclude Include="src\IOpts.h" />
     <ClInclude Include="src\IPoker.h" />
     <ClInclude Include="src\IMJRoom.h" />
     <ClInclude Include="src\IGameRoomState.h" />

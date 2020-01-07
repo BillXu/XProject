@@ -590,7 +590,7 @@ bool IMJRoom::isAnyPlayerPengOrHuThisCard(uint8_t nInvokeIdx, uint8_t nCard)
 			return true;
 		}
 
-		if (((((IMJPlayer*)ref)->haveFlag(IMJPlayer::eMJActFlag_LouHu) == false) && pMJCard->canHuWitCard(nCard)))
+		if ( canPlayerHuWithCard((IMJPlayer*)ref,nCard,nInvokeIdx) )
 		{
 			return true;
 		}
@@ -694,10 +694,7 @@ bool IMJRoom::isAnyPlayerRobotGang(uint8_t nInvokeIdx, uint8_t nCard)
 		{
 			continue;
 		}
-
-		auto pMJCard = ((IMJPlayer*)ref)->getPlayerCard();
-		auto isLouHu = ((IMJPlayer*)ref)->haveFlag(IMJPlayer::eMJActFlag_LouHu);
-		if (( isLouHu == false) && pMJCard->canHuWitCard(nCard))
+		if (canPlayerHuWithCard((IMJPlayer*)ref, nCard, nInvokeIdx))
 		{
 			return true;
 		}
@@ -765,7 +762,25 @@ uint8_t IMJRoom::getNextActPlayerIdx(uint8_t nCurActIdx)
 
 bool IMJRoom::isGameOver()
 {
-	return !isCanGoOnMoPai();
+	if ( !isCanGoOnMoPai() )
+	{
+		return true;
+	}
+
+	for each (auto var in m_vPlayers )
+	{
+		if (var == nullptr)
+		{
+			continue;
+		}
+
+		if ( ((IMJPlayer*)var)->haveState( eRoomPeer_AlreadyHu ) )
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool IMJRoom::isCanGoOnMoPai()
@@ -809,6 +824,20 @@ void IMJRoom::sendRoomInfo(uint32_t nSessionID)
 	// send hold card
 }
 
+bool IMJRoom::canPlayerHuWithCard(IMJPlayer* p, uint8_t nCard, uint8_t nInvokerIdx)
+{
+	auto isLouHu = p->haveFlag(IMJPlayer::eMJActFlag_LouHu);
+	if ( isLouHu )
+	{
+		return false;
+	}
 
+	auto pMJCard = p->getPlayerCard();
+	if ( pMJCard->canHuWitCard(nCard) )
+	{
+		return true;
+	}
+	return false;
+}
 
 

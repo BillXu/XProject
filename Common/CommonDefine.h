@@ -82,6 +82,7 @@ enum eGameType
 	eGame_TestMJ,
 	eGame_Golden,
 	eGame_SCMJ,
+	eGame_NJMJ,
 	eGame_Max,
 };
 

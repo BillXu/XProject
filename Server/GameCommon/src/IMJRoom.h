@@ -44,6 +44,8 @@ public:
 	virtual bool isHaveLouHu() { return true; };
 	virtual bool isHaveLouPeng() { return false; }
 	void sendRoomInfo(uint32_t nSessionID)override;
+protected: 
+	virtual	bool canPlayerHuWithCard( IMJPlayer* p, uint8_t nCard, uint8_t nInvokerIdx );
 protected:
 	uint8_t m_nBankerIdx;
 	FanxingChecker* m_pFanxingChecker;

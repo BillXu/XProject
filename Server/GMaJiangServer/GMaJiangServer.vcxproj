@@ -90,6 +90,10 @@
     <ClInclude Include="src\MJPrivateRoom.h" />
     <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJServer.h" />
+    <ClInclude Include="src\NJMJ.h" />
+    <ClInclude Include="src\NJPlayer.h" />
+    <ClInclude Include="src\NJPlayerCard.h" />
+    <ClInclude Include="src\OptsNJ.h" />
     <ClInclude Include="src\TestMJ.h" />
     <ClInclude Include="src\TestMJPlayer.h" />
     <ClInclude Include="src\TestMJPlayerCard.h" />
@@ -99,6 +103,9 @@
     <ClCompile Include="src\MJPrivateRoom.cpp" />
     <ClCompile Include="src\MJRoomManager.cpp" />
     <ClCompile Include="src\MJServer.cpp" />
+    <ClCompile Include="src\NJMJ.cpp" />
+    <ClCompile Include="src\NJPlayer.cpp" />
+    <ClCompile Include="src\NJPlayerCard.cpp" />
     <ClCompile Include="src\TestMJ.cpp" />
     <ClCompile Include="src\TestMJPlayer.cpp" />
     <ClCompile Include="src\TestMJPlayerCard.cpp" />
