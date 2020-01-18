@@ -486,7 +486,7 @@ void NNRoom::doStartBet()
 		jsPlayer["canTuiZhuang"] = p->getRobotBankerFailedTimes() >= 3 ? 1 : 0;
 		jsPlayer["isLastTuiZhu"] = p->isLastTuiZhu() ? 1 : 0;
 		// if player don't rob banker , we stop him to tui zhu 
-		if ( eDecideBank_LookCardThenRobot == m_eDecideBankerType && p->isRobotBanker == false )
+		if ( eDecideBank_LookCardThenRobot == m_eDecideBankerType && p->isRobotBanker() == false )
 		{
 			jsPlayer["isLastTuiZhu"] = 1; // avoid client change code , so use this trick to stop player tui zhu , this round ;
 		}
