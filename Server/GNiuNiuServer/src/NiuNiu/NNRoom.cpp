@@ -120,6 +120,11 @@ void NNRoom::visitPlayerInfo( IGamePlayer* pPlayer, Json::Value& jsPlayerInfo,ui
 		jsPlayerInfo["lastOffset"] = ((NNPlayer*)pPlayer)->getLastOffset();
 		jsPlayerInfo["canTuiZhuang"] = ((NNPlayer*)pPlayer)->getRobotBankerFailedTimes() >= 3;
 		jsPlayerInfo["isLastTuiZhu"] = ((NNPlayer*)pPlayer)->isLastTuiZhu() ? 1 : 0;
+		// if player don't rob banker , we stop him to tui zhu 
+		if ( eRoomState_DoBet == getCurState()->getStateID() && eDecideBank_LookCardThenRobot == m_eDecideBankerType && ((NNPlayer*)pPlayer)->getRobotBankerTimes() == 0)
+		{
+			jsPlayerInfo["isLastTuiZhu"] = 1; // avoid client change code , so use this trick to stop player tui zhu , this round ;
+		}
 	}
 	jsPlayerInfo["betTimes"] = ((NNPlayer*)pPlayer)->getBetTimes();
 	bool isSendHoldCard = false;
@@ -480,6 +485,11 @@ void NNRoom::doStartBet()
 		jsPlayer["lastOffset"] = p->getLastOffset();
 		jsPlayer["canTuiZhuang"] = p->getRobotBankerFailedTimes() >= 3 ? 1 : 0;
 		jsPlayer["isLastTuiZhu"] = p->isLastTuiZhu() ? 1 : 0;
+		// if player don't rob banker , we stop him to tui zhu 
+		if ( eDecideBank_LookCardThenRobot == m_eDecideBankerType && p->getRobotBankerTimes() == 0 )
+		{
+			jsPlayer["isLastTuiZhu"] = 1; // avoid client change code , so use this trick to stop player tui zhu , this round ;
+		}
 		jsPlayers[jsPlayers.size()] = jsPlayer;
 	}
 	js["players"] = jsPlayers;
@@ -506,7 +516,7 @@ uint8_t NNRoom::onPlayerDoBet( uint16_t nIdx, uint8_t nBetTimes )
 		return 4;
 	}
 
-	if ( nBetTimes > (getMiniBetTimes() * 2) && (p->getIdx() == m_nLastBankerIdx || p->getLastOffset() <= 0 || p->isLastTuiZhu()))
+	if (nBetTimes > (getMiniBetTimes() * 2) && (p->getIdx() == m_nLastBankerIdx || p->getLastOffset() <= 0 || p->isLastTuiZhu() || (m_eDecideBankerType == eDecideBank_LookCardThenRobot && p->getRobotBankerTimes() == 0)))
 	{
 		return 5;
 	}
