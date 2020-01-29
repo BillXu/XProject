@@ -24,9 +24,10 @@ public:
 				setStateDuringTime(pRoom->isWaitPlayerActForever() ? 100000000 : eTime_WaitPlayerAct);
 			}
 			else {
-				auto pPlayer = pRoom->getPlayerByIdx(m_nIdx);
+				auto pPlayer = (NJMJPlayer*)pRoom->getPlayerByIdx(m_nIdx);
 				if (pPlayer) {
-					if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pRoom->needChu() == false) {
+					auto pCard = (NJMJPlayerCard*)pPlayer->getPlayerCard();
+					if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pRoom->needChu() == false || pCard->isTing()) {
 						setStateDuringTime(0.5);
 					}
 					else {
@@ -58,9 +59,10 @@ public:
 		if (m_isCanPass)
 		{
 			m_isCanPass = false;
-			auto pPlayer = pRoom->getPlayerByIdx(m_nIdx);
+			auto pPlayer = (NJMJPlayer*)pRoom->getPlayerByIdx(m_nIdx);
 			if (pPlayer) {
-				if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pRoom->needChu() == false) {
+				auto pCard = (NJMJPlayerCard*)pPlayer->getPlayerCard();
+				if (pPlayer->haveState(eRoomPeer_AlreadyHu) || pRoom->needChu() == false || pCard->isTing()) {
 					setStateDuringTime(0.5);
 				}
 				else {
@@ -127,6 +129,8 @@ public:
 		auto actType = prealMsg["actType"].asUInt();
 		auto nCard = prealMsg["card"].asUInt();
 		
+		auto pMJCard = (NJMJPlayerCard*)pPlayer->getPlayerCard();
+		uint8_t nTing = 0;
 		uint8_t nRet = 0;
 		do
 		{
@@ -143,14 +147,16 @@ public:
 				break;
 			}
 
-			auto pMJCard = (NJMJPlayerCard*)pPlayer->getPlayerCard();
 			switch (actType)
 			{
 			case eMJAct_Chu:
 			{
-				if (!pMJCard->isHaveCard(nCard) || pRoom->needChu() == false || m_isCanPass)
+				if (!pMJCard->isHaveCard(nCard) || pRoom->needChu() == false || m_isCanPass || pMJCard->isTing())
 				{
 					nRet = 3;
+				}
+				else if (prealMsg["ting"].isUInt()) {
+					nTing = prealMsg["ting"].asUInt();
 				}
 			}
 			break;
@@ -201,7 +207,12 @@ public:
 		{
 			m_isCanPass = false;
 			if (pRoom->needChu()) {
-				setStateDuringTime(100000000);
+				if (pMJCard->isTing()) {
+					setStateDuringTime(0);
+				}
+				else {
+					setStateDuringTime(100000000);
+				}
 			}
 			else {
 				setStateDuringTime(0);
@@ -215,6 +226,9 @@ public:
 		jsTran["act"] = actType;
 		jsTran["card"] = nCard;
 		jsTran["invokeIdx"] = m_nIdx;
+		if (nTing) {
+			jsTran["ting"] = nTing;
+		}
 		if (eMJAct_BuGang_Declare == actType || eMJAct_BuGang == actType)
 		{
 			pPlayer->signFlag(IMJPlayer::eMJActFlag_DeclBuGang);

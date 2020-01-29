@@ -90,14 +90,13 @@
     <ClInclude Include="src\MJPrivateRoom.h" />
     <ClInclude Include="src\MJRoomManager.h" />
     <ClInclude Include="src\MJServer.h" />
-    <ClInclude Include="src\NJMJFanxingChecker.h" />
-    <ClInclude Include="src\NJMJFanxingDiHu.h" />
     <ClInclude Include="src\NJMJPlayer.h" />
     <ClInclude Include="src\NJMJPlayerCard.h" />
     <ClInclude Include="src\NJMJPoker.h" />
     <ClInclude Include="src\NJMJRoom.h" />
     <ClInclude Include="src\NJMJRoomStateAskForPengOrHu.h" />
     <ClInclude Include="src\NJMJRoomStateAskForRobotGang.h" />
+    <ClInclude Include="src\NJMJRoomStateDoPlayerAct.h" />
     <ClInclude Include="src\NJMJRoomStateStartGame.h" />
     <ClInclude Include="src\NJMJRoomStateWaitPlayerAct.h" />
     <ClInclude Include="src\NJMJRoomStateWaitPlayerChu.h" />
@@ -107,8 +106,6 @@
     <ClCompile Include="src\MJPrivateRoom.cpp" />
     <ClCompile Include="src\MJRoomManager.cpp" />
     <ClCompile Include="src\MJServer.cpp" />
-    <ClCompile Include="src\NJMJFanxingChecker.cpp" />
-    <ClCompile Include="src\NJMJFanxingDiHu.cpp" />
     <ClCompile Include="src\NJMJPlayer.cpp" />
     <ClCompile Include="src\NJMJPlayerCard.cpp" />
     <ClCompile Include="src\NJMJPoker.cpp" />

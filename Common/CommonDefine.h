@@ -265,6 +265,11 @@ enum eFanxingType
 	eFanxing_FengQing, //风清
 	eFanxing_YiTiaoLong, //一条龙
 
+	eFanxing_DanDiao, //单吊
+	eFanxing_QueYi, //缺一门
+
+	eFanxing_XiaoGangKai, //小杠开
+
 	eFanxing_Max, // 没有胡
 };
 

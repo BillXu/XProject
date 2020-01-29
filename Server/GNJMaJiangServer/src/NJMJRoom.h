@@ -1,6 +1,5 @@
 #pragma once
 #include "IMJRoom.h"
-#include "NJMJFanxingChecker.h"
 #include "NJMJPoker.h"
 class NJMJRoom
 	:public IMJRoom
@@ -13,6 +12,8 @@ public:
 		eMJActType eSettleReason;
 		Json::Value jsHuMsg;
 		bool bWaiBao = false;
+		bool bOneLose = false;
+		uint8_t nBeginIdx = -1;
 		void addWin(uint8_t nIdx, uint16_t nWinCoin)
 		{
 			if (vWinIdxs.count(nIdx)) {
@@ -147,6 +148,8 @@ public:
 	uint8_t getBankerIdx() { return m_nBankerIdx; }
 	bool isWaitPlayerActForever() { return true; }
 	void onPlayerChu(uint8_t nIdx, uint8_t nCard)override;
+	void onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing)override;
+	void onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)override;
 	void onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)override;
 	void onPlayerAnGang(uint8_t nIdx, uint8_t nCard)override;
 	void onPlayerBuGang(uint8_t nIdx, uint8_t nCard)override;
@@ -159,6 +162,7 @@ public:
 	bool isOneCircleEnd()override;
 
 	uint8_t getBaseScore()override;
+	uint32_t getHuBaseScore();
 	uint32_t getGuang();
 	bool isEnableJieZhuangBi();
 	bool isEnableHuaZa();
@@ -168,6 +172,7 @@ public:
 	bool isEnableLeiBaTa();
 	bool isEnableShuangGang();
 	bool isEnableYiDuiDaoDi();
+	bool isEnableBaoMi();
 
 	bool needChu();
 	void signOneCircleEnd() { m_bOneCircleEnd = true; }
@@ -182,6 +187,11 @@ public:
 	bool checkBaoGuang(uint8_t& nIdx);
 	bool checkHuGuang(uint8_t& nIdx);
 	bool checkGuang(uint8_t nIdx);
+
+	bool isAnyPlayerPengCard(uint8_t nCard);
+	uint8_t getQiangGangIdx();
+
+	bool onPlayerHuaGang(uint8_t nIdx, uint8_t nCard);
 protected:
 	void addSettle(stSettle& tSettle);
 	void settleInfoToJson(Json::Value& jsRealTime);
@@ -192,11 +202,14 @@ protected:
 	void setNextBankerIdx(std::vector<uint8_t>& vHuIdx);
 	void doWillFanBei();
 	void doLeiBaTa();
+	void onPlayerAfterChu(uint8_t nIdx, uint8_t nCard);
+
+	void checkFanxing(IMJPlayer* pPlayer, uint8_t nInvokerIdx, stSortFanInformation& stInformation);
+	void sortHuHuaCnt(uint32_t& nFanCnt, std::vector<eFanxingType>& vFanxing);
 
 protected:
 	NJMJPoker m_tPoker;
 	std::vector<stSettle> m_vSettle;
-	NJMJFanxingChecker m_cFanxingChecker;
 
 	uint8_t m_nNextBankerIdx;
 	bool m_bOneCircleEnd;
@@ -207,4 +220,5 @@ protected:
 
 	stFollow m_cFollowCards;
 	stCheckHuCard m_cCheckHuCard;
+	std::vector<uint8_t> m_vBaoMiIdx;
 };

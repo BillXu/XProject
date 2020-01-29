@@ -18,9 +18,22 @@ void NJMJOpts::initRoomOpts(Json::Value& jsOpts) {
 	if (jsOpts["guang"].isUInt()) {
 		m_nGuang = jsOpts["guang"].asUInt();
 	}
+	if (m_nGuang) {
+		m_bEnableBaoMi = jsOpts["isBaoMi"].asBool();
+	}
 	m_nKuaiChongCoin = 0;
 	if (jsOpts["kuaiChongCoin"].isUInt()) {
 		m_nKuaiChongCoin = jsOpts["kuaiChongCoin"].asUInt();
+	}
+	m_nHuBaseScore = 10;
+	if (jsOpts["huBaseScore"].isUInt()) {
+		m_nHuBaseScore = jsOpts["huBaseScore"].isUInt();
+		if (m_nHuBaseScore < 10) {
+			m_nHuBaseScore = 10;
+		}
+		else {
+			m_nHuBaseScore = m_nHuBaseScore / 10 * 10;
+		}
 	}
 }
 

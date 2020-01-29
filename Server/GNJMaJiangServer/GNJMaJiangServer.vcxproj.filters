@@ -60,11 +60,8 @@
     <ClInclude Include="src\NJMJRoomStateAskForPengOrHu.h">
       <Filter>src\NJMJ\state</Filter>
     </ClInclude>
-    <ClInclude Include="src\NJMJFanxingChecker.h">
-      <Filter>src\NJMJ\Fanxing</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NJMJFanxingDiHu.h">
-      <Filter>src\NJMJ\Fanxing</Filter>
+    <ClInclude Include="src\NJMJRoomStateDoPlayerAct.h">
+      <Filter>src\NJMJ\state</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -91,12 +88,6 @@
     </ClCompile>
     <ClCompile Include="src\NJMJPlayer.cpp">
       <Filter>src\NJMJ</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NJMJFanxingChecker.cpp">
-      <Filter>src\NJMJ\Fanxing</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NJMJFanxingDiHu.cpp">
-      <Filter>src\NJMJ\Fanxing</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -20,10 +20,12 @@ public:
 	uint32_t getKuaiChongCoin() { return m_nKuaiChongCoin; }
 	bool isEnableShuangGang() { return getGuang() ? false : m_bEnableShuangGang; }
 	bool isEnableYiDuiDaoDi() { return getGuang() ? false : m_bEnableYiDuiDaoDi; }
+	uint32_t getHuBaseScore() { return m_nHuBaseScore; }
 
 private:
 	uint32_t m_nGuang;
 	uint32_t m_nKuaiChongCoin;
+	uint32_t m_nHuBaseScore;
 
 	bool m_bEnableJieZhuangBi;
 	bool m_bEnableHuaZa;

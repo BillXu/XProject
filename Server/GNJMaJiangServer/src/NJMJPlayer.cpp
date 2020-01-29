@@ -51,6 +51,16 @@ bool NJMJPlayer::canPayOffset(uint32_t nOffset, uint32_t nMaxOffset) {
 	return true;
 }
 
+bool NJMJPlayer::isGuangAfterOffset(uint32_t nOffset, uint32_t nMaxOffset) {
+	if (nMaxOffset) {
+		int32_t nFinal = getChips() - (int32_t)nOffset;
+		if (nFinal < 0) {
+			return ((uint32_t)abs(nFinal)) >= nMaxOffset;
+		}
+	}
+	return false;
+}
+
 void NJMJPlayer::setBestCards(uint16_t nFan) {
 	if (uint16_t(-1) == m_nBestFan || m_nBestFan < nFan) {
 		m_nBestFan = nFan;

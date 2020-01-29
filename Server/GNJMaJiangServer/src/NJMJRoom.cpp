@@ -8,7 +8,7 @@
 #include "NJMJRoomStateAskForRobotGang.h"
 #include "NJMJRoomStateAskForPengOrHu.h"
 #include "MJRoomStateWaitReady.h"
-#include "MJRoomStateDoPlayerAct.h"
+#include "NJMJRoomStateDoPlayerAct.h"
 #include "MJRoomStateAutoBuHua.h"
 #include "FanxingChecker.h"
 #include "Fanxing7Dui.h"
@@ -21,16 +21,16 @@
 bool NJMJRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoomID, std::shared_ptr<IGameOpts> ptrGameOpts)
 {
 	IMJRoom::init(pRoomMgr,nSeialNum,nRoomID,ptrGameOpts);
-	m_cFanxingChecker.init();
 	clearOneCircleEnd();
 	m_cFollowCards.setSeatCnt(ptrGameOpts->getSeatCnt());
 	m_bWillFanBei = false;
 	m_bFanBei = false;
 	m_nLeiBaTaCnt = 0;
 	m_nGangCnt = 0;
+	m_vBaoMiIdx.clear();
 	// add room state ;
 	IGameRoomState* p[] = { new CMJRoomStateWaitReady(), new NJMJRoomStateWaitPlayerChu(),new NJMJRoomStateWaitPlayerAct(),
-		new NJMJRoomStateStartGame(),new MJRoomStateGameEnd(),new MJRoomStateDoPlayerAct(),new NJMJRoomStateAskForRobotGang(),
+		new NJMJRoomStateStartGame(),new MJRoomStateGameEnd(),new NJMJRoomStateDoPlayerAct(),new NJMJRoomStateAskForRobotGang(),
 		new NJMJRoomStateAskForPengOrHu(), new MJRoomStateAutoBuHua()
 	};
 	for ( auto& pS : p )
@@ -87,6 +87,7 @@ void NJMJRoom::onWillStartGame() {
 	m_cFollowCards.reset();
 	m_cCheckHuCard.reset();
 	m_nGangCnt = 0;
+	m_vBaoMiIdx.clear();
 
 	doProduceNewBanker();
 	doWillFanBei();
@@ -186,6 +187,7 @@ bool NJMJRoom::isRoomOver() {
 void NJMJRoom::onGameEnd() {
 	Json::Value jsReal, jsPlayers;
 	settleInfoToJson(jsReal);
+	bool bHuangZhuang = true;
 
 	for (auto& ref : m_vPlayers) {
 		if (ref) {
@@ -200,8 +202,16 @@ void NJMJRoom::onGameEnd() {
 			jsPlayer["chips"] = ref->getChips();
 			jsPlayer["holdCard"] = jsHoldCard;
 			jsPlayers[jsPlayers.size()] = jsPlayer;
+
+			if (ref->haveState(eRoomPeer_AlreadyHu)) {
+				bHuangZhuang = false;
+			}
 		}
 		//jsHoldCards[jsHoldCards.size()] = jsHoldCard;
+	}
+
+	if (bHuangZhuang) {
+		m_bWillFanBei = true;
 	}
 
 	Json::Value jsMsg;
@@ -210,6 +220,59 @@ void NJMJRoom::onGameEnd() {
 	sendRoomMsg(jsMsg, MSG_ROOM_SCMJ_GAME_END);
 
 	IMJRoom::onGameEnd();
+
+	if (isInternalShouldCloseAll() && m_vBaoMiIdx.size()) {
+		NJMJPlayer* pWinMost = nullptr;
+		NJMJPlayer* pBaoMi = nullptr;
+		uint8_t nGuangCnt = 0;
+		for (auto ref : m_vPlayers) {
+			auto ref_nj = (NJMJPlayer*)ref;
+
+			if (ref_nj->canBackGain(getGuang())) {
+				if (ref_nj->getChips() > 0) {
+					pWinMost = ref_nj;
+				}
+				else {
+					pBaoMi = ref_nj;
+				}
+			}
+			else {
+				nGuangCnt++;
+			}
+		}
+
+		if (pBaoMi) {
+			if (std::find(m_vBaoMiIdx.begin(), m_vBaoMiIdx.end(), pBaoMi->getIdx()) == m_vBaoMiIdx.end()) {
+				pBaoMi = nullptr;
+			}
+		}
+		else {
+			if (pWinMost && nGuangCnt + 1 == getSeatCnt()) {
+				for (auto rIter = m_vBaoMiIdx.rbegin(); rIter != m_vBaoMiIdx.rend(); rIter++) {
+					auto ref = *rIter;
+					if (ref == pWinMost->getIdx()) {
+						continue;
+					}
+					pBaoMi = (NJMJPlayer*)getPlayerByIdx(ref);
+					break;
+				}
+			}
+		}
+
+		if (pBaoMi && pWinMost) {
+			if (pBaoMi->getChips() < 0 && pWinMost->getChips() > 0) {
+				auto nBaoMiChips = (uint32_t)abs(pBaoMi->getChips());
+				if (nBaoMiChips <= getGuang()) {
+					uint32_t nOffset = getGuang() - nBaoMiChips;
+					if (nOffset < pWinMost->getChips()) {
+						pBaoMi->addSingleOffset(nOffset);
+						pWinMost->addSingleOffset(-1 * (int32_t)nOffset);
+						pBaoMi->signBaoMi();
+					}
+				}
+			}
+		}
+	}
 }
 
 void NJMJRoom::doProduceNewBanker() {
@@ -259,9 +322,8 @@ void NJMJRoom::setNextBankerIdx(std::vector<uint8_t>& vHuIdx) {
 			}
 			else {
 				m_nNextBankerIdx = getBankerIdx();
+				m_bWillFanBei = true;
 			}
-			//m_nNextBankerIdx = iter == vHuIdx.end() ? getNextActPlayerIdx(getBankerIdx()) : getBankerIdx();
-			//m_nNextBankerIdx = nHuIdx == getBankerIdx() ? nHuIdx : getNextActPlayerIdx(getBankerIdx());
 			if (m_nNextBankerIdx == 0 && getBankerIdx()) {
 				signOneCircleEnd();
 			}
@@ -275,9 +337,32 @@ void NJMJRoom::setNextBankerIdx(std::vector<uint8_t>& vHuIdx) {
 
 void NJMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 	IMJRoom::onPlayerChu(nIdx, nCard);
+	onPlayerAfterChu(nIdx, nCard);
+}
 
+void NJMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard, uint8_t& nTing) {
+	auto pActPlayer = (NJMJPlayer*)getPlayerByIdx(nIdx);
+	if (nTing) {
+		if (pActPlayer->haveFlag(IMJPlayer::eMJActFlag_WaitCheckTianTing) == false) {
+			nTing = 0;
+		}
+	}
+
+	IMJRoom::onPlayerChu(nIdx, nCard, nTing);
+
+	if (nTing) {
+		auto pCard = (NJMJPlayerCard*)pActPlayer->getPlayerCard();
+		pCard->signTing();
+	}
+
+	onPlayerAfterChu(nIdx, nCard);
+}
+
+void NJMJRoom::onPlayerAfterChu(uint8_t nIdx, uint8_t nCard) {
 	auto pActPlayer = (NJMJPlayer*)getPlayerByIdx(nIdx);
 	pActPlayer->setSongGangIdx();
+	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_WaitCheckTianTing);
+	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
 
 	auto pActCard = (NJMJPlayerCard*)pActPlayer->getPlayerCard();
 	if (isEnableSiLianFeng()) {
@@ -286,6 +371,7 @@ void NJMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 			//TODO
 			stSettle st;
 			st.eSettleReason = eMJAct_4Feng;
+			st.nBeginIdx = nIdx;
 			uint16_t nWinCoin = 0;
 			uint16_t nLoseCoin = 5 * getBaseScore();
 			for (auto& pp : m_vPlayers) {
@@ -309,6 +395,8 @@ void NJMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 		//TODO
 		stSettle st;
 		st.eSettleReason = eMJAct_ZiDaAnGang;
+		st.nBeginIdx = nIdx;
+		st.bOneLose = true;
 		uint16_t nWinCoin = 0;
 		uint16_t nLoseCoin = 5 * getBaseScore();
 		for (auto& pp : m_vPlayers) {
@@ -317,12 +405,12 @@ void NJMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 					continue;
 				}
 				else {
-					st.addLose(pp->getIdx(), nLoseCoin);
+					st.addWin(pp->getIdx(), nLoseCoin);
 					nWinCoin += nLoseCoin;
 				}
 			}
 		}
-		st.addWin(nIdx, nWinCoin);
+		st.addLose(nIdx, nWinCoin);
 		addSettle(st);
 	}
 
@@ -333,26 +421,34 @@ void NJMJRoom::onPlayerChu(uint8_t nIdx, uint8_t nCard) {
 			//TODO
 			stSettle st;
 			st.eSettleReason = eMJAct_Followed;
+			st.nBeginIdx = nIdx;
+			st.bOneLose = true;
 			uint16_t nWinCoin = 5 * getBaseScore();
-			uint16_t nLoseCoin = 5 * getBaseScore() * (getSeatCnt() - 1);
-			if (pLosePlayer->canPayOffset(nLoseCoin, getGuang()) == false) {
-				nWinCoin = 0;
-				nLoseCoin = 0;
-			}
+			uint16_t nLoseCoin = 0;
 
 			for (auto& pp : m_vPlayers) {
 				if (pp) {
-					if (pp->getIdx() == pLosePlayer->getIdx()) {
-						st.addLose(pp->getIdx(), nLoseCoin);
+					if (pp->getIdx() == nIdx) {
+						continue;
 					}
 					else {
 						st.addWin(pp->getIdx(), nWinCoin);
+						nLoseCoin += nWinCoin;
 					}
 				}
 			}
+			st.addLose(nIdx, nLoseCoin);
 			addSettle(st);
 		}
 	}
+}
+
+void NJMJRoom::onPlayerPeng(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx) {
+	IMJRoom::onPlayerPeng(nIdx, nCard, nInvokeIdx);
+
+	auto pActPlayer = (NJMJPlayer*)getPlayerByIdx(nIdx);
+	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_WaitCheckTianTing);
+	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
 }
 
 void NJMJRoom::onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx) {
@@ -366,6 +462,15 @@ void NJMJRoom::onPlayerMingGang(uint8_t nIdx, uint8_t nCard, uint8_t nInvokeIdx)
 	auto pActPlayer = (NJMJPlayer*)getPlayerByIdx(nIdx);
 	pActPlayer->setSongGangIdx(nInvokeIdx);
 	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_WaitCheckTianTing);
+	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
+
+	stSettle st;
+	st.eSettleReason = eMJAct_MingGang;
+	st.nBeginIdx = nIdx;
+	uint16_t nLoseCoin = 10 * getBaseScore();
+	st.addWin(nIdx, nLoseCoin);
+	st.addLose(nInvokeIdx, nLoseCoin);
+	addSettle(st);
 }
 
 void NJMJRoom::onPlayerBuGang(uint8_t nIdx, uint8_t nCard) {
@@ -381,15 +486,72 @@ void NJMJRoom::onPlayerBuGang(uint8_t nIdx, uint8_t nCard) {
 	auto nInvokerIdx = pActCard->getMingCardInvokerIdx(nCard, eMJAct_BuGang);
 	if ((uint8_t)-1 != nInvokerIdx) {
 		pActPlayer->setSongGangIdx(nInvokerIdx);
+
+		stSettle st;
+		st.eSettleReason = eMJAct_BuGang;
+		st.nBeginIdx = nIdx;
+		uint16_t nLoseCoin = 10 * getBaseScore();
+		st.addWin(nIdx, nLoseCoin);
+		st.addLose(nInvokerIdx, nLoseCoin);
+		addSettle(st);
 	}
 }
 
 void NJMJRoom::onPlayerAnGang(uint8_t nIdx, uint8_t nCard) {
 	IMJRoom::onPlayerAnGang(nIdx, nCard);
+	auto pActPlayer = (NJMJPlayer*)getPlayerByIdx(nIdx);
+	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_WaitCheckTianTing);
+	pActPlayer->clearFlag(IMJPlayer::eMJActFlag_CanTianHu);
 
 	if (isEnableShuangGang()) {
 		m_bWillFanBei = true;
 	}
+
+	stSettle st;
+	st.eSettleReason = eMJAct_AnGang;
+	st.nBeginIdx = nIdx;
+	uint16_t nWinCoin = 0;
+	uint16_t nLoseCoin = 5 * getBaseScore();
+	for (auto& pp : m_vPlayers) {
+		if (pp) {
+			if (pp->getIdx() == nIdx) {
+				continue;
+			}
+			else {
+				st.addLose(pp->getIdx(), nLoseCoin);
+				nWinCoin += nLoseCoin;
+			}
+		}
+	}
+	st.addWin(nIdx, nWinCoin);
+	addSettle(st);
+}
+
+bool NJMJRoom::onPlayerHuaGang(uint8_t nIdx, uint8_t nCard) {
+	auto pPlayer = (NJMJPlayer*)getPlayerByIdx(nIdx);
+	pPlayer->signFlag(IMJPlayer::eMJActFlag_HuaGang);
+	m_bWillFanBei = true;
+
+	stSettle st;
+	st.eSettleReason = eMJAct_HuaGang;
+	st.nBeginIdx = nIdx;
+	uint16_t nWinCoin = 0;
+	uint16_t nLoseCoin = 10 * getBaseScore();
+	for (auto& pp : m_vPlayers) {
+		if (pp) {
+			if (pp->getIdx() == nIdx) {
+				continue;
+			}
+			else {
+				st.addLose(pp->getIdx(), nLoseCoin);
+				nWinCoin += nLoseCoin;
+			}
+		}
+	}
+	st.addWin(nIdx, nWinCoin);
+	addSettle(st);
+
+	return true;
 }
 
 void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t nInvokeIdx) {
@@ -405,10 +567,14 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 	bool isZiMo = vHuIdx.front() == nInvokeIdx;
 	jsMsg["isZiMo"] = isZiMo ? 1 : 0;
 	jsMsg["huCard"] = nCard;
-	stSettle st;
-	st.eSettleReason = eMJAct_Hu;
 
 	if (isZiMo) {
+		Json::Value stJson;
+		stJson = jsMsg;
+		stSettle st;
+		st.eSettleReason = eMJAct_Hu;
+		st.nBeginIdx = nInvokeIdx;
+
 		auto pZiMoPlayer = (NJMJPlayer*)getPlayerByIdx(nInvokeIdx);
 		if (pZiMoPlayer == nullptr)
 		{
@@ -420,48 +586,90 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		pZiMoPlayer->setState(eRoomPeer_AlreadyHu);
 		// svr :{ huIdx : 234 , baoPaiIdx : 2 , winCoin : 234,huardSoftHua : 23, isGangKai : 0 ,vhuTypes : [ eFanxing , ], LoseIdxs : [ {idx : 1 , loseCoin : 234 }, .... ]   }
 		jsDetail["huIdx"] = nInvokeIdx;
-		std::vector<eFanxingType> vType;
-		uint32_t nFanCnt = 0;
-		uint16_t nHoldHuaCnt = 0;
-		uint16_t nHuHuaCnt = getBaseScore();
+		stJson["huIdx"] = nInvokeIdx;
+		stSortFanInformation stHuInfomation;
 		auto pZiMoPlayerCard = (NJMJPlayerCard*)pZiMoPlayer->getPlayerCard();
 		pZiMoPlayerCard->setHuCard(0);
-		m_cFanxingChecker.checkFanxing(vType, pZiMoPlayer, nInvokeIdx, this);
-		sortFanxing2FanCnt(vType, nHuHuaCnt);
-		pZiMoPlayer->setBestCards(nHuHuaCnt);
-		if (std::find(vType.begin(), vType.end(), eFanxing_DaMenQing) == vType.end()) {
-			nHoldHuaCnt = pZiMoPlayerCard->getHuaCntWithoutHuTypeHuaCnt();
+		checkFanxing(pZiMoPlayer, nInvokeIdx, stHuInfomation);
+		pZiMoPlayer->setBestCards(stHuInfomation.m_nHuHuaCnt);
+
+		if (stHuInfomation.m_bWaiBao && isEnableWaiBao()) {
+			st.bWaiBao = true;
 		}
+
+		Json::Value jsHuTyps;
+		bool bDaHu = true;
+		for (auto& refHu : stHuInfomation.m_vFanxing)
+		{
+			jsHuTyps[jsHuTyps.size()] = refHu;
+
+			if (refHu == eFanxing_GangKai) {
+				m_bWillFanBei = true;
+			}
+			else if (refHu == eFanxing_PingHu) {
+				bDaHu = false;
+			}
+		}
+		if (bDaHu) {
+			m_bWillFanBei = true;
+		}
+
+		jsDetail["vhuTypes"] = jsHuTyps;
+		jsDetail["holdHuaCnt"] = stHuInfomation.m_nHoldHuaCnt;
+		jsDetail["huHuaCnt"] = stHuInfomation.m_nHuHuaCnt;
+		jsDetail["waiBao"] = st.bWaiBao ? 1 : 0;
+
+		stJson["vhuTypes"] = jsHuTyps;
+		stJson["holdHuaCnt"] = stHuInfomation.m_nHoldHuaCnt;
+		stJson["huHuaCnt"] = stHuInfomation.m_nHuHuaCnt;
+		stJson["waiBao"] = st.bWaiBao ? 1 : 0;
 
 		//花砸
 		if (isEnableHuaZa()) {
-			nHoldHuaCnt *= 2;
+			stHuInfomation.m_nHoldHuaCnt *= 2;
 		}
 
-		nFanCnt = nHoldHuaCnt + nHuHuaCnt;
-		/*if (m_bFanBei) {
-			nFanCnt *= 2;
-		}*/
-		Json::Value jsHuTyps;
-		for (auto& refHu : vType)
-		{
-			jsHuTyps[jsHuTyps.size()] = refHu;
+		auto nFanCnt = stHuInfomation.m_nHoldHuaCnt + stHuInfomation.m_nHuHuaCnt + getHuBaseScore() + (getLBTCnt() * 10);
+
+		if (st.bWaiBao) {
+			nFanCnt = 50;
 		}
-		jsDetail["vhuTypes"] = jsHuTyps;
+		else if(stHuInfomation.m_bBaoPai) {
+			nFanCnt *= getSeatCnt() - 1;
+		}
+
+		if (isFanBei()) {
+			nFanCnt *= 2;
+		}
 
 		uint32_t nTotalWin = 0;
-		for (auto& pLosePlayer : m_vPlayers)
-		{
-			if (pLosePlayer) {
-				if (pLosePlayer == pZiMoPlayer)
-				{
-					continue;
-				}
-				st.addLose(pLosePlayer->getIdx(), nFanCnt);
-				nTotalWin += nFanCnt;
+		if (stHuInfomation.m_bWaiBao || stHuInfomation.m_bBaoPai) {
+			m_bWillFanBei = true;
+			if (stHuInfomation.m_nBaoIdx == -1) {
+				stHuInfomation.m_nBaoIdx = m_cCheckHuCard.m_nIdx;
 			}
+
+			st.addLose(stHuInfomation.m_nBaoIdx, nFanCnt);
+			st.addWin(nInvokeIdx, nFanCnt);
 		}
-		st.addWin(nInvokeIdx, nTotalWin);
+		else {
+			for (auto& pLosePlayer : m_vPlayers)
+			{
+				if (pLosePlayer) {
+					if (pLosePlayer == pZiMoPlayer)
+					{
+						continue;
+					}
+					st.addLose(pLosePlayer->getIdx(), nFanCnt);
+					nTotalWin += nFanCnt;
+				}
+			}
+			st.addWin(nInvokeIdx, nTotalWin);
+		}
+		//jsMsg["detail"] = jsDetail;
+		st.jsHuMsg = stJson;
+		addSettle(st);
+		
 		LOGFMTD("room id = %u player = %u zimo", getRoomID(), nInvokeIdx);
 	}
 	else {
@@ -476,11 +684,7 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 
 		if (vHuIdx.size() > 1)  // yi pao duo xiang 
 		{
-			//update by haodi 增加滴零处理，不用且操作避免影响一炮多响后期增加其他规则
-			/*if (isDiLing()) {
-				m_bWillFanBei = true;
-			}*/
-
+			m_bWillFanBei = true;
 		}
 
 		std::vector<uint8_t> vOrderHu;
@@ -506,6 +710,14 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		uint32_t nTotalLose = 0;
 		for (auto& nHuIdx : vOrderHu)
 		{
+			stSettle st;
+			st.eSettleReason = eMJAct_Hu;
+			st.nBeginIdx = nHuIdx;
+
+			Json::Value stJson;
+			stJson = jsMsg;
+			stJson["dianPaoIdx"] = pLosePlayer->getIdx();
+
 			auto pHuPlayer = (NJMJPlayer*)getPlayerByIdx(nHuIdx);
 			if (pHuPlayer == nullptr)
 			{
@@ -516,45 +728,78 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 
 			Json::Value jsHuPlayer;
 			jsHuPlayer["idx"] = nHuIdx;
+			stJson["huIdx"] = pLosePlayer->getIdx();
 			pHuPlayer->setState(eRoomPeer_AlreadyHu);
 
 			auto pHuPlayerCard = (NJMJPlayerCard*)pHuPlayer->getPlayerCard();
-			pHuPlayerCard->setHuCard(nCard);
 
-			std::vector<eFanxingType> vType;
-			uint32_t nFanCnt = 0;
-			uint16_t nHoldHuaCnt = 0;
-			uint16_t nHuHuaCnt = getBaseScore();
+			stSortFanInformation stHuInfomation;
 			pHuPlayerCard->onDoHu(nInvokeIdx, nCard, pLosePlayer->haveGangFlag());
-			m_cFanxingChecker.checkFanxing(vType, pHuPlayer, nInvokeIdx, this);
-			sortFanxing2FanCnt(vType, nHuHuaCnt);
-			pHuPlayer->setBestCards(nHuHuaCnt);
-			if (std::find(vType.begin(), vType.end(), eFanxing_DaMenQing) == vType.end()) {
-				nHoldHuaCnt = pHuPlayerCard->getHuaCntWithoutHuTypeHuaCnt();
-			}
+			checkFanxing(pHuPlayer, nInvokeIdx, stHuInfomation);
+			pHuPlayer->setBestCards(stHuInfomation.m_nHuHuaCnt);
 
-			//花砸
-			if (isEnableHuaZa()) {
-				nHoldHuaCnt *= 2;
-			}
-
-			nFanCnt = nHoldHuaCnt + nHuHuaCnt;
-			/*if (m_bFanBei) {
-				nFanCnt *= 2;
-			}*/
-			if (std::find(vType.begin(), vType.end(), eFanxing_QiangGang) != vType.end()) {
-				nFanCnt *= getSeatCnt() - 1;
+			if (stHuInfomation.m_bWaiBao && isEnableWaiBao()) {
+				st.bWaiBao = true;
 			}
 
 			Json::Value jsHuTyps;
-			for (auto& refHu : vType)
+			bool bDaHu = true;
+			for (auto& refHu : stHuInfomation.m_vFanxing)
 			{
 				jsHuTyps[jsHuTyps.size()] = refHu;
-			}
-			jsHuPlayer["vhuTypes"] = jsHuTyps;
 
-			st.addLose(nInvokeIdx, nFanCnt);
+				if (refHu == eFanxing_PingHu) {
+					bDaHu = false;
+				}
+			}
+			if (bDaHu) {
+				m_bWillFanBei = true;
+			}
+
+			jsHuPlayer["vhuTypes"] = jsHuTyps;
+			jsHuPlayer["holdHuaCnt"] = stHuInfomation.m_nHoldHuaCnt;
+			jsHuPlayer["huHuaCnt"] = stHuInfomation.m_nHuHuaCnt;
+			jsHuPlayer["waiBao"] = st.bWaiBao ? 1 : 0;
+
+			stJson["vhuTypes"] = jsHuTyps;
+			stJson["holdHuaCnt"] = stHuInfomation.m_nHoldHuaCnt;
+			stJson["huHuaCnt"] = stHuInfomation.m_nHuHuaCnt;
+			stJson["waiBao"] = st.bWaiBao ? 1 : 0;
+
+			//花砸
+			if (isEnableHuaZa()) {
+				stHuInfomation.m_nHoldHuaCnt *= 2;
+			}
+
+			auto nFanCnt = stHuInfomation.m_nHoldHuaCnt + stHuInfomation.m_nHuHuaCnt + getHuBaseScore() + (getLBTCnt() * 10);
+
+			if (st.bWaiBao) {
+				nFanCnt = 50;
+			}
+			else if (stHuInfomation.m_bBaoPai) {
+				if (std::find(stHuInfomation.m_vFanxing.begin(), stHuInfomation.m_vFanxing.end(), eFanxing_QiangGang) != stHuInfomation.m_vFanxing.end()) {
+					nFanCnt *= getSeatCnt() - 1;
+				}
+			}
+
+			if (isFanBei()) {
+				nFanCnt *= 2;
+			}
+
+			auto nLoseIdx = nInvokeIdx;
+			if (stHuInfomation.m_bWaiBao || stHuInfomation.m_bBaoPai) {
+				m_bWillFanBei = true;
+				if (stHuInfomation.m_nBaoIdx == -1) {
+					stHuInfomation.m_nBaoIdx = m_cCheckHuCard.m_nIdx;
+				}
+				nLoseIdx = stHuInfomation.m_nBaoIdx;
+			}
+
+			st.addLose(nLoseIdx, nFanCnt);
 			st.addWin(nHuIdx, nFanCnt);
+
+			st.jsHuMsg = stJson;
+			addSettle(st);
 
 			jsHuPlayers[jsHuPlayers.size()] = jsHuPlayer;
 
@@ -563,9 +808,7 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		jsDetail["huPlayers"] = jsHuPlayers;
 	}
 	jsMsg["detail"] = jsDetail;
-	st.jsHuMsg = jsMsg;
 	sendRoomMsg(jsMsg, MSG_ROOM_MQMJ_PLAYER_HU);
-	addSettle(st);
 }
 
 void NJMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
@@ -669,6 +912,11 @@ uint32_t NJMJRoom::getGuang() {
 	return pNJMJOpts->getGuang();
 }
 
+uint32_t NJMJRoom::getHuBaseScore() {
+	auto pNJMJOpts = std::dynamic_pointer_cast<NJMJOpts>(getDelegate()->getOpts());
+	return pNJMJOpts->getHuBaseScore();
+}
+
 bool NJMJRoom::isEnableJieZhuangBi() {
 	auto pNJMJOpts = std::dynamic_pointer_cast<NJMJOpts>(getDelegate()->getOpts());
 	return pNJMJOpts->isEnableJieZhuangBi();
@@ -709,65 +957,96 @@ bool NJMJRoom::isEnableYiDuiDaoDi() {
 	return pNJMJOpts->isEnableYiDuiDaoDi();
 }
 
+bool NJMJRoom::isEnableBaoMi() {
+	auto pNJMJOpts = std::dynamic_pointer_cast<NJMJOpts>(getDelegate()->getOpts());
+	return pNJMJOpts->isEnableBaoMi();
+}
+
 void NJMJRoom::addSettle(stSettle& tSettle) {
 	m_vSettle.push_back(tSettle);
 
 	Json::Value jsItem, jsRDetail;
 	jsItem["actType"] = tSettle.eSettleReason;
-	if (tSettle.eSettleReason == eMJAct_Hu) {
+	/*if (tSettle.eSettleReason == eMJAct_Hu) {
 		jsItem["msg"] = tSettle.jsHuMsg;
+	}*/
+	
+	auto nBeginIdx = tSettle.nBeginIdx;
+	if (nBeginIdx == -1) {
+		return;
 	}
+	auto nLopIdx = tSettle.vWinIdxs.begin()->first;
+	auto nLopOffset = tSettle.vWinIdxs.begin()->second;
+	auto mLopMap = tSettle.vLoseIdx;
+	if (tSettle.bOneLose) {
+		nLopIdx = tSettle.vLoseIdx.begin()->first;
+		nLopOffset = tSettle.vLoseIdx.begin()->second;
+		mLopMap = tSettle.vWinIdxs;
+	}
+	auto pLopPlayer = (NJMJPlayer*)getPlayerByIdx(nLopIdx);
 
-	uint32_t nTotalGain = 0;
-	for (auto& refl : tSettle.vLoseIdx)
-	{
-		auto pPlayer = (NJMJPlayer*)getPlayerByIdx(refl.first);
-		if (pPlayer) {
-			if (tSettle.bWaiBao) {
-				pPlayer->addExtraOffset(-1 * (int32_t)refl.second);
+	for (uint8_t i = 0; i < getSeatCnt(); i++) {
+		uint8_t nCurIdx = (nBeginIdx + i) % getSeatCnt();
+		if (mLopMap.count(nCurIdx)) {
+			auto nCurCoin = mLopMap.at(nCurIdx);
+			auto pCurPlayer = (NJMJPlayer*)getPlayerByIdx(nCurIdx);
+			if (tSettle.bOneLose) {
+				if (tSettle.bWaiBao || pLopPlayer->canPayOffset(nLopOffset, getGuang())) {
+					if (tSettle.bWaiBao) {
+						pLopPlayer->addExtraOffset(-1 * (int32_t)nCurCoin);
+						pCurPlayer->addExtraOffset(nCurCoin);
+					}
+					else {
+						auto nGain = pLopPlayer->addGuangSingleOffset(-1 * (int32_t)nCurCoin, getGuang());
+						uint32_t nRealOffset = nCurCoin - nGain;
+						pCurPlayer->addSingleOffset(nRealOffset);
+					}
+				}
 			}
 			else {
-				auto nGain = pPlayer->addGuangSingleOffset(-1 * (int32_t)refl.second, getGuang());
-				nTotalGain += nGain;
+				if (tSettle.bWaiBao) {
+					pLopPlayer->addExtraOffset(nCurCoin);
+					pCurPlayer->addExtraOffset(-1 * (int32_t)nCurCoin);
+				}
+				else {
+					auto nGain = pCurPlayer->addGuangSingleOffset(-1 * (int32_t)nCurCoin, getGuang());
+					uint32_t nRealOffset = nCurCoin - nGain;
+					pLopPlayer->addSingleOffset(nRealOffset);
+				}
 			}
-			Json::Value jsPlayer;
-			jsPlayer["idx"] = refl.first;
-			jsPlayer["chips"] = pPlayer->getChips();
-			jsRDetail[jsRDetail.size()] = jsPlayer;
 		}
 	}
 
-	for (auto& refl : tSettle.vWinIdxs)
-	{
-		auto pPlayer = (NJMJPlayer*)getPlayerByIdx(refl.first);
-		uint32_t nTempWin = 0;
-		if (nTotalGain > refl.second) {
-			nTempWin = 0;
-			nTotalGain -= refl.second;
-		}
-		else {
-			nTempWin = refl.second - nTotalGain;
-			nTotalGain = 0;
-		}
-		if (pPlayer) {
-			if (tSettle.bWaiBao) {
-				pPlayer->addExtraOffset(nTempWin);
-			}
-			else {
-				pPlayer->addSingleOffset(nTempWin);
-			}
-			Json::Value jsPlayer;
-			jsPlayer["idx"] = refl.first;
-			jsPlayer["chips"] = pPlayer->getChips();
-			jsRDetail[jsRDetail.size()] = jsPlayer;
-		}
+	Json::Value jsPlayer;
+	jsPlayer["idx"] = nLopIdx;
+	jsPlayer["chips"] = pLopPlayer->getChips();
+	jsRDetail[jsRDetail.size()] = jsPlayer;
+
+	for (auto ref_lop : mLopMap) {
+		jsPlayer["idx"] = ref_lop.first;
+		jsPlayer["chips"] = getPlayerByIdx(ref_lop.first)->getChips();
+		jsRDetail[jsRDetail.size()] = jsPlayer;
 	}
+
 	jsItem["detial"] = jsRDetail;
 
 	sendRoomMsg(jsItem, MSG_ROOM_FXMJ_REAL_TIME_CELL);
 
 	// add frame 
 	addReplayFrame(eMJFrame_Settle, jsItem);
+
+	if (tSettle.bOneLose == false && getGuang() && isEnableBaoMi()) {
+		uint8_t nGuangCnt = 0;
+		for (auto ref : m_vPlayers) {
+			if (((NJMJPlayer*)ref)->canBackGain(getGuang())) {
+				continue;
+			}
+			nGuangCnt++;
+		}
+		if (nGuangCnt > 1 && pLopPlayer->canBackGain(getGuang())) {
+			m_vBaoMiIdx.push_back(nLopIdx);
+		}
+	}
 }
 
 void NJMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
@@ -1006,4 +1285,116 @@ bool NJMJRoom::isInternalShouldCloseAll() {
 		}
 	}
 	return false;
+}
+
+bool NJMJRoom::isAnyPlayerPengCard(uint8_t nCard) {
+	for (auto ref : m_vPlayers) {
+		auto pCard = (NJMJPlayerCard*)((NJMJPlayer*)ref)->getPlayerCard();
+		if (pCard->isPengCard(nCard)) {
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+uint8_t NJMJRoom::getQiangGangIdx() {
+	if (m_cCheckHuCard.m_nActType == eMJAct_BuGang) {
+		return m_cCheckHuCard.m_nIdx;
+	}
+
+	return -1;
+}
+
+void NJMJRoom::checkFanxing(IMJPlayer* pPlayer, uint8_t nInvokerIdx, stSortFanInformation& stInformation) {
+	auto pCard = (NJMJPlayerCard*)pPlayer->getPlayerCard();
+	bool bZiMo = nInvokerIdx == pPlayer->getIdx();
+	bool bKuaiZhaoHu = false;
+
+	if (bZiMo) {
+		bKuaiZhaoHu = pCard->checkKuaiZhaoZiMo(stInformation.m_nBaoIdx, stInformation.m_vFanxing);
+		if (pPlayer->haveFlag(IMJPlayer::eMJActFlag_Gang)) {
+			if (pPlayer->haveFlag(IMJPlayer::eMJActFlag_BuHua)) {
+				stInformation.m_vFanxing.push_back(eFanxing_XiaoGangKai);
+			}
+			else {
+				stInformation.m_vFanxing.push_back(eFanxing_GangKai);
+			}
+		}
+	}
+	else {
+		bKuaiZhaoHu = pCard->checkKuaiZhaoHu(stInformation.m_nBaoIdx, stInformation.m_vFanxing);
+		if (((NJMJPlayer*)pPlayer)->getSongGangIdx() != -1) {
+			stInformation.m_vFanxing.push_back(eFanxing_QiangGang);
+		}
+	}
+
+	if (bKuaiZhaoHu) {
+		stInformation.m_bWaiBao = true;
+	}
+	else {
+		//TODO
+		if (pCard->getWaiBaoIdx(stInformation.m_nBaoIdx, bZiMo)) {
+			stInformation.m_bWaiBao = true;
+		}
+		else if (pCard->getNormalBaoIdx(stInformation.m_nBaoIdx, bZiMo)) {
+			stInformation.m_bBaoPai = true;
+		}
+
+		pCard->getNormalHuType(stInformation.m_vFanxing, bZiMo);
+	}
+
+	stInformation.m_nHoldHuaCnt = pCard->getHuaCntWithoutHuTypeHuaCnt(stInformation.m_vFanxing, bKuaiZhaoHu);
+
+	sortHuHuaCnt(stInformation.m_nHuHuaCnt, stInformation.m_vFanxing);
+}
+
+void NJMJRoom::sortHuHuaCnt(uint32_t& nFanCnt, std::vector<eFanxingType>& vFanxing) {
+	for (auto ref : vFanxing) {
+		switch (ref)
+		{
+		case eFanxing_XiaoGangKai:
+		{
+			nFanCnt += 10;
+		}
+		break;
+		case eFanxing_DuiDuiHu:
+		case eFanxing_YaJue:
+		case eFanxing_WuHuaGuo:
+		case eFanxing_HunYiSe:
+		case eFanxing_DiHu:
+		case eFanxing_GangKai:
+		{
+			nFanCnt += 20;
+		}
+		break;
+		case eFanxing_QingYiSe:
+		case eFanxing_QuanQiuDuDiao:
+		case eFanxing_QiDui:
+		{
+			nFanCnt += 30;
+		}
+		break;
+		case eFanxing_ShuangQiDui:
+		{
+			nFanCnt += 80;
+		}
+		break;
+		case eFanxing_DoubleShuangQiDui:
+		{
+			nFanCnt += 120;
+		}
+		break;
+		case eFanxing_TribleShuangQiDui:
+		{
+			nFanCnt += 180;
+		}
+		break;
+		case eFanxing_TianHu:
+		{
+			nFanCnt += 300;
+		}
+		break;
+		}
+	}
 }

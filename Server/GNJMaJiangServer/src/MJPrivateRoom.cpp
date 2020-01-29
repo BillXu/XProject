@@ -30,6 +30,7 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		jsPlayer["ZMCnt"] = pp->getZiMoCnt();
 		jsPlayer["bestCards"] = pp->getBestCards();
 		jsPlayer["extraTime"] = pp->getExtraTime();
+		jsPlayer["baoMi"] = pp->isBaoMi() ? 1 : 0;
 		if (pRoom->isEnableWaiBao()) {
 			jsPlayer["extraOffset"] = pp->getExtraOffset();
 		}
