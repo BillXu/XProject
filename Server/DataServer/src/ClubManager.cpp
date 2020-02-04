@@ -6,6 +6,7 @@
 #include "AsyncRequestQuene.h"
 #include "PlayerBaseData.h"
 #include "Utility.h"
+#define CLUB_MEMBER_CAPCITY 1200
 ClubManager::~ClubManager()
 {
 	for (auto& ref : m_vClubs)
@@ -61,7 +62,7 @@ bool ClubManager::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSen
 		}
 
 		auto p = new Club();
-		p->init(this,generateClubID(), prealMsg["name"].asString(), prealMsg["opts"], 1000, 8 );
+		p->init(this,generateClubID(), prealMsg["name"].asString(), prealMsg["opts"], CLUB_MEMBER_CAPCITY, 8 );
 		p->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
 		m_vClubs[p->getClubID()] = p;
 
@@ -250,7 +251,7 @@ bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 				auto pClub = new Club();
 				auto jsCreateOpts = jsReqContent["opts"];
 				auto sCreateName = jsReqContent["name"].asString();
-				pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, 1000, 8);
+				pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, CLUB_MEMBER_CAPCITY, 8);
 				pClub->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
 				m_vClubs[pClub->getClubID()] = pClub;
 				//pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
@@ -277,7 +278,7 @@ bool ClubManager::onAsyncRequestDelayResp(uint16_t nRequestType, uint32_t nReqSe
 			auto pClub = new Club();
 			auto jsCreateOpts = jsReqContent["opts"];
 			auto sCreateName = jsReqContent["name"].asString();
-			pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, 1000, 8);
+			pClub->init(this, generateClubID(), sCreateName, jsCreateOpts, CLUB_MEMBER_CAPCITY, 8);
 			pClub->addMember(pPlayer->getUserUID(), eClubPrivilige_Creator);
 			m_vClubs[pClub->getClubID()] = pClub;
 			//pPlayer->getBaseData()->onCreatedClub(pClub->getClubID());
@@ -493,7 +494,7 @@ void ClubManager::readClubs(uint32_t nAlreadyReadCnt)
 			Json::Reader jsr;
 			Json::Value jsOpts;
 			jsr.parse(jsRow["opts"].asString(), jsOpts );
-			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, 1000, 8,jsRow["state"].asUInt(), jsRow["cprState"].asUInt(), jsRow["autoJoin"].asUInt(), jsRow["vipLevel"].asUInt(), jsRow["vipInvalidTime"].asUInt(), jsRow["diamond"].asUInt(),jsRow["notice"].asString());
+			p->init(this, jsRow["clubID"].asUInt(), jsRow["name"].asString(), jsOpts, CLUB_MEMBER_CAPCITY, 8,jsRow["state"].asUInt(), jsRow["cprState"].asUInt(), jsRow["autoJoin"].asUInt(), jsRow["vipLevel"].asUInt(), jsRow["vipInvalidTime"].asUInt(), jsRow["diamond"].asUInt(),jsRow["notice"].asString());
 			m_vClubs[p->getClubID()] = p;
 		}
 
