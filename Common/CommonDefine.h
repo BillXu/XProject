@@ -63,6 +63,7 @@ enum eClubEvent
 	eClubEvent_ResetPlayerPoints, // { uid : 23 , mgrUID : 23 }
 	eClubEvent_SetPlayerInitPoints, // { uid : 23 , mgrUID : 23, points : 23 }
 	eClubEvent_ApplyLeave,
+	eClubEvent_DismissGameRoom, // { uid : 23 , roomID : 123456 }
 	eClubEvent_Max,
 };
 

@@ -36,6 +36,7 @@ public:
 
 	struct stClubRoomInfo
 	{
+		uint32_t nGameType;
 		uint32_t nRoomID;
 		uint32_t nRoomIdx;
 		uint8_t nMaxPlayerCnt;
@@ -95,12 +96,12 @@ protected:
 	void readClubMemebers( uint32_t nAlreadyCnt );
 	void saveEventToDB( uint32_t nEventID , bool isAdd ) ; // or update ?
 	bool addEvent( stClubEvent* pEvent );
-	void onCreateEmptyRoom( uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx, uint8_t nSeatCnt, bool bPrivate = false );
+	void onCreateEmptyRoom( uint32_t nIdx, uint32_t nGameType, uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx, uint8_t nSeatCnt, bool bPrivate = false );
 	void updateCreateRoom();
-	uint8_t getEmptyAutoCreatRoomCnt();
+	//uint8_t getEmptyAutoCreatRoomCnt();
 	void postMail( uint32_t nTargetID , eMailType eType , Json::Value& jsContent , eMailState eState );
 	uint16_t getTargetPortByGameType( uint32_t nGameType );
-	void dismissEmptyRoom( bool isWillDelteClub = false );
+	void dismissEmptyRoom( uint32_t nIdx = 0, bool isWillDelteClub = false );
 	bool isEnablePointsRestrict();
 
 	// nLogType 0 ÅÆ¾Ö¸üÐÂoffsetPoint ¡£ detail { roomOffset: 23 , curPoint : 23 , roomID : 23 }
@@ -113,6 +114,13 @@ protected:
 	void removeFromIRT(uint32_t nUserID);
 	void sendIRT(Json::Value& jsMsg);
 	void sortVipInfo();
+
+	bool findCreateRoomOpts(uint32_t& nIdx, Json::Value& jsOpts);
+	bool checkSameOpts(const Json::Value& jsOpts) { return false; }
+	void clearEmptyRoomList();
+	bool addRoomOpts(Json::Value jsOpts);
+	bool eraseRoomOpts(uint32_t nOptsIdx);
+
 protected:
 	uint8_t m_nState;  // 0 normal , 1 pause ;
 	uint32_t m_nCapacity;
@@ -131,8 +139,10 @@ protected:
 	MAP_MEMBER m_vMembers;
 	MAP_EVENT m_vEvents;
 	ClubManager* m_pMgr;
-	std::vector<stClubRoomInfo> m_vFullRooms;
-	std::vector<stClubRoomInfo> m_vEmptyRooms;
+	std::map<uint32_t, std::vector<stClubRoomInfo>> m_mFullRooms;
+	std::map<uint32_t, std::vector<stClubRoomInfo>> m_mEmptyRooms;
+	//std::vector<stClubRoomInfo> m_vFullRooms;
+	//std::vector<stClubRoomInfo> m_vEmptyRooms;
 	std::vector<stInvitation*> m_vInvitations;
 
 	std::vector<uint32_t> m_vRealTimeInformation;
