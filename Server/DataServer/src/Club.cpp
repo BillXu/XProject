@@ -940,16 +940,32 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 	break;
 	case MSG_CLUB_REQ_PLAYERS:
 	{
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+		if (pPlayer == nullptr) {
+			LOGFMTW("clubID = %u ,player id = %u request member info error, player is null", getClubID(), nTargetID);
+			break;
+		}
+
+		auto pCurMmber = getMember(pPlayer->getUserUID());
+		if (pCurMmber == nullptr) {
+			LOGFMTW("clubID = %u ,player id = %u request member info error, member is null", getClubID(), nTargetID);
+			break;
+		}
+		if (pCurMmber->ePrivilige < eClubPrivilige_Manager) {
+			LOGFMTW("clubID = %u ,player id = %u request member info error, is not manager", getClubID(), nTargetID);
+			break;
+		}
+
 		uint16_t nPages = 0;
 		bool isSendPoints = false;
 		if ( isEnablePointsRestrict() )
 		{
-			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
-			if ( pPlayer )
-			{
-				auto pmem = getMember(pPlayer->getUserUID());
-				isSendPoints = pmem && pmem->ePrivilige >= eClubPrivilige_Manager;
-			}
+			//auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+			//if ( pPlayer )
+			//{
+				//auto pmem = getMember(pPlayer->getUserUID());
+			isSendPoints = /*pCurMmber && */pCurMmber->ePrivilige >= eClubPrivilige_Manager;
+			//}
 		}
 
 		Json::Value jsPlayers;
