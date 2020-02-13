@@ -122,7 +122,7 @@ public:
 	bool isThisXiPaiType(BJPlayerCard* pPlayerCard, eXiPaiType& eType)override
 	{
 		uint8_t nTongShunCnt = 0;
-		for (uint8_t nIdx = 1; nIdx < 3; ++nIdx)
+		for (uint8_t nIdx = 0; nIdx < 3; ++nIdx)
 		{
 			auto stGroup = pPlayerCard->getGroupByIdx(nIdx);
 			if ( CardType_SameColorSequence == stGroup.getType())
