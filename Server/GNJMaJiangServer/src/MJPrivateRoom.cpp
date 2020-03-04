@@ -23,6 +23,7 @@ void MJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 		Json::Value jsPlayer;
 		jsPlayer["uid"] = pp->getUserUID();
 		jsPlayer["final"] = pp->getChips();
+		jsPlayer["realFinal"] = 0; //TODO
 		jsPlayer["anGangCnt"] = pp->getAnGangCnt();
 		jsPlayer["dianPaoCnt"] = pp->getDianPaoCnt();
 		jsPlayer["huCnt"] = pp->getHuCnt();

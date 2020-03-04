@@ -1,0 +1,41 @@
+#include "ARQMJOpts.h"
+#include "log4z.h"
+#include "CommonDefine.h"
+void ARQMJOpts::initRoomOpts(Json::Value& jsOpts) {
+	IMJOpts::initRoomOpts(jsOpts);
+}
+
+uint16_t ARQMJOpts::calculateDiamondNeed() {
+#ifdef _DEBUG
+	//return 0;
+#endif // _DEBUG
+	auto nLevel = getRoundLevel();
+	if (nLevel > 1)
+	{
+		LOGFMTE("invalid room level for game = %u , level = %u", getGameType(), nLevel);
+		nLevel = 1;
+	}
+
+	// is aa true ;
+	if (isAA() || getPayType() == ePayType_AA) {
+		uint16_t vAA[] = { 1 , 2 };
+		return vAA[nLevel];
+	}
+
+	uint16_t vFangZhu[] = { 4 , 8 };
+	return vFangZhu[nLevel];
+}
+
+uint8_t ARQMJOpts::calculateInitRound() {
+#ifdef _DEBUG
+	return 2;
+#endif // _DEBUG
+	auto nLevel = getRoundLevel();
+
+	if (nLevel > 1) {
+		return 1;
+	}
+
+	uint8_t vRounds[2] = { 8, 16 };
+	return vRounds[nLevel];
+}

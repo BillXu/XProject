@@ -105,6 +105,7 @@ enum eGameType
 	eGame_YZMJ,
 	eGame_NJMJ,
 	eGame_GuanDan,
+	eGame_ARQMJ,
 	eGame_Max,
 };
 

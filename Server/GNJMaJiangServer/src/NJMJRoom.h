@@ -9,6 +9,7 @@ public:
 	{
 		std::map<uint8_t, uint16_t> vWinIdxs;
 		std::map<uint8_t, uint16_t> vLoseIdx;
+		std::map<uint8_t, int32_t> vRealOffset;
 		eMJActType eSettleReason;
 		Json::Value jsHuMsg;
 		bool bWaiBao = false;
@@ -32,6 +33,26 @@ public:
 			}
 			else {
 				vLoseIdx[nIdx] = nLoseCoin;
+			}
+		}
+
+		void addRealOffset(uint8_t nIdx, int32_t nOffset)
+		{
+			if (vRealOffset.count(nIdx)) {
+				vRealOffset[nIdx] += nOffset;
+			}
+			else {
+				vRealOffset[nIdx] = nOffset;
+			}
+		}
+
+		int32_t getRealOffset(uint8_t nIdx)
+		{
+			if (vRealOffset.count(nIdx)) {
+				return vRealOffset[nIdx];
+			}
+			else {
+				return 0;
 			}
 		}
 	};

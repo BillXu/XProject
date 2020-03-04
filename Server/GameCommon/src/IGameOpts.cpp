@@ -18,6 +18,7 @@
 #include "SDMJOpts.h"
 #include "YZMJOpts.h"
 #include "NJMJOpts.h"
+#include "ARQMJOpts.h"
 void IGameOpts::initRoomOpts(Json::Value& jsOpts) {
 	m_jsOpts = jsOpts;
 	setRoomID(0);
@@ -164,6 +165,11 @@ std::shared_ptr<IGameOpts> IGameOpts::parseOpts(Json::Value& jsOpts) {
 	case eGame_NJMJ:
 	{
 		pIGameOpts = std::make_shared<NJMJOpts>();
+	}
+	break;
+	case eGame_ARQMJ:
+	{
+		pIGameOpts = std::make_shared<ARQMJOpts>();
 	}
 	break;
 	case eGame_BiJi:

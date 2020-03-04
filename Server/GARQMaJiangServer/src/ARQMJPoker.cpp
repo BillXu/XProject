@@ -1,5 +1,5 @@
-#include "MQMJPoker.h"
-void MQMJPoker::init(Json::Value& jsOpt) {
+#include "ARQMJPoker.h"
+void ARQMJPoker::init(Json::Value& jsOpt) {
 	IMJPoker::init(jsOpt);
 
 	// every card are 4 count 
@@ -17,7 +17,7 @@ void MQMJPoker::init(Json::Value& jsOpt) {
 	}
 }
 
-uint8_t MQMJPoker::getCardByIdx(uint16_t nIdx, bool isReverse) {
+uint8_t ARQMJPoker::getCardByIdx(uint16_t nIdx, bool isReverse) {
 	if (isReverse) {
 		if (nIdx > m_vCards.size()) {
 			nIdx = m_vCards.size();
@@ -30,7 +30,7 @@ uint8_t MQMJPoker::getCardByIdx(uint16_t nIdx, bool isReverse) {
 	return m_vCards[nIdx];
 }
 
-void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
+void ARQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 #ifndef _DEBUG
 	return;
 #endif // !_DEBUG

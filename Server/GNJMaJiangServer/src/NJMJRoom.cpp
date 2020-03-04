@@ -201,6 +201,9 @@ void NJMJRoom::onGameEnd() {
 			jsPlayer["offset"] = ref->getSingleOffset();
 			jsPlayer["chips"] = ref->getChips();
 			jsPlayer["holdCard"] = jsHoldCard;
+			if (isEnableWaiBao()) {
+				jsPlayer["extraOffset"] = ((NJMJPlayer*)ref)->getExtraOffset();
+			}
 			jsPlayers[jsPlayers.size()] = jsPlayer;
 
 			if (ref->haveState(eRoomPeer_AlreadyHu)) {
@@ -649,6 +652,9 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 				stHuInfomation.m_nBaoIdx = m_cCheckHuCard.m_nIdx;
 			}
 
+			jsDetail["baoPaiIdx"] = stHuInfomation.m_nBaoIdx;
+			stJson["baoPaiIdx"] = stHuInfomation.m_nBaoIdx;
+
 			st.addLose(stHuInfomation.m_nBaoIdx, nFanCnt);
 			st.addWin(nInvokeIdx, nFanCnt);
 		}
@@ -793,6 +799,8 @@ void NJMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 					stHuInfomation.m_nBaoIdx = m_cCheckHuCard.m_nIdx;
 				}
 				nLoseIdx = stHuInfomation.m_nBaoIdx;
+				jsHuPlayer["baoPaiIdx"] = nLoseIdx;
+				stJson["baoPaiIdx"] = nLoseIdx;
 			}
 
 			st.addLose(nLoseIdx, nFanCnt);
@@ -967,6 +975,7 @@ void NJMJRoom::addSettle(stSettle& tSettle) {
 
 	Json::Value jsItem, jsRDetail;
 	jsItem["actType"] = tSettle.eSettleReason;
+	jsItem["waiBao"] = tSettle.bWaiBao ? 1 : 0;
 	/*if (tSettle.eSettleReason == eMJAct_Hu) {
 		jsItem["msg"] = tSettle.jsHuMsg;
 	}*/
@@ -994,24 +1003,36 @@ void NJMJRoom::addSettle(stSettle& tSettle) {
 				if (tSettle.bWaiBao || pLopPlayer->canPayOffset(nLopOffset, getGuang())) {
 					if (tSettle.bWaiBao) {
 						pLopPlayer->addExtraOffset(-1 * (int32_t)nCurCoin);
+						tSettle.addRealOffset(pLopPlayer->getIdx(), -1 * (int32_t)nCurCoin);
+
 						pCurPlayer->addExtraOffset(nCurCoin);
+						tSettle.addRealOffset(pCurPlayer->getIdx(), nCurCoin);
 					}
 					else {
 						auto nGain = pLopPlayer->addGuangSingleOffset(-1 * (int32_t)nCurCoin, getGuang());
 						uint32_t nRealOffset = nCurCoin - nGain;
+						tSettle.addRealOffset(pLopPlayer->getIdx(), -1 * (int32_t)nRealOffset);
+
 						pCurPlayer->addSingleOffset(nRealOffset);
+						tSettle.addRealOffset(pCurPlayer->getIdx(), nRealOffset);
 					}
 				}
 			}
 			else {
 				if (tSettle.bWaiBao) {
 					pLopPlayer->addExtraOffset(nCurCoin);
+					tSettle.addRealOffset(pLopPlayer->getIdx(), nCurCoin);
+
 					pCurPlayer->addExtraOffset(-1 * (int32_t)nCurCoin);
+					tSettle.addRealOffset(pCurPlayer->getIdx(), -1 * (int32_t)nCurCoin);
 				}
 				else {
 					auto nGain = pCurPlayer->addGuangSingleOffset(-1 * (int32_t)nCurCoin, getGuang());
 					uint32_t nRealOffset = nCurCoin - nGain;
+					tSettle.addRealOffset(pCurPlayer->getIdx(), -1 * (int32_t)nRealOffset);
+
 					pLopPlayer->addSingleOffset(nRealOffset);
+					tSettle.addRealOffset(pLopPlayer->getIdx(), nRealOffset);
 				}
 			}
 		}
@@ -1020,11 +1041,13 @@ void NJMJRoom::addSettle(stSettle& tSettle) {
 	Json::Value jsPlayer;
 	jsPlayer["idx"] = nLopIdx;
 	jsPlayer["chips"] = pLopPlayer->getChips();
+	jsPlayer["offset"] = tSettle.getRealOffset(nLopIdx);
 	jsRDetail[jsRDetail.size()] = jsPlayer;
 
 	for (auto ref_lop : mLopMap) {
 		jsPlayer["idx"] = ref_lop.first;
 		jsPlayer["chips"] = getPlayerByIdx(ref_lop.first)->getChips();
+		jsPlayer["offset"] = tSettle.getRealOffset(ref_lop.first);
 		jsRDetail[jsRDetail.size()] = jsPlayer;
 	}
 
@@ -1053,9 +1076,10 @@ void NJMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
 	for (auto& ref : m_vSettle) {
 		Json::Value jsItem, jsRDetail;
 		jsItem["actType"] = ref.eSettleReason;
-		if (ref.eSettleReason == eMJAct_Hu) {
+		jsItem["waiBao"] = ref.bWaiBao ? 1 : 0;
+		/*if (ref.eSettleReason == eMJAct_Hu) {
 			jsItem["msg"] = ref.jsHuMsg;
-		}
+		}*/
 
 		for (auto& refl : ref.vLoseIdx)
 		{
@@ -1064,6 +1088,7 @@ void NJMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
 				Json::Value jsPlayer;
 				jsPlayer["idx"] = refl.first;
 				jsPlayer["offset"] = -1 * refl.second;
+				jsPlayer["realOffset"] = ref.getRealOffset(refl.first);
 				jsRDetail[jsRDetail.size()] = jsPlayer;
 			}
 		}
@@ -1075,6 +1100,7 @@ void NJMJRoom::settleInfoToJson(Json::Value& jsRealTime) {
 				Json::Value jsPlayer;
 				jsPlayer["idx"] = refl.first;
 				jsPlayer["offset"] = refl.second;
+				jsPlayer["realOffset"] = ref.getRealOffset(refl.first);
 				jsRDetail[jsRDetail.size()] = jsPlayer;
 			}
 		}

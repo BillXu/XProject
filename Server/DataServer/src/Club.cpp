@@ -2279,6 +2279,11 @@ uint16_t Club::getTargetPortByGameType(uint32_t nGameType)
 		return ID_MSG_PORT_NJMJ;
 	}
 	break;
+	case eGame_ARQMJ:
+	{
+		return ID_MSG_PORT_ARQMJ;
+	}
+	break;
 	default:
 		break;
 	}
