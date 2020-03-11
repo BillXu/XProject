@@ -89,13 +89,29 @@ void DBRWModule::onTaskFinish( ITask::ITaskPrt pTask )
 	}
 	else
 	{
-		pReq->lpfCallBack(pReq, pRet);
+		if (pDBTask->getResultCode() == 0 || pReq->nRetryTimes >= 3 ) // maybe need do reconnect , 2020/3/5 14:26
+		{
+			pReq->lpfCallBack(pReq, pRet);
+		}
+		else
+		{
+			LOGFMTE("db request error , try later again");// maybe need do reconnect , 2020/3/5 14:26
+		}
 	}
 
-	LOGFMTD("do finish db request = %u then push to reserver for next use", pReq->nRequestUID);
 	// request obj push to reserver for resue 
-	pReq->reset();
-	m_vReseverDBRequest.push_back(pReq);
+	if (pDBTask->getResultCode() == 0 || pReq->nRetryTimes >= 3 ) // maybe need do reconnect , 2020/3/5 14:26
+	{
+		LOGFMTD("do finish db request = %u then push to reserver for next use", pReq->nRequestUID);
+		pReq->reset();
+		m_vReseverDBRequest.push_back(pReq);
+	}
+	else
+	{
+		m_vWaitToProcessDBRequest.push_back(pReq);
+		++pReq->nRetryTimes;
+		LOGFMTE( "db request error , try later again ret = %d, times = %d", pDBTask->getResultCode() , pReq->nRetryTimes );// maybe need do reconnect , 2020/3/5 14:26
+	}
 
 	// check wait process db request 
 	if ( m_vWaitToProcessDBRequest.empty() )

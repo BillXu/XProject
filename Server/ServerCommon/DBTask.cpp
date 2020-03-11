@@ -144,9 +144,9 @@ uint8_t CDBTask::doRequest(DBRequest_ptr ptr )
 	{
 		LOGFMTE("query DB Error Info , Operate UID = %d : %s . sql: = %s\n", pRequest->nRequestUID, mysql_error(m_pMySql), pRequest->pSqlBuffer);
 		pResult->nAffectRow = 0 ;
+		m_tNextMysqlPingTime = 0; // maybe need do reconnect , 2020/3/5 14:26
 		return 1;
 	}
-
 	do 
 	{
 		switch ( pRequest->eType )

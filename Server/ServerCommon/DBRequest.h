@@ -38,12 +38,13 @@ public:
 	int nSqlBufferLen ;
 	void* pUserData ;
 	lpDBResultCallBack lpfCallBack;
+	int nRetryTimes;
 protected:
 	stDBRequest() { reset(); }
 	friend class DBRWModule;
 	friend class CDBVerfiyTask;
 public:
-	void reset() { nRequestUID = 0; memset(pSqlBuffer, 0, sizeof(pSqlBuffer)); nSqlBufferLen = 0; pUserData = 0; lpfCallBack = nullptr; }
+	void reset() { nRetryTimes = 0;  nRequestUID = 0; memset(pSqlBuffer, 0, sizeof(pSqlBuffer)); nSqlBufferLen = 0; pUserData = 0; lpfCallBack = nullptr; }
 };
 
 struct stDBResult
