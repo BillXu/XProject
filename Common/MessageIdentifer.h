@@ -504,6 +504,32 @@ enum eMsgType
 	// client : { clubID : 0, roomID : 0  }
 	// svr : { clubID : 0, roomID : 0, ret : 0 }
 
+	MSG_CLUB_FORCE_INVITE_MEMBER,
+	// clinet : { clubID : 0, uid : 123 }
+	// svr : { clubID : 0, ret : 0 }
+	// targetID : self uid
+	// ret : 0 success , 1 targetID invalid , 2 targetID invalid , 3 already join , 4 targetID invalid , 5 member limit
+
+	MSG_CLUB_SWITCH_MEMBER_CAN_PLAY,
+	// client : { clubID : 0, uid : 123 }
+	// svr : { clubID : 0, uid : 123, playTime : 0/1, ret : 0 }
+	// targetID : self uid
+	// ret : 0 success , 1 uid is error , 2 targetID invalid , 3 uid not join , 4 targetID invalid , 5 can not update manger
+	// playTime : when the ret is 0 use this parameter . 0 can enter room , 1 can not enter room , > 1 can enter room
+	// when ever call this message switch playTime between 0 and 1
+
+	MSG_CLUB_UPDATE_MEMBER_REMARK,
+	// client : { clubID : 0, uid : 123, remark : "sRemark" }
+	// svr : { clubID : 0, uid : 123, remark : "sRemark", ret : 0 }
+	// targetID : self uid
+	// ret : 0 success , 1 uid is error , 2 targetID invalid , 3 uid not join , 4 targetID invalid , 5 can not update high-level
+
+	MSG_CLUB_TRANSFER_CREATOR,
+	// client : { clubID : 0, uid : 123 }
+	// svr : { clubID : 0, uid : 123, ret : 0 }
+	// targetID : self uid
+	// ret : 0 success , 1 uid is error , 2 targetID invalid , 3 targetID invalid not creator , 10 uid not join, 11 uid is error, 12 error
+
 	MSG_CLUB_MSG_END = 2900,
 
 	// mj specail msg ;

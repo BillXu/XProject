@@ -64,6 +64,9 @@ enum eClubEvent
 	eClubEvent_SetPlayerInitPoints, // { uid : 23 , mgrUID : 23, points : 23 }
 	eClubEvent_ApplyLeave,
 	eClubEvent_DismissGameRoom, // { uid : 23 , roomID : 123456 }
+	eClubEvent_ForceInvite, // { uid : 123, mgrUID : 123 }
+	eClubEvent_SwitchPlayTime, // { uid : 123, mgrUID : 123, playTime : 0/1 }
+	eClubEvent_TransferCreator, // { uid : 123, oldCreator : 123 }
 	eClubEvent_Max,
 };
 

@@ -13,10 +13,24 @@ public:
 		int32_t nOffsetPoints;
 		int32_t nInitPoints;
 		uint32_t nPlayTime;
+		std::string sRemark;
 		stMember() { nOffsetPoints = 0; nInitPoints = 0; nPlayTime = 0; }
 		int32_t getCurPoint() { return nInitPoints + nOffsetPoints; }
 		void decreasePlayTime() { nPlayTime -= 1; }
 		void updatePlayTime(uint32_t tPlayTime) { nPlayTime = tPlayTime; }
+		void updateRemark(std::string tRemark) { sRemark = tRemark; }
+		void switchPlayTime()
+		{
+			if (nPlayTime == 1) {
+				nPlayTime = 0;
+			}
+			else if (nPlayTime == 0) {
+				nPlayTime = 1;
+			}
+			else {
+				nPlayTime = 1;
+			}
+		}
 	};
 
 	struct stClubEvent
@@ -87,6 +101,8 @@ public:
 	bool setIsEnablePointRestrict( bool isEnable );
 	void decreaseMemberPlayTime(uint32_t nMemberUID);
 	void updateMemberPlayTime(uint32_t nMemberUID, uint32_t nPlayTime);
+	void updateMemberRemark(uint32_t nMemberUID, std::string sRemark);
+	void switchMemberPlayTime(uint32_t nMemberUID);
 	void clearLackDiamond(); //仅供外部调用，验证gateType
 	uint8_t transferCreator(uint32_t nMemberUID);
 	uint8_t getVipLevel() { return m_nVipLevel; }

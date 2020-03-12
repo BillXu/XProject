@@ -9,6 +9,7 @@
 #include "AsyncRequestQuene.h"
 #include "MailModule.h"
 #include <algorithm>
+#include "Utility.h"
 #define MAX_EMPTY_ROOM_CNT 2 
 #define MAX_ROOM_OPTS_CNT 10
 Club::~Club()
@@ -69,6 +70,185 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 {
 	switch ( nMsgType )
 	{
+	case MSG_CLUB_TRANSFER_CREATOR:
+	{
+		uint32_t nUID = prealMsg["uid"].asUInt();
+		uint8_t nRet = 0;
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+
+		do
+		{
+			if (nUID == 0)
+			{
+				nRet = 1;
+				break;
+			}
+
+			if (pPlayer == nullptr)
+			{
+				nRet = 3;
+				break;
+			}
+
+			auto pmem = getMember(pPlayer->getUserUID());
+			if (pmem == nullptr || pmem->ePrivilige != eClubPrivilige_Creator)
+			{
+				nRet = 2;
+				break;
+			}
+
+		} while (0);
+
+		nRet = transferCreator(nUID);
+
+		prealMsg["ret"] = nRet;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+		if (nRet)
+		{
+			break;
+		}
+
+		pPlayer->getBaseData()->eraseCreatedClub(getClubID());
+
+		Json::Value jsLogin;
+		jsLogin["uid"] = nUID;
+		jsLogin["sessionID"] = 0;
+		jsLogin["ip"] = "0";
+		jsLogin["clubID"] = getClubID();
+		m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DATA, nUID, eAsync_Player_Logined, jsLogin);
+
+		auto p = new stClubEvent();
+		p->nEventID = ++m_nMaxEventID;
+		p->nEventType = eClubEvent_TransferCreator;
+		p->nState = eEventState_Processed;
+		p->nTime = time(nullptr);
+		p->jsEventDetail["uid"] = nUID;
+		p->jsEventDetail["oldCreator"] = nTargetID;
+		addEvent(p);
+	}
+	break;
+	case MSG_CLUB_UPDATE_MEMBER_REMARK:
+	{
+		uint32_t nUID = prealMsg["uid"].asUInt();
+		uint8_t nRet = 0;
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+
+		do
+		{
+			if (nUID == 0)
+			{
+				nRet = 1;
+				break;
+			}
+
+			if (pPlayer == nullptr)
+			{
+				nRet = 4;
+				break;
+			}
+
+			auto pManger = getMember(pPlayer->getUserUID());
+			if (pManger == nullptr || pManger->ePrivilige < eClubPrivilige_Manager)
+			{
+				nRet = 2;
+				break;
+			}
+
+			if (isHaveMemeber(nUID) == false)
+			{
+				nRet = 3;
+				break;
+			}
+
+			auto pMem = getMember(nUID);
+
+			if (pMem->ePrivilige > pManger->ePrivilige)
+			{
+				nRet = 5;
+				break;
+			}
+
+		} while (0);
+
+		prealMsg["ret"] = nRet;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+		if (nRet)
+		{
+			break;
+		}
+
+		auto sRemark = checkStringForSql(prealMsg["remark"].asCString());
+		updateMemberRemark(nUID, sRemark);
+	}
+	break;
+	case MSG_CLUB_SWITCH_MEMBER_CAN_PLAY:
+	{
+		uint32_t nUID = prealMsg["uid"].asUInt();
+		uint8_t nRet = 0;
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+
+		do
+		{
+			if (nUID == 0)
+			{
+				nRet = 1;
+				break;
+			}
+
+			if (pPlayer == nullptr)
+			{
+				nRet = 4;
+				break;
+			}
+
+			auto pmem = getMember(pPlayer->getUserUID());
+			if (pmem == nullptr || pmem->ePrivilige < eClubPrivilige_Manager)
+			{
+				nRet = 2;
+				break;
+			}
+
+			if (isHaveMemeber(nUID) == false)
+			{
+				nRet = 3;
+				break;
+			}
+
+			pmem = getMember(nUID);
+
+			if (pmem->ePrivilige > eClubPrivilige_Normal)
+			{
+				nRet = 5;
+				break;
+			}
+
+		} while (0);
+
+		prealMsg["ret"] = nRet;
+		prealMsg["clubID"] = getClubID();
+		prealMsg["uid"] = nUID;
+		if (nRet)
+		{
+			sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+			break;
+		}
+
+		switchMemberPlayTime(nUID);
+		auto pMem = getMember(nUID);
+		prealMsg["playTime"] = pMem->nPlayTime;
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+
+		auto p = new stClubEvent();
+		p->nEventID = ++m_nMaxEventID;
+		p->nEventType = eClubEvent_SwitchPlayTime;
+		p->nState = eEventState_Processed;
+		p->nTime = time(nullptr);
+		p->jsEventDetail["uid"] = nUID;
+		p->jsEventDetail["mgrUID"] = nTargetID;
+		p->jsEventDetail["playTime"] = pMem->nPlayTime;
+		addEvent(p);
+	}
+	break;
 	case MSG_CLUB_PLAYER_RTI:
 	{
 		Json::Value js;
@@ -975,6 +1155,8 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			Json::Value jsp;
 			jsp["uid"] = pMem->nPlayerUID;
 			jsp["privilige"] = pMem->ePrivilige;
+			jsp["playTime"] = pMem->nPlayTime;
+			jsp["remark"] = pMem->sRemark;
 
 			auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(pMem->nPlayerUID);
 			if (pPlayer && pPlayer->isPlayerReady()) {
@@ -1080,6 +1262,66 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			js["mgrID"] = nTargetID;
 			postMail(pI->nUserUID, eMail_ClubInvite, js, eMailState_WaitPlayerAct );
 		}
+	}
+	break;
+	case MSG_CLUB_FORCE_INVITE_MEMBER:
+	{
+		uint32_t nUID = prealMsg["uid"].asUInt();
+		uint8_t nRet = 0;
+		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
+
+		do
+		{
+			if (nUID == 0)
+			{
+				nRet = 1;
+				break;
+			}
+
+			if (pPlayer == nullptr)
+			{
+				nRet = 4;
+				break;
+			}
+
+			auto pmem = getMember(pPlayer->getUserUID());
+			if (pmem == nullptr || pmem->ePrivilige < eClubPrivilige_Manager)
+			{
+				nRet = 2;
+				break;
+			}
+
+			if (isHaveMemeber(nUID))
+			{
+				nRet = 3;
+				break;
+			}
+
+			if (m_vMembers.size() >= m_nCapacity)
+			{
+				nRet = 5;
+				break;
+			}
+
+		} while (0);
+
+		prealMsg["ret"] = nRet;
+		prealMsg["clubID"] = getClubID();
+		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+		if (nRet)
+		{
+			break;
+		}
+
+		addMember(nUID);
+		auto p = new stClubEvent();
+		p->nEventID = ++m_nMaxEventID;
+		p->nEventType = eClubEvent_ForceInvite;
+		p->nState = eEventState_Processed;
+		p->nTime = time(nullptr);
+		p->jsEventDetail["uid"] = nUID;
+		p->jsEventDetail["mgrUID"] = nTargetID;
+		addEvent(p);
 	}
 	break;
 	case MSG_CLUB_RESPONE_INVITE:
@@ -2141,7 +2383,8 @@ bool Club::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent
 			if (nBackDiamond > 0)
 			{
 				auto jsd = jsReqContent;
-				CPlayer::saveDiamondRecorder(getClubID(), eLogDiamond_ClubGiveBack, nBackDiamond, getDiamond(), jsd);
+				jsd["clubID"] = getClubID();
+				CPlayer::saveDiamondRecorder(0, eLogDiamond_ClubGiveBack, nBackDiamond, getDiamond(), jsd);
 			}
 		}
 		else {
@@ -2903,7 +3146,8 @@ void Club::onCreateEmptyRoom(uint32_t nIdx, uint32_t nGameType, uint32_t nRoomID
 	{
 		Json::Value jsd;
 		jsd["roomID"] = nRoomID;
-		CPlayer::saveDiamondRecorder(getClubID(), eLogDiamond_ClubConsume, nDiamondFee * -1, getDiamond(), jsd);
+		jsd["clubID"] = getClubID();
+		CPlayer::saveDiamondRecorder(0, eLogDiamond_ClubConsume, nDiamondFee * -1, getDiamond(), jsd);
 	}
 
 	m_isCreatingRoom = false;
@@ -3081,7 +3325,7 @@ void Club::readClubMemebers( uint32_t nAlreadyReadCnt)
 {
 	auto asyq = m_pMgr->getSvrApp()->getAsynReqQueue();
 	std::ostringstream ss;
-	ss << "SELECT uid,privilige,offsetPoints,initPoints,playTime FROM clubmember where clubID = " << getClubID() << " limit 20 OFFSET " << nAlreadyReadCnt << ";";
+	ss << "SELECT uid,privilige,offsetPoints,initPoints,playTime,remark FROM clubmember where clubID = " << getClubID() << " limit 20 OFFSET " << nAlreadyReadCnt << ";";
 	Json::Value jsReq;
 	jsReq["sql"] = ss.str();
 	asyq->pushAsyncRequest(ID_MSG_PORT_DB,rand() % 100, eAsync_DB_Select, jsReq, [this, asyq](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut ) {
@@ -3113,6 +3357,7 @@ void Club::readClubMemebers( uint32_t nAlreadyReadCnt)
 			p->nInitPoints = jsRow["initPoints"].asInt();
 			p->nOffsetPoints = jsRow["offsetPoints"].asInt();
 			p->nPlayTime = jsRow["playTime"].asUInt();
+			p->sRemark = jsRow["remark"].asCString();
 			m_vMembers[nUID] = p;
 
 			if (p->ePrivilige == eClubPrivilige_Creator) {
@@ -3269,7 +3514,7 @@ void Club::saveMemberUpdateToDB(stMember * pMem)
 	Json::StyledWriter jsw;
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, sizeof(pBuffer), "update clubmember set privilige = %u,offsetPoints = %d,initPoints = %d, playTime = %u where clubID = %u and uid = %u limit 1 ;", pMem->ePrivilige, pMem->nOffsetPoints,pMem->nInitPoints, pMem->nPlayTime, getClubID(), pMem->nPlayerUID );
+	sprintf_s(pBuffer, sizeof(pBuffer), "update clubmember set privilige = %u,offsetPoints = %d,initPoints = %d, playTime = %u, remark = %s where clubID = %u and uid = %u limit 1 ;", pMem->ePrivilige, pMem->nOffsetPoints,pMem->nInitPoints, pMem->nPlayTime, pMem->sRemark.c_str(), getClubID(), pMem->nPlayerUID );
 	jssql["sql"] = pBuffer;
 	m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, rand() % 100, eAsync_DB_Update, jssql);
 }
@@ -3287,6 +3532,22 @@ void Club::updateMemberPlayTime(uint32_t nMemberUID, uint32_t nPlayTime) {
 	auto pMember = getMember(nMemberUID);
 	if (pMember) {
 		pMember->updatePlayTime(nPlayTime);
+		saveMemberUpdateToDB(pMember);
+	}
+}
+
+void Club::updateMemberRemark(uint32_t nMemberUID, std::string sRemark) {
+	auto pMember = getMember(nMemberUID);
+	if (pMember) {
+		pMember->updateRemark(sRemark);
+		saveMemberUpdateToDB(pMember);
+	}
+}
+
+void Club::switchMemberPlayTime(uint32_t nMemberUID) {
+	auto pMember = getMember(nMemberUID);
+	if (pMember) {
+		pMember->switchPlayTime();
 		saveMemberUpdateToDB(pMember);
 	}
 }

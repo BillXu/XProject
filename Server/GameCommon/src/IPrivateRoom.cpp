@@ -876,6 +876,7 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 			js["diamond"] = nNeedDiamond;
 			js["roomID"] = getRoomID();
 			js["reason"] = 0;
+			js["clubID"] = getClubID();
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
 		}
 	}
@@ -1179,6 +1180,7 @@ void IPrivateRoom::doProcessWinerPayRoomCard()
 	js["diamond"] = nDiamondPerBigWiner;
 	js["roomID"] = getRoomID();
 	js["reason"] = 0;
+	js["clubID"] = getClubID();
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	for (auto& ref : vBigWinerUID)
 	{

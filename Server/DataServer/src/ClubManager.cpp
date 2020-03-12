@@ -6,7 +6,7 @@
 #include "AsyncRequestQuene.h"
 #include "PlayerBaseData.h"
 #include "Utility.h"
-#define CLUB_MEMBER_CAPCITY 1200
+#define CLUB_MEMBER_CAPCITY 2000
 ClubManager::~ClubManager()
 {
 	for (auto& ref : m_vClubs)
@@ -372,7 +372,8 @@ bool ClubManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReq
 		LOGFMTD( "agent id = %u add diamond = %d to clubid = %u", jsReqContent["agentID"].asUInt(),nAddCnt, nClubID );
 
 		auto jsd = jsReqContent;
-		CPlayer::saveDiamondRecorder(nClubID, eLogDiamond_ClubAgent, nAddCnt, iterClub->second->getDiamond(), jsd);
+		jsd["clubID"] = nClubID;
+		CPlayer::saveDiamondRecorder(0, eLogDiamond_ClubAgent, nAddCnt, iterClub->second->getDiamond(), jsd);
 		return true;
 	}
 
