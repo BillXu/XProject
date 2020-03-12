@@ -325,6 +325,7 @@ bool CPlayerGameData::onMsg(Json::Value& recvValue, uint16_t nmsgType, eMsgPort 
 		}
 
 		m_bRealTimeInformation = bState;
+		return true;
 	}
 	return false;
 }
