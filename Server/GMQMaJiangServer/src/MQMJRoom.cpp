@@ -88,7 +88,79 @@ void MQMJRoom::onWillStartGame() {
 
 void MQMJRoom::onStartGame()
 {
-	IMJRoom::onStartGame();
+	//IMJRoom::onStartGame();
+	//Ìæ´ú IMJroom::onStartGame()
+	GameRoom::onStartGame();
+	// distribute card 
+	auto pPoker = (MQMJPoker*)getPoker();
+	for (auto& pPlayer : m_vPlayers)
+	{
+		if (!pPlayer)
+		{
+			LOGFMTE("why player is null hz mj must all player is not null");
+			continue;
+		}
+
+		auto pMJPlayer = (MQMJPlayer*)pPlayer;
+		for (uint8_t nIdx = 0; nIdx < 13; ++nIdx)
+		{
+			uint8_t nCard = 0;
+			if (pMJPlayer->confirmNextCardNot(nCard)) {
+				pPoker->confirmNextCardNot(nCard);
+			}
+			nCard = pPoker->distributeOneCard();
+			pMJPlayer->getPlayerCard()->addDistributeCard(nCard);
+		}
+
+		if (getBankerIdx() == pPlayer->getIdx())
+		{
+			uint8_t nCard = 0;
+			if (pMJPlayer->confirmNextCardNot(nCard)) {
+				pPoker->confirmNextCardNot(nCard);
+			}
+			nCard = pPoker->distributeOneCard();
+			pMJPlayer->getPlayerCard()->onMoCard(nCard);
+			pMJPlayer->signFlag(IMJPlayer::eMJActFlag_CanTianHu);
+		}
+		else
+		{
+			pMJPlayer->signFlag(IMJPlayer::eMJActFlag_WaitCheckTianTing);
+		}
+	}
+
+	// prepare replay frame 
+	Json::Value jsFrameArg, jsPlayers;
+	jsFrameArg["bankIdx"] = getBankerIdx();
+	for (auto& pPlayer : m_vPlayers)
+	{
+		if (!pPlayer)
+		{
+			LOGFMTE("why player is null hz mj must all player is not null");
+			continue;
+		}
+
+		Json::Value jsPlayer;
+		jsPlayer["idx"] = pPlayer->getIdx();
+
+		IMJPlayerCard::VEC_CARD vCard;
+		((IMJPlayer*)pPlayer)->getPlayerCard()->getHoldCard(vCard);
+		Json::Value jsHoldCard;
+		for (auto& vC : vCard)
+		{
+			jsHoldCard[jsHoldCard.size()] = vC;
+		}
+
+		jsPlayer["cards"] = jsHoldCard;
+		jsPlayer["coin"] = pPlayer->getChips();
+		jsPlayer["uid"] = pPlayer->getUserUID();
+		jsPlayers[jsPlayers.size()] = jsPlayer;
+	}
+	jsFrameArg["players"] = jsPlayers;
+	addReplayFrame(eMJFrame_StartGame, jsFrameArg);
+	LOGFMTI("room id = %u start game !", getRoomID());
+
+
+	//TODO new thing
 	sendStartGameMsg();
 }
 
@@ -265,8 +337,14 @@ void MQMJRoom::setNextBankerIdx(uint8_t nHuIdx) {
 }
 
 void MQMJRoom::onPlayerMo(uint8_t nIdx) {
-	IMJRoom::onPlayerMo(nIdx);
 	auto pPlayer = (MQMJPlayer*)getPlayerByIdx(nIdx);
+	uint8_t nCard = 0;
+	auto pMJPoker = (MQMJPoker*)getPoker();
+	if (pPlayer->confirmNextCardNot(nCard)) {
+		pMJPoker->confirmNextCardNot(nCard);
+	}
+
+	IMJRoom::onPlayerMo(nIdx);
 	pPlayer->clearGangFlag();
 	pPlayer->signFlag(IMJPlayer::eMJActFlag::eMJActFlag_NeedClearCanCyclone);
 }
@@ -636,6 +714,8 @@ void MQMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 }
 
 void MQMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
+	m_bTestWaitCyclone = false;
+
 	auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer) {
 		LOGFMTE("player idx = %u is null can not tell it wait act", nIdx);
@@ -681,6 +761,8 @@ void MQMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 			pMJCard->getHoldCardThatCanCyclone(vCards);
 			for (auto& ref : vCards)
 			{
+				m_bTestWaitCyclone = true;
+
 				Json::Value jsAct;
 				jsAct["act"] = eMJAct_Cyclone;
 				jsAct["cardNum"] = ref;
@@ -727,6 +809,7 @@ void MQMJRoom::onWaitPlayerAct(uint8_t nIdx, bool& isCanPass) {
 }
 
 bool MQMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
+	m_bTestWaitCyclone = false;
 	auto pPlayer = (IMJPlayer*)getPlayerByIdx(nIdx);
 	if (!pPlayer) {
 		LOGFMTE("player idx = %u is null can not tell it wait act", nIdx);
@@ -753,6 +836,8 @@ bool MQMJRoom::onWaitPlayerActAfterCP(uint8_t nIdx) {
 			if (pMJCard->getHoldCardThatCanCyclone(vCards)) {
 				for (auto& ref : vCards)
 				{
+					m_bTestWaitCyclone = true;
+
 					Json::Value jsAct;
 					jsAct["act"] = eMJAct_Cyclone;
 					jsAct["cardNum"] = ref;

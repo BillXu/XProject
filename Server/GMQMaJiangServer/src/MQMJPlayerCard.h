@@ -13,6 +13,7 @@ public:
 	bool getHoldCardThatCanAnGang(VEC_CARD& vGangCards)override;
 	bool getHoldCardThatCanBuGang(VEC_CARD& vGangCards)override;
 	bool getHoldCardThatCanCyclone(VEC_CARD& vGangCards);
+	bool confirmNextCardNot(uint8_t& nCard);
 	bool canCycloneWithCard(uint8_t nCard);
 	bool onCyclone(uint8_t nCard, uint8_t nGangGetCard);
 	bool getCycloneCard(VEC_CARD& vCycloneCard);

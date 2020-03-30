@@ -708,6 +708,7 @@ bool CPlayerManager::onAsyncRequest( uint16_t nRequestType , const Json::Value& 
 		jsMailArg["diamond"] = jsReqContent["diamond"];
 		jsMailArg["roomID"] = jsReqContent["roomID"];
 		jsMailArg["reason"] = jsReqContent["reason"];
+		jsMailArg["clubID"] = jsReqContent["clubID"];
 
 		auto pMailModule = ((DataServerApp*)getSvrApp())->getMailModule();
 		pMailModule->postMail(nUserUID, eMail_Consume_Diamond, jsMailArg, eMailState_WaitSysAct);

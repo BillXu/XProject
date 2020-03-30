@@ -150,6 +150,78 @@ bool MQMJPlayerCard::canCycloneWithCard(uint8_t nCard) {
 	return true;
 }
 
+bool MQMJPlayerCard::confirmNextCardNot(uint8_t& nCard) {
+	VEC_CARD vHoldCards;
+	getHoldCard(vHoldCards);
+	if (vHoldCards.size() < 6) {
+		VEC_CARD vTemp;
+		getEatedCard(vTemp);
+		if (vTemp.size() > 0) {
+			return false;
+		}
+	}
+
+	uint8_t nAlreadyCnt = 0;
+	uint8_t nLastBreak = 0;
+	for (uint8_t i = eCT_None; i < eCT_Max; i++)
+	{
+		//auto vCard = m_vCards[i];
+		if (i == eCT_Feng || i == eCT_Jian) {
+			auto vCard = m_vCards[i];
+			uint8_t nNeed = i == eCT_Feng ? 4 : 3;
+			if (vCard.size() < nNeed) {
+				continue;
+			}
+			uint8_t isBreak = 0;
+			for (uint8_t nValue = 1; nValue <= nNeed; nValue++) {
+				auto tCard = make_Card_Num((eMJCardType)i, nValue);
+				if (isHaveCard(tCard) == false) {
+					if (isBreak) {
+						return false;
+					}
+					else {
+						isBreak = tCard;
+					}
+				}
+			}
+
+			if (i == eCT_Jian && isHaveCard(make_Card_Num(eCT_Tiao, 1)) == false) {
+				if (isBreak) {
+					return false;
+				}
+				else {
+					isBreak = make_Card_Num(eCT_Tiao, 1);
+				}
+			}
+
+			if (nAlreadyCnt == 0) {
+				nAlreadyCnt = isBreak ? 1 : 2;
+				nLastBreak = isBreak;
+			}
+			else if (nAlreadyCnt == 1) {
+				if (isBreak) {
+					return false;
+				}
+				else {
+					nCard = nLastBreak;
+					return true;
+				}
+			}
+			else if (nAlreadyCnt == 2) {
+				if (isBreak) {
+					nCard = isBreak;
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+
+		}
+	}
+	return false;
+}
+
 bool MQMJPlayerCard::getHoldCardThatCanCyclone(VEC_CARD& vGangCards) {
 	VEC_CARD vHoldCards;
 	getHoldCard(vHoldCards);

@@ -30,6 +30,27 @@ uint8_t MQMJPoker::getCardByIdx(uint16_t nIdx, bool isReverse) {
 	return m_vCards[nIdx];
 }
 
+void MQMJPoker::confirmNextCardNot(uint8_t nCard) {
+	std::size_t nFindIdx = -1;
+	for (std::size_t nIdx = m_nCurIdx; nIdx < m_vCards.size(); ++nIdx)
+	{
+		if (nCard != m_vCards[nIdx])
+		{
+			nFindIdx = nIdx;
+			break;
+	}
+}
+
+	if (nFindIdx == (std::size_t) - 1 || nFindIdx == m_nCurIdx)
+	{
+		return;
+	}
+
+	m_vCards[nFindIdx] = m_vCards[m_nCurIdx] + m_vCards[nFindIdx];
+	m_vCards[m_nCurIdx] = m_vCards[nFindIdx] - m_vCards[m_nCurIdx];
+	m_vCards[nFindIdx] = m_vCards[nFindIdx] - m_vCards[m_nCurIdx];
+}
+
 void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 #ifndef _DEBUG
 	return;
@@ -38,36 +59,6 @@ void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 
 	uint8_t tCard;
 	//1
-	tCard = makeCardNumber(eCT_Wan, 3);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Wan, 4);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Wan, 8);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tong, 6);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tong, 6);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tong, 6);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tong, 6);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tong, 9);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tong, 9);
-	vMakedCards.push_back(tCard);
-
-	tCard = makeCardNumber(eCT_Tiao, 5);
-	vMakedCards.push_back(tCard);
-
 	tCard = makeCardNumber(eCT_Feng, 1);
 	vMakedCards.push_back(tCard);
 
@@ -75,6 +66,36 @@ void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Feng, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tong, 4);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Jian, 1);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Jian, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Jian, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Wan, 1);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 2);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 3);
+	vMakedCards.push_back(tCard);
+
+	tCard = makeCardNumber(eCT_Tiao, 4);
 	vMakedCards.push_back(tCard);
 
 	tCard = makeCardNumber(eCT_Feng, 4);
@@ -93,34 +114,34 @@ void MQMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 	tCard = makeCardNumber(eCT_Feng, 4);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 4);
+	tCard = makeCardNumber(eCT_Wan, 1);
 	vMakedCards.push_back(tCard);
 
-	tCard = makeCardNumber(eCT_Feng, 4);
+	tCard = makeCardNumber(eCT_Jian, 2);
 	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Jian, 3);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Jian, 3);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Tiao, 1);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Wan, 1);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Tiao, 3);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Tiao, 3);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Tiao, 3);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Tiao, 3);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Tiao, 4);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Tiao, 4);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Tiao, 4);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Tiao, 4);
+	vMakedCards.push_back(tCard);
 
-	//tCard = makeCardNumber(eCT_Tiao, 5);
-	//vMakedCards.push_back(tCard);
+	tCard = makeCardNumber(eCT_Tiao, 5);
+	vMakedCards.push_back(tCard);
 
-	////3
+	//3
 	//tCard = makeCardNumber(eCT_Feng, 1);
 	//vMakedCards.push_back(tCard);
 

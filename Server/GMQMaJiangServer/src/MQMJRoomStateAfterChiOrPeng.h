@@ -136,7 +136,6 @@ public:
 			break;
 			case eMJAct_Pass:
 			{
-				m_bPass = true;
 			}
 			break;
 			default:
@@ -155,6 +154,15 @@ public:
 
 		if (eMJAct_Pass == actType)
 		{
+			auto pRoom = (MQMJRoom*)getRoom();
+			if (pRoom->testWaitCyclone()) {
+				Json::Value jsRet;
+				jsRet["ret"] = 2;
+				getRoom()->sendMsgToPlayer(jsRet, nMsgType, nSessionID);
+				return true;
+			}
+
+			m_bPass = true;
 			setStateDuringTime(0);
 			return true;
 		}

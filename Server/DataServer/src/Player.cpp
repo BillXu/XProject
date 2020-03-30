@@ -364,10 +364,12 @@ bool CPlayer::canRemovePlayer()
 void CPlayer::saveDiamondRecorder( uint32_t nUserUID, uint8_t nReason, int32_t nOffset, uint32_t nFinal, Json::Value& jsDetail)
 {
 #ifdef _DEBUG
-	return;
+	//return;
 #endif // _DEBUG
 
 	// do save sql  room recorder 
+	uint32_t nClubID = jsDetail["clubID"].asUInt();
+
 	std::string strDetail = "";
 	if (jsDetail.isNull() == false)
 	{
@@ -377,7 +379,7 @@ void CPlayer::saveDiamondRecorder( uint32_t nUserUID, uint8_t nReason, int32_t n
 
 	Json::Value jssql;
 	char pBuffer[512] = { 0 };
-	sprintf_s(pBuffer, sizeof(pBuffer), "insert into diamondrecorder ( userUID,reason,offset,final,time,detail ) values (%u,%u,%d,%u,now(),", nUserUID, nReason, nOffset, nFinal );
+	sprintf_s(pBuffer, sizeof(pBuffer), "insert into diamondrecorder ( userUID,clubID,reason,offset,final,time,detail ) values (%u,%u,%u,%d,%u,now(),", nUserUID, nClubID, nReason, nOffset, nFinal );
 	
 	std::ostringstream ss;
 	ss << pBuffer << "'" << strDetail << "' ) ;";

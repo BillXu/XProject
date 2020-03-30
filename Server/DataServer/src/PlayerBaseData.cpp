@@ -815,7 +815,9 @@ uint8_t CPlayerBaseData::changeVip(uint32_t nVipLevel, uint32_t nDay) {
 bool CPlayerBaseData::isOutVipCreateRoomLimit(uint32_t nRoomCnt) {
 	sortVipInfo();
 
-	auto nVipLevel = getVipLevel();
+	return false;
+
+	/*auto nVipLevel = getVipLevel();
 	if (nVipLevel) {
 		nVipLevel = 1;
 	}
@@ -828,5 +830,5 @@ bool CPlayerBaseData::isOutVipCreateRoomLimit(uint32_t nRoomCnt) {
 	}
 	break;
 	}
-	return false;
+	return false;*/
 }

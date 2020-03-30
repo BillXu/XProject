@@ -49,3 +49,13 @@ void MQMJPlayer::setBestCards(uint16_t nFan) {
 void MQMJPlayer::addExtraTime(float fTime) {
 	m_nExtraTime += fTime;
 }
+
+bool MQMJPlayer::confirmNextCardNot(uint8_t& nCard) {
+	if (haveFlag(eMJActFlag_CanCyclone)) {
+		auto pCard = (MQMJPlayerCard*)getPlayerCard();
+		if (pCard->confirmNextCardNot(nCard)) {
+			return true;
+		}
+	}
+	return false;
+}

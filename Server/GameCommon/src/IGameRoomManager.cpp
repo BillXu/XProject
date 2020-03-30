@@ -186,8 +186,14 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 
 		//uint32_t nClubID = jsReqContent["clubID"].asUInt();
 		uint32_t nClubDiamond = jsReqContent["diamond"].asUInt();
+//<<<<<<< HEAD
 		//auto nRoomType = jsReqContent["gameType"].asUInt();
 		//auto nLevel = jsReqContent["level"].asUInt();
+//=======
+//		auto nRoomType = jsReqContent["gameType"].asUInt();
+//		auto nLevel = jsReqContent["level"].asUInt();
+//		auto nVipLevel = jsReqContent["vipLevel"].asUInt();
+//>>>>>>> dev_haodi_MQMJ
 
 		uint8_t nPayType = pGameOpts->getPayType();
 		if (pGameOpts->isAA()) {
@@ -202,6 +208,10 @@ bool IGameRoomManager::onAsyncRequest(uint16_t nRequestType, const Json::Value& 
 		if ( nPayType == ePayType_RoomOwner && false == isCreateRoomFree() )
 		{
 			nDiamondNeed = pGameOpts->getDiamondNeed();
+		}
+
+		if (pGameOpts->getVipLevel()) {
+			nDiamondNeed = 0;
 		}
 
 		if ( nClubDiamond < nDiamondNeed)
@@ -707,11 +717,11 @@ void IGameRoomManager::onPlayerCreateRoom( Json::Value& prealMsg, uint32_t nSend
 			}*/
 			auto isRoomOwnerPay = (nPayType == ePayType_RoomOwner);
 #ifndef _DEBUG
-			if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
+			/*if (nAlreadyRoomCnt >= MAX_CREATE_ROOM_CNT)
 			{
 				nRet = 2;
 				break;
-			}
+			}*/
 #endif // _DEBUG
 			auto nDiamondNeed = pGameOpts->getDiamondNeed();
 			if (isCreateRoomFree() || pGameOpts->getVipLevel())

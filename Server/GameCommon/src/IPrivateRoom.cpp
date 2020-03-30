@@ -874,7 +874,12 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 		m_isOneRoundNormalEnd = true;
 	}
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
+
 	auto nNeedDiamond = getDiamondNeed();
+	if (isClubRoom() && getOpts()->getVipLevel()) {
+		nNeedDiamond = 0;
+	}
+
 	if ( isAAPay() && nNeedDiamond > 0)  // only aa delay consum diamond , owner pay diamond mode , diamond was consumed when create the room ;
 	{
 		auto nCnt = m_pRoom->getSeatCnt();
@@ -900,6 +905,7 @@ void IPrivateRoom::onGameDidEnd(IGameRoom* pRoom)
 			js["diamond"] = nNeedDiamond;
 			js["roomID"] = getRoomID();
 			js["reason"] = 0;
+			js["clubID"] = getClubID();
 			pAsync->pushAsyncRequest(ID_MSG_PORT_DATA, pPlayer->getUserUID(), eAsync_Consume_Diamond, js);
 		}
 	}
@@ -1209,6 +1215,7 @@ void IPrivateRoom::doProcessWinerPayRoomCard()
 	js["diamond"] = nDiamondPerBigWiner;
 	js["roomID"] = getRoomID();
 	js["reason"] = 0;
+	js["clubID"] = getClubID();
 	auto pAsync = m_pRoomMgr->getSvrApp()->getAsynReqQueue();
 	for (auto& ref : vBigWinerUID)
 	{

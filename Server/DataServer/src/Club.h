@@ -13,10 +13,24 @@ public:
 		int32_t nOffsetPoints;
 		int32_t nInitPoints;
 		uint32_t nPlayTime;
-		stMember() { nOffsetPoints = 0; nInitPoints = 0; }
+		std::string sRemark;
+		stMember() { nOffsetPoints = 0; nInitPoints = 0; nPlayTime = 0; }
 		int32_t getCurPoint() { return nInitPoints + nOffsetPoints; }
 		void decreasePlayTime() { nPlayTime -= 1; }
 		void updatePlayTime(uint32_t tPlayTime) { nPlayTime = tPlayTime; }
+		void updateRemark(std::string tRemark) { sRemark = tRemark; }
+		void switchPlayTime()
+		{
+			if (nPlayTime == 1) {
+				nPlayTime = 0;
+			}
+			else if (nPlayTime == 0) {
+				nPlayTime = 1;
+			}
+			else {
+				nPlayTime = 1;
+			}
+		}
 	};
 
 	struct stClubEvent
@@ -36,6 +50,7 @@ public:
 
 	struct stClubRoomInfo
 	{
+		uint32_t nGameType;
 		uint32_t nRoomID;
 		uint32_t nRoomIdx;
 		uint8_t nMaxPlayerCnt;
@@ -52,10 +67,11 @@ public:
 	typedef std::map<uint32_t, stClubEvent*> MAP_EVENT;
 public:
 	~Club();
-	bool init( ClubManager * pClubMgr, uint32_t nClubID, std::string& strClubName,Json::Value& jsCreateRoomOpts, uint32_t nCapacity, uint16_t nMaxMgrCnt, uint8_t nState = 0, uint8_t nCPRoomState = 0, uint8_t nAutoJoin = 0, uint32_t nDiamond = 0 , std::string strNotice = "");
+	bool init( ClubManager * pClubMgr, uint32_t nClubID, std::string& strClubName,Json::Value& jsCreateRoomOpts, uint32_t nCapacity, uint16_t nMaxMgrCnt, uint8_t nState = 0, uint8_t nCPRoomState = 0, uint8_t nAutoJoin = 0, uint8_t nVipLevel = 0, uint32_t tVipInvalidTime = 0, uint32_t nDiamond = 0 , std::string strNotice = "");
 	bool onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort, uint32_t nSenderID, uint32_t nTargetID );
 	bool onAsyncRequest(uint16_t nRequestType, const Json::Value& jsReqContent, Json::Value& jsResult);
 	void onTimeSave();
+	void onSaveVipInfo();
 	uint32_t getClubID();
 	uint16_t getMgrCnt();
 	uint32_t getCreatorUID();
@@ -85,19 +101,23 @@ public:
 	bool setIsEnablePointRestrict( bool isEnable );
 	void decreaseMemberPlayTime(uint32_t nMemberUID);
 	void updateMemberPlayTime(uint32_t nMemberUID, uint32_t nPlayTime);
+	void updateMemberRemark(uint32_t nMemberUID, std::string sRemark);
+	void switchMemberPlayTime(uint32_t nMemberUID);
 	void clearLackDiamond(); //仅供外部调用，验证gateType
 	uint8_t transferCreator(uint32_t nMemberUID);
+	uint8_t getVipLevel() { return m_nVipLevel; }
+	uint8_t changeVip(uint32_t nVipLevel, uint32_t nDay = 0);
 protected:
 	void readClubEvents( uint32_t nAlreadyCnt );
 	void readClubMemebers( uint32_t nAlreadyCnt );
 	void saveEventToDB( uint32_t nEventID , bool isAdd ) ; // or update ?
 	bool addEvent( stClubEvent* pEvent );
-	void onCreateEmptyRoom( uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx, uint8_t nSeatCnt, bool bPrivate = false );
+	void onCreateEmptyRoom( uint32_t nIdx, uint32_t nGameType, uint32_t nRoomID,int32_t nDiamondFee , uint32_t nRoomIdx, uint8_t nSeatCnt, bool bPrivate = false );
 	void updateCreateRoom();
-	uint8_t getEmptyAutoCreatRoomCnt();
+	//uint8_t getEmptyAutoCreatRoomCnt();
 	void postMail( uint32_t nTargetID , eMailType eType , Json::Value& jsContent , eMailState eState );
 	uint16_t getTargetPortByGameType( uint32_t nGameType );
-	void dismissEmptyRoom( bool isWillDelteClub = false );
+	void dismissEmptyRoom( uint32_t nIdx = 0, bool isWillDelteClub = false );
 	bool isEnablePointsRestrict();
 
 	// nLogType 0 牌局更新offsetPoint 。 detail { roomOffset: 23 , curPoint : 23 , roomID : 23 }
@@ -109,6 +129,14 @@ protected:
 	void joinIRT(uint32_t nUserID);
 	void removeFromIRT(uint32_t nUserID);
 	void sendIRT(Json::Value& jsMsg);
+	void sortVipInfo();
+
+	bool findCreateRoomOpts(uint32_t& nIdx, Json::Value& jsOpts);
+	bool checkSameOpts(const Json::Value& jsOpts) { return false; }
+	void clearEmptyRoomList();
+	bool addRoomOpts(Json::Value jsOpts);
+	bool eraseRoomOpts(uint32_t nOptsIdx);
+
 protected:
 	uint8_t m_nState;  // 0 normal , 1 pause ;
 	uint32_t m_nCapacity;
@@ -121,12 +149,16 @@ protected:
 	Json::Value m_jsCreateRoomOpts;
 	uint8_t m_nCreatePRoomState; // 0 can not, 1 can
 	uint8_t m_nAutoJoin;
+	uint8_t m_nVipLevel;
+	uint32_t m_tVipInvalidTime;
 	bool m_isCreatingRoom; 
 	MAP_MEMBER m_vMembers;
 	MAP_EVENT m_vEvents;
 	ClubManager* m_pMgr;
-	std::vector<stClubRoomInfo> m_vFullRooms;
-	std::vector<stClubRoomInfo> m_vEmptyRooms;
+	std::map<uint32_t, std::vector<stClubRoomInfo>> m_mFullRooms;
+	std::map<uint32_t, std::vector<stClubRoomInfo>> m_mEmptyRooms;
+	//std::vector<stClubRoomInfo> m_vFullRooms;
+	//std::vector<stClubRoomInfo> m_vEmptyRooms;
 	std::vector<stInvitation*> m_vInvitations;
 
 	std::vector<uint32_t> m_vRealTimeInformation;
@@ -134,6 +166,7 @@ protected:
 	bool m_isLackDiamond;
 	float m_fDelayTryCreateRoom;
 	bool m_isClubInfoDirty;
+	bool m_bVipInfoDirty;
 	uint32_t m_nMaxRoomIdx;
 
 	bool m_isFinishReadEvent;
