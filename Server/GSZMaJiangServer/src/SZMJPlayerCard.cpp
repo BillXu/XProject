@@ -128,7 +128,7 @@ uint8_t SZMJPlayerCard::getHoldCardCnt() {
 //	return 0;
 //}
 
-uint8_t SZMJPlayerCard::getHuaCntWithoutHuTypeHuaCnt() {
+uint8_t SZMJPlayerCard::getHuaCntWithoutHuTypeHuaCnt(stHuDetail* pHuDetail) {
 	VEC_CARD vCard, vHuaCard;
 	getBuHuaCard(vHuaCard);
 	uint8_t nHuaCnt = vHuaCard.size();
@@ -171,7 +171,7 @@ uint8_t SZMJPlayerCard::getHuaCntWithoutHuTypeHuaCnt() {
 	}
 	// check feng an ke 
 	//update by haodi
-	nHuaCnt = checkAnKe(nHuaCnt);
+	nHuaCnt = checkAnKe(nHuaCnt, pHuDetail);
 
 	return nHuaCnt;
 }
@@ -221,7 +221,8 @@ bool SZMJPlayerCard::checkQiDui() {
 	return checker.checkFanxing(this, nullptr, 0, nullptr);
 }
 
-uint8_t SZMJPlayerCard::checkAnKe(uint8_t nHuaCnt) {
+uint8_t SZMJPlayerCard::checkAnKe(uint8_t nHuaCnt, stHuDetail* pHuDetail) {
+	auto szHuDetail = dynamic_cast<stSZHuDetail*>(pHuDetail);
 	auto& vFeng = m_vCards[eCT_Feng];
 	for (uint8_t nidx = 0; (nidx + 2) < vFeng.size(); )
 	{
@@ -231,10 +232,16 @@ uint8_t SZMJPlayerCard::checkAnKe(uint8_t nHuaCnt) {
 				if (vFeng[nidx] != vFeng[nidx + 3]) {
 					if (vFeng[nidx] == getHuCard())
 					{
+						if (szHuDetail) {
+							szHuDetail->addMingKe();
+						}
 						nHuaCnt += 1;
 					}
 					else
 					{
+						if (szHuDetail) {
+							szHuDetail->addAnKe();
+						}
 						nHuaCnt += 2;
 					}
 					nidx += 3;
@@ -246,10 +253,16 @@ uint8_t SZMJPlayerCard::checkAnKe(uint8_t nHuaCnt) {
 			else {
 				if (vFeng[nidx] == getHuCard())
 				{
+					if (szHuDetail) {
+						szHuDetail->addMingKe();
+					}
 					nHuaCnt += 1;
 				}
 				else
 				{
+					if (szHuDetail) {
+						szHuDetail->addAnKe();
+					}
 					nHuaCnt += 2;
 				}
 				nidx += 3;

@@ -54,7 +54,7 @@ public:
 	virtual bool onPlayerBuHua(uint8_t nIdx);
 
 	virtual void packStartGameReplyInfo(Json::Value& jsFrameArg);
-	uint8_t getBaseScore();
+	virtual uint8_t getBaseScore();
 	bool isCircle();
 
 protected:

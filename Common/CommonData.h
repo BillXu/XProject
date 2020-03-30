@@ -20,6 +20,7 @@ struct stPlayerDetailData
 {
 	double dfJ;  // jing du 
 	double dfW;  // wei du ;
+	std::string sAddress;
 };
 
 struct stServerBaseData

@@ -914,6 +914,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		if ( nRet )
 		{
 			Json::Value js;
+			js["clubID"] = getClubID();
 			js["ret"] = nRet;
 			sendMsg(js, nMsgType, nTargetID, nSenderID);
 			break;
@@ -1185,6 +1186,7 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		Json::Value js;
 		js["pageIdx"] = nPages++;
 		js["players"] = jsPlayers;
+		js["clubID"] = getClubID();
 		sendMsg(js, nMsgType, nTargetID, nSenderID);
 	}
 	break;
@@ -3177,6 +3179,16 @@ uint16_t Club::getTargetPortByGameType(uint32_t nGameType)
 	case eGame_YZMJ:
 	{
 		return ID_MSG_PORT_YZMJ;
+	}
+	break;
+	case eGame_NJMJ:
+	{
+		return ID_MSG_PORT_NJMJ;
+	}
+	break;
+	case eGame_ARQMJ:
+	{
+		return ID_MSG_PORT_ARQMJ;
 	}
 	break;
 	default:

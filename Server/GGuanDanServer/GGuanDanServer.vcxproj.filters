@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="src\Card">
+      <UniqueIdentifier>{5df7c328-199b-4acf-8199-7f4a213977f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\GuanDan">
+      <UniqueIdentifier>{61e71fee-175b-4afc-bd74-24f97d260565}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\GuanDan\state">
+      <UniqueIdentifier>{f71f2206-7af4-401d-971a-80380ebe2ab8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CardPoker.cpp">
+      <Filter>src\Card</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GDServer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GDRoomManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GDPrivateRoom.cpp">
+      <Filter>src\GuanDan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GDRoom.cpp">
+      <Filter>src\GuanDan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GDPlayerCard.cpp">
+      <Filter>src\GuanDan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GDPlayer.cpp">
+      <Filter>src\GuanDan</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\CardPoker.h">
+      <Filter>src\Card</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DouDiZhuCardTypeChecker.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDZFindCardTypeForChu.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDServer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoomManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDPrivateRoom.h">
+      <Filter>src\GuanDan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoom.h">
+      <Filter>src\GuanDan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDPlayerCard.h">
+      <Filter>src\GuanDan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDPlayer.h">
+      <Filter>src\GuanDan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoomStateWaitReady.h">
+      <Filter>src\GuanDan\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuanDanDefine.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoomStateGameEnd.h">
+      <Filter>src\GuanDan\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoomStatePlayerChu.h">
+      <Filter>src\GuanDan\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoomStatePayTribute.h">
+      <Filter>src\GuanDan\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoomStateStartGame.h">
+      <Filter>src\GuanDan\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDRoomStateBackTribute.h">
+      <Filter>src\GuanDan\state</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IPeerCard.h">
+      <Filter>src\Card</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GDGroupCardsTypeChecker.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

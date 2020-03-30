@@ -155,7 +155,7 @@ bool DDMJRoom::needChu() {
 
 void DDMJRoom::onPrePlayerGang() {
 	m_nGangCnt++;
-	if (m_nGangCnt == 7 || m_nGangCnt == 15) {
+	if (m_nGangCnt == 8 || m_nGangCnt == 16) {
 		m_tPoker.pushCardToFron(m_tPoker.getCardByIdx(m_nGangCnt, true));
 	}
 }

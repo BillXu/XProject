@@ -107,6 +107,9 @@ enum eGameType
 	eGame_SZMJ,
 	eGame_SDMJ,
 	eGame_YZMJ,
+	eGame_NJMJ,
+	eGame_GuanDan,
+	eGame_ARQMJ,
 	eGame_Max,
 };
 
@@ -150,6 +153,8 @@ enum eRoomState
 	eRoomState_JJ_DDZ_Ti_La_Chuai, 
 	eRoomState_JJ_DDZ_Chao_Zhuang,
 	eRoomState_DDZ_Double,
+	eRoomState_GD_PayTribute,
+	eRoomState_GD_BackTribute,
 
 	// above is new ;
 	eRoomState_None,
@@ -216,6 +221,7 @@ enum eMJActType
 	eMJAct_Ting,
 	eMJAct_Cyclone, //旋风杠
 	eMJAct_MingGang_Pre,
+	eMJAct_ZiDaAnGang, //自打暗杠
 	eMJAct_Max,
 };
 
@@ -263,6 +269,11 @@ enum eFanxingType
 	eFanxing_TribleShuangQiDui, // 三双七对
 	eFanxing_FengQing, //风清
 	eFanxing_YiTiaoLong, //一条龙
+
+	eFanxing_DanDiao, //单吊
+	eFanxing_QueYi, //缺一门
+
+	eFanxing_XiaoGangKai, //小杠开
 
 	eFanxing_Max, // 没有胡
 };

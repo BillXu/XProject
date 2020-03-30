@@ -83,12 +83,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AHMJOpts.cpp" />
+    <ClCompile Include="src\ARQMJOpts.cpp" />
     <ClCompile Include="src\BJOpts.cpp" />
     <ClCompile Include="src\CFMJOpts.cpp" />
     <ClCompile Include="src\DDMJOpts.cpp" />
     <ClCompile Include="src\DDZOpts.cpp" />
     <ClCompile Include="src\FXMJOpts.cpp" />
     <ClCompile Include="src\GameRoom.cpp" />
+    <ClCompile Include="src\GDOpts.cpp" />
     <ClCompile Include="src\GoldenOpts.cpp" />
     <ClCompile Include="src\IGameOpts.cpp" />
     <ClCompile Include="src\IGameRecorder.cpp" />
@@ -102,6 +104,7 @@
     <ClCompile Include="src\IPrivateRoom.cpp" />
     <ClCompile Include="src\MQMJOpts.cpp" />
     <ClCompile Include="src\NCMJOpts.cpp" />
+    <ClCompile Include="src\NJMJOpts.cpp" />
     <ClCompile Include="src\NNOpts.cpp" />
     <ClCompile Include="src\SCMJOpts.cpp" />
     <ClCompile Include="src\SDMJOpts.cpp" />
@@ -111,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AHMJOpts.h" />
+    <ClInclude Include="src\ARQMJOpts.h" />
     <ClInclude Include="src\BJOpts.h" />
     <ClInclude Include="src\CFMJOpts.h" />
     <ClInclude Include="src\DDMJOpts.h" />
@@ -130,6 +134,7 @@
     <ClInclude Include="src\FanxingHaiDiLaoYue.h" />
     <ClInclude Include="src\FXMJOpts.h" />
     <ClInclude Include="src\GameRoom.h" />
+    <ClInclude Include="src\GDOpts.h" />
     <ClInclude Include="src\GoldenOpts.h" />
     <ClInclude Include="src\IFanxing.h" />
     <ClInclude Include="src\IGameOpts.h" />
@@ -164,6 +169,7 @@
     <ClInclude Include="src\MJRoomStateWaitReady.h" />
     <ClInclude Include="src\MQMJOpts.h" />
     <ClInclude Include="src\NCMJOpts.h" />
+    <ClInclude Include="src\NJMJOpts.h" />
     <ClInclude Include="src\NNOpts.h" />
     <ClInclude Include="src\PokerDefine.h" />
     <ClInclude Include="src\SCMJOpts.h" />

@@ -23,7 +23,8 @@ public:
 		eMJActFlag_Cyclone = 1 << 10 | eMJActFlag_Gang,
 		eMJActFlag_CanCyclone = 1 << 11,
 		eMJActFlag_NeedClearCanCyclone = 1 << 12,
-		eMJActFlag_BuHua = 1 << 13,
+		eMJActFlag_BuHua = 1 << 13 | eMJActFlag_Gang,
+		eMJActFlag_HuaGang = 1 << 14 | eMJActFlag_Gang,
 		eMJActFlag_Max,
 	};
 public:

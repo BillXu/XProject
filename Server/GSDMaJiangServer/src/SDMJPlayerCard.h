@@ -4,6 +4,31 @@ class SDMJPlayerCard
 	:public MJPlayerCard
 {
 public:
+	struct stSDHuDetail
+		:public stHuDetail
+	{
+	public:
+		uint8_t getMingKe() {
+			return m_nMingKe;
+		}
+
+		uint8_t getAnKe() {
+			return m_nAnKe;
+		}
+
+		void addAnKe(uint8_t nCnt = 1) {
+			m_nAnKe += nCnt;
+		}
+
+		void addMingKe(uint8_t nCnt = 1) {
+			m_nMingKe += nCnt;
+		}
+	protected:
+		uint8_t m_nAnKe = 0;
+		uint8_t m_nMingKe = 0;
+	};
+
+public:
 	SDMJPlayerCard();
 	void reset() override;
 	bool canEatCard(uint8_t nCard, uint8_t nWith1 = 0, uint8_t nWith2 = 0) override { return false; }
@@ -37,7 +62,7 @@ public:
 	bool checkDuiDuiHu();
 	bool checkQiDui();
 	bool checkHaoHuaQiDui();
-	uint8_t getHuaCntWithoutHuTypeHuaCnt(bool checkDMQ = false);
+	uint8_t getHuaCntWithoutHuTypeHuaCnt(bool checkDMQ = false, stHuDetail* pHuDetail = nullptr);
 
 	void setRuleMode(uint8_t nRuleMode);
 	bool isChuDa() { return m_bChuDa; }
@@ -52,7 +77,7 @@ protected:
 	uint8_t getDianPaoHuHuaRequire();
 
 	//update by haodi 新增检查暗刻方法
-	uint8_t checkAnKe(uint8_t nHuaCnt, bool checkDMQ);//算花使用，返回最终得到的花数，自摸请设置胡牌为0
+	uint8_t checkAnKe(uint8_t nHuaCnt, bool checkDMQ, stHuDetail* pHuDetail = nullptr);//算花使用，返回最终得到的花数，自摸请设置胡牌为0
 	//uint8_t checkAnKe(uint8_t nHuCard);//单纯检测暗刻数量，返回手中拥有暗刻数量,自摸请设置胡牌为0
 
 	void removeHoldCardAllBaiDa();//此方法将移除手牌中所有的百搭牌，除非你知道你在做什么，否则慎用

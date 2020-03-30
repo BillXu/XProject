@@ -102,6 +102,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GSDMaJiangServer", "GSDMaJi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GYZMaJiangServer", "GYZMaJiangServer\GYZMaJiangServer.vcxproj", "{3362478A-0305-4388-83AB-B0AA3C0E6643}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GNJMaJiangServer", "GNJMaJiangServer\GNJMaJiangServer.vcxproj", "{FF42BE85-08B1-4580-881B-56278E9C8446}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GARQMaJiangServer", "GARQMaJiangServer\GARQMaJiangServer.vcxproj", "{AF4442F8-6895-4A10-A33E-4806DB6BBF85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -208,6 +212,14 @@ Global
 		{3362478A-0305-4388-83AB-B0AA3C0E6643}.Debug|Win32.Build.0 = Debug|Win32
 		{3362478A-0305-4388-83AB-B0AA3C0E6643}.Release|Win32.ActiveCfg = Release|Win32
 		{3362478A-0305-4388-83AB-B0AA3C0E6643}.Release|Win32.Build.0 = Release|Win32
+		{FF42BE85-08B1-4580-881B-56278E9C8446}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FF42BE85-08B1-4580-881B-56278E9C8446}.Debug|Win32.Build.0 = Debug|Win32
+		{FF42BE85-08B1-4580-881B-56278E9C8446}.Release|Win32.ActiveCfg = Release|Win32
+		{FF42BE85-08B1-4580-881B-56278E9C8446}.Release|Win32.Build.0 = Release|Win32
+		{AF4442F8-6895-4A10-A33E-4806DB6BBF85}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AF4442F8-6895-4A10-A33E-4806DB6BBF85}.Debug|Win32.Build.0 = Debug|Win32
+		{AF4442F8-6895-4A10-A33E-4806DB6BBF85}.Release|Win32.ActiveCfg = Release|Win32
+		{AF4442F8-6895-4A10-A33E-4806DB6BBF85}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -41,7 +41,7 @@ uint16_t DDMJOpts::calculateDiamondNeed() {
 
 uint8_t DDMJOpts::calculateInitRound() {
 #ifdef _DEBUG
-	return 2;
+	//return 2;
 #endif // _DEBUG
 	auto nLevel = getRoundLevel();
 

@@ -34,7 +34,7 @@ void DDMJPoker::makeSpecialCard(std::vector<uint8_t>& vMakedCards) {
 #ifndef _DEBUG
 	return;
 #endif // !_DEBUG
-	//return;
+	return;
 
 	uint8_t tCard;
 	//1

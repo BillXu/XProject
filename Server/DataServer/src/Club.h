@@ -13,7 +13,10 @@ public:
 		int32_t nOffsetPoints;
 		int32_t nInitPoints;
 		uint32_t nPlayTime;
+//<<<<<<< HEAD
 		std::string sRemark;
+//=======
+//>>>>>>> dev_haodi_MQMJ_SZMJ_NJMJ
 		stMember() { nOffsetPoints = 0; nInitPoints = 0; nPlayTime = 0; }
 		int32_t getCurPoint() { return nInitPoints + nOffsetPoints; }
 		void decreasePlayTime() { nPlayTime -= 1; }

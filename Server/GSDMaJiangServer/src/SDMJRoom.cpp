@@ -320,14 +320,17 @@ void SDMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 		uint32_t nFanCnt = 0;
 		uint16_t nHoldHuaCnt = 0;
 		uint16_t nHuHuaCnt = getBaseScore();
+		SDMJPlayerCard::stSDHuDetail stHuDetail;
 		auto pZiMoPlayerCard = (SDMJPlayerCard*)pZiMoPlayer->getPlayerCard();
 		pZiMoPlayerCard->setHuCard(0);
 		m_cFanxingChecker.checkFanxing(vType, pZiMoPlayer, nInvokeIdx, this);
 		sortFanxing2FanCnt(vType, nHuHuaCnt);
 		pZiMoPlayer->setBestCards(nHuHuaCnt);
 		if (std::find(vType.begin(), vType.end(), eFanxing_DaMenQing) == vType.end()) {
-			nHoldHuaCnt = pZiMoPlayerCard->getHuaCntWithoutHuTypeHuaCnt();
-			pZiMoPlayerCard->getAnKeHuaType(vType);
+			nHoldHuaCnt = pZiMoPlayerCard->getHuaCntWithoutHuTypeHuaCnt(false, &stHuDetail);
+			//pZiMoPlayerCard->getAnKeHuaType(vType);
+			jsDetail["mingKe"] = stHuDetail.getMingKe();
+			jsDetail["anKe"] = stHuDetail.getAnKe();
 		}
 		nFanCnt = nHoldHuaCnt + nHuHuaCnt;
 		if (m_bFanBei) {
@@ -412,6 +415,7 @@ void SDMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			jsHuPlayer["idx"] = nHuIdx;
 			pHuPlayer->setState(eRoomPeer_AlreadyHu);
 
+			SDMJPlayerCard::stSDHuDetail stHuDetail;
 			auto pHuPlayerCard = (SDMJPlayerCard*)pHuPlayer->getPlayerCard();
 			pHuPlayerCard->setHuCard(nCard);
 
@@ -424,8 +428,10 @@ void SDMJRoom::onPlayerHu(std::vector<uint8_t>& vHuIdx, uint8_t nCard, uint8_t n
 			sortFanxing2FanCnt(vType, nHuHuaCnt);
 			pHuPlayer->setBestCards(nHuHuaCnt);
 			if (std::find(vType.begin(), vType.end(), eFanxing_DaMenQing) == vType.end()) {
-				nHoldHuaCnt = pHuPlayerCard->getHuaCntWithoutHuTypeHuaCnt();
-				pHuPlayerCard->getAnKeHuaType(vType);
+				nHoldHuaCnt = pHuPlayerCard->getHuaCntWithoutHuTypeHuaCnt(false, &stHuDetail);
+				//pHuPlayerCard->getAnKeHuaType(vType);
+				jsHuPlayer["mingKe"] = stHuDetail.getMingKe();
+				jsHuPlayer["anKe"] = stHuDetail.getAnKe();
 			}
 			nFanCnt = nHoldHuaCnt + nHuHuaCnt;
 			if (m_bFanBei) {

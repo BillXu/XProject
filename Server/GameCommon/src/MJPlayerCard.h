@@ -15,6 +15,10 @@ public:
 		uint8_t nInvokerIdx = 0 ;
 		eMJActType eAct = eMJAct_Max ;
 	};
+	struct stHuDetail
+	{
+		virtual void a() {}
+	};
 	typedef std::vector<stInvokeActInfo> VEC_INVOKE_ACT_INFO;
 public:
 	virtual uint8_t getBaiDaCard() { return 0;  }  // means no bai Da ;
@@ -59,6 +63,7 @@ public:
 	bool getPengedCard(VEC_CARD& vPengedCard) final;
 	bool getEatedCard(VEC_CARD& vEatedCard) final;
 	bool getBuHuaCard(VEC_CARD& vHuaCard)final;
+	uint8_t getBuHuaCnt();
 	uint8_t getHuaCard()override;
 
 	uint32_t getNewestFetchedCard()final;
@@ -66,6 +71,7 @@ public:
 	uint8_t getJiang();
 
 	bool CheckHoldCardAllShun(uint8_t nBaiDaCnt = 0);
+	uint8_t getMingCardInvokerIdx(uint8_t nCard, eMJActType nActType);
 protected:
 	void addHoldCard( uint8_t nCard );
 	void removeHoldCard(uint8_t nCard);

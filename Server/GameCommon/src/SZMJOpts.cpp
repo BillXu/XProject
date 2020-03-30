@@ -10,7 +10,7 @@ void SZMJOpts::initRoomOpts(Json::Value& jsOpts) {
 	m_nRuleMode = 1;
 	if (jsOpts["ruleMode"].isUInt()) {
 		m_nRuleMode = jsOpts["ruleMode"].asUInt();
-		if (m_nRuleMode != 1 || m_nRuleMode != 2) {
+		if (m_nRuleMode != 1 && m_nRuleMode != 2) {
 			LOGFMTE("invalid rule mode value = %u, game type = %n", m_nRuleMode, getGameType());
 			m_nRuleMode = 1;
 		}

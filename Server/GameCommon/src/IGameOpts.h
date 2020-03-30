@@ -12,6 +12,7 @@ public:
 	virtual void initRoomOpts(Json::Value& jsOpts);
 	uint32_t getGameType() { return m_nGameType; }
 	uint8_t getSeatCnt() { return m_nSeatCnt; }
+	void setSeatCnt(uint8_t nSeatCnt) { m_nSeatCnt = nSeatCnt; }
 	uint8_t getPayType() { return m_nPayType; }
 	bool isDK() { return m_bDaiKai; }
 	uint32_t getVipLevel() { return m_nVipLevel; }
