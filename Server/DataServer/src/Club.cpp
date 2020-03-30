@@ -1307,21 +1307,70 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 
 		prealMsg["ret"] = nRet;
 		prealMsg["clubID"] = getClubID();
-		sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
 		if (nRet)
 		{
+			sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
 			break;
 		}
 
-		addMember(nUID);
-		auto p = new stClubEvent();
-		p->nEventID = ++m_nMaxEventID;
-		p->nEventType = eClubEvent_ForceInvite;
-		p->nState = eEventState_Processed;
-		p->nTime = time(nullptr);
-		p->jsEventDetail["uid"] = nUID;
-		p->jsEventDetail["mgrUID"] = nTargetID;
-		addEvent(p);
+		auto pMember = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nUID);
+		if (pMember == nullptr) {
+			Json::Value jssql;
+			char pBuffer[512] = { 0 };
+			sprintf_s(pBuffer, "SELECT userUID FROM playerbasedata where userUID = %u", nUID);
+			std::string str = pBuffer;
+			jssql["sql"] = pBuffer;
+			m_pMgr->getSvrApp()->getAsynReqQueue()->pushAsyncRequest(ID_MSG_PORT_DB, nUID, eAsync_DB_Select, jssql, [nUID, nMsgType, nTargetID, nSenderID, this](uint16_t nReqType, const Json::Value& retContent, Json::Value& jsUserData, bool isTimeOut) {
+				Json::Value jsBack;
+				jsBack["uid"] = nUID;
+				jsBack["clubID"] = getClubID();
+				if (isTimeOut)
+				{
+					jsBack["ret"] = 4;
+					sendMsg(jsBack, nMsgType, nTargetID, nSenderID);
+					return;
+				}
+
+				uint8_t nRow = retContent["afctRow"].asUInt();
+				Json::Value jsData = retContent["data"];
+
+				if (jsData.size() == 1)
+				{
+					addMember(nUID);
+
+					auto p = new stClubEvent();
+					p->nEventID = ++m_nMaxEventID;
+					p->nEventType = eClubEvent_ForceInvite;
+					p->nState = eEventState_Processed;
+					p->nTime = time(nullptr);
+					p->jsEventDetail["uid"] = nUID;
+					p->jsEventDetail["mgrUID"] = nTargetID;
+					addEvent(p);
+
+					jsBack["ret"] = 0;
+					sendMsg(jsBack, nMsgType, nTargetID, nSenderID);
+				}
+				else
+				{
+					jsBack["ret"] = 4;
+					sendMsg(jsBack, nMsgType, nTargetID, nSenderID);
+				}
+			});
+		}
+		else {
+			addMember(nUID);
+
+			auto p = new stClubEvent();
+			p->nEventID = ++m_nMaxEventID;
+			p->nEventType = eClubEvent_ForceInvite;
+			p->nState = eEventState_Processed;
+			p->nTime = time(nullptr);
+			p->jsEventDetail["uid"] = nUID;
+			p->jsEventDetail["mgrUID"] = nTargetID;
+			addEvent(p);
+
+			sendMsg(prealMsg, nMsgType, nTargetID, nSenderID);
+		}
 	}
 	break;
 	case MSG_CLUB_RESPONE_INVITE:
