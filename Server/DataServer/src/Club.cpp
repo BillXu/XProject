@@ -3000,12 +3000,12 @@ bool Club::findCreateRoomOpts(uint32_t& nIdx, Json::Value& jsOpts) {
 void Club::updateCreateRoom()
 {
 	if (m_isFinishReadEvent == false) {
-		LOGFMTE("club id = %u is reading event, can not create room!", getClubID());
+		//LOGFMTE("club id = %u is reading event, can not create room!", getClubID());
 		return;
 	}
 
 	if (m_isFinishReadMembers == false) {
-		LOGFMTE("club id = %u is reading members, can not create room!", getClubID());
+		//LOGFMTE("club id = %u is reading members, can not create room!", getClubID());
 		return;
 	}
 

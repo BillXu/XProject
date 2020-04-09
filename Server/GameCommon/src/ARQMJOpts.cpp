@@ -3,6 +3,17 @@
 #include "CommonDefine.h"
 void ARQMJOpts::initRoomOpts(Json::Value& jsOpts) {
 	IMJOpts::initRoomOpts(jsOpts);
+
+	m_bPao = jsOpts["pao"].asBool();
+
+	m_nFanLimit = 0;
+	if (jsOpts["fanLimit"].isUInt()) {
+		m_nFanLimit = jsOpts["fanLimit"].asUInt();
+	}
+	m_nGuang = 0;
+	if (jsOpts["guang"].isUInt()) {
+		m_nGuang = jsOpts["guang"].asUInt();
+	}
 }
 
 uint16_t ARQMJOpts::calculateDiamondNeed() {

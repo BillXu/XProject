@@ -84,9 +84,9 @@ public:
 	uint8_t checkPlayerCanSitDown(stEnterRoomData* pEnterRoomPlayer)override;
 	bool isRoomFull()override { return false; }
 
-	uint8_t getFanLimit();
-	bool isDPOnePay();
-	uint32_t getGuang();
+	uint8_t getFanLimit() { return 0; }
+	bool isDPOnePay() { return false; }
+	uint32_t getGuang() { return 0; }
 
 	void addGain(uint8_t nIdx, stSettleGain stGain);
 	void clearGain();
