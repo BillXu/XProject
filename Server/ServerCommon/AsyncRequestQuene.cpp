@@ -58,7 +58,7 @@ bool CAsyncRequestQuene::onMsg(stMsg* prealMsg , eMsgPort eSenderPort , uint32_t
 		auto pReq = pReqIter->second ;
 		if (pRet->nRet == 1) // delay respone 
 		{
-			pReq->tLastSend -= ( TIME_CHECK_REQ_STATE * 3 );
+			pReq->tLastSend += ( TIME_CHECK_REQ_STATE * 2 );
 			LOGFMTD("this request deay respone do not try again during some seconds");
 			return true;
 		}

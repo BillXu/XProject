@@ -1,6 +1,7 @@
 #include "TaskPool.h"
 #include "WorkThread.h"
 #include <assert.h>
+#include "log4z.h"
 CTaskPool::CTaskPool()
 {
 	m_pTaskFactor = nullptr ;
@@ -82,11 +83,13 @@ ITask::ITaskPrt CTaskPool::getReuseTaskObjByID( uint32_t nID )
 	{
 		if ( m_pTaskFactor )
 		{
+			LOGFMTW( "we create task id = %u" , nID  );
 			return m_pTaskFactor->createTask(nID) ;
 		}
 		return nullptr ;
 	}
 
+	LOGFMTD( "we reuse task id = %u" , nID  );
 	auto p = iter->second.back();
 	iter->second.pop_back();
 	return p ;

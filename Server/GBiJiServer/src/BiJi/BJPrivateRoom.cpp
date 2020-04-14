@@ -55,6 +55,10 @@ void BJPrivateRoom::doSendRoomGameOverInfoToClient(bool isDismissed)
 	jsMsg["dismissID"] = m_nApplyDismissUID;
 	jsMsg["result"] = jsArrayPlayers;
 	sendRoomMsg(jsMsg, MSG_ROOM_BJ_GAME_OVER);
+
+	Json::StyledWriter writerJs;
+	std::string strContent = writerJs.write(jsMsg);
+	LOGFMTD( "gameover room id = %d  ret: %s " , getCoreRoom()->getRoomID(),strContent.c_str() );
 }
 
 uint8_t BJPrivateRoom::checkPlayerCanEnter(stEnterRoomData* pEnterRoomPlayer)

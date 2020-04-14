@@ -72,6 +72,10 @@ void NNPrivateRoom::doSendRoomGameOverInfoToClient( bool isDismissed )
 	jsMsg["dismissID"] = m_nApplyDismissUID;
 	jsMsg["result"] = jsArrayPlayers;
 	sendRoomMsg(jsMsg, MSG_ROOM_GAME_OVER );
+
+	Json::StyledWriter writerJs;
+	std::string strContent = writerJs.write(jsMsg);
+	LOGFMTD("gameover room id = %d  ret: %s ", getCoreRoom()->getRoomID(), strContent.c_str());
 }
 
 bool NNPrivateRoom::canStartGame(IGameRoom* pRoom)
