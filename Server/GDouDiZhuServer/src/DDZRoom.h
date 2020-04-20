@@ -37,9 +37,15 @@ public:
 	uint32_t getFanLimit();
 	bool isChaoZhuang();
 	bool isNotShuffle();
+	bool isDisableRangPai();
+	bool isEnableTakeTurnsFR();
+
 	void addNotShuffleCards(std::vector<uint8_t>& vCards);
 	void getNotShuffleCards(std::vector<uint8_t>& vCards);
 	void initCardsWithNotShuffleCards();
+
+	void addRangPaiCnt(uint8_t nCnt = 1);
+	uint8_t getRangPaiCnt() { return m_nRangPaiCnt; }
 private:
 	uint8_t m_nFirstRobotBankerIdx;
 	uint8_t m_nBankerIdx;
@@ -49,4 +55,6 @@ private:
 	uint8_t m_nBombCnt;
 
 	std::vector<uint8_t> m_vNotShuffleCards;
+
+	uint8_t m_nRangPaiCnt = 0;
 };

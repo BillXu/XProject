@@ -7,6 +7,8 @@ void DDZOpts::initRoomOpts(Json::Value& jsOpts) {
 	m_bEnableDouble = jsOpts["double"].asBool();
 	m_bNotShuffle = jsOpts["notShuffle"].asBool();
 	m_bEnableChaoZhuang = jsOpts["isChaoZhuang"].asBool();
+	m_bDisableRangPai = jsOpts["drp"].asBool();
+	m_bEnableTakeTurnsFirstRot = jsOpts["ttfr"].asBool();
 
 	m_nFengDing = 0;
 	if (jsOpts["maxBet"].isUInt()) {

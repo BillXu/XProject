@@ -95,6 +95,7 @@
     <ClInclude Include="src\DDZPlayerCard.h" />
     <ClInclude Include="src\DDZPrivateRoom.h" />
     <ClInclude Include="src\DDZRoom.h" />
+    <ClInclude Include="src\DDZRoomStateRobotBanker2.h" />
     <ClInclude Include="src\DDZRoomStateDouble.h" />
     <ClInclude Include="src\DDZRoomStateGameEnd.h" />
     <ClInclude Include="src\DDZRoomStateRobotBanker.h" />

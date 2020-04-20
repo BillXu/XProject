@@ -201,7 +201,7 @@ protected:
 		return true;
 	}
 
-	bool goOnWaitNextPlayerRotBanker()
+	virtual bool goOnWaitNextPlayerRotBanker()
 	{
 		bool flag = false;
 		uint8_t nSeatCnt = getRoom()->getSeatCnt();

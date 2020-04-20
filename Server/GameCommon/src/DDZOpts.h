@@ -14,6 +14,8 @@ public:
 	uint32_t getFanLimit() { return m_nFanLimit; }
 	bool isNotShuffle() { return m_bNotShuffle; }
 	bool isEnableChaoZhuang() { return m_bEnableChaoZhuang; }
+	bool isDisableRangPai() { return m_bDisableRangPai; }
+	bool isEnableTakeTurns() { return m_bEnableTakeTurnsFirstRot; }
 
 private:
 	uint32_t m_nFengDing;
@@ -23,4 +25,6 @@ private:
 	uint32_t m_nFanLimit;
 	bool m_bNotShuffle;
 	bool m_bEnableChaoZhuang;
+	bool m_bDisableRangPai;
+	bool m_bEnableTakeTurnsFirstRot;
 };

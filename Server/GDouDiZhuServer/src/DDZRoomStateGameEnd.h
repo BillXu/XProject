@@ -39,10 +39,18 @@ protected:
 				continue;
 			}
 
-			if (p->getPlayerCard()->getHoldCardCount() <= 0)
+			auto nHoldCardCnt = p->getPlayerCard()->getHoldCardCount();
+
+			if (nHoldCardCnt <= 0)
 			{
 				nWinerIdx = nIdx;
 				break;
+			}
+			else if(pRoom->getSeatCnt() == 2){
+				if (p->getIdx() == pRoom->getBankerIdx() && nHoldCardCnt <= pRoom->getRangPaiCnt()) {
+					nWinerIdx = nIdx;
+					break;
+				}
 			}
 		}
 

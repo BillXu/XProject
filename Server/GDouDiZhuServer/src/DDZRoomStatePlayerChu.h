@@ -252,7 +252,7 @@ public:
 		// tell other players ;
 		jsmsg["idx"] = pPlayer->getIdx();
 		pRoom->sendRoomMsg(jsmsg,MSG_DDZ_ROOM_CHU);
-		if ( pPlayer->getPlayerCard()->getHoldCardCount() == 0 ) // game over 
+		if ( isGameOver() ) // game over 
 		{
 			pRoom->setFirstRotBankerIdx(m_nWaitChuPlayerIdx);
 			delayEnterGameOverState();  // delay enter game over state ;
@@ -380,6 +380,21 @@ protected:
 			});
 			m_tTuoGuanTimer.start();
 		}
+	}
+
+	bool isGameOver() {
+		auto pRoom = (DDZRoom*)getRoom();
+		auto pPlayer = (DDZPlayer*)pRoom->getPlayerByIdx(m_nWaitChuPlayerIdx);
+		if (pPlayer) {
+			if (pRoom->getSeatCnt() == 2 && pRoom->getRangPaiCnt() && m_nWaitChuPlayerIdx == pRoom->getBankerIdx()) {
+				return pPlayer->getPlayerCard()->getHoldCardCount() <= pRoom->getRangPaiCnt();
+			}
+			else {
+				return pPlayer->getPlayerCard()->getHoldCardCount() == 0;
+			}
+		}
+		LOGFMTE("Big error!!! Player is nullptr why? roomID = %u, curIdx = %u", pRoom->getRoomID(), m_nWaitChuPlayerIdx);
+		return false;
 	}
 protected:
 	uint8_t m_nWaitChuPlayerIdx;

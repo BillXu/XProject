@@ -596,6 +596,11 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 				break;
 			}
 
+			if (getCreatorUID() == nUID) {
+				nRet = 3;
+				break;
+			}
+
 			for (auto ref : m_vEvents)
 			{
 				if (ref.second->nState != eEventState_WaitProcesse || eClubEvent_ApplyLeave != ref.second->nEventType)
@@ -648,6 +653,11 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 			if ( false == isHaveMemeber(nLeaveUID) )
 			{
 				nRet = 1;
+				break;
+			}
+
+			if (getCreatorUID() == nLeaveUID) {
+				nRet = 3;
 				break;
 			}
 
@@ -1124,16 +1134,22 @@ bool Club::onMsg( Json::Value& prealMsg, uint16_t nMsgType, eMsgPort eSenderPort
 		auto pPlayer = DataServerApp::getInstance()->getPlayerMgr()->getPlayerByUserUID(nTargetID);
 		if (pPlayer == nullptr) {
 			LOGFMTW("clubID = %u ,player id = %u request member info error, player is null", getClubID(), nTargetID);
+			Json::Value js;
+			sendMsg(js, nMsgType, nTargetID, nSenderID);
 			break;
 		}
 
 		auto pCurMmber = getMember(pPlayer->getUserUID());
 		if (pCurMmber == nullptr) {
 			LOGFMTW("clubID = %u ,player id = %u request member info error, member is null", getClubID(), nTargetID);
+			Json::Value js;
+			sendMsg(js, nMsgType, nTargetID, nSenderID);
 			break;
 		}
 		if (pCurMmber->ePrivilige < eClubPrivilige_Manager) {
 			LOGFMTW("clubID = %u ,player id = %u request member info error, is not manager", getClubID(), nTargetID);
+			Json::Value js;
+			sendMsg(js, nMsgType, nTargetID, nSenderID);
 			break;
 		}
 

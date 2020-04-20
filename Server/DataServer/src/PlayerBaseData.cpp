@@ -405,6 +405,7 @@ void CPlayerBaseData::onLeaveClub(uint32_t nClubID)
 	{
 		LOGFMTE("player do dismiss club = %u , uid = %u", nClubID, m_stBaseData.nUserUID);
 		m_vCreatedClubIDs.erase(iter);
+		m_bPlayerInfoDirty = true;
 	}
 }
 

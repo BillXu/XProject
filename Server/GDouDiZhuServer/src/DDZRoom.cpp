@@ -4,6 +4,7 @@
 #include "DDZRoomStatePlayerChu.h"
 #include "DDZRoomStateStartGame.h"
 #include "DDZRoomStateRobotBanker.h"
+#include "DDZRoomStateRobotBanker2.h"
 #include "DDZRoomStateGameEnd.h"
 #include "DDZPlayer.h"
 #include "JJDDZRoomStateChaoZhuang.h"
@@ -21,6 +22,7 @@ bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoo
 	m_nBankerIdx = 0;
 	m_nBankerTimes = 0;
 	m_nBombCnt = 0;
+	m_nRangPaiCnt = 0;
 
 	IGameRoomState* pState = nullptr;
 	if (std::dynamic_pointer_cast<DDZOpts>(ptrGameOpts)->isEnableChaoZhuang())
@@ -43,8 +45,16 @@ bool DDZRoom::init(IGameRoomManager* pRoomMgr, uint32_t nSeialNum, uint32_t nRoo
 	addRoomState(pState);
 	pState = new DDZRoomStateStartGame();
 	addRoomState(pState);
-	pState = new DDZRoomStateRobotBanker();
-	addRoomState(pState);
+
+	if (ptrGameOpts->getSeatCnt() == 2) {
+		pState = new DDZRoomStateRobotBanker2();
+		addRoomState(pState);
+	}
+	else {
+		pState = new DDZRoomStateRobotBanker();
+		addRoomState(pState);
+	}
+	
 	pState = new DDZRoomStateGameEnd();
 	addRoomState(pState);
 	pState = new JJDDZRoomStateTiLaChuai();
@@ -264,7 +274,12 @@ bool DDZRoom::setFirstRotBankerIdx(uint8_t nIdx) {
 		if (getPlayerByIdx(nIdx) == false) {
 			return false;
 		}
-		m_nFirstRobotBankerIdx = nIdx;
+		if (isEnableTakeTurnsFR()) {
+			m_nFirstRobotBankerIdx = (++m_nFirstRobotBankerIdx) % getSeatCnt();
+		}
+		else {
+			m_nFirstRobotBankerIdx = nIdx;
+		}
 	}
 	return true;
 }
@@ -341,6 +356,16 @@ bool DDZRoom::isNotShuffle()
 	return pDDZOpts->isNotShuffle();
 }
 
+bool DDZRoom::isDisableRangPai() {
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->isDisableRangPai();
+}
+
+bool DDZRoom::isEnableTakeTurnsFR() {
+	auto pDDZOpts = std::dynamic_pointer_cast<DDZOpts>(getDelegate()->getOpts());
+	return pDDZOpts->isEnableTakeTurns();
+}
+
 void DDZRoom::addNotShuffleCards(std::vector<uint8_t>& vCards)
 {
 	m_vNotShuffleCards.insert(m_vNotShuffleCards.end(), vCards.begin(), vCards.end());
@@ -359,6 +384,15 @@ void DDZRoom::initCardsWithNotShuffleCards()
 		if (vCards.size() == 54) {
 			((CDouDiZhuPoker*)getPoker())->initAllCardWithCards(vCards);
 		}
+	}
+}
+
+void DDZRoom::addRangPaiCnt(uint8_t nCnt) {
+	if (getSeatCnt() == 2 && isDisableRangPai() == false) {
+		m_nRangPaiCnt += nCnt;
+	}
+	else {
+		m_nRangPaiCnt = 0;
 	}
 }
 

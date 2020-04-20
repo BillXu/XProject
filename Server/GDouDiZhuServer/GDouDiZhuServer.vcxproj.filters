@@ -105,5 +105,8 @@
     <ClInclude Include="src\FALGroupCardsTypeChecker.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\DDZRoomStateRobotBanker2.h">
+      <Filter>src\DouDiZhu\state</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
